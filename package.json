@@ -1,0 +1,30 @@
+{
+  "name": "cloud-dev-platform",
+  "version": "1.0.0",
+  "description": "基于云计算的开发协作平台",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --filter \"./apps/*\" dev",
+    "build": "pnpm --filter \"./apps/*\" build",
+    "test": "pnpm --filter \"./apps/*\" test",
+    "lint": "pnpm --filter \"./apps/*\" lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "keywords": [
+    "monorepo",
+    "cloud",
+    "development",
+    "collaboration"
+  ],
+  "author": "JIA",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.10.6",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=10.0.0"
+  }
+}

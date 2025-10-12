@@ -1,0 +1,69 @@
+# Dependencies
+node_modules
+**/node_modules
+.pnpm-store
+
+# Next.js
+apps/frontend/.next
+apps/frontend/out
+apps/frontend/.turbo
+
+# NestJS
+apps/backend/dist
+apps/backend/.turbo
+
+# Testing
+coverage
+*.spec.ts
+**/*.spec.ts
+**/*.test.ts
+__tests__
+.nyc_output
+
+# Environment
+.env
+.env.local
+.env.*.local
+apps/backend/.env
+apps/frontend/.env
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Misc
+.cache
+tmp
+temp
+*.pid
+*.seed
+*.tgz
+.npm
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation
+*.md
+docs

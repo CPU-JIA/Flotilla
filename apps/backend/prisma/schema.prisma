@@ -1,0 +1,270 @@
+// Prisma Schema for Cloud Dev Platform
+// 基于云计算的开发协作平台
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// 枚举定义
+// ============================================
+
+enum UserRole {
+  USER         // 普通用户
+  SUPER_ADMIN  // 超级管理员
+}
+
+enum ProjectVisibility {
+  PUBLIC      // 公开
+  PRIVATE     // 私有
+}
+
+enum MemberRole {
+  OWNER       // 所有者
+  MAINTAINER  // 维护者（可管理项目设置、审核PR）
+  MEMBER      // 成员（可读写代码）
+  VIEWER      // 查看者（只读）
+}
+
+enum RaftNodeState {
+  FOLLOWER    // 跟随者
+  CANDIDATE   // 候选人
+  LEADER      // 领导者
+}
+
+// ============================================
+// 用户模块
+// ============================================
+
+model User {
+  id           String   @id @default(cuid())
+  username     String   @unique @db.VarChar(50)
+  email        String   @unique @db.VarChar(255)
+  passwordHash String   @db.VarChar(255)
+  avatar       String?  @db.VarChar(500)
+  bio          String?  @db.Text
+  role         UserRole @default(USER)
+  isActive     Boolean  @default(true) // 账户是否激活（封禁功能）
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  ownedProjects  Project[]       @relation("ProjectOwner")
+  projectMembers ProjectMember[]
+  commits        Commit[]
+  uploadedFiles  ProjectFile[]
+
+  @@index([email])
+  @@index([username])
+  @@map("users")
+}
+
+// ============================================
+// 项目模块
+// ============================================
+
+model Project {
+  id          String            @id @default(cuid())
+  name        String            @db.VarChar(100)
+  description String?           @db.Text
+  visibility  ProjectVisibility @default(PRIVATE)
+  ownerId     String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  owner        User            @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  repository   Repository?
+  members      ProjectMember[]
+  projectFiles ProjectFile[]
+
+  @@unique([ownerId, name])
+  @@index([ownerId])
+  @@index([visibility])
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String     @id @default(cuid())
+  projectId String
+  userId    String
+  role      MemberRole @default(MEMBER)
+
+  joinedAt DateTime @default(now())
+
+  // 关系
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@map("project_members")
+}
+
+// ============================================
+// 仓库模块
+// ============================================
+
+model Repository {
+  id            String @id @default(cuid())
+  projectId     String @unique
+  defaultBranch String @default("main") @db.VarChar(100)
+  storageUsed   BigInt @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  branches Branch[]
+  commits  Commit[]
+  files    File[]
+
+  @@index([projectId])
+  @@map("repositories")
+}
+
+model Branch {
+  id           String  @id @default(cuid())
+  repositoryId String
+  name         String  @db.VarChar(100)
+  commitId     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  repository Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  commit     Commit?    @relation("BranchCommit", fields: [commitId], references: [id], onDelete: SetNull)
+  commits    Commit[]   @relation("BranchCommits")
+  files      File[]
+
+  @@unique([repositoryId, name])
+  @@index([repositoryId])
+  @@index([commitId])
+  @@map("branches")
+}
+
+model Commit {
+  id           String   @id @default(cuid())
+  repositoryId String
+  branchId     String
+  authorId     String
+  message      String   @db.Text
+  hash         String   @default(cuid()) @db.VarChar(64)
+  parentHash   String?  @db.VarChar(64)
+
+  createdAt DateTime @default(now())
+
+  // 关系
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  branch       Branch     @relation("BranchCommits", fields: [branchId], references: [id], onDelete: Cascade)
+  author       User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  files        File[]
+  branchHeads  Branch[]   @relation("BranchCommit")
+
+  @@index([repositoryId])
+  @@index([branchId])
+  @@index([authorId])
+  @@index([hash])
+  @@index([createdAt])
+  @@map("commits")
+}
+
+model File {
+  id           String @id @default(cuid())
+  repositoryId String
+  branchId     String
+  commitId     String?
+  path         String @db.VarChar(500)
+  objectName   String @db.VarChar(1000) // MinIO对象名称
+  size         Int
+  mimeType     String @db.VarChar(100)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  repository Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  branch     Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  commit     Commit?    @relation(fields: [commitId], references: [id], onDelete: SetNull)
+
+  @@unique([repositoryId, branchId, path])
+  @@index([repositoryId])
+  @@index([branchId])
+  @@index([commitId])
+  @@index([path])
+  @@map("files")
+}
+
+// ============================================
+// Raft 分布式共识模块
+// ============================================
+
+model RaftLog {
+  id        String   @id @default(cuid())
+  index     Int      @unique
+  term      Int
+  command   String   @db.Text
+  timestamp BigInt
+
+  createdAt DateTime @default(now())
+
+  @@index([index])
+  @@index([term])
+  @@index([createdAt])
+  @@map("raft_logs")
+}
+
+model RaftState {
+  id          String        @id @default(cuid())
+  nodeId      String        @unique @db.VarChar(50)
+  currentTerm Int           @default(0)
+  votedFor    String?       @db.VarChar(50)
+  state       RaftNodeState @default(FOLLOWER)
+  leaderId    String?       @db.VarChar(50)
+  commitIndex Int           @default(0)
+  lastApplied Int           @default(0)
+
+  updatedAt DateTime @updatedAt
+
+  @@index([nodeId])
+  @@map("raft_state")
+}
+
+// ============================================
+// 项目文件管理模块
+// ============================================
+
+model ProjectFile {
+  id         String  @id @default(cuid())
+  projectId  String
+  name       String  @db.VarChar(255)
+  path       String  @db.VarChar(1000) // MinIO中的对象路径
+  size       Int
+  mimeType   String  @db.VarChar(100)
+  type       String  @db.VarChar(10) // 'file' or 'folder'
+  folder     String? @db.VarChar(500) // 所属文件夹路径
+  uploadedBy String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploader User    @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([uploadedBy])
+  @@index([folder])
+  @@index([type])
+  @@map("project_files")
+}

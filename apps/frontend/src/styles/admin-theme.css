@@ -1,0 +1,263 @@
+/**
+ * 管理员页面统一设计系统
+ * 基于优秀的HTML5表单设计提取
+ * ECP-B3: 统一的视觉语言
+ */
+
+:root {
+  /* 颜色系统 - 来自源设计 */
+  --admin-bg: #f4f6f9;
+  --admin-card: #ffffff;
+  --admin-text: #1f2328;
+  --admin-muted: #6b7280;
+  --admin-accent: #0a84ff;
+  --admin-danger: #ff3b30;
+  --admin-success: #34c759;
+
+  /* 圆角系统 */
+  --admin-radius-sm: 10px;
+  --admin-radius-md: 14px;
+  --admin-radius-pill: 999px;
+
+  /* 阴影层次 */
+  --admin-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.08);
+  --admin-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --admin-shadow-button: 0 6px 18px rgba(10, 132, 255, 0.25);
+  --admin-shadow-focus: 0 0 0 3px rgba(10, 132, 255, 0.18);
+
+  /* 间距系统 */
+  --admin-spacing-xs: 8px;
+  --admin-spacing-sm: 12px;
+  --admin-spacing-md: 16px;
+  --admin-spacing-lg: 22px;
+  --admin-spacing-xl: 32px;
+
+  /* 过渡动画 */
+  --admin-transition: 0.15s ease;
+}
+
+/* 管理员页面背景渐变 */
+.admin-page-bg {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #dbeafe 0, transparent 60%),
+    radial-gradient(1200px 600px at 110% 10%, #fde68a 0, transparent 60%),
+    var(--admin-bg);
+  min-height: 100vh;
+}
+
+/* 管理员卡片 */
+.admin-card {
+  background: var(--admin-card);
+  border-radius: var(--admin-radius-md);
+  padding: var(--admin-spacing-lg);
+  box-shadow: var(--admin-shadow-md);
+  transition: transform var(--admin-transition), box-shadow var(--admin-transition);
+}
+
+.admin-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* 统计卡片 */
+.admin-stat-card {
+  background: var(--admin-card);
+  border-radius: var(--admin-radius-md);
+  padding: var(--admin-spacing-lg);
+  box-shadow: var(--admin-shadow-sm);
+  transition: all var(--admin-transition);
+  border: 1px solid transparent;
+}
+
+.admin-stat-card:hover {
+  border-color: var(--admin-accent);
+  box-shadow: var(--admin-shadow-md);
+  transform: translateY(-1px);
+}
+
+/* 按钮样式 */
+.admin-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--admin-radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+  background: var(--admin-accent);
+  color: #ffffff;
+  box-shadow: var(--admin-shadow-button);
+  transition: transform var(--admin-transition), filter var(--admin-transition);
+}
+
+.admin-btn-primary:hover {
+  filter: brightness(1.05);
+}
+
+.admin-btn-primary:active {
+  transform: translateY(1px);
+}
+
+.admin-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--admin-radius-sm);
+  cursor: pointer;
+  font-weight: 500;
+  background: #f3f4f6;
+  color: #111827;
+  transition: all var(--admin-transition);
+}
+
+.admin-btn-secondary:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+/* 胶囊按钮（用于标签切换） */
+.admin-tab-btn {
+  border: none;
+  background: var(--admin-card);
+  color: var(--admin-text);
+  padding: 10px 16px;
+  border-radius: var(--admin-radius-pill);
+  cursor: pointer;
+  box-shadow: var(--admin-shadow-sm);
+  transition: transform var(--admin-transition), box-shadow var(--admin-transition), background var(--admin-transition);
+  font-weight: 500;
+}
+
+.admin-tab-btn[aria-selected="true"] {
+  background: var(--admin-accent);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: var(--admin-shadow-button);
+}
+
+.admin-tab-btn:hover:not([aria-selected="true"]) {
+  background: #f8f9fa;
+}
+
+/* 徽章 */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--admin-radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.admin-badge-primary {
+  background: rgba(10, 132, 255, 0.1);
+  color: var(--admin-accent);
+}
+
+.admin-badge-success {
+  background: rgba(52, 199, 89, 0.1);
+  color: var(--admin-success);
+}
+
+.admin-badge-danger {
+  background: rgba(255, 59, 48, 0.1);
+  color: var(--admin-danger);
+}
+
+.admin-badge-muted {
+  background: #f3f4f6;
+  color: var(--admin-muted);
+}
+
+/* 输入框焦点效果 */
+.admin-input:focus {
+  outline: none;
+  border-color: var(--admin-accent);
+  box-shadow: var(--admin-shadow-focus);
+}
+
+/* 列表项 */
+.admin-list-item {
+  padding: var(--admin-spacing-md);
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid #e5e7eb;
+  transition: all var(--admin-transition);
+  background: var(--admin-card);
+}
+
+.admin-list-item:hover {
+  border-color: var(--admin-accent);
+  box-shadow: var(--admin-shadow-sm);
+}
+
+/* 分割线 */
+.admin-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: var(--admin-spacing-lg) 0;
+}
+
+/* 文本样式 */
+.admin-text-muted {
+  color: var(--admin-muted);
+  font-size: 14px;
+}
+
+.admin-text-small {
+  font-size: 13px;
+  color: var(--admin-muted);
+}
+
+/* 响应式网格 */
+.admin-grid-2 {
+  display: grid;
+  gap: var(--admin-spacing-md);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.admin-grid-3 {
+  display: grid;
+  gap: var(--admin-spacing-md);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.admin-grid-4 {
+  display: grid;
+  gap: var(--admin-spacing-md);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 1024px) {
+  .admin-grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-grid-2, .admin-grid-3, .admin-grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 暗色模式适配 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --admin-bg: #1a1a1a;
+    --admin-card: #2d2d2d;
+    --admin-text: #f5f5f5;
+    --admin-muted: #a8a8a8;
+  }
+
+  .admin-list-item {
+    border-color: #404040;
+  }
+
+  .admin-btn-secondary {
+    background: #3a3a3a;
+    color: #f5f5f5;
+    border-color: #505050;
+  }
+}

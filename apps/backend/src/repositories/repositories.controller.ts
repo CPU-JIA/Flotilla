@@ -1,0 +1,155 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  Res,
+  StreamableFile,
+} from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
+import type { Response } from 'express'
+import { RepositoriesService } from './repositories.service'
+import { CreateBranchDto, CreateCommitDto } from './dto'
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
+import { CurrentUser } from '../auth/decorators/current-user.decorator'
+import type { User } from '@prisma/client'
+
+@Controller('projects/:projectId/repository')
+@UseGuards(JwtAuthGuard)
+export class RepositoriesController {
+  private readonly logger = new Logger(RepositoriesController.name)
+
+  constructor(private readonly repositoriesService: RepositoriesService) {}
+
+  /**
+   * 获取仓库信息
+   */
+  @Get()
+  async getRepository(@Param('projectId') projectId: string, @CurrentUser() currentUser: User) {
+    this.logger.log(`📂 Fetching repository for project: ${projectId}`)
+    return this.repositoriesService.getRepository(projectId, currentUser)
+  }
+
+  /**
+   * 创建分支
+   */
+  @Post('branches')
+  @HttpCode(HttpStatus.CREATED)
+  async createBranch(
+    @Param('projectId') projectId: string,
+    @Body() createBranchDto: CreateBranchDto,
+    @CurrentUser() currentUser: User,
+  ) {
+    this.logger.log(`🌿 Creating branch in project: ${projectId}`)
+    return this.repositoriesService.createBranch(projectId, createBranchDto, currentUser)
+  }
+
+  /**
+   * 获取分支列表
+   */
+  @Get('branches')
+  async getBranches(@Param('projectId') projectId: string, @CurrentUser() currentUser: User) {
+    this.logger.log(`📋 Fetching branches for project: ${projectId}`)
+    return this.repositoriesService.getBranches(projectId, currentUser)
+  }
+
+  /**
+   * 上传文件
+   */
+  @Post('branches/:branchId/files')
+  @UseInterceptors(FileInterceptor('file'))
+  @HttpCode(HttpStatus.CREATED)
+  async uploadFile(
+    @Param('projectId') projectId: string,
+    @Param('branchId') branchId: string,
+    @Body('path') filePath: string,
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() currentUser: User,
+  ) {
+    this.logger.log(`📤 Uploading file to project ${projectId}, branch ${branchId}`)
+    return this.repositoriesService.uploadFile(
+      projectId,
+      branchId,
+      filePath,
+      file.buffer,
+      currentUser,
+    )
+  }
+
+  /**
+   * 获取文件列表
+   */
+  @Get('branches/:branchId/files')
+  async getFiles(
+    @Param('projectId') projectId: string,
+    @Param('branchId') branchId: string,
+    @CurrentUser() currentUser: User,
+  ) {
+    this.logger.log(`📋 Fetching files for branch ${branchId}`)
+    return this.repositoriesService.getFiles(projectId, branchId, currentUser)
+  }
+
+  /**
+   * 下载文件
+   */
+  @Get('branches/:branchId/files/download')
+  async downloadFile(
+    @Param('projectId') projectId: string,
+    @Param('branchId') branchId: string,
+    @Query('path') filePath: string,
+    @CurrentUser() currentUser: User,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    this.logger.log(`📥 Downloading file: ${filePath}`)
+    const buffer = await this.repositoriesService.downloadFile(
+      projectId,
+      branchId,
+      filePath,
+      currentUser,
+    )
+
+    res.set({
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': `attachment; filename="${filePath.split('/').pop()}"`,
+    })
+
+    return new StreamableFile(buffer)
+  }
+
+  /**
+   * 创建提交
+   */
+  @Post('commits')
+  @HttpCode(HttpStatus.CREATED)
+  async createCommit(
+    @Param('projectId') projectId: string,
+    @Body() createCommitDto: CreateCommitDto,
+    @CurrentUser() currentUser: User,
+  ) {
+    this.logger.log(`📝 Creating commit in project: ${projectId}`)
+    return this.repositoriesService.createCommit(projectId, createCommitDto, currentUser)
+  }
+
+  /**
+   * 获取提交历史
+   */
+  @Get('branches/:branchId/commits')
+  async getCommits(
+    @Param('projectId') projectId: string,
+    @Param('branchId') branchId: string,
+    @Query('page') page: number = 1,
+    @Query('pageSize') pageSize: number = 20,
+    @CurrentUser() currentUser: User,
+  ) {
+    this.logger.log(`📋 Fetching commits for branch ${branchId}`)
+    return this.repositoriesService.getCommits(projectId, branchId, currentUser, page, pageSize)
+  }
+}

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>实验三 · HTML5 表单API</title>
+<style>
+  :root{
+    --bg:#f4f6f9;
+    --card:#ffffff;
+    --text:#1f2328;
+    --muted:#6b7280;
+    --accent:#0a84ff;
+    --danger:#ff3b30;
+    --radius:14px;
+  }
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #dbeafe 0, transparent 60%),
+      radial-gradient(1200px 600px at 110% 10%, #fde68a 0, transparent 60%),
+      var(--bg);
+  }
+  .wrap{
+    max-width:980px; margin:48px auto; padding:0 16px;
+  }
+  header{
+    text-align:center; margin-bottom:20px;
+  }
+  header h1{margin:.2em 0 .1em; font-size:clamp(22px,4.5vw,36px);}
+  header p{margin:0; color:var(--muted)}
+  /* 导航切换 */
+  .tabs{
+    display:flex; gap:10px; justify-content:center; margin:22px 0 26px;
+  }
+  .tab-btn{
+    border:none; background:var(--card); color:var(--text);
+    padding:10px 16px; border-radius:999px; cursor:pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,.08);
+    transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .tab-btn[aria-selected="true"]{
+    background:var(--accent); color:#fff; transform:translateY(-1px);
+    box-shadow:0 8px 20px rgba(10,132,255,.25)
+  }
+  /* 卡片 */
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:22px;
+    /* 教材风格的强投影（实验三示例强调） */
+    box-shadow: 10px 10px 15px black;
+    /* 为了现代浏览器也显柔和，叠加一层淡阴影 */
+    filter: drop-shadow(0 8px 24px rgba(0,0,0,.12));
+  }
+  .card h2{margin:0 0 12px}
+  .hint{color:var(--muted); margin:0 0 18px}
+  /* 表单基础 */
+  form{display:grid; gap:16px}
+  .grid-2{display:grid; gap:12px; grid-template-columns: repeat(2,minmax(0,1fr));}
+  @media (max-width:700px){ .grid-2{grid-template-columns:1fr;} }
+  label{display:block; font-weight:600; margin-bottom:6px}
+  .control{
+    display:flex; flex-direction:column;
+  }
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="date"],
+  select, textarea{
+    width:100%; padding:12px 14px;
+    border-radius:10px;
+    border:1px solid #e5e7eb;
+    background:#fff; color:var(--text);
+    outline:none; transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  textarea{min-height:96px; resize:vertical;}
+  input::placeholder, textarea::placeholder{color:#9ca3af}
+  input:focus, textarea:focus, select:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(10,132,255,.18);
+  }
+  .inline{display:flex; flex-wrap:wrap; gap:10px}
+  .inline label{font-weight:500}
+  .radio, .check{
+    display:inline-flex; align-items:center; gap:6px;
+    background:#f8fafc; border:1px solid #e5e7eb; padding:8px 12px; border-radius:999px;
+    cursor:pointer; user-select:none;
+  }
+  .small{font-size:13px; color:var(--muted)}
+  .error{font-size:13px; color:var(--danger); margin-top:6px; display:none}
+  .show{display:block}
+  .actions{display:flex; gap:10px; margin-top:4px}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:10px 16px; border:none; border-radius:10px; cursor:pointer;
+    font-weight:600; background:var(--accent); color:#fff;
+    box-shadow:0 6px 18px rgba(10,132,255,.25); transition:transform .15s ease, filter .15s ease;
+  }
+  .btn:hover{filter:brightness(1.05)}
+  .btn:active{transform:translateY(1px)}
+  .btn.secondary{background:#f3f4f6; color:#111827; box-shadow:none}
+  .divider{height:1px; background:#e5e7eb; margin:8px 0 2px}
+  /* 成功/提示 Toast */
+  .toast{
+    position:fixed; left:50%; bottom:28px; transform:translateX(-50%);
+    padding:12px 16px; background:#111827; color:#fff; border-radius:999px;
+    box-shadow:0 8px 20px rgba(0,0,0,.25); opacity:0; pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px)}
+  /* 隐藏切页 */
+  [hidden]{display:none !important;}
+  /* 非法态可视化（配合原生校验） */
+  input:invalid[aria-invalid="true"],
+  textarea:invalid[aria-invalid="true"]{
+    border-color:var(--danger);
+    box-shadow:0 0 0 3px rgba(255,59,48,.18);
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>实验三 · HTML5 表单 API</h1>
+      <p class="small">单文件实现 · 用户注册与问卷调查（含原生校验与复选题自定义校验）</p>
+    </header>
+
+    <!-- 导航切换 -->
+    <nav class="tabs" role="tablist" aria-label="页面切换">
+      <button id="tab-register" class="tab-btn" role="tab" aria-controls="panel-register" aria-selected="true">用户注册</button>
+      <button id="tab-survey"   class="tab-btn" role="tab" aria-controls="panel-survey"   aria-selected="false">问卷调查</button>
+    </nav>
+
+    <!-- 注册页面 -->
+    <section id="panel-register" role="tabpanel" aria-labelledby="tab-register" class="card">
+      <h2>用户注册</h2>
+      <p class="hint">请填写以下信息并提交。所有栏目均为必填，邮箱会进行格式校验。</p>
+      <form id="registerForm" action="#" method="post" novalidate>
+        <div class="grid-2">
+          <div class="control">
+            <label for="username">用户名</label>
+            <input id="username" name="username" type="text" required
+                   minlength="4" maxlength="16" pattern="^[A-Za-z0-9_]{4,16}$"
+                   placeholder="4–16 位字母/数字/下划线"
+                   title="4–16 位，仅限字母、数字或下划线" />
+            <span class="small">示例：alice_01</span>
+            <div class="error" id="err-username">请填写 4–16 位的有效用户名。</div>
+          </div>
+
+          <div class="control">
+            <label for="password">密码</label>
+            <input id="password" name="password" type="password" required minlength="8"
+                   placeholder="至少 8 位，建议包含字母与数字" />
+            <div class="error" id="err-password">密码至少 8 位。</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="control">
+            <label for="realname">真实姓名</label>
+            <input id="realname" name="realname" type="text" required
+                   minlength="2" maxlength="30"
+                   placeholder="请输入真实姓名（至少 2 个字符）" />
+            <div class="error" id="err-realname">请填写真实姓名。</div>
+          </div>
+
+          <div class="control">
+            <label for="email">电子邮箱</label>
+            <input id="email" name="email" type="email" required
+                   placeholder="name@example.com" />
+            <div class="error" id="err-email">请填写有效的邮箱地址。</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" type="submit">提交注册</button>
+          <button class="btn secondary" type="reset">重置</button>
+        </div>
+      </form>
+      <div class="divider"></div>
+      <p class="small">说明：本页满足实验三“注册页面需提示与校验（必填、邮箱有效性）”的要求。:contentReference[oaicite:1]{index=1}</p>
+    </section>
+
+    <!-- 问卷页面 -->
+    <section id="panel-survey" role="tabpanel" aria-labelledby="tab-survey" class="card" hidden>
+      <h2>问卷调查</h2>
+      <p class="hint">请根据实际情况作答。单选题需选择一项，复选题需至少勾选一项；个人信息栏均为必填并校验格式。</p>
+
+      <form id="surveyForm" action="#" method="post" novalidate>
+        <ol>
+          <li class="control">
+            <label>您的教育程度是？（单选）</label>
+            <div class="inline" role="radiogroup" aria-label="教育程度">
+              <label class="radio"><input type="radio" name="q1_edu" value="高中" required> 高中</label>
+              <label class="radio"><input type="radio" name="q1_edu" value="大专"> 大专</label>
+              <label class="radio"><input type="radio" name="q1_edu" value="本科"> 本科</label>
+              <label class="radio"><input type="radio" name="q1_edu" value="研究生及以上"> 研究生及以上</label>
+            </div>
+          </li>
+
+          <li class="control">
+            <label>您经常使用哪些编程语言？（可多选）</label>
+            <div class="inline" aria-describedby="langs-help">
+              <label class="check"><input type="checkbox" name="q2_langs" value="JavaScript"> JavaScript</label>
+              <label class="check"><input type="checkbox" name="q2_langs" value="Python"> Python</label>
+              <label class="check"><input type="checkbox" name="q2_langs" value="Java"> Java</label>
+              <label class="check"><input type="checkbox" name="q2_langs" value="C/C++"> C/C++</label>
+              <label class="check"><input type="checkbox" name="q2_langs" value="其他"> 其他</label>
+            </div>
+            <div id="langs-help" class="small">至少选择 1 项。</div>
+            <div class="error" id="err-langs">第 2 题至少勾选 1 项。</div>
+          </li>
+
+          <li class="control">
+            <label>您对课程的主要期望是？（单选）</label>
+            <div class="inline" role="radiogroup" aria-label="课程期望">
+              <label class="radio"><input type="radio" name="q3_goal" value="入门" required> 入门</label>
+              <label class="radio"><input type="radio" name="q3_goal" value="进阶"> 进阶</label>
+              <label class="radio"><input type="radio" name="q3_goal" value="项目实战"> 项目实战</label>
+            </div>
+          </li>
+        </ol>
+
+        <div class="divider"></div>
+        <h3>个人信息</h3>
+        <div class="grid-2">
+          <div class="control">
+            <label for="sv-name">您的姓名</label>
+            <input id="sv-name" name="name" type="text" required placeholder="如：张三" />
+            <div class="error" id="err-sv-name">请填写姓名。</div>
+          </div>
+          <div class="control">
+            <label for="sv-title">您的职位</label>
+            <input id="sv-title" name="title" type="text" required placeholder="如：前端工程师 / 学生" />
+            <div class="error" id="err-sv-title">请填写职位。</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="control">
+            <label for="sv-tel">联系电话</label>
+            <input id="sv-tel" name="tel" type="tel" required
+                   pattern="^1[3-9]\d{9}$" placeholder="11 位中国大陆手机号"
+                   title="请输入 11 位有效手机号（以 1 开头）"/>
+            <div class="error" id="err-sv-tel">请输入 11 位有效手机号。</div>
+          </div>
+          <div class="control">
+            <label for="sv-email">电子邮箱</label>
+            <input id="sv-email" name="email" type="email" required placeholder="name@example.com" />
+            <div class="error" id="err-sv-email">请输入有效邮箱地址。</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="btn" type="submit">提交问卷</button>
+          <button class="btn secondary" type="reset">重置</button>
+        </div>
+      </form>
+
+      <div class="divider"></div>
+      <p class="small">
+        说明：本页使用 <code>required</code> 强制单选题作答；复选题按教材思路用 JS 自定义函数校验“至少一项”；个人信息栏为必填并验证邮箱与手机号格式，
+        与实验三“问卷调查页面设计与验证”一致。:contentReference[oaicite:2]{index=2}
+      </p>
+    </section>
+  </div>
+
+  <!-- 轻量提示 -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+  // -------- 小工具：切换提示 ----------
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(()=> t.classList.remove('show'), 2000);
+  }
+
+  // -------- 页面切换（注册 / 问卷） ----------
+  const tabRegister = document.getElementById('tab-register');
+  const tabSurvey   = document.getElementById('tab-survey');
+  const panelRegister = document.getElementById('panel-register');
+  const panelSurvey   = document.getElementById('panel-survey');
+
+  function switchTo(key){
+    const isReg = key === 'register';
+    panelRegister.hidden = !isReg;
+    panelSurvey.hidden   =  isReg;
+    tabRegister.setAttribute('aria-selected', isReg);
+    tabSurvey.setAttribute('aria-selected', !isReg);
+    history.replaceState(null,'', '#' + key);
+    (isReg ? panelRegister : panelSurvey).querySelector('input,button,select,textarea')?.focus({preventScroll:true});
+  }
+
+  tabRegister.addEventListener('click', ()=> switchTo('register'));
+  tabSurvey.addEventListener('click',   ()=> switchTo('survey'));
+  // 初始路由
+  if(location.hash === '#survey') switchTo('survey');
+
+  // -------- 注册表单：原生校验 + 友好提示 ----------
+  const regForm = document.getElementById('registerForm');
+  regForm.addEventListener('submit', (e)=>{
+    // 先依赖原生校验规则
+    if(!regForm.checkValidity()){
+      e.preventDefault();
+      // 标记无效字段方便样式高亮
+      [...regForm.elements].forEach(el=>{
+        if(el.willValidate){
+          el.setAttribute('aria-invalid', !el.checkValidity());
+          const err = document.getElementById('err-' + el.id);
+          if(err) err.classList.toggle('show', !el.checkValidity());
+        }
+      });
+      regForm.reportValidity();
+      return;
+    }
+    e.preventDefault();
+    showToast('注册信息提交成功！');
+    regForm.reset();
+  });
+
+  // 每次输入变更时清理错误提示
+  [...regForm.elements].forEach(el=>{
+    el.addEventListener('input', ()=>{
+      el.setAttribute('aria-invalid', !el.checkValidity());
+      const err = document.getElementById('err-' + el.id);
+      if(err) err.classList.toggle('show', !el.checkValidity());
+    });
+  });
+
+  // -------- 问卷表单：复选题至少选择 1 项 ----------
+  function atLeastOneChecked(name){
+    const group = document.getElementsByName(name); // 与教材思路一致
+    for(let i=0;i<group.length;i++){
+      if(group[i].checked) return true;
+    }
+    return false;
+  }
+
+  const surveyForm = document.getElementById('surveyForm');
+  surveyForm.addEventListener('submit',(e)=>{
+    // 先跑原生校验（必填/格式）
+    if(!surveyForm.checkValidity()){
+      e.preventDefault();
+      [...surveyForm.elements].forEach(el=>{
+        if(el.willValidate){
+          el.setAttribute('aria-invalid', !el.checkValidity());
+          const err = document.getElementById('err-' + el.id);
+          if(err) err.classList.toggle('show', !el.checkValidity());
+        }
+      });
+      surveyForm.reportValidity();
+      return;
+    }
+    // 再做复选题“至少一项”
+    if(!atLeastOneChecked('q2_langs')){
+      e.preventDefault();
+      const err = document.getElementById('err-langs');
+      err.classList.add('show');
+      // 把焦点放到第一项
+      const first = document.querySelector('input[name="q2_langs"]');
+      first?.focus();
+      alert('第 2 题起码要选择一个选项。'); // 与教材示例行为一致
+      return;
+    } else {
+      document.getElementById('err-langs').classList.remove('show');
+    }
+
+    e.preventDefault();
+    showToast('问卷提交成功，感谢参与！');
+    surveyForm.reset();
+  });
+
+  // 复选框变更时，实时隐藏错误
+  document.querySelectorAll('input[name="q2_langs"]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{
+      if(atLeastOneChecked('q2_langs')){
+        document.getElementById('err-langs').classList.remove('show');
+      }
+    });
+  });
+
+  // 个人信息栏输入时更新可视错误态
+  [...surveyForm.elements].forEach(el=>{
+    el.addEventListener('input', ()=>{
+      if(el.willValidate){
+        el.setAttribute('aria-invalid', !el.checkValidity());
+        const err = document.getElementById('err-' + el.id);
+        if(err) err.classList.toggle('show', !el.checkValidity());
+      }
+    });
+  });
+</script>
+</body>
+</html>

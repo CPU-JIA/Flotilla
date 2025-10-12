@@ -1,0 +1,158 @@
+services:
+  # PostgreSQL 16 - 主数据库
+  postgres:
+    image: postgres:16-alpine
+    container_name: cloud-dev-postgres
+    restart: unless-stopped
+    ports:
+      - '5434:5432'
+    environment:
+      POSTGRES_USER: devplatform
+      POSTGRES_PASSWORD: devplatform123
+      POSTGRES_DB: cloud_dev_platform
+      POSTGRES_INITDB_ARGS: '--encoding=UTF-8 --lc-collate=C --lc-ctype=C'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U devplatform -d cloud_dev_platform']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cloud-dev-network
+
+  # Redis 7 - 缓存和会话存储
+  redis:
+    image: redis:7-alpine
+    container_name: cloud-dev-redis
+    restart: unless-stopped
+    ports:
+      - '6380:6379'
+    command: redis-server --appendonly yes --requirepass redis123
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', '--raw', 'incr', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - cloud-dev-network
+
+  # MinIO - 对象存储（S3兼容）
+  minio:
+    image: minio/minio:latest
+    container_name: cloud-dev-minio
+    restart: unless-stopped
+    ports:
+      - '9000:9000'   # API端口
+      - '9001:9001'   # Console端口
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    command: server /data --console-address ':9001'
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cloud-dev-network
+
+  # 后端 NestJS API
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: cloud-dev-backend
+    restart: unless-stopped
+    ports:
+      - '4000:4000'
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: 'postgresql://devplatform:devplatform123@postgres:5432/cloud_dev_platform'
+      REDIS_URL: 'redis://:redis123@redis:6379'
+      MINIO_ENDPOINT: minio
+      MINIO_PORT: 9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin123
+      MINIO_USE_SSL: 'false'
+      MINIO_BUCKET_NAME: cloud-dev-platform
+      JWT_SECRET: 'your-super-secret-jwt-key-change-in-production-2025'
+      JWT_EXPIRATION: '7d'
+      JWT_REFRESH_SECRET: 'your-super-secret-refresh-key-change-in-production-2025'
+      JWT_REFRESH_EXPIRATION: '30d'
+      FRONTEND_URL: 'http://localhost:3000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - cloud-dev-network
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:4000/api/docs']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 前端 Next.js
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    container_name: cloud-dev-frontend
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: 'http://localhost:4000/api'
+      NEXT_TELEMETRY_DISABLED: 1
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - cloud-dev-network
+
+  # PostgreSQL 从库（可选，用于读写分离）
+  postgres-replica:
+    image: postgres:16-alpine
+    container_name: cloud-dev-postgres-replica
+    restart: unless-stopped
+    ports:
+      - '5435:5432'
+    environment:
+      POSTGRES_USER: devplatform
+      POSTGRES_PASSWORD: devplatform123
+      POSTGRES_DB: cloud_dev_platform
+    volumes:
+      - postgres_replica_data:/var/lib/postgresql/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cloud-dev-network
+    profiles:
+      - replica   # 使用 docker-compose --profile replica up 来启动
+
+volumes:
+  postgres_data:
+    driver: local
+  postgres_replica_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  cloud-dev-network:
+    driver: bridge
