@@ -22,10 +22,24 @@ export class RepositoriesService {
   ) {}
 
   /**
-   * 创建仓库（内部方法，项目创建时调用）
+   * 创建仓库（可被ProjectService和Controller调用）
    * ECP-A1: 单一职责
    */
-  async createRepository(projectId: string): Promise<Repository> {
+  async createRepository(projectId: string, currentUser?: User): Promise<Repository> {
+    // 如果提供了currentUser，则检查权限
+    if (currentUser) {
+      await this.checkProjectPermission(projectId, currentUser, true)
+    }
+
+    // 检查Repository是否已存在
+    const existingRepo = await this.prisma.repository.findUnique({
+      where: { projectId },
+    })
+
+    if (existingRepo) {
+      throw new ConflictException('仓库已存在')
+    }
+
     const repository = await this.prisma.repository.create({
       data: {
         projectId,

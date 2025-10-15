@@ -4,125 +4,248 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**基于云计算的开发协作平台 (Cloud-based Development Collaboration Platform)**
+**基于云计算的开发协作平台** - A cloud-based code hosting and collaboration platform with distributed consensus algorithm (simplified Raft).
 
-This is an academic software engineering project following a structured development lifecycle:
+## Tech Stack
 
-1. Requirements Analysis
-2. Software Architecture Design (UML-based)
-3. UI/Frontend Development
-4. Database Design
-5. Distributed Consensus Algorithm Implementation
-6. Backend API & Integration
-7. Testing & Quality Assurance
-8. Documentation & Summary
+### Monorepo Architecture
+- **pnpm workspace** - Package manager with workspace support
+- **Apps**: `apps/backend` (NestJS) + `apps/frontend` (Next.js)
 
-The project follows a **frontend-backend separation architecture** and will implement a **distributed consensus algorithm** as a core component.
+### Frontend (`apps/frontend`)
+- **Next.js 15.5** with Turbopack - React framework with SSR/SSG
+- **React 19** - UI library
+- **TypeScript 5.7** - Type system
+- **Tailwind CSS 4** - Utility-first CSS
+- **Shadcn/ui** - Component library (Radix UI based)
+- **Monaco Editor** - Code editor integration
+- **Playwright** - E2E testing framework
 
-## Project Philosophy
+### Backend (`apps/backend`)
+- **NestJS 11** - Progressive Node.js framework
+- **Prisma 6** - ORM with PostgreSQL
+- **Passport + JWT** - Authentication strategy
+- **MinIO** - S3-compatible object storage
+- **Swagger** - API documentation
 
-- **Academic Rigor**: Each phase must produce comprehensive documentation before implementation
-- **Separation of Concerns**: Frontend and backend are developed and maintained separately
-- **Documentation-First**: All design decisions must be documented before coding
-- **Distributed Architecture**: The system is designed for cloud-based deployment with distributed consensus
+### Infrastructure
+- **PostgreSQL 16** - Primary database (port 5434)
+- **Redis 7** - Cache and session storage (port 6380)
+- **MinIO** - Object storage (ports 9000/9001)
+- **Docker Compose** - Local development orchestration
 
-## Architecture Principles
+## Common Commands
 
-### Frontend Architecture
-- Static pages designed first, then integrated with backend APIs
-- Modern frontend framework expected (to be determined in design phase)
-- Component-based UI design following UML models
+### Development Workflow
 
-### Backend Architecture
-- RESTful API design with clear interface contracts
-- Distributed consensus algorithm for coordination
-- Cloud-native deployment model
-- Database-backed persistent storage
+```bash
+# Install dependencies (run once)
+pnpm install
 
-### Key Technical Components
-1. **Distributed Consensus Module**: Core algorithm for platform coordination
-2. **API Layer**: Frontend-backend communication interface
-3. **Database Layer**: Persistent storage following normalized design
-4. **UI Components**: Reusable frontend modules
+# Start infrastructure (PostgreSQL + Redis + MinIO)
+docker-compose up -d
 
-## Development Workflow
+# Run database migrations
+cd apps/backend
+pnpm prisma migrate dev
+cd ../..
 
-### Phase-by-Phase Approach
-Each development phase follows this pattern:
-1. Review existing documentation (requirements, architecture, database design)
-2. Implement according to documented specifications
-3. Write tests to validate implementation
-4. Update documentation with actual implementation details
+# Start both frontend and backend in parallel
+pnpm dev
 
-### When Implementing New Features
-1. **Check Documentation First**: Refer to 需求分析文档, 软件设计文档, 数据库设计文档
-2. **Follow Architectural Patterns**: Maintain frontend-backend separation
-3. **Document API Contracts**: All endpoints must have clear request/response specifications
-4. **Consider Distributed Nature**: Design for scalability and cloud deployment
-
-### Documentation Files (To Be Created)
-- `docs/需求分析文档.md` - Requirements specification
-- `docs/软件设计文档.md` - Architecture and UML diagrams
-- `docs/UI设计与实现文档.md` - Frontend design specifications
-- `docs/数据库设计文档.md` - Database schema and design
-- `docs/算法设计与实现方案.md` - Distributed consensus algorithm
-- `docs/接口设计及数据渲染文档.md` - API specifications
-- `docs/测试计划文档.md` & `docs/软件测试报告.md` - Testing documentation
-
-## Code Organization (Expected Structure)
-
-```
-Cloud-Dev-Platform/
-├── docs/                    # All documentation
-├── frontend/                # Frontend application
-│   ├── src/
-│   │   ├── components/      # Reusable UI components
-│   │   ├── pages/           # Page-level components
-│   │   ├── services/        # API client services
-│   │   └── utils/           # Frontend utilities
-│   └── tests/
-├── backend/                 # Backend services
-│   ├── api/                 # API endpoints
-│   ├── core/                # Core business logic
-│   │   └── consensus/       # Distributed consensus algorithm
-│   ├── database/            # Database models and migrations
-│   └── tests/
-└── deployment/              # Cloud deployment configs
+# Start individual apps
+pnpm --filter backend dev    # Backend on http://localhost:4000
+pnpm --filter frontend dev   # Frontend on http://localhost:3000
 ```
 
-## Important Considerations
+### Backend Commands
 
-### When Writing Code
-- **Refer to Documentation**: Always check if design docs exist before implementing
-- **Maintain Consistency**: Follow patterns established in architecture documents
-- **Test Coverage**: Each module requires corresponding test cases
-- **API Contracts**: Backend changes must update interface documentation
+```bash
+cd apps/backend
+
+# Development
+pnpm start:dev              # Watch mode
+pnpm start:debug            # Debug mode with --inspect
+
+# Database
+pnpm prisma migrate dev     # Create and apply migration
+pnpm prisma studio          # Open Prisma Studio GUI
+pnpm prisma generate        # Regenerate Prisma Client
+
+# Testing
+pnpm test                   # Run unit tests (Jest)
+pnpm test:watch             # Watch mode
+pnpm test:cov               # With coverage
+pnpm test:e2e               # E2E tests
+
+# Build
+pnpm build                  # Compile TypeScript
+pnpm start:prod             # Run production build
+```
+
+### Frontend Commands
+
+```bash
+cd apps/frontend
+
+# Development
+pnpm dev                    # Next.js with Turbopack
+
+# Testing
+pnpm test                   # Run Playwright tests
+pnpm test:ui                # Interactive UI mode
+pnpm test:debug             # Debug mode
+pnpm test:report            # View test report
+
+# Build
+pnpm build                  # Production build
+pnpm start                  # Serve production build
+```
+
+### Docker Commands
+
+```bash
+# Start all services
+docker-compose up -d
+
+# Start with replica (read-write separation)
+docker-compose --profile replica up -d
+
+# Stop all services
+docker-compose down
+
+# View logs
+docker-compose logs -f [service-name]
+
+# Database backup/restore
+docker exec cloud-dev-postgres pg_dump -U devplatform cloud_dev_platform > backup.sql
+docker exec -i cloud-dev-postgres psql -U devplatform cloud_dev_platform < backup.sql
+```
+
+## Architecture Overview
+
+### Backend Module Structure
+
+```
+apps/backend/src/
+├── auth/              # Authentication (JWT, Passport strategies)
+│   ├── decorators/    # Custom decorators (@Public, @CurrentUser)
+│   ├── guards/        # Auth guards (JwtAuthGuard, RolesGuard)
+│   └── strategies/    # Passport strategies
+├── users/             # User management
+├── projects/          # Project CRUD operations
+├── repositories/      # Git repository management
+├── files/             # File upload/download (MinIO integration)
+├── admin/             # Admin panel endpoints
+├── minio/             # MinIO client service
+├── prisma/            # Prisma service wrapper
+└── common/            # Shared utilities, filters, interceptors
+```
+
+**Key Backend Patterns:**
+- **Module-based architecture**: Each feature is a NestJS module with controller/service/module files
+- **Prisma integration**: `PrismaService` is injected into services for database access
+- **JWT authentication**: Protected routes use `@UseGuards(JwtAuthGuard)`, public routes use `@Public()`
+- **DTO validation**: Uses `class-validator` and `class-transformer` for request validation
+- **Swagger documentation**: Controllers decorated with `@ApiTags()`, `@ApiOperation()` for auto-generated docs
+
+### Frontend Structure
+
+```
+apps/frontend/src/
+├── app/               # Next.js App Router pages
+│   ├── (auth)/        # Auth-related pages (login, register)
+│   ├── projects/      # Project pages with dynamic routes
+│   └── layout.tsx     # Root layout
+├── components/        # Reusable React components
+│   ├── editor/        # Monaco Editor wrapper
+│   ├── files/         # File browser components
+│   └── ui/            # Shadcn/ui components
+├── contexts/          # React Context providers
+├── lib/               # Utilities and API client
+│   ├── api.ts         # Fetch wrapper for backend API
+│   └── language-detector.ts  # File extension to language mapping
+└── types/             # TypeScript type definitions
+```
+
+**Key Frontend Patterns:**
+- **App Router**: Uses Next.js 15 App Router with Server Components
+- **API client**: Centralized `api.ts` handles all backend requests with error handling
+- **Form handling**: Uses `react-hook-form` + `zod` for validation
+- **State management**: Primarily React Context (no global state library yet)
+- **Monaco Editor**: Integrated for code editing with language auto-detection
+
+### Database Schema (Prisma)
+
+Located at `apps/backend/prisma/schema.prisma`. Main models:
+- **User**: Authentication and profile
+- **Project**: Project metadata
+- **Repository**: Git repository information
+- **File**: File metadata with MinIO storage paths
+
+**Schema changes workflow:**
+1. Edit `schema.prisma`
+2. Run `pnpm prisma migrate dev --name <description>`
+3. Prisma Client auto-regenerates
+
+### Authentication Flow
+
+1. User registers/logs in via `/api/auth/register` or `/api/auth/login`
+2. Backend returns JWT access token + refresh token
+3. Frontend stores tokens and includes in `Authorization: Bearer <token>` header
+4. Protected backend routes verify JWT via `JwtAuthGuard`
+5. User info extracted via `@CurrentUser()` decorator
+
+### File Upload Flow
+
+1. Frontend uploads file via `POST /api/files/upload` (multipart/form-data)
+2. Backend receives file, validates, and uploads to MinIO bucket
+3. File metadata saved to PostgreSQL with MinIO object path
+4. Frontend can download via `GET /api/files/:id/download`
+
+## Development Philosophy
+
+### Academic Rigor
+This is an academic project following structured software engineering lifecycle:
+1. Requirements Analysis → 2. Architecture Design → 3. Implementation → 4. Testing → 5. Documentation
+
+**Documentation-first approach**: Check `/docs` directory for design decisions before implementing features.
+
+### Frontend-Backend Separation
+- Backend provides RESTful APIs with clear contracts (see Swagger docs at `/api/docs`)
+- Frontend consumes APIs without direct database access
+- API changes must be documented and communicated
 
 ### Distributed Consensus Algorithm
-- This is a core, complex component requiring algorithmic rigor
-- Must be designed with formal specifications (see 算法设计与实现方案)
-- Consider edge cases: network partitions, node failures, concurrent operations
-- Implement comprehensive logging for distributed debugging
+A core future component for platform coordination (simplified Raft). Not yet implemented but planned in `/docs/分布式共识算法设计方案.md`.
 
-### Database Design
-- Follow normalized design principles
-- All schema changes must be documented
-- Consider scalability for cloud deployment
-- Use migrations for version control
+## Important Notes
+
+### Environment Variables
+- Backend: Configured via `.env` file in `apps/backend/` (see `.env.example`)
+- Frontend: Uses `NEXT_PUBLIC_*` prefix for client-side env vars
+
+### Ports
+- Frontend: `3000`
+- Backend: `4000` (API at `/api`, Swagger at `/api/docs`)
+- PostgreSQL: `5434` (host) / `5432` (container)
+- Redis: `6380` (host) / `6379` (container)
+- MinIO API: `9000`, MinIO Console: `9001`
 
 ### Testing Strategy
-- Unit tests for individual modules
-- Integration tests for API endpoints
-- End-to-end tests for critical user workflows
-- Performance tests for distributed consensus algorithm
-- Document all test cases in 测试计划文档
+- Backend: Jest for unit/integration tests (`*.spec.ts` files)
+- Frontend: Playwright for E2E tests
+- Run tests before committing code
 
-## Project Status
+### Code Style
+- Prettier for formatting: `pnpm format` (root)
+- ESLint for linting: `pnpm lint` (per app)
+- Follow NestJS/Next.js conventions
 
-**Current Phase**: Initial setup - awaiting requirements and architecture documentation
+## Accessing Services
 
-**Next Steps**:
-1. Create requirements analysis document
-2. Design software architecture with UML diagrams
-3. Set up project structure for frontend and backend
-4. Initialize version control and collaboration workflows
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:4000/api
+- **Swagger Docs**: http://localhost:4000/api/docs
+- **MinIO Console**: http://localhost:9001 (minioadmin / minioadmin123)
+- **Prisma Studio**: `cd apps/backend && pnpm prisma studio`

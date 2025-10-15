@@ -5,8 +5,11 @@ import {
   ConflictException,
   BadRequestException,
   Logger,
+  forwardRef,
+  Inject,
 } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
+import { RepositoriesService } from '../repositories/repositories.service'
 import {
   CreateProjectDto,
   UpdateProjectDto,
@@ -40,12 +43,17 @@ export interface ProjectDetailResponse extends Project {
 export class ProjectsService {
   private readonly logger = new Logger(ProjectsService.name)
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => RepositoriesService))
+    private repositoriesService: RepositoriesService,
+  ) {}
 
   /**
    * 创建项目
    * ECP-A1: SOLID原则 - 单一职责
    * ECP-C1: 防御性编程 - 检查唯一性
+   * Phase 3.1: 自动创建Repository和main分支
    */
   async create(createDto: CreateProjectDto, currentUser: User): Promise<Project> {
     // 检查项目名称是否已存在（同一用户下）
@@ -72,6 +80,17 @@ export class ProjectsService {
     })
 
     this.logger.log(`📦 Project "${project.name}" created by ${currentUser.username}`)
+
+    // Phase 3.1: 自动创建Repository和默认分支
+    try {
+      await this.repositoriesService.createRepository(project.id)
+      this.logger.log(`✅ Repository with main branch auto-created for project ${project.id}`)
+    } catch (error) {
+      this.logger.error(`❌ Failed to create repository for project ${project.id}:`, error)
+      // 如果Repository创建失败，删除项目并抛出异常
+      await this.prisma.project.delete({ where: { id: project.id } })
+      throw new BadRequestException('创建项目仓库失败，请重试')
+    }
 
     return project
   }

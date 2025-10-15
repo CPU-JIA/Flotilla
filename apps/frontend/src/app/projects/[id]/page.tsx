@@ -26,6 +26,8 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [hasRepository, setHasRepository] = useState<boolean | null>(null)
+  const [initializingRepo, setInitializingRepo] = useState(false)
 
   const fetchProject = useCallback(async () => {
     if (!projectId) return
@@ -48,6 +50,41 @@ export default function ProjectDetailPage() {
     }
   }, [projectId, router])
 
+  // Phase 3: 检查Repository是否存在
+  const checkRepository = useCallback(async () => {
+    if (!projectId) return
+    try {
+      await api.repositories.getRepository(projectId)
+      setHasRepository(true)
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        setHasRepository(false)
+      } else {
+        console.error('Failed to check repository:', err)
+      }
+    }
+  }, [projectId])
+
+  // Phase 3: 初始化Repository
+  const handleInitializeRepository = async () => {
+    if (!projectId || initializingRepo) return
+
+    setInitializingRepo(true)
+    try {
+      await api.repositories.createRepository(projectId)
+      setHasRepository(true)
+      alert('✅ Repository初始化成功！')
+    } catch (err) {
+      if (err instanceof ApiError) {
+        alert(`❌ 初始化失败：${err.message}`)
+      } else {
+        alert('❌ 初始化失败，请稍后重试')
+      }
+    } finally {
+      setInitializingRepo(false)
+    }
+  }
+
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push('/auth/login')
@@ -57,8 +94,9 @@ export default function ProjectDetailPage() {
   useEffect(() => {
     if (isAuthenticated && projectId) {
       fetchProject()
+      checkRepository()
     }
-  }, [isAuthenticated, projectId, fetchProject])
+  }, [isAuthenticated, projectId, fetchProject, checkRepository])
 
   if (authLoading || !user) {
     return (
@@ -145,10 +183,25 @@ export default function ProjectDetailPage() {
             {isOwner && (
               <div className="border-t pt-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">项目操作</h3>
-                <div className="flex gap-4">
+                <div className="flex gap-4 flex-wrap">
+                  {/* Phase 3: Repository状态和初始化按钮 */}
+                  {hasRepository === false && (
+                    <Button
+                      variant="default"
+                      onClick={handleInitializeRepository}
+                      disabled={initializingRepo}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {initializingRepo ? '⏳ 初始化中...' : '🎯 初始化代码仓库'}
+                    </Button>
+                  )}
+                  {hasRepository === true && (
+                    <Badge variant="default" className="px-4 py-2 text-sm">✅ 代码仓库已就绪</Badge>
+                  )}
+
                   <Button variant="outline" onClick={() => alert('项目设置功能即将推出')}>⚙️ 项目设置</Button>
                   <Button variant="outline" onClick={() => router.push(`/projects/${project.id}/files`)}>📁 浏览文件</Button>
-                  <Button variant="outline" onClick={() => alert('提交历史功能即将推出')}>📝 提交历史</Button>
+                  <Button variant="outline" onClick={() => router.push(`/projects/${project.id}/editor`)}>📝 代码编辑器</Button>
                 </div>
               </div>
             )}

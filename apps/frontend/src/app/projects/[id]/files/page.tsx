@@ -136,6 +136,11 @@ export default function FilesPage() {
     }
   }
 
+  // 处理文件编辑 - 跳转到代码编辑器
+  const handleEdit = (fileId: string) => {
+    router.push(`/projects/${projectId}/editor?fileId=${fileId}`)
+  }
+
   // 格式化存储容量
   const formatStorageSize = (bytes: number): string => {
     if (bytes === 0) return '0 GB'
@@ -189,15 +194,23 @@ export default function FilesPage() {
       <div className="max-w-7xl mx-auto px-4">
         {/* 页头 */}
         <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                onClick={() => router.push(`/projects/${projectId}`)}
+                className="bg-white"
+              >
+                ← 返回项目
+              </Button>
+              <h1 className="text-3xl font-bold text-gray-900">{project.name} - 文件管理</h1>
+            </div>
             <Button
-              variant="outline"
-              onClick={() => router.push(`/projects/${projectId}`)}
-              className="bg-white"
+              onClick={() => router.push(`/projects/${projectId}/editor`)}
+              className="bg-blue-600 text-white hover:bg-blue-700"
             >
-              ← 返回项目
+              📝 打开代码编辑器
             </Button>
-            <h1 className="text-3xl font-bold text-gray-900">{project.name} - 文件管理</h1>
           </div>
 
           {/* 存储使用情况 */}
@@ -312,6 +325,7 @@ export default function FilesPage() {
               onFolderClick={handleFolderClick}
               onFileDelete={handleDelete}
               onDownload={handleDownload}
+              onEdit={handleEdit}
               canManage={canManage}
             />
           )}

@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Put,
   Delete,
   Query,
   Param,
@@ -49,6 +50,20 @@ export class FilesController {
   @Get()
   async listFiles(@Query() query: QueryFilesDto, @CurrentUser() currentUser: User) {
     return this.filesService.listFiles(query, currentUser)
+  }
+
+  @Get(':id/content')
+  async getFileContent(@Param('id') id: string, @CurrentUser() currentUser: User) {
+    return this.filesService.getFileContent(id, currentUser)
+  }
+
+  @Put(':id/content')
+  async updateFileContent(
+    @Param('id') id: string,
+    @Body('content') content: string,
+    @CurrentUser() currentUser: User,
+  ) {
+    return this.filesService.updateFileContent(id, content, currentUser)
   }
 
   @Get(':id')

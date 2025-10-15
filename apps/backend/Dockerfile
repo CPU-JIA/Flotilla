@@ -55,4 +55,4 @@ EXPOSE 4000
 ENV NODE_ENV=production
 
 # 启动命令
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]

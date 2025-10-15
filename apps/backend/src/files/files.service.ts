@@ -5,9 +5,12 @@ import {
   ForbiddenException,
   BadRequestException,
   PayloadTooLargeException,
+  forwardRef,
+  Inject,
 } from '@nestjs/common'
 import { PrismaService } from '../prisma/prisma.service'
 import { MinioService } from '../minio/minio.service'
+import { RepositoriesService } from '../repositories/repositories.service'
 import { CreateFolderDto, QueryFilesDto } from './dto'
 import type { User } from '@prisma/client'
 import type { FileEntity, FilesListResponse } from './entities/file.entity'
@@ -32,6 +35,8 @@ export class FilesService {
   constructor(
     private prisma: PrismaService,
     private minioService: MinioService,
+    @Inject(forwardRef(() => RepositoriesService))
+    private repositoriesService: RepositoriesService,
   ) {}
 
   /**
@@ -432,6 +437,184 @@ export class FilesService {
       folder: file.folder,
       createdAt: file.createdAt,
       updatedAt: file.updatedAt,
+    }
+  }
+
+  /**
+   * 获取文件内容（用于代码编辑器）
+   * ECP-C1: 防御性编程 - 检查文件类型和权限
+   */
+  async getFileContent(fileId: string, currentUser: User): Promise<{ content: string; file: FileEntity }> {
+    const file = await this.prisma.projectFile.findUnique({
+      where: { id: fileId },
+    })
+
+    if (!file) {
+      throw new NotFoundException('文件不存在')
+    }
+
+    if (file.type === 'folder') {
+      throw new BadRequestException('无法读取文件夹内容')
+    }
+
+    // 权限验证
+    await this.checkProjectAccess(file.projectId, currentUser)
+
+    // 检查文件是否为可编辑的代码文件
+    const ext = path.extname(file.name)
+    const isCodeFile = CODE_FILE_EXTENSIONS.includes(ext)
+
+    if (!isCodeFile) {
+      throw new BadRequestException('该文件类型不支持在线编辑')
+    }
+
+    // 从MinIO下载文件内容
+    try {
+      const buffer = await this.minioService.downloadFile(file.path)
+      const content = buffer.toString('utf-8')
+
+      this.logger.log(`File content retrieved: ${file.name}`)
+
+      return {
+        content,
+        file: {
+          id: file.id,
+          name: file.name,
+          path: file.path,
+          size: file.size,
+          mimeType: file.mimeType,
+          type: file.type as 'file' | 'folder',
+          projectId: file.projectId,
+          uploadedBy: file.uploadedBy,
+          folder: file.folder,
+          createdAt: file.createdAt,
+          updatedAt: file.updatedAt,
+        },
+      }
+    } catch (error) {
+      this.logger.error(`Get content failed: ${error.message}`)
+      throw new BadRequestException('读取文件内容失败')
+    }
+  }
+
+  /**
+   * 更新文件内容（保存代码编辑）
+   * ECP-C1: 防御性编程 - 权限验证和文件类型检查
+   */
+  async updateFileContent(fileId: string, content: string, currentUser: User): Promise<FileEntity> {
+    const file = await this.prisma.projectFile.findUnique({
+      where: { id: fileId },
+      include: {
+        project: true,
+      },
+    })
+
+    if (!file) {
+      throw new NotFoundException('文件不存在')
+    }
+
+    if (file.type === 'folder') {
+      throw new BadRequestException('无法编辑文件夹')
+    }
+
+    // 权限验证：项目所有者或文件上传者或管理员才能编辑
+    const isOwner = file.project.ownerId === currentUser.id
+    const isUploader = file.uploadedBy === currentUser.id
+    const isAdmin = currentUser.role === UserRole.SUPER_ADMIN
+
+    if (!isOwner && !isUploader && !isAdmin) {
+      throw new ForbiddenException('无权限编辑该文件')
+    }
+
+    // 检查文件是否为可编辑的代码文件
+    const ext = path.extname(file.name)
+    const isCodeFile = CODE_FILE_EXTENSIONS.includes(ext)
+
+    if (!isCodeFile) {
+      throw new BadRequestException('该文件类型不支持在线编辑')
+    }
+
+    // 将内容转换为Buffer
+    const buffer = Buffer.from(content, 'utf-8')
+    const newSize = buffer.length
+
+    // 上传到MinIO（覆盖原文件）
+    try {
+      await this.minioService.uploadFile(
+        file.path,
+        buffer,
+        newSize,
+        {
+          'Content-Type': file.mimeType,
+          'Original-Filename': Buffer.from(file.name, 'utf8').toString('base64'),
+        },
+      )
+    } catch (error) {
+      this.logger.error(`Update content failed: ${error.message}`)
+      throw new BadRequestException('保存文件失败')
+    }
+
+    // 更新数据库中的文件大小和更新时间
+    const updatedFile = await this.prisma.projectFile.update({
+      where: { id: fileId },
+      data: {
+        size: newSize,
+        updatedAt: new Date(),
+      },
+    })
+
+    this.logger.log(`File content updated: ${file.name} (${newSize} bytes)`)
+
+    // Phase 3.2: 自动创建Commit记录
+    try {
+      // 获取项目的Repository和默认分支
+      const repository = await this.prisma.repository.findUnique({
+        where: { projectId: file.projectId },
+        include: {
+          branches: {
+            where: { name: 'main' },
+            take: 1,
+          },
+        },
+      })
+
+      if (repository && repository.branches.length > 0) {
+        const mainBranch = repository.branches[0]
+
+        // 自动生成commit message
+        const commitMessage = `Update ${file.name}`
+
+        // 创建Commit记录
+        await this.repositoriesService.createCommit(
+          file.projectId,
+          {
+            branchId: mainBranch.id,
+            message: commitMessage,
+          },
+          currentUser,
+        )
+
+        this.logger.log(`📝 Auto-commit created: "${commitMessage}"`)
+      } else {
+        this.logger.warn(`No repository or main branch found for project ${file.projectId}`)
+      }
+    } catch (error) {
+      // 如果commit创建失败，只记录警告，不影响文件保存成功
+      this.logger.warn(`Auto-commit failed for file ${file.name}: ${error.message}`)
+    }
+
+    return {
+      id: updatedFile.id,
+      name: updatedFile.name,
+      path: updatedFile.path,
+      size: updatedFile.size,
+      mimeType: updatedFile.mimeType,
+      type: updatedFile.type as 'file' | 'folder',
+      projectId: updatedFile.projectId,
+      uploadedBy: updatedFile.uploadedBy,
+      folder: updatedFile.folder,
+      createdAt: updatedFile.createdAt,
+      updatedAt: updatedFile.updatedAt,
     }
   }
 }

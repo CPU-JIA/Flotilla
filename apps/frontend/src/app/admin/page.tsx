@@ -165,7 +165,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* 快捷操作区 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <Link href="/admin/users">
             <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-lg transition-all cursor-pointer border border-gray-100 hover:border-blue-300 group">
               <div className="flex items-center justify-between mb-4">
@@ -192,6 +192,21 @@ export default function AdminDashboard() {
               <h3 className="text-xl font-bold text-gray-900 mb-2">项目管理</h3>
               <p className="text-gray-600 text-sm">
                 查看所有项目，管理项目权限和成员
+              </p>
+            </div>
+          </Link>
+
+          <Link href="/admin/cluster">
+            <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-lg transition-all cursor-pointer border border-gray-100 hover:border-green-300 group">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-5xl">🔗</div>
+                <div className="px-4 py-2 bg-green-500 text-white rounded-full text-sm font-medium group-hover:bg-green-600 transition-colors">
+                  进入管理 →
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Raft集群管理</h3>
+              <p className="text-gray-600 text-sm">
+                监控和管理分布式共识算法集群
               </p>
             </div>
           </Link>

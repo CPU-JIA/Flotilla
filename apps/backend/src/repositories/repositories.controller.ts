@@ -30,6 +30,20 @@ export class RepositoriesController {
   constructor(private readonly repositoriesService: RepositoriesService) {}
 
   /**
+   * 手动创建仓库（用于未自动创建Repository的旧项目）
+   * Phase 3: 提供UI按钮让用户初始化Repository
+   */
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  async createRepository(
+    @Param('projectId') projectId: string,
+    @CurrentUser() currentUser: User,
+  ) {
+    this.logger.log(`🎯 Manually creating repository for project: ${projectId}`)
+    return this.repositoriesService.createRepository(projectId, currentUser)
+  }
+
+  /**
    * 获取仓库信息
    */
   @Get()

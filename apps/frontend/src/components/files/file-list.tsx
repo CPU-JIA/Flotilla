@@ -16,6 +16,7 @@ interface FileListProps {
   onFolderClick: (folderPath: string) => void
   onFileDelete: (fileId: string) => void
   onDownload: (fileId: string, fileName: string) => void
+  onEdit?: (fileId: string) => void
   canManage: boolean
 }
 
@@ -24,9 +25,21 @@ export function FileList({
   onFolderClick,
   onFileDelete,
   onDownload,
+  onEdit,
   canManage,
 }: FileListProps) {
   const [deleting, setDeleting] = useState<string | null>(null)
+
+  // 检查文件是否可编辑（代码文件）
+  const isEditableFile = (fileName: string): boolean => {
+    const codeExtensions = [
+      '.js', '.ts', '.tsx', '.jsx', '.py', '.java', '.cpp', '.c', '.h', '.hpp',
+      '.cs', '.go', '.rs', '.php', '.rb', '.swift', '.kt', '.scala', '.sh',
+      '.html', '.css', '.scss', '.sass', '.less', '.vue', '.json', '.xml',
+      '.yaml', '.yml', '.md', '.txt', '.sql', '.proto',
+    ]
+    return codeExtensions.some(ext => fileName.toLowerCase().endsWith(ext))
+  }
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 B'
@@ -157,6 +170,17 @@ export function FileList({
               </div>
 
               <div className="flex items-center gap-2 flex-shrink-0">
+                {file.type === 'file' && isEditableFile(file.name) && onEdit && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200"
+                    onClick={() => onEdit(file.id)}
+                  >
+                    ✏️ 编辑
+                  </Button>
+                )}
+
                 {file.type === 'file' && (
                   <Button
                     variant="outline"

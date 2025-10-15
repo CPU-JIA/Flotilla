@@ -10,6 +10,7 @@ import { ProjectsModule } from './projects/projects.module'
 import { RepositoriesModule } from './repositories/repositories.module'
 import { AdminModule } from './admin/admin.module'
 import { FilesModule } from './files/files.module'
+import { RaftClusterModule } from './raft-cluster/raft-cluster.module'
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { FilesModule } from './files/files.module'
     RepositoriesModule,
     AdminModule,
     FilesModule,
+    RaftClusterModule,
   ],
   controllers: [AppController],
   providers: [AppService],

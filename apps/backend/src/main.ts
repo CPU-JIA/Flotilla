@@ -3,6 +3,13 @@ import { ValidationPipe, Logger } from '@nestjs/common'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import { AppModule } from './app.module'
 
+// ECP-C1: 防御性编程 - 全局BigInt序列化支持
+// PostgreSQL的BIGINT类型映射为JavaScript的BigInt，需要添加JSON序列化支持
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+;(BigInt.prototype as any).toJSON = function () {
+  return this.toString()
+}
+
 async function bootstrap() {
   const logger = new Logger('Bootstrap')
   const app = await NestFactory.create(AppModule)
@@ -19,9 +26,11 @@ async function bootstrap() {
     }),
   )
 
-  // 启用 CORS
+  // 启用 CORS - ECP-C1: 动态读取环境变量确保运行时配置生效
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
+  logger.log(`🌐 CORS enabled for origin: ${frontendUrl}`)
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: frontendUrl,
     credentials: true,
   })
 

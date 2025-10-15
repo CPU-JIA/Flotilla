@@ -301,6 +301,12 @@ export const api = {
    * 仓库相关 API
    */
   repositories: {
+    // 手动创建Repository（用于未自动创建的旧项目）
+    createRepository: (projectId: string) =>
+      apiRequest<{id: string, projectId: string}>(`/projects/${projectId}/repository`, {
+        method: 'POST',
+      }),
+
     getRepository: (projectId: string) =>
       apiRequest<{id: string, projectId: string, defaultBranch: string}>(`/projects/${projectId}/repository`),
 
@@ -467,6 +473,17 @@ export const api = {
 
     // 获取文件信息
     getFileInfo: (id: string) => apiRequest<ProjectFile>(`/files/${id}`),
+
+    // 获取文件内容（用于代码编辑器）
+    getFileContent: (id: string) =>
+      apiRequest<{ content: string; file: ProjectFile }>(`/files/${id}/content`),
+
+    // 更新文件内容（保存代码编辑）
+    updateFileContent: (id: string, content: string) =>
+      apiRequest<ProjectFile>(`/files/${id}/content`, {
+        method: 'PUT',
+        body: JSON.stringify({ content }),
+      }),
 
     // 下载文件
     downloadFile: (id: string) => {
