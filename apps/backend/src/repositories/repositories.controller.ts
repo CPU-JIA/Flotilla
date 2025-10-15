@@ -166,4 +166,48 @@ export class RepositoriesController {
     this.logger.log(`📋 Fetching commits for branch ${branchId}`)
     return this.repositoriesService.getCommits(projectId, branchId, currentUser, page, pageSize)
   }
+
+  /**
+   * 获取提交详情
+   */
+  @Get('branches/:branchId/commits/:commitId')
+  async getCommit(
+    @Param('projectId') projectId: string,
+    @Param('branchId') branchId: string,
+    @Param('commitId') commitId: string,
+    @CurrentUser() currentUser: User,
+  ) {
+    this.logger.log(`📋 Fetching commit ${commitId} details`)
+    return this.repositoriesService.getCommit(projectId, branchId, commitId, currentUser)
+  }
+
+  /**
+   * 获取提交间差异
+   */
+  @Get('branches/:branchId/commits/:commitId/diff')
+  async getCommitDiff(
+    @Param('projectId') projectId: string,
+    @Param('branchId') branchId: string,
+    @Param('commitId') commitId: string,
+    @CurrentUser() currentUser: User,
+    @Query('compareTo') compareTo?: string,
+  ) {
+    this.logger.log(`📊 Computing diff for commit ${commitId}`)
+    return this.repositoriesService.getCommitDiff(projectId, branchId, commitId, compareTo, currentUser)
+  }
+
+  /**
+   * 获取提交的文件内容
+   */
+  @Get('branches/:branchId/commits/:commitId/files')
+  async getCommitFiles(
+    @Param('projectId') projectId: string,
+    @Param('branchId') branchId: string,
+    @Param('commitId') commitId: string,
+    @CurrentUser() currentUser: User,
+    @Query('path') filePath?: string,
+  ) {
+    this.logger.log(`📋 Fetching files for commit ${commitId}`)
+    return this.repositoriesService.getCommitFiles(projectId, branchId, commitId, filePath, currentUser)
+  }
 }

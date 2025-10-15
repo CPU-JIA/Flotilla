@@ -350,6 +350,264 @@ export class RepositoriesService {
   }
 
   /**
+   * 获取单个提交详情
+   * US-009: 版本历史功能增强
+   */
+  async getCommit(
+    projectId: string,
+    branchId: string,
+    commitId: string,
+    currentUser: User,
+  ): Promise<any> {
+    await this.checkProjectPermission(projectId, currentUser)
+
+    const commit = await this.prisma.commit.findUnique({
+      where: { id: commitId },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            avatar: true,
+          },
+        },
+        branch: {
+          include: {
+            repository: true,
+          },
+        },
+      },
+    })
+
+    if (!commit || commit.branchId !== branchId) {
+      throw new NotFoundException('提交不存在')
+    }
+
+    if (commit.branch.repository.projectId !== projectId) {
+      throw new ForbiddenException('无权访问此提交')
+    }
+
+    // 获取此提交涉及的文件数量
+    const filesSnapshot = await this.prisma.file.findMany({
+      where: {
+        branchId: branchId,
+        createdAt: { lte: commit.createdAt },
+      },
+      select: {
+        id: true,
+        path: true,
+        size: true,
+      },
+    })
+
+    return {
+      ...commit,
+      filesCount: filesSnapshot.length,
+      files: filesSnapshot,
+    }
+  }
+
+  /**
+   * 获取提交间差异对比
+   * US-009: 版本历史diff功能
+   * ECP-B2: KISS原则 - 简化diff实现
+   */
+  async getCommitDiff(
+    projectId: string,
+    branchId: string,
+    commitId: string,
+    compareTo: string | undefined,
+    currentUser: User,
+  ): Promise<any> {
+    await this.checkProjectPermission(projectId, currentUser)
+
+    const commit = await this.prisma.commit.findUnique({
+      where: { id: commitId },
+      include: {
+        branch: {
+          include: {
+            repository: true,
+          },
+        },
+      },
+    })
+
+    if (!commit || commit.branch.repository.projectId !== projectId) {
+      throw new NotFoundException('提交不存在')
+    }
+
+    // 获取当前提交时的文件快照
+    const currentFiles = await this.prisma.file.findMany({
+      where: {
+        branchId: branchId,
+        createdAt: { lte: commit.createdAt },
+      },
+      orderBy: { path: 'asc' },
+    })
+
+    let previousFiles: File[] = []
+
+    if (compareTo) {
+      // 与指定提交对比
+      const compareCommit = await this.prisma.commit.findUnique({
+        where: { id: compareTo },
+      })
+
+      if (!compareCommit) {
+        throw new NotFoundException('对比提交不存在')
+      }
+
+      previousFiles = await this.prisma.file.findMany({
+        where: {
+          branchId: branchId,
+          createdAt: { lte: compareCommit.createdAt },
+        },
+        orderBy: { path: 'asc' },
+      })
+    } else {
+      // 与上一个提交对比
+      const previousCommit = await this.prisma.commit.findFirst({
+        where: {
+          branchId: branchId,
+          createdAt: { lt: commit.createdAt },
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+
+      if (previousCommit) {
+        previousFiles = await this.prisma.file.findMany({
+          where: {
+            branchId: branchId,
+            createdAt: { lte: previousCommit.createdAt },
+          },
+          orderBy: { path: 'asc' },
+        })
+      }
+    }
+
+    // 计算diff
+    const currentFilesMap = new Map(currentFiles.map((f) => [f.path, f]))
+    const previousFilesMap = new Map(previousFiles.map((f) => [f.path, f]))
+
+    const added: File[] = []
+    const modified: File[] = []
+    const deleted: File[] = []
+
+    // 检查新增和修改
+    for (const file of currentFiles) {
+      const prevFile = previousFilesMap.get(file.path)
+      if (!prevFile) {
+        added.push(file)
+      } else if (file.updatedAt > prevFile.updatedAt || file.size !== prevFile.size) {
+        modified.push(file)
+      }
+    }
+
+    // 检查删除
+    for (const file of previousFiles) {
+      if (!currentFilesMap.has(file.path)) {
+        deleted.push(file)
+      }
+    }
+
+    return {
+      commit: {
+        id: commit.id,
+        message: commit.message,
+        createdAt: commit.createdAt,
+      },
+      stats: {
+        added: added.length,
+        modified: modified.length,
+        deleted: deleted.length,
+        total: added.length + modified.length + deleted.length,
+      },
+      changes: {
+        added,
+        modified,
+        deleted,
+      },
+    }
+  }
+
+  /**
+   * 获取提交的文件内容
+   * US-009: 查看特定版本文件内容
+   */
+  async getCommitFiles(
+    projectId: string,
+    branchId: string,
+    commitId: string,
+    filePath: string | undefined,
+    currentUser: User,
+  ): Promise<any> {
+    await this.checkProjectPermission(projectId, currentUser)
+
+    const commit = await this.prisma.commit.findUnique({
+      where: { id: commitId },
+      include: {
+        branch: {
+          include: {
+            repository: true,
+          },
+        },
+      },
+    })
+
+    if (!commit || commit.branch.repository.projectId !== projectId) {
+      throw new NotFoundException('提交不存在')
+    }
+
+    if (filePath) {
+      // 获取特定文件在该提交时的版本
+      const file = await this.prisma.file.findFirst({
+        where: {
+          branchId: branchId,
+          path: filePath,
+          createdAt: { lte: commit.createdAt },
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+
+      if (!file) {
+        throw new NotFoundException('文件在该提交时不存在')
+      }
+
+      // 下载文件内容
+      const content = await this.minioService.downloadFile(file.objectName)
+
+      return {
+        file: {
+          id: file.id,
+          path: file.path,
+          size: file.size,
+          mimeType: file.mimeType,
+        },
+        content: content.toString('utf-8'),
+      }
+    } else {
+      // 获取所有文件列表
+      const files = await this.prisma.file.findMany({
+        where: {
+          branchId: branchId,
+          createdAt: { lte: commit.createdAt },
+        },
+        orderBy: { path: 'asc' },
+      })
+
+      return {
+        commit: {
+          id: commit.id,
+          message: commit.message,
+          createdAt: commit.createdAt,
+        },
+        files,
+      }
+    }
+  }
+
+  /**
    * 检查项目权限
    * ECP-C1: 防御性编程
    */

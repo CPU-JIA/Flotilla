@@ -28,6 +28,7 @@ export default function ProjectDetailPage() {
   const [error, setError] = useState('')
   const [hasRepository, setHasRepository] = useState<boolean | null>(null)
   const [initializingRepo, setInitializingRepo] = useState(false)
+  const [defaultBranchId, setDefaultBranchId] = useState<string | null>(null)
 
   const fetchProject = useCallback(async () => {
     if (!projectId) return
@@ -50,12 +51,23 @@ export default function ProjectDetailPage() {
     }
   }, [projectId, router])
 
-  // Phase 3: 检查Repository是否存在
+  // Phase 3: 检查Repository是否存在并获取默认分支
   const checkRepository = useCallback(async () => {
     if (!projectId) return
     try {
       await api.repositories.getRepository(projectId)
       setHasRepository(true)
+
+      // 获取分支列表以确定默认分支ID
+      try {
+        const branches = await api.repositories.getBranches(projectId)
+        if (branches && branches.length > 0) {
+          const defaultBranch = branches.find(b => b.name === 'main') || branches[0]
+          setDefaultBranchId(defaultBranch.id)
+        }
+      } catch (branchErr) {
+        console.error('Failed to fetch branches:', branchErr)
+      }
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setHasRepository(false)
@@ -202,6 +214,15 @@ export default function ProjectDetailPage() {
                   <Button variant="outline" onClick={() => alert('项目设置功能即将推出')}>⚙️ 项目设置</Button>
                   <Button variant="outline" onClick={() => router.push(`/projects/${project.id}/files`)}>📁 浏览文件</Button>
                   <Button variant="outline" onClick={() => router.push(`/projects/${project.id}/editor`)}>📝 代码编辑器</Button>
+                  {hasRepository === true && defaultBranchId && (
+                    <Button
+                      variant="outline"
+                      onClick={() => router.push(`/projects/${project.id}/history?branchId=${defaultBranchId}`)}
+                      className="bg-purple-50 border-purple-200 hover:bg-purple-100"
+                    >
+                      📜 版本历史
+                    </Button>
+                  )}
                 </div>
               </div>
             )}

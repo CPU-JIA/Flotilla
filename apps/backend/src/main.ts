@@ -57,6 +57,7 @@ async function bootstrap() {
     .addTag('users', '用户模块 - 用户信息管理')
     .addTag('projects', '项目模块 - 项目与成员管理')
     .addTag('repositories', '仓库模块 - 代码仓库、分支、文件、提交管理')
+    .addTag('monitoring', '监控模块 - 系统健康检查和性能指标')
     .build()
 
   const document = SwaggerModule.createDocument(app, config)

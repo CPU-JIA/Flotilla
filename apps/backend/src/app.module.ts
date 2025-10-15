@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
@@ -11,6 +11,8 @@ import { RepositoriesModule } from './repositories/repositories.module'
 import { AdminModule } from './admin/admin.module'
 import { FilesModule } from './files/files.module'
 import { RaftClusterModule } from './raft-cluster/raft-cluster.module'
+import { MonitoringModule } from './monitoring/monitoring.module'
+import { PerformanceMonitoringMiddleware } from './common/middleware/performance-monitoring.middleware'
 
 @Module({
   imports: [
@@ -27,8 +29,14 @@ import { RaftClusterModule } from './raft-cluster/raft-cluster.module'
     AdminModule,
     FilesModule,
     RaftClusterModule,
+    MonitoringModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // 为所有API路由应用性能监控中间件
+    consumer.apply(PerformanceMonitoringMiddleware).forRoutes('*')
+  }
+}

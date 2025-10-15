@@ -17,6 +17,41 @@ import type {
 } from '@/types/admin'
 import type { ProjectFile, FilesListResponse } from '@/types/file'
 
+// Commit interface for type safety
+interface Commit {
+  id: string
+  message: string
+  hash?: string
+  createdAt: string
+  author: {
+    id: string
+    username: string
+    email: string
+    avatar?: string
+  }
+  filesCount?: number
+}
+
+// CommitDiff interface for type safety
+interface CommitDiff {
+  commit: {
+    id: string
+    message: string
+    createdAt: string
+  }
+  stats: {
+    added: number
+    modified: number
+    deleted: number
+    total: number
+  }
+  changes: {
+    added: Array<{ id: string; path: string; size: number }>
+    modified: Array<{ id: string; path: string; size: number }>
+    deleted: Array<{ id: string; path: string; size: number }>
+  }
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
 
 /**
@@ -356,7 +391,7 @@ export const api = {
       const queryParams = new URLSearchParams()
       if (params?.page) queryParams.append('page', params.page.toString())
       if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString())
-      return apiRequest<unknown[]>(`/projects/${projectId}/repository/branches/${branchId}/commits?${queryParams.toString()}`)
+      return apiRequest<{commits: Commit[], total: number, page: number, pageSize: number}>(`/projects/${projectId}/repository/branches/${branchId}/commits?${queryParams.toString()}`)
     },
 
     createCommit: (projectId: string, data: { branchId: string; message: string }) =>
@@ -364,6 +399,26 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(data),
       }),
+
+    // 获取单个提交详情
+    getCommit: (projectId: string, branchId: string, commitId: string) =>
+      apiRequest<unknown>(`/projects/${projectId}/repository/branches/${branchId}/commits/${commitId}`),
+
+    // 获取提交间差异
+    getCommitDiff: (projectId: string, branchId: string, commitId: string, compareTo?: string) => {
+      const queryParams = new URLSearchParams()
+      if (compareTo) queryParams.append('compareTo', compareTo)
+      const query = queryParams.toString() ? `?${queryParams.toString()}` : ''
+      return apiRequest<CommitDiff>(`/projects/${projectId}/repository/branches/${branchId}/commits/${commitId}/diff${query}`)
+    },
+
+    // 获取提交的文件内容
+    getCommitFiles: (projectId: string, branchId: string, commitId: string, filePath?: string) => {
+      const queryParams = new URLSearchParams()
+      if (filePath) queryParams.append('path', filePath)
+      const query = queryParams.toString() ? `?${queryParams.toString()}` : ''
+      return apiRequest<unknown>(`/projects/${projectId}/repository/branches/${branchId}/commits/${commitId}/files${query}`)
+    },
   },
 
   /**
