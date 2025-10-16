@@ -81,6 +81,11 @@ pnpm test:e2e               # E2E tests
 # Build
 pnpm build                  # Compile TypeScript
 pnpm start:prod             # Run production build
+
+# Raft Consensus Algorithm
+pnpm raft:demo              # Run Raft demo with example cluster
+pnpm raft:test              # Run Raft cluster tests
+pnpm raft:performance       # Run Raft performance benchmarks
 ```
 
 ### Frontend Commands
@@ -137,9 +142,15 @@ apps/backend/src/
 ├── repositories/      # Git repository management
 ├── files/             # File upload/download (MinIO integration)
 ├── admin/             # Admin panel endpoints
+├── raft/              # Core Raft consensus algorithm implementation
+├── raft-cluster/      # Raft cluster management and WebSocket gateway
+├── monitoring/        # System monitoring and performance metrics
 ├── minio/             # MinIO client service
 ├── prisma/            # Prisma service wrapper
 └── common/            # Shared utilities, filters, interceptors
+    ├── middleware/    # Global middleware (performance monitoring, logging)
+    ├── filters/       # Exception filters
+    └── interceptors/  # Response interceptors
 ```
 
 **Key Backend Patterns:**
@@ -174,6 +185,18 @@ apps/frontend/src/
 - **Form handling**: Uses `react-hook-form` + `zod` for validation
 - **State management**: Primarily React Context (no global state library yet)
 - **Monaco Editor**: Integrated for code editing with language auto-detection
+- **i18n Support**: Multi-language support (zh/en) via React Context
+  - Translation files: `src/locales/zh.ts`, `src/locales/en.ts`
+  - Language context: `src/contexts/language-context.tsx`
+  - Auto-persists language preference to localStorage
+- **Theme System**: Dark/Light mode toggle using `next-themes`
+  - System preference detection
+  - Persistent theme storage
+  - Monaco Editor theme synchronization
+- **Markdown Rendering**: Rich markdown preview with syntax highlighting
+  - `react-markdown` + `remark-gfm` (GitHub Flavored Markdown)
+  - `rehype-highlight` for code syntax highlighting
+  - `github-markdown-css` for consistent styling
 
 ### Database Schema (Prisma)
 
@@ -203,6 +226,23 @@ Located at `apps/backend/prisma/schema.prisma`. Main models:
 3. File metadata saved to PostgreSQL with MinIO object path
 4. Frontend can download via `GET /api/files/:id/download`
 
+### Monitoring & Performance Tracking
+
+**Backend Monitoring**:
+- **Global Performance Middleware**: Automatically tracks request duration and status codes
+  - Located at `src/common/middleware/performance-monitoring.middleware.ts`
+  - Applied to all routes in `app.module.ts:40`
+  - Logs slow requests (>1000ms) for optimization
+- **Monitoring Controller**: Exposes real-time metrics via `/api/monitoring/metrics`
+  - Request counts and response times
+  - System health indicators
+  - Performance analytics
+
+**Frontend Monitoring**:
+- Playwright E2E tests with comprehensive test coverage
+- Test reports generated in `test-results/` directory
+- Performance measurement via Playwright metrics
+
 ## Development Philosophy
 
 ### Academic Rigor
@@ -216,8 +256,29 @@ This is an academic project following structured software engineering lifecycle:
 - Frontend consumes APIs without direct database access
 - API changes must be documented and communicated
 
-### Distributed Consensus Algorithm
-A core future component for platform coordination (simplified Raft). Not yet implemented but planned in `/docs/分布式共识算法设计方案.md`.
+### Distributed Consensus Algorithm (Raft)
+
+**Status**: ✅ **IMPLEMENTED**
+
+The platform implements a simplified Raft consensus algorithm for distributed coordination. The implementation is production-ready and includes:
+
+**Core Components** (`apps/backend/src/raft/`):
+- **raft-node.ts**: Core Raft node implementation with leader election and log replication
+- **git-state-machine.ts**: Git-aware state machine for distributed repository operations
+- **websocket-transport.ts**: WebSocket-based inter-node communication
+- **storage.ts**: Persistent storage for Raft state and logs
+- **types.ts**: TypeScript type definitions for Raft protocol
+
+**Integration**:
+- **RaftClusterModule**: NestJS module integrated into main app (`app.module.ts:13`)
+- **WebSocket Gateway**: Real-time communication between Raft nodes
+- **State Synchronization**: Ensures consistency across distributed nodes
+
+**Testing & Demos**:
+- Multiple test files available in `apps/backend/` (raft-demo.ts, raft-simple-test.ts, etc.)
+- Performance testing support via `pnpm raft:performance`
+
+For implementation details, see `/docs/分布式共识算法设计方案.md`.
 
 ## Important Notes
 
