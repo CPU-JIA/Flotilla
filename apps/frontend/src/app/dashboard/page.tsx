@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { useAuth } from '@/contexts/auth-context'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/button'
+import { SystemStatus } from '@/components/dashboard/SystemStatus'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -68,10 +69,13 @@ export default function DashboardPage() {
             <div className="text-sm text-gray-600 mb-1">角色</div>
             <div className="text-lg font-semibold text-gray-900">{user.role}</div>
           </div>
-          <div className="p-4 bg-orange-50 rounded-xl border border-orange-100">
-            <div className="text-sm text-gray-600 mb-1">用户ID</div>
-            <div className="text-sm font-mono text-gray-900">{user.id}</div>
-          </div>
+          {/* 仅对超级管理员显示内部用户ID (ECP-C1: 防御性编程 - 隐私保护) */}
+          {user.role === 'SUPER_ADMIN' && (
+            <div className="p-4 bg-orange-50 rounded-xl border border-orange-100">
+              <div className="text-sm text-gray-600 mb-1">系统ID（管理员可见）</div>
+              <div className="text-xs font-mono text-gray-700 break-all">{user.id}</div>
+            </div>
+          )}
         </div>
 
         {/* 功能导航 */}
@@ -87,48 +91,31 @@ export default function DashboardPage() {
             </div>
           </Link>
 
-          <div className="p-6 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 opacity-60 cursor-not-allowed">
-            <div className="text-4xl mb-3">📝</div>
-            <h3 className="text-lg font-bold text-gray-900 mb-1">代码仓库</h3>
-            <p className="text-sm text-gray-600">浏览和编辑代码文件</p>
-            <p className="text-sm text-gray-500 mt-4">即将推出...</p>
-          </div>
+          <Link href="/projects">
+            <div className="p-6 bg-gradient-to-br from-green-50 to-white rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-lg transition-all cursor-pointer group">
+              <div className="text-4xl mb-3">📝</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">代码仓库</h3>
+              <p className="text-sm text-gray-600">浏览和编辑代码文件</p>
+              <Button variant="outline" className="w-full mt-4 group-hover:bg-green-50">
+                打开代码编辑器
+              </Button>
+            </div>
+          </Link>
 
-          <div className="p-6 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 opacity-60 cursor-not-allowed">
-            <div className="text-4xl mb-3">⚙️</div>
-            <h3 className="text-lg font-bold text-gray-900 mb-1">个人设置</h3>
-            <p className="text-sm text-gray-600">管理您的账户设置</p>
-            <p className="text-sm text-gray-500 mt-4">即将推出...</p>
-          </div>
+          <Link href="/settings">
+            <div className="p-6 bg-gradient-to-br from-purple-50 to-white rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-lg transition-all cursor-pointer group">
+              <div className="text-4xl mb-3">⚙️</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-1">个人设置</h3>
+              <p className="text-sm text-gray-600">管理您的账户设置</p>
+              <Button variant="outline" className="w-full mt-4 group-hover:bg-purple-50">
+                修改个人信息
+              </Button>
+            </div>
+          </Link>
         </div>
 
-        {/* 系统状态 */}
-        <div className="border-t border-gray-200 pt-6">
-          <h3 className="text-lg font-bold text-gray-900 mb-1">系统状态</h3>
-          <p className="text-sm text-gray-600 mb-4">当前系统运行状态</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-green-50 rounded-xl border border-green-100">
-              <div className="text-3xl mb-2">✅</div>
-              <div className="text-sm font-semibold text-gray-900">后端API</div>
-              <div className="text-xs text-green-600 mt-1">正常运行</div>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-xl border border-green-100">
-              <div className="text-3xl mb-2">✅</div>
-              <div className="text-sm font-semibold text-gray-900">数据库</div>
-              <div className="text-xs text-green-600 mt-1">正常运行</div>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-xl border border-green-100">
-              <div className="text-3xl mb-2">✅</div>
-              <div className="text-sm font-semibold text-gray-900">MinIO</div>
-              <div className="text-xs text-green-600 mt-1">正常运行</div>
-            </div>
-            <div className="text-center p-4 bg-green-50 rounded-xl border border-green-100">
-              <div className="text-3xl mb-2">✅</div>
-              <div className="text-sm font-semibold text-gray-900">Redis</div>
-              <div className="text-xs text-green-600 mt-1">正常运行</div>
-            </div>
-          </div>
-        </div>
+        {/* 系统状态 - 动态监控 (ECP-C3: 性能意识 - 实时健康检查) */}
+        <SystemStatus />
       </div>
     </AppLayout>
   )

@@ -31,7 +31,7 @@ export class UsersService {
    * ECP-A2: 通过分页控制数据量，低耦合设计
    */
   async findAll(query: QueryUsersDto): Promise<UserListResponse> {
-    const { search, role, page = 1, pageSize = 20 } = query
+    const { search, role, page = 1, pageSize = 10 } = query
     const skip = (page - 1) * pageSize
 
     const where: any = {}
@@ -97,7 +97,7 @@ export class UsersService {
     })
 
     if (!user) {
-      throw new NotFoundException(`用户 ID ${id} 不存在`)
+      throw new NotFoundException('用户不存在')
     }
 
     return user as Omit<User, 'passwordHash'>
@@ -114,7 +114,10 @@ export class UsersService {
     currentUser: User,
   ): Promise<Omit<User, 'passwordHash'>> {
     // 权限检查：只有超级管理员或用户本人可以修改
-    if (currentUser.id !== id && currentUser.role !== UserRole.SUPER_ADMIN) {
+    if (
+      currentUser.id !== id &&
+      currentUser.role !== UserRole.SUPER_ADMIN
+    ) {
       throw new ForbiddenException('您没有权限修改此用户信息')
     }
 
@@ -126,7 +129,7 @@ export class UsersService {
     // 检查用户是否存在
     const existingUser = await this.prisma.user.findUnique({ where: { id } })
     if (!existingUser) {
-      throw new NotFoundException(`用户 ID ${id} 不存在`)
+      throw new NotFoundException('用户不存在')
     }
 
     // 检查用户名唯一性
@@ -175,7 +178,7 @@ export class UsersService {
 
     const user = await this.prisma.user.findUnique({ where: { id } })
     if (!user) {
-      throw new NotFoundException(`用户 ID ${id} 不存在`)
+      throw new NotFoundException('用户不存在')
     }
 
     // 验证当前密码
@@ -224,7 +227,7 @@ export class UsersService {
 
     const user = await this.prisma.user.findUnique({ where: { id } })
     if (!user) {
-      throw new NotFoundException(`用户 ID ${id} 不存在`)
+      throw new NotFoundException('用户不存在')
     }
 
     await this.prisma.user.delete({ where: { id } })

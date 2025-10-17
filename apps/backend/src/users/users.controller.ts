@@ -28,6 +28,40 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   /**
+   * 获取当前登录用户信息
+   */
+  @Get('profile/me')
+  async getCurrentUser(@CurrentUser() currentUser: User): Promise<Omit<User, 'passwordHash'>> {
+    this.logger.log(`👤 Fetching current user profile: ${currentUser.username}`)
+    return this.usersService.findOne(currentUser.id)
+  }
+
+  /**
+   * 更新当前用户资料
+   */
+  @Put('profile/me')
+  async updateProfile(
+    @Body() updateDto: UpdateUserDto,
+    @CurrentUser() currentUser: User,
+  ): Promise<Omit<User, 'passwordHash'>> {
+    this.logger.log(`✏️ Updating profile for ${currentUser.username}`)
+    return this.usersService.update(currentUser.id, updateDto, currentUser)
+  }
+
+  /**
+   * 修改当前用户密码
+   */
+  @Put('profile/password')
+  @HttpCode(HttpStatus.OK)
+  async changeMyPassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+    @CurrentUser() currentUser: User,
+  ): Promise<{ message: string }> {
+    this.logger.log(`🔒 Changing password for ${currentUser.username}`)
+    return this.usersService.changePassword(currentUser.id, changePasswordDto, currentUser)
+  }
+
+  /**
    * 获取用户列表（仅超级管理员）
    */
   @Get()
