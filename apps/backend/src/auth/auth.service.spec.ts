@@ -28,6 +28,7 @@ describe('AuthService', () => {
       findUnique: jest.fn(),
       findFirst: jest.fn(),
       create: jest.fn(),
+      count: jest.fn(), // 🔐 Bootstrap Admin: 支持user.count()调用
     },
   };
 
@@ -56,6 +57,8 @@ describe('AuthService', () => {
     jwtService = module.get<JwtService>(JwtService);
 
     jest.clearAllMocks();
+    // 🔐 Bootstrap Admin: 默认返回1表示有用户存在,不触发首个用户自动提升
+    mockPrismaService.user.count.mockResolvedValue(1);
   });
 
   it('应该成功创建服务实例', () => {
@@ -124,6 +127,42 @@ describe('AuthService', () => {
       await expect(service.register(registerDto)).rejects.toThrow(
         '邮箱已被注册',
       );
+    });
+
+    it('🔐 Bootstrap Admin: 首个用户应自动提升为SUPER_ADMIN', async () => {
+      const hashedPassword = 'hashedPassword123';
+      const createdUser = {
+        id: '1',
+        username: registerDto.username,
+        email: registerDto.email,
+        passwordHash: hashedPassword,
+        role: UserRole.SUPER_ADMIN, // 期望首个用户为SUPER_ADMIN
+        avatar: null,
+        bio: null,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      // 模拟数据库为空(首个用户)
+      mockPrismaService.user.count.mockResolvedValue(0);
+      mockPrismaService.user.findUnique.mockResolvedValue(null); // username check
+      mockPrismaService.user.findUnique.mockResolvedValue(null); // email check
+      mockPrismaService.user.create.mockResolvedValue(createdUser);
+      mockJwtService.signAsync
+        .mockResolvedValueOnce('accessToken')
+        .mockResolvedValueOnce('refreshToken');
+      (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
+
+      const result = await service.register(registerDto);
+
+      // 验证create被调用时传入的role是SUPER_ADMIN
+      expect(mockPrismaService.user.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          role: UserRole.SUPER_ADMIN,
+        }),
+      });
+      expect(result.user.role).toBe(UserRole.SUPER_ADMIN);
     });
   });
 

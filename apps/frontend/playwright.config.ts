@@ -75,12 +75,12 @@ export default defineConfig({
     // },
   ],
 
-  // Web 服务器配置（可选）
-  // 如果需要 Playwright 自动启动服务器，取消注释
-  // webServer: {
-  //   command: 'pnpm run dev',
-  //   port: 3000,
-  //   timeout: 120000,
-  //   reuseExistingServer: !process.env.CI,
-  // },
+  // Web 服务器配置
+  // Playwright 自动启动前端开发服务器
+  webServer: {
+    command: 'pnpm run dev',
+    port: 3000,
+    timeout: 120000, // 2分钟启动超时(Next.js首次编译需要时间)
+    reuseExistingServer: !process.env.CI, // 本地开发可复用现有服务器,CI环境强制新启动
+  },
 })

@@ -80,8 +80,8 @@ test.describe('用户注册功能测试', () => {
     await expect(page.locator('text=用户名必须是3-20个字符，只能包含字母、数字和下划线')).toBeVisible({ timeout: 5000 })
   })
 
-  test.skip('应该验证邮箱格式 (后端不验证邮箱)', async ({ page }) => {
-    // NOTE: 后端当前不验证邮箱格式，任意邮箱都可通过
+  test('应该验证邮箱格式', async ({ page }) => {
+    // NOTE: 如果后端不验证,前端应该验证邮箱格式
     // 填写无效的邮箱格式
     await page.getByLabel('用户名').fill(testUser.username)
     await page.getByLabel('邮箱').fill('invalid-email')
@@ -95,8 +95,8 @@ test.describe('用户注册功能测试', () => {
     await expect(page.locator('text=请输入有效的邮箱地址')).toBeVisible({ timeout: 5000 })
   })
 
-  test.skip('应该验证密码长度（过短） (需进一步调查)', async ({ page }) => {
-    // NOTE: 测试环境下验证逻辑可能与手动操作不一致
+  test('应该验证密码长度（过短）', async ({ page }) => {
+    // NOTE: 验证前端表单验证逻辑是否正确
     // 填写过短的密码（少于8个字符）
     await page.getByLabel('用户名').fill(testUser.username)
     await page.getByLabel('邮箱').fill(testUser.email)
@@ -110,8 +110,8 @@ test.describe('用户注册功能测试', () => {
     await expect(page.locator('text=密码长度至少为8个字符')).toBeVisible({ timeout: 5000 })
   })
 
-  test.skip('应该验证两次密码输入一致性 (需进一步调查)', async ({ page }) => {
-    // NOTE: 测试环境下验证逻辑可能与手动操作不一致
+  test('应该验证两次密码输入一致性', async ({ page }) => {
+    // NOTE: 验证前端表单验证逻辑是否正确
     // 填写不一致的密码
     await page.getByLabel('用户名').fill(testUser.username)
     await page.getByLabel('邮箱').fill(testUser.email)
@@ -125,8 +125,8 @@ test.describe('用户注册功能测试', () => {
     await expect(page.locator('text=两次输入的密码不一致')).toBeVisible({ timeout: 5000 })
   })
 
-  test.skip('应该成功注册新用户并跳转到仪表板 (需进一步调查)', async ({ page }) => {
-    // NOTE: 测试环境下跳转逻辑可能与手动操作不一致
+  test('应该成功注册新用户并跳转到仪表板', async ({ page }) => {
+    // NOTE: 验证完整注册流程
     // 填写有效的注册信息
     await page.getByLabel('用户名').fill(testUser.username)
     await page.getByLabel('邮箱').fill(testUser.email)
