@@ -1,3 +1,4 @@
+import { TEST_USERS } from '../fixtures'
 import { test, expect } from '@playwright/test'
 
 /**
@@ -6,7 +7,7 @@ import { test, expect } from '@playwright/test'
  *
  * 测试前置条件:
  * 1. 后端服务已启动（PostgreSQL + NestJS）
- * 2. 已创建测试用户：username: 'jia', password: 'Jia123456'
+ * 2. 已创建测试用户：username: TEST_USERS.testuser.username, password: TEST_USERS.testuser.password
  * 3. 用户已有至少一个组织（OWNER或ADMIN角色）
  * 4. 数据库已执行迁移脚本
  *
@@ -18,8 +19,8 @@ import { test, expect } from '@playwright/test'
 test.describe('团队CRUD功能测试', () => {
   // 使用已存在的测试用户
   const testUser = {
-    username: 'jia',
-    password: 'Jia123456',
+    username: TEST_USERS.testuser.username,
+    password: TEST_USERS.testuser.password,
   }
 
   // 生成唯一的团队名称（避免测试数据污染）
@@ -106,10 +107,10 @@ test.describe('团队CRUD功能测试', () => {
 
     if (isDetailsPage) {
       // 如果跳转到详情页，验证页面内容
-      await expect(page.locator(`text=${teamName}`)).toBeVisible({ timeout: 5000 })
+      await expect(page.getByRole('heading', { name: teamName, exact: true })).toBeVisible({ timeout: 5000 })
     } else {
       // 如果停留在组织页，验证团队卡片出现
-      await expect(page.locator(`text=${teamName}`)).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(teamName)).toBeVisible({ timeout: 5000 })
     }
   })
 
@@ -174,11 +175,11 @@ test.describe('团队CRUD功能测试', () => {
     // 9. 测试Tab切换
     // 点击Members Tab
     await page.getByRole('tab', { name: /成员|Members/i }).click()
-    await expect(page.locator('text=成员').or(page.locator('text=Members'))).toBeVisible({ timeout: 3000 })
+    await expect(page.getByRole('heading', { name: /成员|Members/i })).toBeVisible({ timeout: 3000 })
 
     // 点击Permissions Tab
     await page.getByRole('tab', { name: /权限|Permissions/i }).click()
-    await expect(page.locator('text=项目权限').or(page.locator('text=Project Permissions'))).toBeVisible({ timeout: 3000 })
+    await expect(page.getByRole('heading', { level: 2, name: /项目权限|Project Permissions/i })).toBeVisible({ timeout: 3000 })
 
     // 点击Settings Tab（需要MAINTAINER权限）
     const settingsTab = page.getByRole('tab', { name: /设置|Settings/i })
@@ -459,7 +460,7 @@ test.describe('团队CRUD功能测试', () => {
     await page.waitForTimeout(1000)
 
     // 7. 验证权限管理页面加载
-    await expect(page.locator('text=项目权限').or(page.locator('text=Project Permissions'))).toBeVisible({ timeout: 3000 })
+    await expect(page.getByRole('heading', { level: 2, name: /项目权限|Project Permissions/i })).toBeVisible({ timeout: 3000 })
 
     // 8. 检查是否有分配权限的权限
     const assignSection = page.locator('text=分配权限').or(page.locator('text=Assign Permission'))

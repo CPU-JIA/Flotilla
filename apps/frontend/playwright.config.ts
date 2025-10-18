@@ -75,6 +75,10 @@ export default defineConfig({
     // },
   ],
 
+  // Global Setup - 在所有测试前执行
+  // 创建测试用户（admin, testuser, normaluser）
+  globalSetup: require.resolve('./tests/global-setup'),
+
   // Web 服务器配置
   // Playwright 自动启动前端开发服务器
   webServer: {

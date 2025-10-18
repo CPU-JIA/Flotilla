@@ -1,3 +1,4 @@
+import { TEST_USERS } from '../fixtures'
 import { test, expect } from '@playwright/test'
 
 /**
@@ -6,7 +7,7 @@ import { test, expect } from '@playwright/test'
  *
  * 测试前置条件:
  * 1. 后端服务已启动（PostgreSQL + NestJS）
- * 2. 已创建测试用户：username: 'jia', password: 'Jia123456'
+ * 2. 已创建测试用户：username: TEST_USERS.testuser.username, password: TEST_USERS.testuser.password
  * 3. 数据库已执行迁移脚本
  *
  * 运行命令:
@@ -17,8 +18,8 @@ import { test, expect } from '@playwright/test'
 test.describe('组织CRUD功能测试', () => {
   // 使用已存在的测试用户
   const testUser = {
-    username: 'jia',
-    password: 'Jia123456',
+    username: TEST_USERS.testuser.username,
+    password: TEST_USERS.testuser.password,
   }
 
   // 生成唯一的组织名称（避免测试数据污染）
@@ -49,8 +50,8 @@ test.describe('组织CRUD功能测试', () => {
     // 2. 验证页面加载完成
     await expect(page.locator('text=我的组织')).toBeVisible({ timeout: 5000 })
 
-    // 3. 点击"创建新组织"按钮
-    const createButton = page.getByRole('button', { name: /创建新组织|Create New Organization/i })
+    // 3. 点击"创建新组织"按钮（使用.first()选择头部按钮，避免与空状态按钮冲突）
+    const createButton = page.getByRole('button', { name: /创建新组织|Create New Organization/i }).first()
     await expect(createButton).toBeVisible()
     await createButton.click()
 
@@ -101,7 +102,7 @@ test.describe('组织CRUD功能测试', () => {
 
     if (!hasOrganizations) {
       // 创建一个测试组织
-      await page.getByRole('button', { name: /创建新组织/i }).click()
+      await page.getByRole('button', { name: /创建新组织/i }).first().click()
       await page.locator('[role="dialog"]').waitFor({ state: 'visible' })
 
       orgSlug = generateUniqueOrgSlug()
@@ -135,7 +136,7 @@ test.describe('组织CRUD功能测试', () => {
 
     // 点击Teams Tab
     await page.getByRole('tab', { name: /团队|Teams/i }).click()
-    await expect(page.locator('text=团队').or(page.locator('text=Teams'))).toBeVisible({ timeout: 3000 })
+    await expect(page.getByRole('heading', { name: /团队|Teams/i })).toBeVisible({ timeout: 3000 })
 
     // 点击Settings Tab（需要权限）
     const settingsTab = page.getByRole('tab', { name: /设置|Settings/i })
@@ -161,7 +162,7 @@ test.describe('组织CRUD功能测试', () => {
 
     if (!hasOrganizations) {
       // 创建测试组织
-      await page.getByRole('button', { name: /创建新组织/i }).click()
+      await page.getByRole('button', { name: /创建新组织/i }).first().click()
       await page.locator('[role="dialog"]').waitFor({ state: 'visible' })
 
       orgSlug = generateUniqueOrgSlug()
@@ -217,7 +218,7 @@ test.describe('组织CRUD功能测试', () => {
 
     // 10. 验证名称已更新（刷新页面后检查）
     await page.reload({ waitUntil: 'networkidle' })
-    await expect(page.locator(`text=${newName}`)).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { name: newName, exact: true })).toBeVisible({ timeout: 5000 })
   })
 
   test('应该验证组织slug格式', async ({ page }) => {
@@ -225,7 +226,7 @@ test.describe('组织CRUD功能测试', () => {
     await page.goto('/organizations', { waitUntil: 'networkidle' })
 
     // 2. 打开创建Dialog
-    await page.getByRole('button', { name: /创建新组织/i }).click()
+    await page.getByRole('button', { name: /创建新组织/i }).first().click()
     await expect(page.locator('[role="dialog"]')).toBeVisible()
 
     // 3. 填写组织名称
@@ -279,7 +280,7 @@ test.describe('组织CRUD功能测试', () => {
 
     if (await searchInput.isVisible()) {
       // 3. 创建一个测试组织以便搜索
-      await page.getByRole('button', { name: /创建新组织/i }).click()
+      await page.getByRole('button', { name: /创建新组织/i }).first().click()
       await page.locator('[role="dialog"]').waitFor({ state: 'visible' })
 
       const uniqueName = `可搜索组织-${Date.now()}`

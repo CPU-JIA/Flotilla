@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { TEST_USERS } from '../fixtures'
 
 /**
  * 注册功能自动化测试
@@ -8,9 +9,11 @@ import { test, expect } from '@playwright/test'
 test.describe('用户注册功能测试', () => {
   // 为每个测试生成唯一的测试数据
   const timestamp = Date.now()
+  // Use last 6 digits of timestamp to keep username within 20 char limit (user + 6 digits = 10 chars)
+  const uniqueId = timestamp % 1000000
   const testUser = {
-    username: `testuser${timestamp}`,
-    email: `testuser${timestamp}@example.com`,
+    username: `user${uniqueId}`,
+    email: `user${uniqueId}@test.com`,
     password: 'Test123456',
   }
 
@@ -145,9 +148,9 @@ test.describe('用户注册功能测试', () => {
   })
 
   test('应该拒绝重复的用户名注册', async ({ page }) => {
-    // 使用已存在的用户名（假设 'jia' 已存在）
-    await page.getByLabel('用户名').fill('jia')
-    await page.getByLabel('邮箱').fill(`jia_new_${timestamp}@example.com`)
+    // 使用已存在的用户名（testuser from globalSetup）
+    await page.getByLabel('用户名').fill(TEST_USERS.testuser.username)
+    await page.getByLabel('邮箱').fill(`testuser_new_${timestamp}@example.com`)
     await page.getByLabel('密码', { exact: true }).fill(testUser.password)
     await page.getByLabel('确认密码').fill(testUser.password)
 
@@ -160,9 +163,9 @@ test.describe('用户注册功能测试', () => {
   })
 
   test('应该拒绝重复的邮箱注册', async ({ page }) => {
-    // 使用已存在的邮箱（假设某个已存在的邮箱）
+    // 使用已存在的邮箱（testuser from globalSetup）
     await page.getByLabel('用户名').fill(`uniqueuser${timestamp}`)
-    await page.getByLabel('邮箱').fill('jia@example.com')  // 假设这个邮箱已存在
+    await page.getByLabel('邮箱').fill(TEST_USERS.testuser.email)
     await page.getByLabel('密码', { exact: true }).fill(testUser.password)
     await page.getByLabel('确认密码').fill(testUser.password)
 

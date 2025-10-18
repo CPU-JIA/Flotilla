@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { TEST_USERS } from '../fixtures'
 
 /**
  * 管理面板功能自动化测试
@@ -7,10 +8,8 @@ import { test, expect } from '@playwright/test'
  */
 
 test.describe('管理面板功能测试', () => {
-  const adminUser = {
-    username: 'jia',  // 假设jia是SUPER_ADMIN
-    password: 'Jia123456',
-  }
+  // Use admin user created by globalSetup (SUPER_ADMIN role)
+  const adminUser = TEST_USERS.admin
 
   // 在每个测试前先登录
   test.beforeEach(async ({ page }) => {

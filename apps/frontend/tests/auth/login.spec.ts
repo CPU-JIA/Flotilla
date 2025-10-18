@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { TEST_USERS } from '../fixtures'
 
 /**
  * 登录功能自动化测试
@@ -6,12 +7,8 @@ import { test, expect } from '@playwright/test'
  */
 
 test.describe('用户登录功能测试', () => {
-  // 使用已存在的测试用户
-  const existingUser = {
-    username: 'jia',
-    email: 'jia@example.com',
-    password: 'Jia123456',  // 实际密码需要根据数据库中的用户数据调整
-  }
+  // Use testuser created by globalSetup (username: testuser, password: Password123)
+  const testUser = TEST_USERS.testuser
 
   test.beforeEach(async ({ page }) => {
     // 访问登录页面
@@ -54,7 +51,7 @@ test.describe('用户登录功能测试', () => {
 
   test('应该验证仅填写用户名时提交', async ({ page }) => {
     // 只填写用户名，不填写密码
-    await page.getByLabel('用户名或邮箱').fill(existingUser.username)
+    await page.getByLabel('用户名或邮箱').fill(testUser.username)
 
     // 点击登录按钮
     await page.getByRole('button', { name: '登录' }).click()
@@ -66,7 +63,7 @@ test.describe('用户登录功能测试', () => {
 
   test('应该验证仅填写密码时提交', async ({ page }) => {
     // 只填写密码，不填写用户名
-    await page.getByLabel('密码').fill(existingUser.password)
+    await page.getByLabel('密码').fill(testUser.password)
 
     // 点击登录按钮
     await page.getByRole('button', { name: '登录' }).click()
@@ -90,7 +87,7 @@ test.describe('用户登录功能测试', () => {
 
   test('应该拒绝错误的密码', async ({ page }) => {
     // 使用正确的用户名但错误的密码
-    await page.getByLabel('用户名或邮箱').fill(existingUser.username)
+    await page.getByLabel('用户名或邮箱').fill(testUser.username)
     await page.getByLabel('密码').fill('wrongpassword123')
 
     // 提交表单
@@ -102,8 +99,8 @@ test.describe('用户登录功能测试', () => {
 
   test('应该使用用户名成功登录', async ({ page }) => {
     // 使用用户名登录
-    await page.getByLabel('用户名或邮箱').fill(existingUser.username)
-    await page.getByLabel('密码').fill(existingUser.password)
+    await page.getByLabel('用户名或邮箱').fill(testUser.username)
+    await page.getByLabel('密码').fill(testUser.password)
 
     // 提交表单
     await page.getByRole('button', { name: '登录' }).click()
@@ -117,8 +114,8 @@ test.describe('用户登录功能测试', () => {
   test('应该使用邮箱成功登录', async ({ page }) => {
     // NOTE: 后端auth.service.ts:112-115支持OR条件查询username或email
     // 使用邮箱登录
-    await page.getByLabel('用户名或邮箱').fill(existingUser.email)
-    await page.getByLabel('密码').fill(existingUser.password)
+    await page.getByLabel('用户名或邮箱').fill(testUser.email)
+    await page.getByLabel('密码').fill(testUser.password)
 
     // 提交表单
     await page.getByRole('button', { name: '登录' }).click()
@@ -129,8 +126,8 @@ test.describe('用户登录功能测试', () => {
 
   test('应该在登录时显示加载状态', async ({ page }) => {
     // 填写登录信息
-    await page.getByLabel('用户名或邮箱').fill(existingUser.username)
-    await page.getByLabel('密码').fill(existingUser.password)
+    await page.getByLabel('用户名或邮箱').fill(testUser.username)
+    await page.getByLabel('密码').fill(testUser.password)
 
     // 点击登录按钮
     const submitButton = page.getByRole('button', { name: '登录' })
@@ -145,8 +142,8 @@ test.describe('用户登录功能测试', () => {
 
   test('应该在登录时禁用输入字段', async ({ page }) => {
     // 填写登录信息
-    await page.getByLabel('用户名或邮箱').fill(existingUser.username)
-    await page.getByLabel('密码').fill(existingUser.password)
+    await page.getByLabel('用户名或邮箱').fill(testUser.username)
+    await page.getByLabel('密码').fill(testUser.password)
 
     // 点击登录按钮
     await page.getByRole('button', { name: '登录' }).click()
@@ -185,8 +182,8 @@ test.describe('用户登录功能测试', () => {
 
   test('应该保持登录状态 - 刷新后仍然登录', async ({ page, context }) => {
     // 先登录
-    await page.getByLabel('用户名或邮箱').fill(existingUser.username)
-    await page.getByLabel('密码').fill(existingUser.password)
+    await page.getByLabel('用户名或邮箱').fill(testUser.username)
+    await page.getByLabel('密码').fill(testUser.password)
     await page.getByRole('button', { name: '登录' }).click()
 
     // 等待跳转到仪表板
@@ -204,8 +201,8 @@ test.describe('用户登录功能测试', () => {
     await context.setOffline(true)
 
     // 尝试登录
-    await page.getByLabel('用户名或邮箱').fill(existingUser.username)
-    await page.getByLabel('密码').fill(existingUser.password)
+    await page.getByLabel('用户名或邮箱').fill(testUser.username)
+    await page.getByLabel('密码').fill(testUser.password)
     await page.getByRole('button', { name: '登录' }).click()
 
     // 等待错误消息出现
@@ -217,8 +214,8 @@ test.describe('用户登录功能测试', () => {
 
   test('应该测试键盘导航 - Enter键提交', async ({ page }) => {
     // 填写登录信息
-    await page.getByLabel('用户名或邮箱').fill(existingUser.username)
-    await page.getByLabel('密码').fill(existingUser.password)
+    await page.getByLabel('用户名或邮箱').fill(testUser.username)
+    await page.getByLabel('密码').fill(testUser.password)
 
     // 在密码字段按Enter键
     await page.getByLabel('密码').press('Enter')

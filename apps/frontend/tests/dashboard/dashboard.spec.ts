@@ -1,3 +1,4 @@
+import { TEST_USERS } from '../fixtures'
 import { test, expect } from '@playwright/test'
 
 /**
@@ -7,8 +8,8 @@ import { test, expect } from '@playwright/test'
 
 test.describe('仪表板功能测试', () => {
   const testUser = {
-    username: 'jia',
-    password: 'Jia123456',
+    username: TEST_USERS.testuser.username,
+    password: TEST_USERS.testuser.password,
   }
 
   // 在每个测试前先登录

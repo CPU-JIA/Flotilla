@@ -69,13 +69,11 @@ export default function DashboardPage() {
             <div className="text-sm text-gray-600 mb-1">角色</div>
             <div className="text-lg font-semibold text-gray-900">{user.role}</div>
           </div>
-          {/* 仅对超级管理员显示内部用户ID (ECP-C1: 防御性编程 - 隐私保护) */}
-          {user.role === 'SUPER_ADMIN' && (
-            <div className="p-4 bg-orange-50 rounded-xl border border-orange-100">
-              <div className="text-sm text-gray-600 mb-1">系统ID（管理员可见）</div>
-              <div className="text-xs font-mono text-gray-700 break-all">{user.id}</div>
-            </div>
-          )}
+          {/* 系统ID - 所有用户可见 */}
+          <div className="p-4 bg-orange-50 rounded-xl border border-orange-100">
+            <div className="text-sm text-gray-600 mb-1">系统ID</div>
+            <div className="text-xs font-mono text-gray-700 break-all">{user.id}</div>
+          </div>
         </div>
 
         {/* 功能导航 */}
