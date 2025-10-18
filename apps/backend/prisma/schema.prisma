@@ -15,26 +15,37 @@ datasource db {
 // ============================================
 
 enum UserRole {
-  USER         // 普通用户
-  SUPER_ADMIN  // 超级管理员
+  USER // 普通用户
+  SUPER_ADMIN // 超级管理员
 }
 
 enum ProjectVisibility {
-  PUBLIC      // 公开
-  PRIVATE     // 私有
+  PUBLIC // 公开
+  PRIVATE // 私有
 }
 
 enum MemberRole {
-  OWNER       // 所有者
-  MAINTAINER  // 维护者（可管理项目设置、审核PR）
-  MEMBER      // 成员（可读写代码）
-  VIEWER      // 查看者（只读）
+  OWNER // 所有者
+  MAINTAINER // 维护者（可管理项目设置、审核PR）
+  MEMBER // 成员（可读写代码）
+  VIEWER // 查看者（只读）
 }
 
 enum RaftNodeState {
-  FOLLOWER    // 跟随者
-  CANDIDATE   // 候选人
-  LEADER      // 领导者
+  FOLLOWER // 跟随者
+  CANDIDATE // 候选人
+  LEADER // 领导者
+}
+
+enum OrgRole {
+  OWNER // 组织所有者（最高权限）
+  ADMIN // 组织管理员（可管理成员和设置）
+  MEMBER // 组织成员（基础权限）
+}
+
+enum TeamRole {
+  MAINTAINER // 团队维护者（可管理团队和分配权限）
+  MEMBER // 团队成员（继承团队权限）
 }
 
 // ============================================
@@ -55,10 +66,12 @@ model User {
   updatedAt DateTime @updatedAt
 
   // 关系
-  ownedProjects  Project[]       @relation("ProjectOwner")
-  projectMembers ProjectMember[]
-  commits        Commit[]
-  uploadedFiles  ProjectFile[]
+  ownedProjects       Project[]            @relation("ProjectOwner")
+  projectMembers      ProjectMember[]
+  commits             Commit[]
+  uploadedFiles       ProjectFile[]
+  organizationMembers OrganizationMember[]
+  teamMembers         TeamMember[]
 
   @@index([email])
   @@index([username])
@@ -66,27 +79,150 @@ model User {
 }
 
 // ============================================
-// 项目模块
+// 组织与团队模块
 // ============================================
 
-model Project {
-  id          String            @id @default(cuid())
-  name        String            @db.VarChar(100)
-  description String?           @db.Text
-  visibility  ProjectVisibility @default(PRIVATE)
-  ownerId     String
+model Organization {
+  id          String  @id @default(cuid())
+  name        String  @db.VarChar(100)
+  slug        String  @unique @db.VarChar(100)
+  description String? @db.Text
+  avatar      String? @db.VarChar(500)
+  website     String? @db.VarChar(500)
+
+  // 资源配额
+  maxProjects  Int    @default(1000)
+  maxMembers   Int    @default(1000)
+  storageQuota BigInt @default(107374182400) // 100GB default
+  storageUsed  BigInt @default(0)
+
+  // 个人组织标识（用于数据迁移时区分个人项目组织）
+  isPersonal Boolean @default(false)
+
+  // 软删除支持（30天保护期）
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // 关系
+  members  OrganizationMember[]
+  teams    Team[]
+  projects Project[]
+
+  @@index([slug])
+  @@index([deletedAt])
+  @@index([createdAt])
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  id             String  @id @default(cuid())
+  organizationId String
+  userId         String
+  role           OrgRole @default(MEMBER)
+
+  joinedAt DateTime @default(now())
+
+  // 关系
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([role])
+  @@map("organization_members")
+}
+
+model Team {
+  id             String  @id @default(cuid())
+  organizationId String
+  name           String  @db.VarChar(100)
+  slug           String  @db.VarChar(100)
+  description    String? @db.Text
+  avatar         String? @db.VarChar(500)
+
+  // 团队成员配额
+  maxMembers Int @default(100)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // 关系
-  owner        User            @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  repository   Repository?
-  members      ProjectMember[]
-  projectFiles ProjectFile[]
+  organization       Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members            TeamMember[]
+  projectPermissions TeamProjectPermission[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([slug])
+  @@map("teams")
+}
+
+model TeamMember {
+  id     String   @id @default(cuid())
+  teamId String
+  userId String
+  role   TeamRole @default(MEMBER)
+
+  joinedAt DateTime @default(now())
+
+  // 关系
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+  @@index([role])
+  @@map("team_members")
+}
+
+model TeamProjectPermission {
+  id        String     @id @default(cuid())
+  teamId    String
+  projectId String
+  role      MemberRole // 复用项目角色：OWNER/MAINTAINER/MEMBER/VIEWER
+
+  createdAt DateTime @default(now())
+
+  // 关系
+  team    Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, projectId])
+  @@index([teamId])
+  @@index([projectId])
+  @@map("team_project_permissions")
+}
+
+// ============================================
+// 项目模块
+// ============================================
+
+model Project {
+  id             String            @id @default(cuid())
+  name           String            @db.VarChar(100)
+  description    String?           @db.Text
+  visibility     ProjectVisibility @default(PRIVATE)
+  ownerId        String
+  organizationId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  owner           User                    @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  organization    Organization?           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  repository      Repository?
+  members         ProjectMember[]
+  projectFiles    ProjectFile[]
+  teamPermissions TeamProjectPermission[]
 
   @@unique([ownerId, name])
+  @@unique([organizationId, name])
   @@index([ownerId])
+  @@index([organizationId])
   @@index([visibility])
   @@map("projects")
 }
@@ -154,22 +290,22 @@ model Branch {
 }
 
 model Commit {
-  id           String   @id @default(cuid())
+  id           String  @id @default(cuid())
   repositoryId String
   branchId     String
   authorId     String
-  message      String   @db.Text
-  hash         String   @default(cuid()) @db.VarChar(64)
-  parentHash   String?  @db.VarChar(64)
+  message      String  @db.Text
+  hash         String  @default(cuid()) @db.VarChar(64)
+  parentHash   String? @db.VarChar(64)
 
   createdAt DateTime @default(now())
 
   // 关系
-  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-  branch       Branch     @relation("BranchCommits", fields: [branchId], references: [id], onDelete: Cascade)
-  author       User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  files        File[]
-  branchHeads  Branch[]   @relation("BranchCommit")
+  repository  Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  branch      Branch     @relation("BranchCommits", fields: [branchId], references: [id], onDelete: Cascade)
+  author      User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  files       File[]
+  branchHeads Branch[]   @relation("BranchCommit")
 
   @@index([repositoryId])
   @@index([branchId])
@@ -180,14 +316,14 @@ model Commit {
 }
 
 model File {
-  id           String @id @default(cuid())
+  id           String  @id @default(cuid())
   repositoryId String
   branchId     String
   commitId     String?
-  path         String @db.VarChar(500)
-  objectName   String @db.VarChar(1000) // MinIO对象名称
+  path         String  @db.VarChar(500)
+  objectName   String  @db.VarChar(1000) // MinIO对象名称
   size         Int
-  mimeType     String @db.VarChar(100)
+  mimeType     String  @db.VarChar(100)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -210,10 +346,10 @@ model File {
 // ============================================
 
 model RaftLog {
-  id        String   @id @default(cuid())
-  index     Int      @unique
+  id        String @id @default(cuid())
+  index     Int    @unique
   term      Int
-  command   String   @db.Text
+  command   String @db.Text
   timestamp BigInt
 
   createdAt DateTime @default(now())
