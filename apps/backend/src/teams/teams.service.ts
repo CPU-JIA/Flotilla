@@ -68,7 +68,11 @@ export class TeamsService {
   /**
    * Find a specific team by organization and team slug
    */
-  async findBySlug(organizationSlug: string, teamSlug: string, userId?: string) {
+  async findBySlug(
+    organizationSlug: string,
+    teamSlug: string,
+    userId?: string,
+  ) {
     const team = await this.prisma.team.findFirst({
       where: {
         slug: teamSlug,
@@ -154,9 +158,7 @@ export class TeamsService {
     }
 
     if (organization.members.length === 0) {
-      throw new ForbiddenException(
-        'Only organization admins can create teams',
-      );
+      throw new ForbiddenException('Only organization admins can create teams');
     }
 
     // Check slug uniqueness within organization
@@ -311,7 +313,11 @@ export class TeamsService {
   /**
    * Add a new member to a team
    */
-  async addMember(organizationSlug: string, teamSlug: string, dto: AddTeamMemberDto) {
+  async addMember(
+    organizationSlug: string,
+    teamSlug: string,
+    dto: AddTeamMemberDto,
+  ) {
     const team = await this.prisma.team.findFirst({
       where: {
         slug: teamSlug,
@@ -336,9 +342,7 @@ export class TeamsService {
     });
 
     if (!user) {
-      throw new NotFoundException(
-        `User with email '${dto.email}' not found`,
-      );
+      throw new NotFoundException(`User with email '${dto.email}' not found`);
     }
 
     // Verify user is a member of the organization
@@ -363,9 +367,7 @@ export class TeamsService {
     });
 
     if (existingMember) {
-      throw new ConflictException(
-        'User is already a member of this team',
-      );
+      throw new ConflictException('User is already a member of this team');
     }
 
     // Create team membership
@@ -604,9 +606,7 @@ export class TeamsService {
       });
 
     if (existingPermission) {
-      throw new ConflictException(
-        'Permission for this project already exists',
-      );
+      throw new ConflictException('Permission for this project already exists');
     }
 
     // Create permission

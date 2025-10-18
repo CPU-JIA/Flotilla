@@ -131,11 +131,7 @@ export class PermissionService {
 
     // Check role hierarchy
     if (
-      !this.hasPermission(
-        effectiveRole,
-        requiredRole,
-        this.memberRoleHierarchy,
-      )
+      !this.hasPermission(effectiveRole, requiredRole, this.memberRoleHierarchy)
     ) {
       throw new ForbiddenException(
         `Requires ${requiredRole} role or higher in this project`,
@@ -259,11 +255,7 @@ export class PermissionService {
 
     // Check role hierarchy
     if (
-      !this.hasPermission(
-        membership.role,
-        requiredRole,
-        this.teamRoleHierarchy,
-      )
+      !this.hasPermission(membership.role, requiredRole, this.teamRoleHierarchy)
     ) {
       throw new ForbiddenException(
         `Requires ${requiredRole} role or higher in this team`,

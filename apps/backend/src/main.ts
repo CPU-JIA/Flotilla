@@ -1,18 +1,18 @@
-import { NestFactory } from '@nestjs/core'
-import { ValidationPipe, Logger } from '@nestjs/common'
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
-import { AppModule } from './app.module'
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe, Logger } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { AppModule } from './app.module';
 
 // ECP-C1: 防御性编程 - 全局BigInt序列化支持
 // PostgreSQL的BIGINT类型映射为JavaScript的BigInt，需要添加JSON序列化支持
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-;(BigInt.prototype as any).toJSON = function () {
-  return this.toString()
-}
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
 
 async function bootstrap() {
-  const logger = new Logger('Bootstrap')
-  const app = await NestFactory.create(AppModule)
+  const logger = new Logger('Bootstrap');
+  const app = await NestFactory.create(AppModule);
 
   // 启用全局验证管道
   app.useGlobalPipes(
@@ -24,18 +24,18 @@ async function bootstrap() {
         enableImplicitConversion: true,
       },
     }),
-  )
+  );
 
   // 启用 CORS - ECP-C1: 动态读取环境变量确保运行时配置生效
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
-  logger.log(`🌐 CORS enabled for origin: ${frontendUrl}`)
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  logger.log(`🌐 CORS enabled for origin: ${frontendUrl}`);
   app.enableCors({
     origin: frontendUrl,
     credentials: true,
-  })
+  });
 
   // 设置全局前缀
-  app.setGlobalPrefix('api')
+  app.setGlobalPrefix('api');
 
   // Swagger API 文档配置
   const config = new DocumentBuilder()
@@ -58,23 +58,23 @@ async function bootstrap() {
     .addTag('projects', '项目模块 - 项目与成员管理')
     .addTag('repositories', '仓库模块 - 代码仓库、分支、文件、提交管理')
     .addTag('monitoring', '监控模块 - 系统健康检查和性能指标')
-    .build()
+    .build();
 
-  const document = SwaggerModule.createDocument(app, config)
+  const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
       tagsSorter: 'alpha',
       operationsSorter: 'alpha',
     },
-  })
+  });
 
-  const port = process.env.PORT || 4000
-  await app.listen(port)
+  const port = process.env.PORT || 4000;
+  await app.listen(port);
 
-  logger.log(`🚀 Application is running on: http://localhost:${port}/api`)
-  logger.log(`📚 Swagger API documentation: http://localhost:${port}/api/docs`)
-  logger.log(`🔐 Authentication endpoints: http://localhost:${port}/api/auth`)
+  logger.log(`🚀 Application is running on: http://localhost:${port}/api`);
+  logger.log(`📚 Swagger API documentation: http://localhost:${port}/api/docs`);
+  logger.log(`🔐 Authentication endpoints: http://localhost:${port}/api/auth`);
 }
 
-bootstrap()
+bootstrap();

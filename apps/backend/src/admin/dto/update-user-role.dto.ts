@@ -1,5 +1,5 @@
-import { IsEnum, IsNotEmpty } from 'class-validator'
-import { UserRole } from '@prisma/client'
+import { IsEnum, IsNotEmpty } from 'class-validator';
+import { UserRole } from '@prisma/client';
 
 /**
  * 更新用户角色 DTO
@@ -8,5 +8,5 @@ import { UserRole } from '@prisma/client'
 export class UpdateUserRoleDto {
   @IsEnum(UserRole, { message: '角色必须是有效的用户角色' })
   @IsNotEmpty({ message: '角色不能为空' })
-  role: UserRole
+  role: UserRole;
 }

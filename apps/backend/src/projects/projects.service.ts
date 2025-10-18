@@ -7,41 +7,41 @@ import {
   Logger,
   forwardRef,
   Inject,
-} from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
-import { RepositoriesService } from '../repositories/repositories.service'
+} from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { RepositoriesService } from '../repositories/repositories.service';
 import {
   CreateProjectDto,
   UpdateProjectDto,
   AddMemberDto,
   UpdateMemberRoleDto,
   QueryProjectsDto,
-} from './dto'
-import type { User, Project, ProjectMember } from '@prisma/client'
-import { UserRole, MemberRole, ProjectVisibility } from '@prisma/client'
+} from './dto';
+import type { User, Project, ProjectMember } from '@prisma/client';
+import { UserRole, MemberRole, ProjectVisibility } from '@prisma/client';
 
 export interface ProjectListResponse {
   projects: (Project & {
-    owner: { id: string; username: string }
-    _count: { members: number }
-  })[]
-  total: number
-  page: number
-  pageSize: number
+    owner: { id: string; username: string };
+    _count: { members: number };
+  })[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 
 export interface ProjectDetailResponse extends Project {
-  owner: { id: string; username: string; email: string }
+  owner: { id: string; username: string; email: string };
   members: (ProjectMember & {
-    user: { id: string; username: string; email: string }
-  })[]
-  repository: any
-  _count: { members: number }
+    user: { id: string; username: string; email: string };
+  })[];
+  repository: any;
+  _count: { members: number };
 }
 
 @Injectable()
 export class ProjectsService {
-  private readonly logger = new Logger(ProjectsService.name)
+  private readonly logger = new Logger(ProjectsService.name);
 
   constructor(
     private prisma: PrismaService,
@@ -55,7 +55,10 @@ export class ProjectsService {
    * ECP-C1: 防御性编程 - 检查唯一性
    * Phase 3.1: 自动创建Repository和main分支
    */
-  async create(createDto: CreateProjectDto, currentUser: User): Promise<Project> {
+  async create(
+    createDto: CreateProjectDto,
+    currentUser: User,
+  ): Promise<Project> {
     // 检查项目名称是否已存在（同一用户下）
     const existingProject = await this.prisma.project.findUnique({
       where: {
@@ -64,10 +67,10 @@ export class ProjectsService {
           name: createDto.name,
         },
       },
-    })
+    });
 
     if (existingProject) {
-      throw new ConflictException('您已有同名项目')
+      throw new ConflictException('您已有同名项目');
     }
 
     const project = await this.prisma.project.create({
@@ -77,31 +80,41 @@ export class ProjectsService {
         visibility: createDto.visibility || ProjectVisibility.PRIVATE,
         ownerId: currentUser.id,
       },
-    })
+    });
 
-    this.logger.log(`📦 Project "${project.name}" created by ${currentUser.username}`)
+    this.logger.log(
+      `📦 Project "${project.name}" created by ${currentUser.username}`,
+    );
 
     // Phase 3.1: 自动创建Repository和默认分支
     try {
-      await this.repositoriesService.createRepository(project.id)
-      this.logger.log(`✅ Repository with main branch auto-created for project ${project.id}`)
+      await this.repositoriesService.createRepository(project.id);
+      this.logger.log(
+        `✅ Repository with main branch auto-created for project ${project.id}`,
+      );
     } catch (error) {
-      this.logger.error(`❌ Failed to create repository for project ${project.id}:`, error)
+      this.logger.error(
+        `❌ Failed to create repository for project ${project.id}:`,
+        error,
+      );
       // 如果Repository创建失败，删除项目并抛出异常
-      await this.prisma.project.delete({ where: { id: project.id } })
-      throw new BadRequestException('创建项目仓库失败，请重试')
+      await this.prisma.project.delete({ where: { id: project.id } });
+      throw new BadRequestException('创建项目仓库失败，请重试');
     }
 
-    return project
+    return project;
   }
 
   /**
    * 获取项目列表（当前用户可见的项目）
    * ECP-C3: 性能意识 - 分页查询
    */
-  async findAll(query: QueryProjectsDto, currentUser: User): Promise<ProjectListResponse> {
-    const { search, visibility, page = 1, pageSize = 20 } = query
-    const skip = (page - 1) * pageSize
+  async findAll(
+    query: QueryProjectsDto,
+    currentUser: User,
+  ): Promise<ProjectListResponse> {
+    const { search, visibility, page = 1, pageSize = 20 } = query;
+    const skip = (page - 1) * pageSize;
 
     const where: any = {
       OR: [
@@ -118,7 +131,7 @@ export class ProjectsService {
         // 公开项目
         { visibility: ProjectVisibility.PUBLIC },
       ],
-    }
+    };
 
     if (search) {
       where.AND = {
@@ -126,11 +139,11 @@ export class ProjectsService {
           { name: { contains: search, mode: 'insensitive' } },
           { description: { contains: search, mode: 'insensitive' } },
         ],
-      }
+      };
     }
 
     if (visibility) {
-      where.visibility = visibility
+      where.visibility = visibility;
     }
 
     const [projects, total] = await Promise.all([
@@ -149,16 +162,18 @@ export class ProjectsService {
         },
       }),
       this.prisma.project.count({ where }),
-    ])
+    ]);
 
-    this.logger.log(`📋 Retrieved ${projects.length} projects (total: ${total})`)
+    this.logger.log(
+      `📋 Retrieved ${projects.length} projects (total: ${total})`,
+    );
 
     return {
       projects,
       total,
       page,
       pageSize,
-    }
+    };
   }
 
   /**
@@ -184,23 +199,15 @@ export class ProjectsService {
           select: { members: true },
         },
       },
-    })
+    });
 
     if (!project) {
-      throw new NotFoundException(`项目 ID ${id} 不存在`)
+      throw new NotFoundException(`项目 ID ${id} 不存在`);
     }
 
-    // 权限检查：必须是所有者、成员、公开项目或超级管理员
-    const isOwner = project.ownerId === currentUser.id
-    const isMember = project.members.some((m) => m.userId === currentUser.id)
-    const isPublic = project.visibility === ProjectVisibility.PUBLIC
-    const isAdmin = currentUser.role === UserRole.SUPER_ADMIN
+    // 权限检查已由ProjectRoleGuard处理
 
-    if (!isOwner && !isMember && !isPublic && !isAdmin) {
-      throw new ForbiddenException('您没有权限访问此项目')
-    }
-
-    return project as ProjectDetailResponse
+    return project as ProjectDetailResponse;
   }
 
   /**
@@ -214,17 +221,13 @@ export class ProjectsService {
   ): Promise<Project> {
     const project = await this.prisma.project.findUnique({
       where: { id },
-    })
+    });
 
     if (!project) {
-      throw new NotFoundException(`项目 ID ${id} 不存在`)
+      throw new NotFoundException(`项目 ID ${id} 不存在`);
     }
 
-    // 只有所有者和超级管理员可以更新项目
-    const isAdmin = currentUser.role === UserRole.SUPER_ADMIN
-    if (project.ownerId !== currentUser.id && !isAdmin) {
-      throw new ForbiddenException('只有项目所有者可以更新项目')
-    }
+    // 权限检查已由ProjectRoleGuard处理
 
     // 检查名称冲突
     if (updateDto.name && updateDto.name !== project.name) {
@@ -235,21 +238,21 @@ export class ProjectsService {
             name: updateDto.name,
           },
         },
-      })
+      });
 
       if (existingProject) {
-        throw new ConflictException('您已有同名项目')
+        throw new ConflictException('您已有同名项目');
       }
     }
 
     const updatedProject = await this.prisma.project.update({
       where: { id },
       data: updateDto,
-    })
+    });
 
-    this.logger.log(`✏️ Project ${id} updated by ${currentUser.username}`)
+    this.logger.log(`✏️ Project ${id} updated by ${currentUser.username}`);
 
-    return updatedProject
+    return updatedProject;
   }
 
   /**
@@ -259,22 +262,19 @@ export class ProjectsService {
   async remove(id: string, currentUser: User): Promise<{ message: string }> {
     const project = await this.prisma.project.findUnique({
       where: { id },
-    })
+    });
 
     if (!project) {
-      throw new NotFoundException(`项目 ID ${id} 不存在`)
+      throw new NotFoundException(`项目 ID ${id} 不存在`);
     }
 
-    // 只有所有者可以删除项目
-    if (project.ownerId !== currentUser.id) {
-      throw new ForbiddenException('只有项目所有者可以删除项目')
-    }
+    // 权限检查已由ProjectRoleGuard处理
 
-    await this.prisma.project.delete({ where: { id } })
+    await this.prisma.project.delete({ where: { id } });
 
-    this.logger.warn(`🗑️ Project ${id} deleted by ${currentUser.username}`)
+    this.logger.warn(`🗑️ Project ${id} deleted by ${currentUser.username}`);
 
-    return { message: '项目已删除' }
+    return { message: '项目已删除' };
   }
 
   /**
@@ -289,36 +289,34 @@ export class ProjectsService {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       include: { members: true },
-    })
+    });
 
     if (!project) {
-      throw new NotFoundException(`项目 ID ${projectId} 不存在`)
+      throw new NotFoundException(`项目 ID ${projectId} 不存在`);
     }
 
-    // 只有所有者和超级管理员可以添加成员
-    const isAdmin = currentUser.role === UserRole.SUPER_ADMIN
-    if (project.ownerId !== currentUser.id && !isAdmin) {
-      throw new ForbiddenException('只有项目所有者可以添加成员')
-    }
+    // 权限检查已由ProjectRoleGuard处理
 
     // 不能添加所有者为成员
     if (addMemberDto.userId === project.ownerId) {
-      throw new BadRequestException('项目所有者无需添加为成员')
+      throw new BadRequestException('项目所有者无需添加为成员');
     }
 
     // 检查用户是否存在
     const user = await this.prisma.user.findUnique({
       where: { id: addMemberDto.userId },
-    })
+    });
 
     if (!user) {
-      throw new NotFoundException(`用户 ID ${addMemberDto.userId} 不存在`)
+      throw new NotFoundException(`用户 ID ${addMemberDto.userId} 不存在`);
     }
 
     // 检查是否已是成员
-    const existingMember = project.members.find((m) => m.userId === addMemberDto.userId)
+    const existingMember = project.members.find(
+      (m) => m.userId === addMemberDto.userId,
+    );
     if (existingMember) {
-      throw new ConflictException('该用户已是项目成员')
+      throw new ConflictException('该用户已是项目成员');
     }
 
     const member = await this.prisma.projectMember.create({
@@ -327,13 +325,13 @@ export class ProjectsService {
         userId: addMemberDto.userId,
         role: addMemberDto.role,
       },
-    })
+    });
 
     this.logger.log(
       `👥 User ${user.username} added to project ${projectId} as ${addMemberDto.role}`,
-    )
+    );
 
-    return member
+    return member;
   }
 
   /**
@@ -346,21 +344,17 @@ export class ProjectsService {
   ): Promise<{ message: string }> {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
-    })
+    });
 
     if (!project) {
-      throw new NotFoundException(`项目 ID ${projectId} 不存在`)
+      throw new NotFoundException(`项目 ID ${projectId} 不存在`);
     }
 
-    // 只有所有者和超级管理员可以移除成员
-    const isAdmin = currentUser.role === UserRole.SUPER_ADMIN
-    if (project.ownerId !== currentUser.id && !isAdmin) {
-      throw new ForbiddenException('只有项目所有者可以移除成员')
-    }
+    // 权限检查已由ProjectRoleGuard处理
 
     // 不能移除所有者
     if (userId === project.ownerId) {
-      throw new BadRequestException('不能移除项目所有者')
+      throw new BadRequestException('不能移除项目所有者');
     }
 
     const member = await this.prisma.projectMember.findUnique({
@@ -370,10 +364,10 @@ export class ProjectsService {
           userId,
         },
       },
-    })
+    });
 
     if (!member) {
-      throw new NotFoundException('该用户不是项目成员')
+      throw new NotFoundException('该用户不是项目成员');
     }
 
     await this.prisma.projectMember.delete({
@@ -383,11 +377,11 @@ export class ProjectsService {
           userId,
         },
       },
-    })
+    });
 
-    this.logger.log(`👤 User ${userId} removed from project ${projectId}`)
+    this.logger.log(`👤 User ${userId} removed from project ${projectId}`);
 
-    return { message: '成员已移除' }
+    return { message: '成员已移除' };
   }
 
   /**
@@ -401,16 +395,13 @@ export class ProjectsService {
   ): Promise<ProjectMember> {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
-    })
+    });
 
     if (!project) {
-      throw new NotFoundException(`项目 ID ${projectId} 不存在`)
+      throw new NotFoundException(`项目 ID ${projectId} 不存在`);
     }
 
-    // 只有所有者可以更新成员角色
-    if (project.ownerId !== currentUser.id) {
-      throw new ForbiddenException('只有项目所有者可以更新成员角色')
-    }
+    // 权限检查已由ProjectRoleGuard处理
 
     const member = await this.prisma.projectMember.findUnique({
       where: {
@@ -419,10 +410,10 @@ export class ProjectsService {
           userId,
         },
       },
-    })
+    });
 
     if (!member) {
-      throw new NotFoundException('该用户不是项目成员')
+      throw new NotFoundException('该用户不是项目成员');
     }
 
     const updatedMember = await this.prisma.projectMember.update({
@@ -433,12 +424,12 @@ export class ProjectsService {
         },
       },
       data: { role: updateRoleDto.role },
-    })
+    });
 
     this.logger.log(
       `🔄 Member ${userId} role updated to ${updateRoleDto.role} in project ${projectId}`,
-    )
+    );
 
-    return updatedMember
+    return updatedMember;
   }
 }

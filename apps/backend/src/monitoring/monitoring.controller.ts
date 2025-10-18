@@ -1,7 +1,7 @@
-import { Controller, Get } from '@nestjs/common'
-import { ApiTags, ApiOperation } from '@nestjs/swagger'
-import { Public } from '../auth/decorators/public.decorator'
-import { PerformanceMonitoringMiddleware } from '../common/middleware/performance-monitoring.middleware'
+import { Controller, Get } from '@nestjs/common';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Public } from '../auth/decorators/public.decorator';
+import { PerformanceMonitoringMiddleware } from '../common/middleware/performance-monitoring.middleware';
 
 /**
  * 监控端点控制器
@@ -28,7 +28,7 @@ export class MonitoringController {
         unit: 'MB',
       },
       version: process.env.npm_package_version || '1.0.0',
-    }
+    };
   }
 
   /**
@@ -42,7 +42,7 @@ export class MonitoringController {
     return {
       timestamp: new Date().toISOString(),
       metrics: PerformanceMonitoringMiddleware.getStats(),
-    }
+    };
   }
 
   /**
@@ -53,7 +53,7 @@ export class MonitoringController {
   @Get('info')
   @ApiOperation({ summary: '获取系统信息' })
   getSystemInfo() {
-    const memoryUsage = process.memoryUsage()
+    const memoryUsage = process.memoryUsage();
 
     return {
       timestamp: new Date().toISOString(),
@@ -74,6 +74,6 @@ export class MonitoringController {
       cpu: {
         usage: process.cpuUsage(),
       },
-    }
+    };
   }
 }

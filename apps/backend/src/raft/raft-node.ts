@@ -9,7 +9,7 @@
  * ECP-D1: 可测试性 - 依赖注入，便于单元测试
  */
 
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'events';
 import type {
   NodeState,
   LogEntry,
@@ -28,37 +28,37 @@ import type {
   PersistentStorage,
   RaftTimer,
   RaftEventPayload,
-} from './types'
-import { NodeState as States, RAFT_CONSTANTS, RaftEvent } from './types'
+} from './types';
+import { NodeState as States, RAFT_CONSTANTS, RaftEvent } from './types';
 
 export class RaftNode extends EventEmitter implements RaftRPCHandler {
   // 持久化状态（需要保存到存储）
-  private currentTerm: number = 0
-  private votedFor: string | null = null
-  private logEntries: LogEntry[] = []
+  private currentTerm: number = 0;
+  private votedFor: string | null = null;
+  private logEntries: LogEntry[] = [];
 
   // 易失状态（重启后重建）
-  private commitIndex: number = 0
-  private lastApplied: number = 0
-  private state: NodeState = States.FOLLOWER
-  private leaderId: string | null = null
+  private commitIndex: number = 0;
+  private lastApplied: number = 0;
+  private state: NodeState = States.FOLLOWER;
+  private leaderId: string | null = null;
 
   // Leader特有状态（选举后初始化）
-  private nextIndex: Map<string, number> = new Map()
-  private matchIndex: Map<string, number> = new Map()
+  private nextIndex: Map<string, number> = new Map();
+  private matchIndex: Map<string, number> = new Map();
 
   // 定时器
-  private electionTimer: NodeJS.Timeout | null = null
-  private heartbeatTimer: NodeJS.Timeout | null = null
+  private electionTimer: NodeJS.Timeout | null = null;
+  private heartbeatTimer: NodeJS.Timeout | null = null;
 
   // 投票统计（选举期间使用）
-  private votes: number = 0
+  private votes: number = 0;
 
   // 依赖注入
-  private readonly transport: RaftTransport
-  private readonly stateMachine: StateMachine
-  private readonly storage: PersistentStorage
-  private readonly timer: RaftTimer
+  private readonly transport: RaftTransport;
+  private readonly stateMachine: StateMachine;
+  private readonly storage: PersistentStorage;
+  private readonly timer: RaftTimer;
 
   constructor(
     private readonly config: ClusterConfig,
@@ -70,16 +70,16 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
       setInterval: global.setInterval.bind(global),
       clearTimeout: global.clearTimeout.bind(global),
       clearInterval: global.clearInterval.bind(global),
-    }
+    },
   ) {
-    super()
+    super();
 
-    this.transport = transport
-    this.stateMachine = stateMachine
-    this.storage = storage
-    this.timer = timer
+    this.transport = transport;
+    this.stateMachine = stateMachine;
+    this.storage = storage;
+    this.timer = timer;
 
-    this.log(`Node created with config: ${JSON.stringify(config)}`)
+    this.log(`Node created with config: ${JSON.stringify(config)}`);
   }
 
   /**
@@ -89,27 +89,27 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
   async start(): Promise<void> {
     try {
       // 1. 从存储恢复持久化状态
-      await this.loadPersistentState()
+      await this.loadPersistentState();
 
       // 2. 初始化为Follower
-      this.state = States.FOLLOWER
-      this.leaderId = null
+      this.state = States.FOLLOWER;
+      this.leaderId = null;
 
       // 3. 启动RPC服务器
-      await this.transport.startServer(this.config.nodeId, this)
+      await this.transport.startServer(this.config.nodeId, this);
 
       // 4. 启动选举超时定时器
-      this.resetElectionTimeout()
+      this.resetElectionTimeout();
 
-      this.log(`Node started as FOLLOWER in term ${this.currentTerm}`)
+      this.log(`Node started as FOLLOWER in term ${this.currentTerm}`);
       this.emitEvent(RaftEvent.STATE_CHANGED, {
         oldState: States.FOLLOWER,
         newState: States.FOLLOWER,
         term: this.currentTerm,
-      })
+      });
     } catch (error) {
-      this.logError('Failed to start node', error as Error)
-      throw error
+      this.logError('Failed to start node', error as Error);
+      throw error;
     }
   }
 
@@ -117,9 +117,9 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
    * 停止节点
    */
   async stop(): Promise<void> {
-    this.clearAllTimers()
-    await this.transport.stopServer()
-    this.log('Node stopped')
+    this.clearAllTimers();
+    await this.transport.stopServer();
+    this.log('Node stopped');
   }
 
   /**
@@ -133,7 +133,7 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
         success: false,
         error: `Not leader, redirect to ${this.leaderId}`,
         leaderId: this.leaderId || undefined,
-      }
+      };
     }
 
     try {
@@ -143,25 +143,25 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
         term: this.currentTerm,
         command,
         timestamp: Date.now(),
-      }
+      };
 
       // 追加到本地日志
-      this.logEntries.push(entry)
-      await this.storage.saveLogEntry(entry)
+      this.logEntries.push(entry);
+      await this.storage.saveLogEntry(entry);
 
-      this.log(`Received client command, appended log index ${entry.index}`)
+      this.log(`Received client command, appended log index ${entry.index}`);
 
       // 立即复制到Followers
-      this.broadcastAppendEntries()
+      this.broadcastAppendEntries();
 
       // 等待提交
-      return this.waitForCommit(entry.index)
+      return this.waitForCommit(entry.index);
     } catch (error) {
-      this.logError('Failed to handle client write', error as Error)
+      this.logError('Failed to handle client write', error as Error);
       return {
         success: false,
         error: (error as Error).message,
-      }
+      };
     }
   }
 
@@ -169,40 +169,54 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
    * RequestVote RPC 处理器
    * ECP-C1: 防御性编程 - 严格的参数检查
    */
-  async handleRequestVote(request: RequestVoteRequest): Promise<RequestVoteResponse> {
-    this.log(`Received RequestVote from ${request.candidateId}, term ${request.term}`)
+  async handleRequestVote(
+    request: RequestVoteRequest,
+  ): Promise<RequestVoteResponse> {
+    this.log(
+      `Received RequestVote from ${request.candidateId}, term ${request.term}`,
+    );
 
     try {
       // 拒绝：任期太旧
       if (request.term < this.currentTerm) {
-        this.log(`Rejecting vote: term ${request.term} < current term ${this.currentTerm}`)
-        return { term: this.currentTerm, voteGranted: false }
+        this.log(
+          `Rejecting vote: term ${request.term} < current term ${this.currentTerm}`,
+        );
+        return { term: this.currentTerm, voteGranted: false };
       }
 
       // 发现更高任期，转为Follower
       if (request.term > this.currentTerm) {
-        await this.updateTerm(request.term)
-        this.becomeFollower(null)
+        await this.updateTerm(request.term);
+        this.becomeFollower(null);
       }
 
       // 投票条件检查
-      const canVote = this.votedFor === null || this.votedFor === request.candidateId
-      const isUpToDate = this.isLogUpToDate(request.lastLogIndex, request.lastLogTerm)
+      const canVote =
+        this.votedFor === null || this.votedFor === request.candidateId;
+      const isUpToDate = this.isLogUpToDate(
+        request.lastLogIndex,
+        request.lastLogTerm,
+      );
 
       if (canVote && isUpToDate) {
-        this.votedFor = request.candidateId
-        await this.storage.saveVotedFor(this.votedFor)
-        this.resetElectionTimeout()
+        this.votedFor = request.candidateId;
+        await this.storage.saveVotedFor(this.votedFor);
+        this.resetElectionTimeout();
 
-        this.log(`Granted vote to ${request.candidateId} for term ${this.currentTerm}`)
-        return { term: this.currentTerm, voteGranted: true }
+        this.log(
+          `Granted vote to ${request.candidateId} for term ${this.currentTerm}`,
+        );
+        return { term: this.currentTerm, voteGranted: true };
       }
 
-      this.log(`Denied vote to ${request.candidateId}: canVote=${canVote}, isUpToDate=${isUpToDate}`)
-      return { term: this.currentTerm, voteGranted: false }
+      this.log(
+        `Denied vote to ${request.candidateId}: canVote=${canVote}, isUpToDate=${isUpToDate}`,
+      );
+      return { term: this.currentTerm, voteGranted: false };
     } catch (error) {
-      this.logError('Error handling RequestVote', error as Error)
-      return { term: this.currentTerm, voteGranted: false }
+      this.logError('Error handling RequestVote', error as Error);
+      return { term: this.currentTerm, voteGranted: false };
     }
   }
 
@@ -210,61 +224,68 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
    * AppendEntries RPC 处理器
    * ECP-C2: 错误处理 - 完善的异常捕获
    */
-  async handleAppendEntries(request: AppendEntriesRequest): Promise<AppendEntriesResponse> {
-    const isHeartbeat = request.entries.length === 0
+  async handleAppendEntries(
+    request: AppendEntriesRequest,
+  ): Promise<AppendEntriesResponse> {
+    const isHeartbeat = request.entries.length === 0;
 
     if (!isHeartbeat) {
-      this.log(`Received AppendEntries from ${request.leaderId}: ${request.entries.length} entries`)
+      this.log(
+        `Received AppendEntries from ${request.leaderId}: ${request.entries.length} entries`,
+      );
     }
 
     try {
       // 任期检查
       if (request.term < this.currentTerm) {
-        return { term: this.currentTerm, success: false }
+        return { term: this.currentTerm, success: false };
       }
 
       // 更新任期和Leader信息
       if (request.term > this.currentTerm) {
-        await this.updateTerm(request.term)
+        await this.updateTerm(request.term);
       }
 
-      this.becomeFollower(request.leaderId)
+      this.becomeFollower(request.leaderId);
 
       // 日志一致性检查
       if (request.prevLogIndex > 0) {
-        const prevLog = this.logEntries[request.prevLogIndex - 1]
+        const prevLog = this.logEntries[request.prevLogIndex - 1];
         if (!prevLog || prevLog.term !== request.prevLogTerm) {
           // 日志不一致，返回冲突信息
-          this.log(`Log inconsistency at index ${request.prevLogIndex}`)
+          this.log(`Log inconsistency at index ${request.prevLogIndex}`);
           return {
             term: this.currentTerm,
             success: false,
             conflictIndex: this.logEntries.length,
             conflictTerm: prevLog?.term,
-          }
+          };
         }
       }
 
       // 处理日志条目
       if (request.entries.length > 0) {
-        await this.appendEntries(request.prevLogIndex, request.entries)
+        await this.appendEntries(request.prevLogIndex, request.entries);
       }
 
       // 更新commitIndex并应用已提交的日志
       if (request.leaderCommit > this.commitIndex) {
-        const prevCommitIndex = this.commitIndex
-        this.commitIndex = Math.min(request.leaderCommit, this.logEntries.length)
+        const prevCommitIndex = this.commitIndex;
+        this.commitIndex = Math.min(
+          request.leaderCommit,
+          this.logEntries.length,
+        );
 
         // 应用新提交的日志
         for (let i = prevCommitIndex + 1; i <= this.commitIndex; i++) {
-          await this.applyLogEntry(this.logEntries[i - 1])
+          await this.applyLogEntry(this.logEntries[i - 1]);
         }
       }
 
-      return { term: this.currentTerm, success: true }
+      return { term: this.currentTerm, success: true };
     } catch (error) {
-      this.logError('Error handling AppendEntries', error as Error)
-      return { term: this.currentTerm, success: false }
+      this.logError('Error handling AppendEntries', error as Error);
+      return { term: this.currentTerm, success: false };
     }
   }
 
@@ -274,15 +295,17 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
    */
   private async handleElectionTimeout(): Promise<void> {
     try {
-      this.log(`Election timeout, starting election for term ${this.currentTerm + 1}`)
+      this.log(
+        `Election timeout, starting election for term ${this.currentTerm + 1}`,
+      );
 
       // 转换为Candidate
-      await this.becomeCandidate()
+      await this.becomeCandidate();
 
       // 发起选举
-      await this.startElection()
+      await this.startElection();
     } catch (error) {
-      this.logError('Error during election timeout', error as Error)
+      this.logError('Error during election timeout', error as Error);
     }
   }
 
@@ -290,70 +313,72 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
    * 成为Candidate并开始选举
    */
   private async becomeCandidate(): Promise<void> {
-    this.state = States.CANDIDATE
-    this.currentTerm++
-    this.votedFor = this.config.nodeId
-    this.leaderId = null
-    this.votes = 1
+    this.state = States.CANDIDATE;
+    this.currentTerm++;
+    this.votedFor = this.config.nodeId;
+    this.leaderId = null;
+    this.votes = 1;
 
     // 持久化状态
-    await this.storage.saveTerm(this.currentTerm)
-    await this.storage.saveVotedFor(this.votedFor)
+    await this.storage.saveTerm(this.currentTerm);
+    await this.storage.saveVotedFor(this.votedFor);
 
     // 重置选举超时
-    this.resetElectionTimeout()
+    this.resetElectionTimeout();
 
-    this.log(`Became CANDIDATE for term ${this.currentTerm}`)
+    this.log(`Became CANDIDATE for term ${this.currentTerm}`);
     this.emitEvent(RaftEvent.STATE_CHANGED, {
       oldState: States.FOLLOWER,
       newState: States.CANDIDATE,
       term: this.currentTerm,
-    })
+    });
   }
 
   /**
    * 发起选举
    */
   private async startElection(): Promise<void> {
-    const lastLog = this.logEntries[this.logEntries.length - 1]
-    const lastLogIndex = lastLog?.index || 0
-    const lastLogTerm = lastLog?.term || 0
+    const lastLog = this.logEntries[this.logEntries.length - 1];
+    const lastLogIndex = lastLog?.index || 0;
+    const lastLogTerm = lastLog?.term || 0;
 
-    const otherNodes = this.config.nodes.filter(nodeId => nodeId !== this.config.nodeId)
+    const otherNodes = this.config.nodes.filter(
+      (nodeId) => nodeId !== this.config.nodeId,
+    );
 
     // 并行发送RequestVote RPC
-    const promises = otherNodes.map(nodeId =>
+    const promises = otherNodes.map((nodeId) =>
       this.sendRequestVoteWithTimeout(nodeId, {
         term: this.currentTerm,
         candidateId: this.config.nodeId,
         lastLogIndex,
         lastLogTerm,
-      })
-    )
+      }),
+    );
 
-    const responses = await Promise.allSettled(promises)
+    const responses = await Promise.allSettled(promises);
 
     for (const result of responses) {
       if (result.status === 'fulfilled') {
-        const response = result.value
+        const response = result.value;
 
         // 发现更高任期，转为Follower
         if (response.term > this.currentTerm) {
-          await this.updateTerm(response.term)
-          this.becomeFollower(null)
-          return
+          await this.updateTerm(response.term);
+          this.becomeFollower(null);
+          return;
         }
 
         if (response.voteGranted) {
-          this.votes++
+          this.votes++;
         }
       }
     }
 
     // 检查是否获得多数票
-    const majority = Math.floor(this.config.nodes.length / 2) + 1
+    const majority = Math.floor(this.config.nodes.length / 2) + 1;
     if (this.state === States.CANDIDATE && this.votes >= majority) {
-      await this.becomeLeader()
+      await this.becomeLeader();
     }
   }
 
@@ -361,57 +386,59 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
    * 成为Leader
    */
   private async becomeLeader(): Promise<void> {
-    this.log(`Became LEADER for term ${this.currentTerm} with ${this.votes} votes`)
+    this.log(
+      `Became LEADER for term ${this.currentTerm} with ${this.votes} votes`,
+    );
 
-    this.state = States.LEADER
-    this.leaderId = this.config.nodeId
+    this.state = States.LEADER;
+    this.leaderId = this.config.nodeId;
 
     // 初始化Leader状态
-    const lastLogIndex = this.logEntries.length
+    const lastLogIndex = this.logEntries.length;
     for (const nodeId of this.config.nodes) {
       if (nodeId !== this.config.nodeId) {
-        this.nextIndex.set(nodeId, lastLogIndex + 1)
-        this.matchIndex.set(nodeId, 0)
+        this.nextIndex.set(nodeId, lastLogIndex + 1);
+        this.matchIndex.set(nodeId, 0);
       }
     }
 
     // 停止选举定时器，启动心跳定时器
-    this.clearElectionTimeout()
-    this.startHeartbeat()
+    this.clearElectionTimeout();
+    this.startHeartbeat();
 
     // 立即发送心跳，宣告领导权
-    this.broadcastAppendEntries()
+    this.broadcastAppendEntries();
 
     this.emitEvent(RaftEvent.STATE_CHANGED, {
       oldState: States.CANDIDATE,
       newState: States.LEADER,
       term: this.currentTerm,
-    })
+    });
 
     this.emitEvent(RaftEvent.LEADER_ELECTED, {
       leaderId: this.config.nodeId,
       term: this.currentTerm,
-    })
+    });
   }
 
   /**
    * 成为Follower
    */
   private becomeFollower(leaderId: string | null): void {
-    const oldState = this.state
+    const oldState = this.state;
 
-    this.state = States.FOLLOWER
-    this.leaderId = leaderId
-    this.clearHeartbeatTimeout()
-    this.resetElectionTimeout()
+    this.state = States.FOLLOWER;
+    this.leaderId = leaderId;
+    this.clearHeartbeatTimeout();
+    this.resetElectionTimeout();
 
     if (oldState !== States.FOLLOWER) {
-      this.log(`Became FOLLOWER, leader: ${leaderId || 'unknown'}`)
+      this.log(`Became FOLLOWER, leader: ${leaderId || 'unknown'}`);
       this.emitEvent(RaftEvent.STATE_CHANGED, {
         oldState,
         newState: States.FOLLOWER,
         term: this.currentTerm,
-      })
+      });
     }
   }
 
@@ -419,12 +446,12 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
    * 启动心跳定时器
    */
   private startHeartbeat(): void {
-    this.clearHeartbeatTimeout()
+    this.clearHeartbeatTimeout();
     this.heartbeatTimer = this.timer.setInterval(() => {
       if (this.state === States.LEADER) {
-        this.broadcastAppendEntries()
+        this.broadcastAppendEntries();
       }
-    }, this.config.heartbeatInterval)
+    }, this.config.heartbeatInterval);
   }
 
   /**
@@ -433,7 +460,7 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
   private broadcastAppendEntries(): void {
     for (const nodeId of this.config.nodes) {
       if (nodeId !== this.config.nodeId) {
-        this.sendAppendEntriesToNode(nodeId)
+        this.sendAppendEntriesToNode(nodeId);
       }
     }
   }
@@ -443,13 +470,14 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
    */
   private async sendAppendEntriesToNode(nodeId: string): Promise<void> {
     try {
-      const nextIdx = this.nextIndex.get(nodeId) || 1
-      const prevLogIndex = nextIdx - 1
-      const prevLogTerm = prevLogIndex > 0 ? this.logEntries[prevLogIndex - 1]?.term || 0 : 0
+      const nextIdx = this.nextIndex.get(nodeId) || 1;
+      const prevLogIndex = nextIdx - 1;
+      const prevLogTerm =
+        prevLogIndex > 0 ? this.logEntries[prevLogIndex - 1]?.term || 0 : 0;
 
-      const entries: LogEntry[] = []
+      const entries: LogEntry[] = [];
       for (let i = nextIdx; i <= this.logEntries.length; i++) {
-        entries.push(this.logEntries[i - 1])
+        entries.push(this.logEntries[i - 1]);
       }
 
       const request: AppendEntriesRequest = {
@@ -459,28 +487,28 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
         prevLogTerm,
         entries,
         leaderCommit: this.commitIndex,
-      }
+      };
 
-      const response = await this.transport.sendAppendEntries(nodeId, request)
+      const response = await this.transport.sendAppendEntries(nodeId, request);
 
       // 处理响应
       if (response.term > this.currentTerm) {
-        await this.updateTerm(response.term)
-        this.becomeFollower(null)
-        return
+        await this.updateTerm(response.term);
+        this.becomeFollower(null);
+        return;
       }
 
       if (response.success) {
         // 成功复制
         if (entries.length > 0) {
-          this.nextIndex.set(nodeId, nextIdx + entries.length)
-          this.matchIndex.set(nodeId, nextIdx + entries.length - 1)
-          this.checkCommit()
+          this.nextIndex.set(nodeId, nextIdx + entries.length);
+          this.matchIndex.set(nodeId, nextIdx + entries.length - 1);
+          this.checkCommit();
         }
       } else {
         // 复制失败，回退nextIndex
-        const newNextIndex = Math.max(1, nextIdx - 1)
-        this.nextIndex.set(nodeId, newNextIndex)
+        const newNextIndex = Math.max(1, nextIdx - 1);
+        this.nextIndex.set(nodeId, newNextIndex);
       }
     } catch (error) {
       // RPC失败，稍后重试
@@ -494,21 +522,21 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
     for (let n = this.commitIndex + 1; n <= this.logEntries.length; n++) {
       // 只能提交当前任期的日志
       if (this.logEntries[n - 1].term !== this.currentTerm) {
-        continue
+        continue;
       }
 
       // 检查是否复制到多数节点
-      let replicatedCount = 1 // Leader自己
+      let replicatedCount = 1; // Leader自己
       for (const [, matchIndex] of this.matchIndex) {
         if (matchIndex >= n) {
-          replicatedCount++
+          replicatedCount++;
         }
       }
 
-      const majority = Math.floor(this.config.nodes.length / 2) + 1
+      const majority = Math.floor(this.config.nodes.length / 2) + 1;
       if (replicatedCount >= majority) {
-        this.commitIndex = n
-        this.applyLogEntry(this.logEntries[n - 1])
+        this.commitIndex = n;
+        this.applyLogEntry(this.logEntries[n - 1]);
       }
     }
   }
@@ -519,19 +547,19 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
   private async applyLogEntry(entry: LogEntry): Promise<void> {
     try {
       if (entry.index <= this.lastApplied) {
-        return // 已经应用过
+        return; // 已经应用过
       }
 
-      await this.stateMachine.apply(entry.command)
-      this.lastApplied = entry.index
+      await this.stateMachine.apply(entry.command);
+      this.lastApplied = entry.index;
 
-      this.log(`Applied log entry ${entry.index}: ${entry.command.type}`)
+      this.log(`Applied log entry ${entry.index}: ${entry.command.type}`);
       this.emitEvent(RaftEvent.LOG_COMMITTED, {
         index: entry.index,
         command: entry.command,
-      })
+      });
     } catch (error) {
-      this.logError(`Failed to apply log entry ${entry.index}`, error as Error)
+      this.logError(`Failed to apply log entry ${entry.index}`, error as Error);
     }
   }
 
@@ -539,137 +567,165 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
    * 等待日志提交
    */
   private async waitForCommit(index: number): Promise<ClientResponse> {
-    const startTime = Date.now()
-    const timeout = RAFT_CONSTANTS.COMMIT_TIMEOUT
+    const startTime = Date.now();
+    const timeout = RAFT_CONSTANTS.COMMIT_TIMEOUT;
 
     while (this.commitIndex < index) {
       if (Date.now() - startTime > timeout) {
-        return { success: false, error: 'Commit timeout' }
+        return { success: false, error: 'Commit timeout' };
       }
 
       if (this.state !== States.LEADER) {
-        return { success: false, error: 'No longer leader' }
+        return { success: false, error: 'No longer leader' };
       }
 
-      await this.sleep(10)
+      await this.sleep(10);
     }
 
-    return { success: true }
+    return { success: true };
   }
 
   /**
    * 工具方法
    */
   private async loadPersistentState(): Promise<void> {
-    const state = await this.storage.loadState()
-    this.currentTerm = state.currentTerm
-    this.votedFor = state.votedFor
-    this.logEntries = state.log
+    const state = await this.storage.loadState();
+    this.currentTerm = state.currentTerm;
+    this.votedFor = state.votedFor;
+    this.logEntries = state.log;
   }
 
   private async updateTerm(newTerm: number): Promise<void> {
-    this.currentTerm = newTerm
-    this.votedFor = null
-    await this.storage.saveTerm(newTerm)
-    await this.storage.saveVotedFor(null)
+    this.currentTerm = newTerm;
+    this.votedFor = null;
+    await this.storage.saveTerm(newTerm);
+    await this.storage.saveVotedFor(null);
   }
 
-  private isLogUpToDate(candidateLogIndex: number, candidateLogTerm: number): boolean {
-    const lastLog = this.logEntries[this.logEntries.length - 1]
-    if (!lastLog) return true
+  private isLogUpToDate(
+    candidateLogIndex: number,
+    candidateLogTerm: number,
+  ): boolean {
+    const lastLog = this.logEntries[this.logEntries.length - 1];
+    if (!lastLog) return true;
 
-    if (candidateLogTerm > lastLog.term) return true
-    if (candidateLogTerm === lastLog.term && candidateLogIndex >= this.logEntries.length) return true
+    if (candidateLogTerm > lastLog.term) return true;
+    if (
+      candidateLogTerm === lastLog.term &&
+      candidateLogIndex >= this.logEntries.length
+    )
+      return true;
 
-    return false
+    return false;
   }
 
-  private async appendEntries(prevLogIndex: number, entries: LogEntry[]): Promise<void> {
-    const startIndex = prevLogIndex
+  private async appendEntries(
+    prevLogIndex: number,
+    entries: LogEntry[],
+  ): Promise<void> {
+    const startIndex = prevLogIndex;
     for (let i = 0; i < entries.length; i++) {
-      const newEntry = entries[i]
-      const existingEntry = this.logEntries[startIndex + i]
+      const newEntry = entries[i];
+      const existingEntry = this.logEntries[startIndex + i];
 
       if (existingEntry && existingEntry.term !== newEntry.term) {
         // 删除冲突的日志
-        this.logEntries = this.logEntries.slice(0, startIndex + i)
-        await this.storage.truncateLogFrom(startIndex + i + 1)
-        break
+        this.logEntries = this.logEntries.slice(0, startIndex + i);
+        await this.storage.truncateLogFrom(startIndex + i + 1);
+        break;
       }
     }
 
     // 追加新日志
     for (const entry of entries) {
-      if (!this.logEntries[entry.index - 1] || this.logEntries[entry.index - 1].term !== entry.term) {
-        this.logEntries[entry.index - 1] = entry
-        await this.storage.saveLogEntry(entry)
+      if (
+        !this.logEntries[entry.index - 1] ||
+        this.logEntries[entry.index - 1].term !== entry.term
+      ) {
+        this.logEntries[entry.index - 1] = entry;
+        await this.storage.saveLogEntry(entry);
       }
     }
   }
 
   private async sendRequestVoteWithTimeout(
     nodeId: string,
-    request: RequestVoteRequest
+    request: RequestVoteRequest,
   ): Promise<RequestVoteResponse> {
     return Promise.race([
       this.transport.sendRequestVote(nodeId, request),
       this.createTimeoutPromise<RequestVoteResponse>(),
-    ])
+    ]);
   }
 
   private createTimeoutPromise<T>(): Promise<T> {
     return new Promise((_, reject) => {
-      this.timer.setTimeout(() => reject(new Error('RPC timeout')), this.config.rpcTimeout)
-    })
+      this.timer.setTimeout(
+        () => reject(new Error('RPC timeout')),
+        this.config.rpcTimeout,
+      );
+    });
   }
 
   private resetElectionTimeout(): void {
-    this.clearElectionTimeout()
-    const timeout = this.getRandomElectionTimeout()
+    this.clearElectionTimeout();
+    const timeout = this.getRandomElectionTimeout();
     this.electionTimer = this.timer.setTimeout(() => {
-      this.handleElectionTimeout()
-    }, timeout)
+      this.handleElectionTimeout();
+    }, timeout);
   }
 
   private getRandomElectionTimeout(): number {
-    const { electionTimeoutMin, electionTimeoutMax } = this.config
-    return Math.floor(Math.random() * (electionTimeoutMax - electionTimeoutMin + 1)) + electionTimeoutMin
+    const { electionTimeoutMin, electionTimeoutMax } = this.config;
+    return (
+      Math.floor(
+        Math.random() * (electionTimeoutMax - electionTimeoutMin + 1),
+      ) + electionTimeoutMin
+    );
   }
 
   private clearElectionTimeout(): void {
     if (this.electionTimer) {
-      this.timer.clearTimeout(this.electionTimer)
-      this.electionTimer = null
+      this.timer.clearTimeout(this.electionTimer);
+      this.electionTimer = null;
     }
   }
 
   private clearHeartbeatTimeout(): void {
     if (this.heartbeatTimer) {
-      this.timer.clearInterval(this.heartbeatTimer)
-      this.heartbeatTimer = null
+      this.timer.clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
     }
   }
 
   private clearAllTimers(): void {
-    this.clearElectionTimeout()
-    this.clearHeartbeatTimeout()
+    this.clearElectionTimeout();
+    this.clearHeartbeatTimeout();
   }
 
-  private emitEvent<T extends RaftEvent>(event: T, payload: RaftEventPayload[T]): void {
-    this.emit(event, payload)
+  private emitEvent<T extends RaftEvent>(
+    event: T,
+    payload: RaftEventPayload[T],
+  ): void {
+    this.emit(event, payload);
   }
 
   private async sleep(ms: number): Promise<void> {
-    return new Promise(resolve => this.timer.setTimeout(resolve, ms))
+    return new Promise((resolve) => this.timer.setTimeout(resolve, ms));
   }
 
   private log(message: string): void {
-    console.log(`[${this.config.nodeId}] [TERM ${this.currentTerm}] [${this.state}] ${message}`)
+    console.log(
+      `[${this.config.nodeId}] [TERM ${this.currentTerm}] [${this.state}] ${message}`,
+    );
   }
 
   private logError(message: string, error: Error): void {
-    console.error(`[${this.config.nodeId}] [TERM ${this.currentTerm}] [${this.state}] ERROR: ${message}`, error)
-    this.emitEvent(RaftEvent.ERROR, { error, context: message })
+    console.error(
+      `[${this.config.nodeId}] [TERM ${this.currentTerm}] [${this.state}] ERROR: ${message}`,
+      error,
+    );
+    this.emitEvent(RaftEvent.ERROR, { error, context: message });
   }
 
   /**
@@ -687,6 +743,6 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
       lastLogTerm: this.logEntries[this.logEntries.length - 1]?.term,
       leaderId: this.leaderId || undefined,
       clusterSize: this.config.nodes.length,
-    }
+    };
   }
 }

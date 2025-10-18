@@ -42,7 +42,8 @@ export class TeamsController {
   @Get()
   @ApiOperation({
     summary: 'List my teams in this organization',
-    description: 'Get all teams the authenticated user is a member of within this organization',
+    description:
+      'Get all teams the authenticated user is a member of within this organization',
   })
   @ApiResponse({
     status: 200,
@@ -76,18 +77,14 @@ export class TeamsController {
     status: 409,
     description: 'Team slug already exists in this organization',
   })
-  create(
-    @CurrentUser('id') userId: string,
-    @Body() createDto: CreateTeamDto,
-  ) {
+  create(@CurrentUser('id') userId: string, @Body() createDto: CreateTeamDto) {
     return this.teamsService.create(userId, createDto);
   }
 
   @Get(':teamSlug')
   @ApiOperation({
     summary: 'Get team details',
-    description:
-      'Get detailed information about a team including members',
+    description: 'Get detailed information about a team including members',
   })
   @ApiResponse({
     status: 200,
@@ -224,7 +221,11 @@ export class TeamsController {
     @Param('teamSlug') teamSlug: string,
     @Body() addMemberDto: AddTeamMemberDto,
   ) {
-    return this.teamsService.addMember(organizationSlug, teamSlug, addMemberDto);
+    return this.teamsService.addMember(
+      organizationSlug,
+      teamSlug,
+      addMemberDto,
+    );
   }
 
   @Patch(':teamSlug/members/:userId')
@@ -232,8 +233,7 @@ export class TeamsController {
   @RequireTeamRole('MAINTAINER')
   @ApiOperation({
     summary: 'Update member role',
-    description:
-      'Change a team member role. Requires team MAINTAINER role.',
+    description: 'Change a team member role. Requires team MAINTAINER role.',
   })
   @ApiResponse({
     status: 200,
@@ -357,7 +357,11 @@ export class TeamsController {
     @Param('teamSlug') teamSlug: string,
     @Body() assignDto: AssignProjectPermissionDto,
   ) {
-    return this.teamsService.assignPermission(organizationSlug, teamSlug, assignDto);
+    return this.teamsService.assignPermission(
+      organizationSlug,
+      teamSlug,
+      assignDto,
+    );
   }
 
   @Patch(':teamSlug/permissions/:projectId')
@@ -419,6 +423,10 @@ export class TeamsController {
     @Param('teamSlug') teamSlug: string,
     @Param('projectId') projectId: string,
   ) {
-    return this.teamsService.revokePermission(organizationSlug, teamSlug, projectId);
+    return this.teamsService.revokePermission(
+      organizationSlug,
+      teamSlug,
+      projectId,
+    );
   }
 }

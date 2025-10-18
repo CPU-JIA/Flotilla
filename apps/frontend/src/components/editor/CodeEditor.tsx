@@ -4,6 +4,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react'
 import Editor from '@monaco-editor/react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { useTheme } from 'next-themes'
 import { api } from '@/lib/api'
 import 'github-markdown-css/github-markdown-dark.css'
 
@@ -12,6 +13,7 @@ import 'github-markdown-css/github-markdown-dark.css'
  * ECP-A1: 单一职责原则 - 专注于代码编辑功能
  * ECP-C1: 防御性编程 - 自动保存和错误处理
  * Phase 3.3: 添加版本历史功能
+ * 新增: 支持Light/Dark主题切换
  */
 
 interface CodeEditorProps {
@@ -53,9 +55,13 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   const [branchId, setBranchId] = useState<string>('')
   const [repositoryExists, setRepositoryExists] = useState<boolean>(true)
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const { theme } = useTheme()
 
   // 判断是否为markdown文件
   const isMarkdown = language === 'markdown'
+
+  // 根据主题选择Monaco编辑器主题
+  const monacoTheme = theme === 'dark' ? 'vs-dark' : 'vs'
 
   // 当文件切换时，更新内容和重置状态
   useEffect(() => {
@@ -164,11 +170,11 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   }, [])
 
   return (
-    <div className="h-full w-full flex">
+    <div className="h-full w-full flex bg-white dark:bg-gray-900">
       {/* 主编辑区 */}
       <div className="flex-1 flex flex-col">
         {/* 工具栏 */}
-        <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
+        <div className="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           {/* 左侧按钮组 */}
           <div className="flex items-center gap-2">
             {/* 模式切换按钮（仅markdown文件显示） */}
@@ -179,7 +185,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                   className={`px-3 py-1 text-sm rounded transition-colors ${
                     viewMode === 'edit'
                       ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   ✏️ 编辑
@@ -189,12 +195,12 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                   className={`px-3 py-1 text-sm rounded transition-colors ${
                     viewMode === 'preview'
                       ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   👁️ 预览
                 </button>
-                <div className="w-px h-6 bg-gray-600 mx-2" />
+                <div className="w-px h-6 bg-gray-300 mx-2" />
               </>
             )}
 
@@ -209,7 +215,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               className={`px-3 py-1 text-sm rounded transition-colors ${
                 showHistory
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
               📜 版本历史
@@ -217,7 +223,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           </div>
 
           {/* 保存状态 */}
-          <div className="text-sm text-gray-400">
+          <div className="text-sm text-gray-600">
             {saving ? (
               <span>💾 正在保存...</span>
             ) : lastSaved ? (
@@ -238,7 +244,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               defaultValue={initialContent}
               value={content}
               onChange={handleEditorChange}
-              theme="vs-dark"
+              theme={monacoTheme}
               options={{
                 fontSize: 14,
                 minimap: { enabled: true },
@@ -253,7 +259,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
           {/* 预览区（仅markdown文件显示） */}
           {isMarkdown && viewMode === 'preview' && (
-            <div className="h-full overflow-y-auto overflow-x-hidden bg-[#0d1117] p-8">
+            <div className="h-full overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-900 p-8">
               <div className="markdown-body max-w-5xl mx-auto px-12" style={{ backgroundColor: 'transparent' }}>
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {content}
@@ -278,18 +284,18 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             fixed lg:relative
             inset-y-0 right-0 lg:inset-y-auto
             w-full sm:w-[320px] lg:w-[380px] xl:w-[400px]
-            bg-gray-800 border-l border-gray-700
+            bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700
             flex flex-col
             z-50 lg:z-auto
             transform lg:transform-none
             shadow-xl lg:shadow-none
           ">
             {/* 侧边栏标题 */}
-            <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between bg-gray-800">
-              <h3 className="text-white font-semibold">📜 版本历史</h3>
+            <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-white dark:bg-gray-800">
+              <h3 className="text-gray-900 dark:text-white font-semibold">📜 版本历史</h3>
               <button
                 onClick={() => setShowHistory(false)}
-                className="text-gray-400 hover:text-white transition-colors p-1 hover:bg-gray-700 rounded"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                 aria-label="关闭版本历史"
               >
                 ✕
@@ -299,29 +305,29 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           {/* 提交列表 */}
           <div className="flex-1 overflow-y-auto">
             {!repositoryExists ? (
-              <div className="p-4 text-center text-gray-400">
+              <div className="p-4 text-center text-gray-600 dark:text-gray-400">
                 <div className="text-2xl mb-2">⚠️</div>
                 <p className="text-sm">版本控制未初始化</p>
                 <p className="text-xs mt-2">项目的Git仓库尚未创建</p>
-                <p className="text-xs mt-1 text-gray-500">保存文件后会自动初始化</p>
+                <p className="text-xs mt-1 text-gray-400 dark:text-gray-500">保存文件后会自动初始化</p>
               </div>
             ) : loadingCommits ? (
-              <div className="p-4 text-center text-gray-400">
+              <div className="p-4 text-center text-gray-600 dark:text-gray-400">
                 <div className="text-2xl mb-2 animate-pulse">⏳</div>
                 <p className="text-sm">加载中...</p>
               </div>
             ) : commits.length === 0 ? (
-              <div className="p-4 text-center text-gray-400">
+              <div className="p-4 text-center text-gray-600 dark:text-gray-400">
                 <div className="text-2xl mb-2">📝</div>
                 <p className="text-sm">暂无提交记录</p>
                 <p className="text-xs mt-1">保存文件后会自动创建提交</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-700">
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
                 {commits.map((commit) => (
                   <div
                     key={commit.id}
-                    className="p-3 hover:bg-gray-700 transition-colors cursor-pointer"
+                    className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                     title={`${commit.message}\n\n作者: ${commit.author.username}\n时间: ${new Date(commit.createdAt).toLocaleString('zh-CN')}`}
                   >
                     <div className="flex gap-3">
@@ -333,16 +339,16 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
                       {/* 提交详情 - 优化布局 */}
                       <div className="flex-1 min-w-0">
                         {/* 提交信息 - 限制显示行数 */}
-                        <div className="text-white text-sm mb-1 line-clamp-2 break-words leading-relaxed">
+                        <div className="text-gray-900 dark:text-white text-sm mb-1 line-clamp-2 break-words leading-relaxed">
                           {commit.message}
                         </div>
 
                         {/* 作者和时间信息 - 水平布局节省空间 */}
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-gray-400 truncate flex-1 mr-2">
+                          <span className="text-gray-600 dark:text-gray-400 truncate flex-1 mr-2">
                             {commit.author.username}
                           </span>
-                          <span className="text-gray-500 flex-shrink-0">
+                          <span className="text-gray-400 dark:text-gray-500 flex-shrink-0">
                             {(() => {
                               const now = new Date()
                               const commitDate = new Date(commit.createdAt)

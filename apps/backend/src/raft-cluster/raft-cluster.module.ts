@@ -6,21 +6,15 @@
  * ECP-D2: 注释原则 - 说明模块设计意图
  */
 
-import { Module } from '@nestjs/common'
-import { RaftClusterService } from './raft-cluster.service'
-import { RaftClusterController } from './raft-cluster.controller'
-import { ClusterConfigService } from './cluster-config.service'
+import { Module } from '@nestjs/common';
+import { RaftClusterService } from './raft-cluster.service';
+import { RaftClusterController } from './raft-cluster.controller';
+import { ClusterConfigService } from './cluster-config.service';
 
 @Module({
   controllers: [RaftClusterController],
-  providers: [
-    ClusterConfigService,
-    RaftClusterService,
-  ],
-  exports: [
-    RaftClusterService,
-    ClusterConfigService,
-  ],
+  providers: [ClusterConfigService, RaftClusterService],
+  exports: [RaftClusterService, ClusterConfigService],
 })
 export class RaftClusterModule {
   /**

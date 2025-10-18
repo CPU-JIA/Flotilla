@@ -6,11 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **基于云计算的开发协作平台** - A cloud-based code hosting and collaboration platform with distributed consensus algorithm (simplified Raft).
 
+**Status**: 🚧 In Development
+**Version**: v1.0.0-MVP
+**Last Updated**: 2025-10-18
+
+## Prerequisites
+
+- **Node.js** >= 20.0.0
+- **pnpm** >= 10.0.0
+- **Docker** & Docker Compose
+
 ## Tech Stack
 
 ### Monorepo Architecture
 - **pnpm workspace** - Package manager with workspace support
 - **Apps**: `apps/backend` (NestJS) + `apps/frontend` (Next.js)
+- **Note**: The `packages/` directory is reserved for future shared packages but is currently empty
 
 ### Frontend (`apps/frontend`)
 - **Next.js 15.5** with Turbopack - React framework with SSR/SSG
@@ -86,6 +97,15 @@ pnpm start:prod             # Run production build
 pnpm raft:demo              # Run Raft demo with example cluster
 pnpm raft:test              # Run Raft cluster tests
 pnpm raft:performance       # Run Raft performance benchmarks
+
+# Available test files in apps/backend/:
+# - raft-demo.ts              (Full demo with 3-node cluster)
+# - raft-simple-test.ts       (Basic functionality test)
+# - raft-ultra-simple.ts      (Minimal test case)
+# - raft-core-verify.ts       (Core algorithm verification)
+# - raft-git-test.ts          (Git integration test)
+# - raft-advanced-test.ts     (Advanced scenarios)
+# - raft-quick-test.ts        (Quick verification)
 ```
 
 ### Frontend Commands
@@ -97,10 +117,26 @@ cd apps/frontend
 pnpm dev                    # Next.js with Turbopack
 
 # Testing
-pnpm test                   # Run Playwright tests
+pnpm test                   # Run all Playwright tests
 pnpm test:ui                # Interactive UI mode
 pnpm test:debug             # Debug mode
 pnpm test:report            # View test report
+pnpm test:headed            # Run tests in headed browser
+
+# Run specific test file
+pnpm exec playwright test tests/auth/login.spec.ts
+pnpm exec playwright test tests/settings/settings.spec.ts --retries=2
+
+# Test suites available:
+# - tests/auth/           (login, register)
+# - tests/organizations/  (organization CRUD, members, teams)
+# - tests/teams/          (team CRUD, members, permissions)
+# - tests/admin/          (admin panel)
+# - tests/dashboard/      (dashboard features)
+# - tests/editor/         (code editor)
+# - tests/files/          (file management)
+# - tests/projects/       (project operations)
+# - tests/theme-language/ (theme & i18n)
 
 # Build
 pnpm build                  # Production build
@@ -138,6 +174,14 @@ apps/backend/src/
 │   ├── guards/        # Auth guards (JwtAuthGuard, RolesGuard)
 │   └── strategies/    # Passport strategies
 ├── users/             # User management
+├── organizations/     # Organization CRUD and member management
+│   ├── decorators/    # @RequireOrgRole decorator
+│   ├── guards/        # OrganizationRoleGuard for authorization
+│   └── dto/           # DTOs for org operations
+├── teams/             # Team CRUD, members, and project permissions
+│   ├── decorators/    # @RequireTeamRole decorator
+│   ├── guards/        # TeamRoleGuard for authorization
+│   └── dto/           # DTOs for team operations
 ├── projects/          # Project CRUD operations
 ├── repositories/      # Git repository management
 ├── files/             # File upload/download (MinIO integration)
@@ -150,7 +194,8 @@ apps/backend/src/
 └── common/            # Shared utilities, filters, interceptors
     ├── middleware/    # Global middleware (performance monitoring, logging)
     ├── filters/       # Exception filters
-    └── interceptors/  # Response interceptors
+    ├── interceptors/  # Response interceptors
+    └── services/      # Global services (CryptoService, etc.)
 ```
 
 **Key Backend Patterns:**
@@ -167,16 +212,22 @@ apps/frontend/src/
 ├── app/               # Next.js App Router pages
 │   ├── (auth)/        # Auth-related pages (login, register)
 │   ├── projects/      # Project pages with dynamic routes
+│   ├── organizations/ # Organization management pages
+│   │   └── [slug]/    # Org detail with teams tab
+│   │       └── teams/[teamSlug]/  # Team detail pages
 │   └── layout.tsx     # Root layout
 ├── components/        # Reusable React components
 │   ├── editor/        # Monaco Editor wrapper
 │   ├── files/         # File browser components
-│   └── ui/            # Shadcn/ui components
+│   ├── organizations/ # Org-specific components (MembersTab, TeamsTab, SettingsTab)
+│   ├── teams/         # Team-specific components (MembersTab, PermissionsTab, CreateTeamDialog)
+│   └── ui/            # Shadcn/ui components (Tabs, Dialog, etc.)
 ├── contexts/          # React Context providers
 ├── lib/               # Utilities and API client
 │   ├── api.ts         # Fetch wrapper for backend API
 │   └── language-detector.ts  # File extension to language mapping
-└── types/             # TypeScript type definitions
+├── locales/           # i18n translation files (zh.ts, en.ts)
+└── types/             # TypeScript type definitions (organization.ts, team.ts, etc.)
 ```
 
 **Key Frontend Patterns:**
@@ -226,6 +277,46 @@ Located at `apps/backend/prisma/schema.prisma`. Main models:
 3. File metadata saved to PostgreSQL with MinIO object path
 4. Frontend can download via `GET /api/files/:id/download`
 
+### Organization & Team Architecture
+
+**Status**: ✅ **IMPLEMENTED** (Added in v1.0.0-MVP)
+
+The platform implements a hierarchical permission system with Organizations and Teams:
+
+**Organization Hierarchy**:
+```
+User
+ └── OrganizationMember (role: OWNER | ADMIN | MEMBER)
+      └── Organization
+           └── Team
+                └── TeamMember (role: MAINTAINER | MEMBER)
+                     └── ProjectPermission (access: READ | WRITE | ADMIN)
+```
+
+**Key Concepts**:
+- **Personal Organization**: Auto-created for each user (isPersonal=true), slug format: `user-{username}`
+- **Organization Roles**:
+  - `OWNER`: Full control, can delete organization
+  - `ADMIN`: Can manage members and teams (but not delete org)
+  - `MEMBER`: Read-only access to organization
+- **Team Roles**:
+  - `MAINTAINER`: Can manage team members and assign project permissions
+  - `MEMBER`: Can access assigned projects based on ProjectPermission
+- **Project Permissions**: Teams can be assigned READ, WRITE, or ADMIN access to specific projects
+
+**API Field Convention**:
+- Backend returns `myRole` field (not `role`) to indicate current user's role in organization/team
+- Frontend types: `organization.myRole`, `team.role`
+
+**Database Schema** (see `apps/backend/prisma/schema.prisma`):
+- `organizations` table
+- `organization_members` table (join table with role)
+- `teams` table (belongs to organization)
+- `team_members` table (join table with role)
+- `project_permissions` table (team → project access mapping)
+
+**For detailed design**, see `/docs/组织与团队权限架构设计.md`
+
 ### Monitoring & Performance Tracking
 
 **Backend Monitoring**:
@@ -242,6 +333,19 @@ Located at `apps/backend/prisma/schema.prisma`. Main models:
 - Playwright E2E tests with comprehensive test coverage
 - Test reports generated in `test-results/` directory
 - Performance measurement via Playwright metrics
+
+## Documentation
+
+Comprehensive documentation is available in the `/docs` directory:
+
+- **[需求分析文档](./docs/需求分析文档.md)** - Requirements analysis
+- **[架构设计文档](./docs/架构设计文档.md)** - Architecture design
+- **[数据库设计文档](./docs/数据库设计文档.md)** - Database schema design
+- **[分布式共识算法设计方案](./docs/分布式共识算法设计方案.md)** - Raft algorithm design
+- **[组织与团队权限架构设计](./docs/组织与团队权限架构设计.md)** - Organization & team permission system
+- **[UI设计与实现文档](./docs/UI设计与实现文档.md)** - UI implementation guide
+
+**Important**: Always consult these documents before implementing major features to understand design decisions and architectural constraints.
 
 ## Development Philosophy
 
@@ -280,11 +384,108 @@ The platform implements a simplified Raft consensus algorithm for distributed co
 
 For implementation details, see `/docs/分布式共识算法设计方案.md`.
 
+## Docker Production Deployment
+
+### Building and Deploying Frontend/Backend
+
+**CRITICAL**: After building a new Docker image, you MUST force-recreate the container to use the new image. Simply using `docker-compose restart` will NOT pick up the new image!
+
+```bash
+# ❌ WRONG - This will use the old cached image
+docker-compose build frontend
+docker-compose restart frontend
+
+# ✅ CORRECT - Force recreate to use new image
+docker-compose build frontend
+docker-compose up -d frontend --force-recreate
+
+# Or build with --no-cache to ensure fresh build
+docker-compose build --no-cache frontend
+docker-compose up -d frontend --force-recreate
+```
+
+**Verification Steps**:
+```bash
+# 1. Check container is using latest image
+docker inspect cloud-dev-frontend --format='{{.Image}}' | head -c 12
+docker images cloud-dev-platform-frontend:latest --format='{{.ID}}'
+# The first 12 characters should match
+
+# 2. Verify frontend/backend health
+curl -s -o /dev/null -w "%{http_code}" http://localhost:3000  # Should return 200
+curl -s -o /dev/null -w "%{http_code}" http://localhost:4000  # Should return 200
+```
+
+**Common Gotchas**:
+- Next.js production builds are cached aggressively - use `--no-cache` if seeing stale code
+- Environment variables are baked into frontend build - rebuild after changing `NEXT_PUBLIC_*` vars
+- Database migrations must be run manually: `docker exec cloud-dev-backend pnpm prisma migrate deploy`
+
+## Common Debugging Patterns
+
+### Database Cleanup for Tests
+
+Playwright E2E tests create organizations and teams. PostgreSQL may accumulate test data:
+
+```bash
+# Check organization count (limit is typically 10 for testing)
+docker exec cloud-dev-postgres psql -U devplatform -d cloud_dev_platform -c "SELECT COUNT(*) FROM organizations;"
+
+# View recent organizations
+docker exec cloud-dev-postgres psql -U devplatform -d cloud_dev_platform -c "SELECT id, name, slug, \"isPersonal\" FROM organizations ORDER BY \"createdAt\" DESC LIMIT 10;"
+
+# Clean up test organizations (keep personal orgs)
+docker exec cloud-dev-postgres psql -U devplatform -d cloud_dev_platform -c "DELETE FROM organizations WHERE \"isPersonal\" = false;"
+
+# Clean up all teams
+docker exec cloud-dev-postgres psql -U devplatform -d cloud_dev_platform -c "DELETE FROM teams;"
+```
+
+### Playwright Test Debugging
+
+```bash
+# Run specific test suite with retries
+cd apps/frontend
+pnpm exec playwright test tests/organizations/organization-crud.spec.ts --workers=1 --retries=2
+
+# Run in headed mode (see browser)
+pnpm exec playwright test tests/teams/team-crud.spec.ts --headed
+
+# View test report
+pnpm test:report
+
+# Debug with trace viewer
+pnpm exec playwright show-trace test-results/<test-name>/trace.zip
+```
+
+**Common Test Issues**:
+- **Strict mode violations**: Selector matches multiple elements - use more specific selectors (role + name)
+- **Timeout errors**: Element not found - check if page loaded correctly, verify ARIA attributes
+- **Dialog not closing**: Backend error or validation failure - check screenshot in `test-results/`
+
+### Frontend Component Debugging
+
+**Tabs Component (Shadcn/ui)**:
+- Must have `role="tab"`, `role="tablist"`, `role="tabpanel"` for Playwright tests
+- Located at `apps/frontend/src/components/ui/tabs.tsx`
+- Used in organization detail page and team detail page
+
+**Dialog Component**:
+- Auto-managed by Radix UI via `data-state="open"` attribute
+- Dialog should close on successful form submission (check `setOpen(false)`)
+- Error messages should display in dialog, NOT navigate away
+
 ## Important Notes
 
 ### Environment Variables
-- Backend: Configured via `.env` file in `apps/backend/` (see `.env.example`)
-- Frontend: Uses `NEXT_PUBLIC_*` prefix for client-side env vars
+- **Location**: `.env.example` in project root (copy to `.env` and configure)
+- **Backend variables**: Database, Redis, MinIO, JWT, Raft configuration
+- **Frontend variables**: Use `NEXT_PUBLIC_*` prefix for client-side env vars
+- **Key configurations**:
+  - Database ports: PostgreSQL (5434), Redis (6380)
+  - MinIO: localhost:9000 (API), localhost:9001 (Console)
+  - JWT secrets and expiration times
+  - Raft cluster node configuration
 
 ### Ports
 - Frontend: `3000`

@@ -13,6 +13,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { CodeEditor } from '@/components/editor'
 import { api, ApiError } from '@/lib/api'
 import { detectLanguage } from '@/lib/language-detector'
+import { useLanguage } from '@/contexts/language-context'
 import type { ProjectFile } from '@/types/file'
 import type { Project } from '@/types/project'
 
@@ -20,6 +21,7 @@ export default function EditorPage() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useLanguage()
   const projectId = params.id as string
   const fileIdFromUrl = searchParams.get('fileId')
 
@@ -45,13 +47,13 @@ export default function EditorPage() {
         if (err instanceof ApiError) {
           setError(err.message)
         } else {
-          setError('加载项目信息失败')
+          setError(t.editor.loadError)
         }
       }
     }
 
     loadProject()
-  }, [projectId])
+  }, [projectId, t.editor.loadError])
 
   // 加载文件列表
   const loadFiles = useCallback(async () => {
@@ -67,14 +69,14 @@ export default function EditorPage() {
       setFiles(response.files)
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message || '加载文件列表失败')
+        setError(err.message || t.editor.loadError)
       } else {
-        setError('网络错误，请稍后重试')
+        setError(t.editor.networkError)
       }
     } finally {
       setLoading(false)
     }
-  }, [projectId, currentFolder])
+  }, [projectId, currentFolder, t.editor.loadError, t.editor.networkError])
 
   useEffect(() => {
     loadFiles()
@@ -114,9 +116,9 @@ export default function EditorPage() {
       setError('')
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message || '加载文件内容失败')
+        setError(err.message || t.editor.loadError)
       } else {
-        setError('网络错误，请稍后重试')
+        setError(t.editor.networkError)
       }
     } finally {
       setFileContentLoading(false)
@@ -168,21 +170,21 @@ export default function EditorPage() {
     const pathParts = currentFolder.split('/').filter(Boolean)
 
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-600">
+      <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
         <button
           onClick={() => setCurrentFolder('/')}
-          className="hover:text-blue-600 transition-colors"
+          className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
         >
-          📁 根目录
+          📁 {t.editor.rootFolder}
         </button>
         {pathParts.map((part, index) => {
           const path = `/${pathParts.slice(0, index + 1).join('/')}/`
           return (
             <div key={path} className="flex items-center gap-2">
-              <span>/</span>
+              <span className="text-gray-400 dark:text-gray-500">/</span>
               <button
                 onClick={() => setCurrentFolder(path)}
-                className="hover:text-blue-600 transition-colors"
+                className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
                 {part}
               </button>
@@ -219,33 +221,33 @@ export default function EditorPage() {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-4xl mb-4">⏳</div>
-          <p className="text-gray-400">加载中...</p>
+          <p className="text-gray-600 dark:text-gray-400">{t.editor.loading}</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="h-screen bg-gray-900 flex flex-col">
+    <div className="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       {/* 顶部导航栏 */}
-      <div className="bg-gray-800 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-4">
           <Button
             variant="outline"
             onClick={() => router.push(`/projects/${projectId}/files`)}
-            className="bg-gray-700 text-white hover:bg-gray-600 border-gray-600"
+            className="bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600"
           >
-            ← 返回文件管理
+            ← {t.editor.backToFiles}
           </Button>
-          <h1 className="text-xl font-bold text-white">{project.name} - 代码编辑器</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">{project.name} - {t.editor.codeEditor}</h1>
         </div>
 
         {currentFile && (
-          <div className="text-sm text-gray-400">
-            当前文件: {currentFile.name}
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            {t.editor.currentFile}: {currentFile.name}
           </div>
         )}
       </div>
@@ -254,20 +256,20 @@ export default function EditorPage() {
       <div className="flex-1 flex overflow-hidden">
         {/* 左侧文件树 */}
         <div
-          className="bg-gray-800 border-r border-gray-700 flex flex-col"
+          className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col"
           style={{ width: `${sidebarWidth}px`, minWidth: '200px', maxWidth: '600px' }}
         >
           {/* 面包屑导航 */}
-          <div className="p-4 border-b border-gray-700">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             {renderBreadcrumb()}
             {currentFolder !== '/' && (
               <Button
                 variant="outline"
                 onClick={handleBackClick}
-                className="mt-2 w-full bg-gray-700 text-white hover:bg-gray-600 border-gray-600"
+                className="mt-2 w-full bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600"
                 size="sm"
               >
-                ⬆️ 上级目录
+                ⬆️ {t.editor.parentFolder}
               </Button>
             )}
           </div>
@@ -275,38 +277,38 @@ export default function EditorPage() {
           {/* 文件列表 */}
           <div className="flex-1 overflow-y-auto">
             {loading ? (
-              <div className="p-4 text-center text-gray-400">
+              <div className="p-4 text-center text-gray-600 dark:text-gray-400">
                 <div className="text-2xl mb-2">⏳</div>
-                <p className="text-sm">加载中...</p>
+                <p className="text-sm">{t.editor.loading}</p>
               </div>
             ) : error ? (
               <div className="p-4">
-                <Card className="bg-red-900 border-red-700">
+                <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
                   <CardContent className="p-3">
-                    <p className="text-red-200 text-sm">{error}</p>
+                    <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
                   </CardContent>
                 </Card>
               </div>
             ) : files.length === 0 ? (
-              <div className="p-4 text-center text-gray-400">
+              <div className="p-4 text-center text-gray-600 dark:text-gray-400">
                 <div className="text-2xl mb-2">📂</div>
-                <p className="text-sm">暂无文件</p>
+                <p className="text-sm">{t.editor.noFiles}</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-700">
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
                 {files.map((file) => (
                   <button
                     key={file.id}
                     onClick={() => handleFileClick(file)}
-                    className={`w-full p-3 text-left hover:bg-gray-700 transition-colors flex items-center gap-3 ${
-                      currentFile?.id === file.id ? 'bg-gray-700' : ''
+                    className={`w-full p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3 ${
+                      currentFile?.id === file.id ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : ''
                     }`}
                   >
                     <span className="text-xl">{getFileIcon(file)}</span>
                     <div className="flex-1 overflow-hidden">
-                      <p className="text-white text-sm truncate">{file.name}</p>
-                      <p className="text-gray-400 text-xs">
-                        {file.type === 'folder' ? '文件夹' : `${(file.size / 1024).toFixed(1)} KB`}
+                      <p className="text-gray-900 dark:text-white text-sm truncate font-medium">{file.name}</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-xs">
+                        {file.type === 'folder' ? t.editor.folder : `${(file.size / 1024).toFixed(1)} KB`}
                       </p>
                     </div>
                   </button>
@@ -318,7 +320,7 @@ export default function EditorPage() {
 
         {/* 可拖动分隔条 */}
         <div
-          className="w-1 bg-gray-700 hover:bg-blue-500 cursor-col-resize transition-colors"
+          className="w-1 bg-gray-200 dark:bg-gray-700 hover:bg-blue-400 dark:hover:bg-blue-500 cursor-col-resize transition-colors"
           onMouseDown={handleMouseDown}
           style={{ userSelect: 'none' }}
         />
@@ -326,10 +328,10 @@ export default function EditorPage() {
         {/* 右侧编辑器 */}
         <div className="flex-1 flex flex-col">
           {fileContentLoading ? (
-            <div className="flex-1 flex items-center justify-center bg-gray-900">
+            <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-800">
               <div className="text-center">
                 <div className="text-4xl mb-4 animate-pulse">⏳</div>
-                <p className="text-gray-400">正在加载文件...</p>
+                <p className="text-gray-600 dark:text-gray-400">{t.editor.loadingFile}</p>
               </div>
             </div>
           ) : currentFile ? (
@@ -344,11 +346,11 @@ export default function EditorPage() {
               }}
             />
           ) : (
-            <div className="flex-1 flex items-center justify-center bg-gray-900">
+            <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-800">
               <div className="text-center">
                 <div className="text-6xl mb-4">📝</div>
-                <p className="text-gray-400 text-lg">从左侧选择一个文件开始编辑</p>
-                <p className="text-gray-500 text-sm mt-2">支持30+种编程语言</p>
+                <p className="text-gray-600 dark:text-gray-400 text-lg">{t.editor.selectFileToEdit}</p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">{t.editor.languageSupport}</p>
               </div>
             </div>
           )}

@@ -1,9 +1,9 @@
-import { Module, forwardRef } from '@nestjs/common'
-import { FilesController } from './files.controller'
-import { FilesService } from './files.service'
-import { PrismaModule } from '../prisma/prisma.module'
-import { MinioModule } from '../minio/minio.module'
-import { RepositoriesModule } from '../repositories/repositories.module'
+import { Module, forwardRef } from '@nestjs/common';
+import { FilesController } from './files.controller';
+import { FilesService } from './files.service';
+import { PrismaModule } from '../prisma/prisma.module';
+import { MinioModule } from '../minio/minio.module';
+import { RepositoriesModule } from '../repositories/repositories.module';
 
 @Module({
   imports: [PrismaModule, MinioModule, forwardRef(() => RepositoriesModule)],

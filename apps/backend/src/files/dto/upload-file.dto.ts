@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum } from 'class-validator'
+import { IsString, IsOptional, IsEnum } from 'class-validator';
 
 export enum FileType {
   CODE = 'code',
@@ -9,16 +9,16 @@ export enum FileType {
 
 export class UploadFileDto {
   @IsString()
-  projectId: string
+  projectId: string;
 
   @IsString()
-  path: string
+  path: string;
 
   @IsOptional()
   @IsString()
-  folder?: string
+  folder?: string;
 
   @IsOptional()
   @IsEnum(FileType)
-  type?: FileType
+  type?: FileType;
 }

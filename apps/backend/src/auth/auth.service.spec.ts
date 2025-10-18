@@ -4,18 +4,24 @@
  * ECP-C1: 防御性编程 - 测试边界条件和错误情况
  */
 
-import { Test, TestingModule } from '@nestjs/testing'
-import { JwtService } from '@nestjs/jwt'
-import { ConflictException, UnauthorizedException, NotFoundException } from '@nestjs/common'
-import { AuthService } from './auth.service'
-import { PrismaService } from '../prisma/prisma.service'
-import { UserRole } from '@prisma/client'
-import * as bcrypt from 'bcrypt'
+import { Test, TestingModule } from '@nestjs/testing';
+import { JwtService } from '@nestjs/jwt';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { UserRole } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+
+// Mock bcrypt at module level
+jest.mock('bcrypt', () => ({
+  compare: jest.fn(),
+  hash: jest.fn(),
+}));
 
 describe('AuthService', () => {
-  let service: AuthService
-  let prismaService: PrismaService
-  let jwtService: JwtService
+  let service: AuthService;
+  let prismaService: PrismaService;
+  let jwtService: JwtService;
 
   const mockPrismaService = {
     user: {
@@ -23,12 +29,12 @@ describe('AuthService', () => {
       findFirst: jest.fn(),
       create: jest.fn(),
     },
-  }
+  };
 
   const mockJwtService = {
-    sign: jest.fn(),
+    signAsync: jest.fn(),
     verify: jest.fn(),
-  }
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -43,219 +49,236 @@ describe('AuthService', () => {
           useValue: mockJwtService,
         },
       ],
-    }).compile()
+    }).compile();
 
-    service = module.get<AuthService>(AuthService)
-    prismaService = module.get<PrismaService>(PrismaService)
-    jwtService = module.get<JwtService>(JwtService)
+    service = module.get<AuthService>(AuthService);
+    prismaService = module.get<PrismaService>(PrismaService);
+    jwtService = module.get<JwtService>(JwtService);
 
-    // 清除所有mock调用历史
-    jest.clearAllMocks()
-  })
+    jest.clearAllMocks();
+  });
 
   it('应该成功创建服务实例', () => {
-    expect(service).toBeDefined()
-  })
+    expect(service).toBeDefined();
+  });
 
   describe('register - 用户注册', () => {
     const registerDto = {
       username: 'testuser',
       email: 'test@example.com',
       password: 'password123',
-    }
+    };
 
     it('应该成功注册新用户并返回令牌', async () => {
-      const hashedPassword = 'hashedPassword123'
+      const hashedPassword = 'hashedPassword123';
       const createdUser = {
         id: '1',
-        ...registerDto,
-        password: hashedPassword,
-        role: UserRole.DEVELOPER,
+        username: registerDto.username,
+        email: registerDto.email,
+        passwordHash: hashedPassword,
+        role: UserRole.USER,
+        avatar: null,
+        bio: null,
+        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
-      }
+      };
 
-      mockPrismaService.user.findFirst.mockResolvedValue(null)
-      mockPrismaService.user.create.mockResolvedValue(createdUser)
-      mockJwtService.sign.mockReturnValueOnce('accessToken').mockReturnValueOnce('refreshToken')
+      mockPrismaService.user.findUnique.mockResolvedValue(null); // username check
+      mockPrismaService.user.findUnique.mockResolvedValue(null); // email check
+      mockPrismaService.user.create.mockResolvedValue(createdUser);
+      mockJwtService.signAsync
+        .mockResolvedValueOnce('accessToken')
+        .mockResolvedValueOnce('refreshToken');
 
       // Mock bcrypt.hash
-      jest.spyOn(bcrypt, 'hash').mockImplementation(() => Promise.resolve(hashedPassword))
+      (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
 
-      const result = await service.register(registerDto)
+      const result = await service.register(registerDto);
 
-      expect(result).toHaveProperty('accessToken')
-      expect(result).toHaveProperty('refreshToken')
-      expect(result).toHaveProperty('user')
-      expect(result.user.username).toBe(registerDto.username)
-      expect(mockPrismaService.user.findFirst).toHaveBeenCalledTimes(2) // username + email
-      expect(mockPrismaService.user.create).toHaveBeenCalled()
-    })
+      expect(result).toHaveProperty('accessToken');
+      expect(result).toHaveProperty('refreshToken');
+      expect(result).toHaveProperty('user');
+      expect(result.user.username).toBe(registerDto.username);
+      expect(result.user).not.toHaveProperty('passwordHash');
+      expect(mockPrismaService.user.create).toHaveBeenCalled();
+    });
 
     it('当用户名已存在时应抛出 ConflictException', async () => {
-      mockPrismaService.user.findFirst.mockResolvedValueOnce({ id: '1', username: registerDto.username })
+      // Mock findUnique to return existing user for username check
+      mockPrismaService.user.findUnique.mockResolvedValueOnce({
+        id: '1',
+        username: registerDto.username,
+      });
 
-      await expect(service.register(registerDto)).rejects.toThrow(ConflictException)
-      await expect(service.register(registerDto)).rejects.toThrow('用户名已存在')
-    })
+      await expect(service.register(registerDto)).rejects.toThrow(
+        '用户名已被使用',
+      );
+    });
 
     it('当邮箱已存在时应抛出 ConflictException', async () => {
-      mockPrismaService.user.findFirst
-        .mockResolvedValueOnce(null) // username check
-        .mockResolvedValueOnce({ id: '1', email: registerDto.email }) // email check
+      mockPrismaService.user.findUnique
+        .mockResolvedValueOnce(null) // username check passes
+        .mockResolvedValueOnce({ id: '1', email: registerDto.email }); // email check fails
 
-      await expect(service.register(registerDto)).rejects.toThrow(ConflictException)
-      await expect(service.register(registerDto)).rejects.toThrow('邮箱已存在')
-    })
-  })
-
-  describe('validateUser - 用户验证', () => {
-    const user = {
-      id: '1',
-      username: 'testuser',
-      email: 'test@example.com',
-      password: 'hashedPassword',
-      role: UserRole.DEVELOPER,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
-
-    it('应该在密码正确时返回用户信息（不包含密码）', async () => {
-      mockPrismaService.user.findFirst.mockResolvedValue(user)
-      jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(true))
-
-      const result = await service.validateUser('testuser', 'password123')
-
-      expect(result).toBeDefined()
-      expect(result?.username).toBe(user.username)
-      expect(result).not.toHaveProperty('password')
-    })
-
-    it('应该在密码错误时返回 null', async () => {
-      mockPrismaService.user.findFirst.mockResolvedValue(user)
-      jest.spyOn(bcrypt, 'compare').mockImplementation(() => Promise.resolve(false))
-
-      const result = await service.validateUser('testuser', 'wrongpassword')
-
-      expect(result).toBeNull()
-    })
-
-    it('应该在用户不存在时返回 null', async () => {
-      mockPrismaService.user.findFirst.mockResolvedValue(null)
-
-      const result = await service.validateUser('nonexistent', 'password123')
-
-      expect(result).toBeNull()
-    })
-  })
+      await expect(service.register(registerDto)).rejects.toThrow(
+        '邮箱已被注册',
+      );
+    });
+  });
 
   describe('login - 用户登录', () => {
     const loginDto = {
       usernameOrEmail: 'testuser',
       password: 'password123',
-    }
+    };
 
     const user = {
       id: '1',
       username: 'testuser',
       email: 'test@example.com',
-      role: UserRole.DEVELOPER,
+      passwordHash: 'hashedPassword',
+      role: UserRole.USER,
+      avatar: null,
+      bio: null,
+      isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
-    }
+    };
 
     it('应该成功登录并返回令牌', async () => {
-      jest.spyOn(service, 'validateUser').mockResolvedValue(user)
-      mockJwtService.sign.mockReturnValueOnce('accessToken').mockReturnValueOnce('refreshToken')
+      mockPrismaService.user.findFirst.mockResolvedValue(user);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      mockJwtService.signAsync
+        .mockResolvedValueOnce('accessToken')
+        .mockResolvedValueOnce('refreshToken');
 
-      const result = await service.login(loginDto)
+      const result = await service.login(loginDto);
 
-      expect(result).toHaveProperty('accessToken')
-      expect(result).toHaveProperty('refreshToken')
-      expect(result).toHaveProperty('user')
-      expect(result.user.username).toBe(user.username)
-    })
+      expect(result).toHaveProperty('accessToken');
+      expect(result).toHaveProperty('refreshToken');
+      expect(result).toHaveProperty('user');
+      expect(result.user.username).toBe(user.username);
+      expect(result.user).not.toHaveProperty('passwordHash');
+    });
 
-    it('应该在凭据无效时抛出 UnauthorizedException', async () => {
-      jest.spyOn(service, 'validateUser').mockResolvedValue(null)
+    it('应该在用户不存在时抛出 UnauthorizedException', async () => {
+      mockPrismaService.user.findFirst.mockResolvedValue(null);
 
-      await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException)
-      await expect(service.login(loginDto)).rejects.toThrow('用户名或密码错误')
-    })
-  })
+      await expect(service.login(loginDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+      await expect(service.login(loginDto)).rejects.toThrow('用户名或密码错误');
+    });
 
-  describe('refresh - 刷新令牌', () => {
-    const refreshDto = {
-      refreshToken: 'validRefreshToken',
-    }
+    it('应该在密码错误时抛出 UnauthorizedException', async () => {
+      mockPrismaService.user.findFirst.mockResolvedValue(user);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+
+      await expect(service.login(loginDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+      await expect(service.login(loginDto)).rejects.toThrow('用户名或密码错误');
+    });
+  });
+
+  describe('validateUser - 用户验证', () => {
+    const userId = '1';
+    const user = {
+      id: '1',
+      username: 'testuser',
+      email: 'test@example.com',
+      passwordHash: 'hashedPassword',
+      role: UserRole.USER,
+      avatar: null,
+      bio: null,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    it('应该成功返回用户信息（不包含密码）', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(user);
+
+      const result = await service.validateUser(userId);
+
+      expect(result).toBeDefined();
+      expect(result.username).toBe(user.username);
+      expect(result).not.toHaveProperty('passwordHash');
+    });
+
+    it('应该在用户不存在时抛出 UnauthorizedException', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.validateUser('999')).rejects.toThrow(
+        UnauthorizedException,
+      );
+      await expect(service.validateUser('999')).rejects.toThrow('用户不存在');
+    });
+  });
+
+  describe('refreshTokens - 刷新令牌', () => {
+    const refreshToken = 'validRefreshToken';
 
     it('应该成功刷新访问令牌', async () => {
-      const payload = { sub: '1', username: 'testuser' }
+      const payload = {
+        sub: '1',
+        username: 'testuser',
+        email: 'test@example.com',
+        role: 'USER',
+      };
       const user = {
         id: '1',
         username: 'testuser',
         email: 'test@example.com',
-        role: UserRole.DEVELOPER,
+        passwordHash: 'hashedPassword',
+        role: UserRole.USER,
+        avatar: null,
+        bio: null,
+        isActive: true,
         createdAt: new Date(),
         updatedAt: new Date(),
-      }
+      };
 
-      mockJwtService.verify.mockReturnValue(payload)
-      mockPrismaService.user.findUnique.mockResolvedValue(user)
-      mockJwtService.sign.mockReturnValue('newAccessToken')
+      mockJwtService.verify.mockReturnValue(payload);
+      mockPrismaService.user.findUnique.mockResolvedValue(user);
+      mockJwtService.signAsync.mockResolvedValue('newAccessToken');
 
-      const result = await service.refresh(refreshDto)
+      const result = await service.refreshTokens(refreshToken);
 
-      expect(result).toHaveProperty('accessToken')
-      expect(result.accessToken).toBe('newAccessToken')
-    })
+      expect(result).toHaveProperty('accessToken');
+      expect(result.accessToken).toBe('newAccessToken');
+    });
 
     it('应该在刷新令牌无效时抛出 UnauthorizedException', async () => {
       mockJwtService.verify.mockImplementation(() => {
-        throw new Error('Invalid token')
-      })
+        throw new Error('Invalid token');
+      });
 
-      await expect(service.refresh(refreshDto)).rejects.toThrow(UnauthorizedException)
-      await expect(service.refresh(refreshDto)).rejects.toThrow('无效的刷新令牌')
-    })
+      await expect(service.refreshTokens(refreshToken)).rejects.toThrow(
+        UnauthorizedException,
+      );
+      await expect(service.refreshTokens(refreshToken)).rejects.toThrow(
+        'Invalid refresh token',
+      );
+    });
 
-    it('应该在用户不存在时抛出 NotFoundException', async () => {
-      const payload = { sub: '999', username: 'nonexistent' }
-      mockJwtService.verify.mockReturnValue(payload)
-      mockPrismaService.user.findUnique.mockResolvedValue(null)
+    it('应该在用户不存在时抛出 UnauthorizedException', async () => {
+      const payload = {
+        sub: '999',
+        username: 'nonexistent',
+        email: 'test@test.com',
+        role: 'USER',
+      };
+      mockJwtService.verify.mockReturnValue(payload);
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.refresh(refreshDto)).rejects.toThrow(NotFoundException)
-      await expect(service.refresh(refreshDto)).rejects.toThrow('用户不存在')
-    })
-  })
-
-  describe('me - 获取当前用户信息', () => {
-    const userId = '1'
-    const user = {
-      id: '1',
-      username: 'testuser',
-      email: 'test@example.com',
-      role: UserRole.DEVELOPER,
-      password: 'hashedPassword',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }
-
-    it('应该成功返回用户信息（不包含密码）', async () => {
-      mockPrismaService.user.findUnique.mockResolvedValue(user)
-
-      const result = await service.me(userId)
-
-      expect(result).toBeDefined()
-      expect(result.username).toBe(user.username)
-      expect(result).not.toHaveProperty('password')
-    })
-
-    it('应该在用户不存在时抛出 NotFoundException', async () => {
-      mockPrismaService.user.findUnique.mockResolvedValue(null)
-
-      await expect(service.me('999')).rejects.toThrow(NotFoundException)
-      await expect(service.me('999')).rejects.toThrow('用户不存在')
-    })
-  })
-})
+      await expect(service.refreshTokens(refreshToken)).rejects.toThrow(
+        UnauthorizedException,
+      );
+      await expect(service.refreshTokens(refreshToken)).rejects.toThrow(
+        '用户不存在',
+      );
+    });
+  });
+});

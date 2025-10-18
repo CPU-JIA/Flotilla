@@ -6,7 +6,7 @@
  * ECP-C1: 防御性编程 - 客户端表单验证
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/auth-context'
@@ -17,7 +17,7 @@ import { ApiError } from '@/lib/api'
 
 export default function RegisterPage() {
   const router = useRouter()
-  const { register } = useAuth()
+  const { register, isAuthenticated } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -27,6 +27,16 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
   })
+
+  /**
+   * 监听认证状态变化，注册成功后自动跳转
+   * 修复：避免React状态更新时序竞争导致的重定向循环
+   */
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      router.push('/dashboard')
+    }
+  }, [isAuthenticated, isLoading, router])
 
   /**
    * 表单输入处理
@@ -95,15 +105,14 @@ export default function RegisterPage() {
         email: formData.email,
         password: formData.password,
       })
-      // 注册成功，跳转到首页
-      router.push('/dashboard')
+      // 注册成功，重置loading状态，让useEffect处理跳转
+      setIsLoading(false)
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message || '注册失败，请稍后重试')
       } else {
         setError('网络错误，请稍后重试')
       }
-    } finally {
       setIsLoading(false)
     }
   }
@@ -150,7 +159,6 @@ export default function RegisterPage() {
                 value={formData.username}
                 onChange={handleChange}
                 disabled={isLoading}
-                required
               />
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 只能包含字母、数字和下划线
@@ -162,12 +170,11 @@ export default function RegisterPage() {
               <Input
                 id="email"
                 name="email"
-                type="email"
+                type="text"
                 placeholder="请输入邮箱地址"
                 value={formData.email}
                 onChange={handleChange}
                 disabled={isLoading}
-                required
               />
             </div>
 
@@ -181,7 +188,6 @@ export default function RegisterPage() {
                 value={formData.password}
                 onChange={handleChange}
                 disabled={isLoading}
-                required
               />
             </div>
 
@@ -195,7 +201,6 @@ export default function RegisterPage() {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 disabled={isLoading}
-                required
               />
             </div>
           </div>

@@ -7,30 +7,59 @@ import {
   PayloadTooLargeException,
   forwardRef,
   Inject,
-} from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
-import { MinioService } from '../minio/minio.service'
-import { RepositoriesService } from '../repositories/repositories.service'
-import { CreateFolderDto, QueryFilesDto } from './dto'
-import type { User } from '@prisma/client'
-import type { FileEntity, FilesListResponse } from './entities/file.entity'
-import { UserRole } from '@prisma/client'
-import * as path from 'path'
-import * as crypto from 'crypto'
+} from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { MinioService } from '../minio/minio.service';
+import { RepositoriesService } from '../repositories/repositories.service';
+import { CreateFolderDto, QueryFilesDto } from './dto';
+import type { User } from '@prisma/client';
+import type { FileEntity, FilesListResponse } from './entities/file.entity';
+import { UserRole } from '@prisma/client';
+import * as path from 'path';
+import * as crypto from 'crypto';
 
-const MAX_FILE_SIZE = 100 * 1024 * 1024 // 100MB
-const MAX_PROJECT_SIZE = 1024 * 1024 * 1024 // 1GB
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+const MAX_PROJECT_SIZE = 1024 * 1024 * 1024; // 1GB
 
 const CODE_FILE_EXTENSIONS = [
-  '.js', '.ts', '.tsx', '.jsx', '.py', '.java', '.cpp', '.c', '.h', '.hpp',
-  '.cs', '.go', '.rs', '.php', '.rb', '.swift', '.kt', '.scala', '.sh',
-  '.html', '.css', '.scss', '.sass', '.less', '.vue', '.json', '.xml',
-  '.yaml', '.yml', '.md', '.txt', '.sql', '.proto',
-]
+  '.js',
+  '.ts',
+  '.tsx',
+  '.jsx',
+  '.py',
+  '.java',
+  '.cpp',
+  '.c',
+  '.h',
+  '.hpp',
+  '.cs',
+  '.go',
+  '.rs',
+  '.php',
+  '.rb',
+  '.swift',
+  '.kt',
+  '.scala',
+  '.sh',
+  '.html',
+  '.css',
+  '.scss',
+  '.sass',
+  '.less',
+  '.vue',
+  '.json',
+  '.xml',
+  '.yaml',
+  '.yml',
+  '.md',
+  '.txt',
+  '.sql',
+  '.proto',
+];
 
 @Injectable()
 export class FilesService {
-  private readonly logger = new Logger(FilesService.name)
+  private readonly logger = new Logger(FilesService.name);
 
   constructor(
     private prisma: PrismaService,
@@ -43,7 +72,10 @@ export class FilesService {
    * 检查项目访问权限
    * ECP-C1: 防御性编程 - 权限验证
    */
-  private async checkProjectAccess(projectId: string, currentUser: User): Promise<void> {
+  private async checkProjectAccess(
+    projectId: string,
+    currentUser: User,
+  ): Promise<void> {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       include: {
@@ -51,18 +83,18 @@ export class FilesService {
           where: { userId: currentUser.id },
         },
       },
-    })
+    });
 
     if (!project) {
-      throw new NotFoundException(`项目 ID ${projectId} 不存在`)
+      throw new NotFoundException(`项目 ID ${projectId} 不存在`);
     }
 
-    const isOwner = project.ownerId === currentUser.id
-    const isMember = project.members.length > 0
-    const isAdmin = currentUser.role === UserRole.SUPER_ADMIN
+    const isOwner = project.ownerId === currentUser.id;
+    const isMember = project.members.length > 0;
+    const isAdmin = currentUser.role === UserRole.SUPER_ADMIN;
 
     if (!isOwner && !isMember && !isAdmin) {
-      throw new ForbiddenException('无权限访问该项目')
+      throw new ForbiddenException('无权限访问该项目');
     }
   }
 
@@ -73,9 +105,9 @@ export class FilesService {
     const files = await this.prisma.projectFile.findMany({
       where: { projectId },
       select: { size: true },
-    })
+    });
 
-    return files.reduce((sum, file) => sum + file.size, 0)
+    return files.reduce((sum, file) => sum + file.size, 0);
   }
 
   /**
@@ -85,27 +117,31 @@ export class FilesService {
    * MinIO对象名只使用ASCII安全字符（时间戳+随机字符串+扩展名）
    * 原始文件名保存在数据库name字段和MinIO metadata中
    */
-  private generateObjectName(projectId: string, filename: string, folder?: string): string {
-    const timestamp = Date.now()
-    const randomStr = crypto.randomBytes(8).toString('hex')
-    const ext = path.extname(filename)
+  private generateObjectName(
+    projectId: string,
+    filename: string,
+    folder?: string,
+  ): string {
+    const timestamp = Date.now();
+    const randomStr = crypto.randomBytes(8).toString('hex');
+    const ext = path.extname(filename);
     // 只使用时间戳和随机字符串，避免中文等特殊字符的编码问题
-    const sanitizedName = `${timestamp}_${randomStr}${ext}`
+    const sanitizedName = `${timestamp}_${randomStr}${ext}`;
 
     if (folder && folder !== '/') {
       // 移除开头和结尾的斜杠，避免双斜杠问题
-      const cleanFolder = folder.replace(/^\/+|\/+$/g, '')
-      return `projects/${projectId}/${cleanFolder}/${sanitizedName}`
+      const cleanFolder = folder.replace(/^\/+|\/+$/g, '');
+      return `projects/${projectId}/${cleanFolder}/${sanitizedName}`;
     }
 
-    return `projects/${projectId}/${sanitizedName}`
+    return `projects/${projectId}/${sanitizedName}`;
   }
 
   /**
    * 判断文件类型
    */
   private getFileType(filename: string, mimeType: string): 'file' | 'folder' {
-    return 'file' // 默认返回文件类型
+    return 'file'; // 默认返回文件类型
   }
 
   /**
@@ -121,41 +157,46 @@ export class FilesService {
   ): Promise<FileEntity> {
     // 修复文件名编码 - Multer默认使用Latin1解析，需转换为UTF-8
     // ECP-C1: 防御性编程 - 正确处理非ASCII文件名
-    const originalFilename = Buffer.from(file.originalname, 'latin1').toString('utf8')
+    const originalFilename = Buffer.from(file.originalname, 'latin1').toString(
+      'utf8',
+    );
 
     // 权限验证
-    await this.checkProjectAccess(projectId, currentUser)
+    await this.checkProjectAccess(projectId, currentUser);
 
     // 文件大小验证
     if (file.size > MAX_FILE_SIZE) {
-      throw new PayloadTooLargeException(`文件大小超过限制 ${MAX_FILE_SIZE / 1024 / 1024}MB`)
+      throw new PayloadTooLargeException(
+        `文件大小超过限制 ${MAX_FILE_SIZE / 1024 / 1024}MB`,
+      );
     }
 
     // 项目总容量验证
-    const currentProjectSize = await this.getProjectTotalSize(projectId)
+    const currentProjectSize = await this.getProjectTotalSize(projectId);
     if (currentProjectSize + file.size > MAX_PROJECT_SIZE) {
       throw new PayloadTooLargeException(
         `项目存储空间超过限制 ${MAX_PROJECT_SIZE / 1024 / 1024 / 1024}GB`,
-      )
+      );
     }
 
     // 生成唯一文件名
-    const objectName = this.generateObjectName(projectId, originalFilename, folder)
+    const objectName = this.generateObjectName(
+      projectId,
+      originalFilename,
+      folder,
+    );
 
     // 上传到MinIO
     try {
-      await this.minioService.uploadFile(
-        objectName,
-        file.buffer,
-        file.size,
-        {
-          'Content-Type': file.mimetype,
-          'Original-Filename': Buffer.from(originalFilename, 'utf8').toString('base64'),
-        },
-      )
+      await this.minioService.uploadFile(objectName, file.buffer, file.size, {
+        'Content-Type': file.mimetype,
+        'Original-Filename': Buffer.from(originalFilename, 'utf8').toString(
+          'base64',
+        ),
+      });
     } catch (error) {
-      this.logger.error(`MinIO upload failed: ${error.message}`)
-      throw new BadRequestException('文件上传失败')
+      this.logger.error(`MinIO upload failed: ${error.message}`);
+      throw new BadRequestException('文件上传失败');
     }
 
     // 保存文件记录到数据库
@@ -175,11 +216,11 @@ export class FilesService {
           select: { id: true, username: true, email: true },
         },
       },
-    })
+    });
 
     this.logger.log(
       `File uploaded: ${originalFilename} (${file.size} bytes) to project ${projectId}`,
-    )
+    );
 
     return {
       id: fileRecord.id,
@@ -192,7 +233,7 @@ export class FilesService {
       uploadedBy: fileRecord.uploadedBy,
       createdAt: fileRecord.createdAt,
       updatedAt: fileRecord.updatedAt,
-    }
+    };
   }
 
   /**
@@ -202,13 +243,14 @@ export class FilesService {
     createFolderDto: CreateFolderDto,
     currentUser: User,
   ): Promise<FileEntity> {
-    const { projectId, name, parentPath } = createFolderDto
+    const { projectId, name, parentPath } = createFolderDto;
 
     // 权限验证
-    await this.checkProjectAccess(projectId, currentUser)
+    await this.checkProjectAccess(projectId, currentUser);
 
     // 构建文件夹路径
-    const folderPath = parentPath === '/' ? `/${name}` : `${parentPath}/${name}`
+    const folderPath =
+      parentPath === '/' ? `/${name}` : `${parentPath}/${name}`;
 
     // 检查文件夹是否已存在
     const existingFolder = await this.prisma.projectFile.findFirst({
@@ -218,10 +260,10 @@ export class FilesService {
         name,
         type: 'folder',
       },
-    })
+    });
 
     if (existingFolder) {
-      throw new BadRequestException('文件夹已存在')
+      throw new BadRequestException('文件夹已存在');
     }
 
     // 创建文件夹记录
@@ -236,9 +278,9 @@ export class FilesService {
         uploadedBy: currentUser.id,
         folder: parentPath === '/' ? null : parentPath,
       },
-    })
+    });
 
-    this.logger.log(`Folder created: ${folderPath} in project ${projectId}`)
+    this.logger.log(`Folder created: ${folderPath} in project ${projectId}`);
 
     return {
       id: folder.id,
@@ -251,31 +293,34 @@ export class FilesService {
       uploadedBy: folder.uploadedBy,
       createdAt: folder.createdAt,
       updatedAt: folder.updatedAt,
-    }
+    };
   }
 
   /**
    * 获取文件列表
    * ECP-C3: 性能意识 - 分页加载
    */
-  async listFiles(query: QueryFilesDto, currentUser: User): Promise<FilesListResponse> {
-    const { projectId, folder = '/', search, page = 1, pageSize = 50 } = query
+  async listFiles(
+    query: QueryFilesDto,
+    currentUser: User,
+  ): Promise<FilesListResponse> {
+    const { projectId, folder = '/', search, page = 1, pageSize = 50 } = query;
 
     // 权限验证
-    await this.checkProjectAccess(projectId, currentUser)
+    await this.checkProjectAccess(projectId, currentUser);
 
-    const skip = (page - 1) * pageSize
+    const skip = (page - 1) * pageSize;
 
     const where: any = {
       projectId,
       folder: folder === '/' ? null : folder,
-    }
+    };
 
     if (search) {
       where.name = {
         contains: search,
         mode: 'insensitive',
-      }
+      };
     }
 
     const [files, total, totalSize] = await Promise.all([
@@ -292,9 +337,11 @@ export class FilesService {
       }),
       this.prisma.projectFile.count({ where }),
       this.getProjectTotalSize(projectId),
-    ])
+    ]);
 
-    this.logger.log(`Retrieved ${files.length} files from project ${projectId}`)
+    this.logger.log(
+      `Retrieved ${files.length} files from project ${projectId}`,
+    );
 
     return {
       files: files.map((file) => ({
@@ -314,7 +361,7 @@ export class FilesService {
       page,
       pageSize,
       totalSize,
-    }
+    };
   }
 
   /**
@@ -323,26 +370,26 @@ export class FilesService {
   async downloadFile(fileId: string, currentUser: User): Promise<Buffer> {
     const file = await this.prisma.projectFile.findUnique({
       where: { id: fileId },
-    })
+    });
 
     if (!file) {
-      throw new NotFoundException('文件不存在')
+      throw new NotFoundException('文件不存在');
     }
 
     if (file.type === 'folder') {
-      throw new BadRequestException('无法下载文件夹')
+      throw new BadRequestException('无法下载文件夹');
     }
 
     // 权限验证
-    await this.checkProjectAccess(file.projectId, currentUser)
+    await this.checkProjectAccess(file.projectId, currentUser);
 
     try {
-      const buffer = await this.minioService.downloadFile(file.path)
-      this.logger.log(`File downloaded: ${file.name}`)
-      return buffer
+      const buffer = await this.minioService.downloadFile(file.path);
+      this.logger.log(`File downloaded: ${file.name}`);
+      return buffer;
     } catch (error) {
-      this.logger.error(`Download failed: ${error.message}`)
-      throw new BadRequestException('文件下载失败')
+      this.logger.error(`Download failed: ${error.message}`);
+      throw new BadRequestException('文件下载失败');
     }
   }
 
@@ -350,25 +397,28 @@ export class FilesService {
    * 删除文件
    * ECP-A1: 单一职责原则
    */
-  async deleteFile(fileId: string, currentUser: User): Promise<{ message: string }> {
+  async deleteFile(
+    fileId: string,
+    currentUser: User,
+  ): Promise<{ message: string }> {
     const file = await this.prisma.projectFile.findUnique({
       where: { id: fileId },
       include: {
         project: true,
       },
-    })
+    });
 
     if (!file) {
-      throw new NotFoundException('文件不存在')
+      throw new NotFoundException('文件不存在');
     }
 
     // 权限验证：项目所有者或文件上传者或管理员才能删除
-    const isOwner = file.project.ownerId === currentUser.id
-    const isUploader = file.uploadedBy === currentUser.id
-    const isAdmin = currentUser.role === UserRole.SUPER_ADMIN
+    const isOwner = file.project.ownerId === currentUser.id;
+    const isUploader = file.uploadedBy === currentUser.id;
+    const isAdmin = currentUser.role === UserRole.SUPER_ADMIN;
 
     if (!isOwner && !isUploader && !isAdmin) {
-      throw new ForbiddenException('无权限删除该文件')
+      throw new ForbiddenException('无权限删除该文件');
     }
 
     // 如果是文件夹，检查是否为空
@@ -378,19 +428,19 @@ export class FilesService {
           projectId: file.projectId,
           folder: file.path,
         },
-      })
+      });
 
       if (childCount > 0) {
-        throw new BadRequestException('文件夹不为空，无法删除')
+        throw new BadRequestException('文件夹不为空，无法删除');
       }
     }
 
     // 从MinIO删除文件（文件夹不需要删除，因为MinIO中不存在）
     if (file.type === 'file') {
       try {
-        await this.minioService.deleteFile(file.path)
+        await this.minioService.deleteFile(file.path);
       } catch (error) {
-        this.logger.warn(`MinIO delete warning: ${error.message}`)
+        this.logger.warn(`MinIO delete warning: ${error.message}`);
         // 继续删除数据库记录
       }
     }
@@ -398,11 +448,11 @@ export class FilesService {
     // 删除数据库记录
     await this.prisma.projectFile.delete({
       where: { id: fileId },
-    })
+    });
 
-    this.logger.log(`File deleted: ${file.name}`)
+    this.logger.log(`File deleted: ${file.name}`);
 
-    return { message: '文件已删除' }
+    return { message: '文件已删除' };
   }
 
   /**
@@ -416,14 +466,14 @@ export class FilesService {
           select: { id: true, username: true, email: true },
         },
       },
-    })
+    });
 
     if (!file) {
-      throw new NotFoundException('文件不存在')
+      throw new NotFoundException('文件不存在');
     }
 
     // 权限验证
-    await this.checkProjectAccess(file.projectId, currentUser)
+    await this.checkProjectAccess(file.projectId, currentUser);
 
     return {
       id: file.id,
@@ -437,43 +487,46 @@ export class FilesService {
       folder: file.folder,
       createdAt: file.createdAt,
       updatedAt: file.updatedAt,
-    }
+    };
   }
 
   /**
    * 获取文件内容（用于代码编辑器）
    * ECP-C1: 防御性编程 - 检查文件类型和权限
    */
-  async getFileContent(fileId: string, currentUser: User): Promise<{ content: string; file: FileEntity }> {
+  async getFileContent(
+    fileId: string,
+    currentUser: User,
+  ): Promise<{ content: string; file: FileEntity }> {
     const file = await this.prisma.projectFile.findUnique({
       where: { id: fileId },
-    })
+    });
 
     if (!file) {
-      throw new NotFoundException('文件不存在')
+      throw new NotFoundException('文件不存在');
     }
 
     if (file.type === 'folder') {
-      throw new BadRequestException('无法读取文件夹内容')
+      throw new BadRequestException('无法读取文件夹内容');
     }
 
     // 权限验证
-    await this.checkProjectAccess(file.projectId, currentUser)
+    await this.checkProjectAccess(file.projectId, currentUser);
 
     // 检查文件是否为可编辑的代码文件
-    const ext = path.extname(file.name)
-    const isCodeFile = CODE_FILE_EXTENSIONS.includes(ext)
+    const ext = path.extname(file.name);
+    const isCodeFile = CODE_FILE_EXTENSIONS.includes(ext);
 
     if (!isCodeFile) {
-      throw new BadRequestException('该文件类型不支持在线编辑')
+      throw new BadRequestException('该文件类型不支持在线编辑');
     }
 
     // 从MinIO下载文件内容
     try {
-      const buffer = await this.minioService.downloadFile(file.path)
-      const content = buffer.toString('utf-8')
+      const buffer = await this.minioService.downloadFile(file.path);
+      const content = buffer.toString('utf-8');
 
-      this.logger.log(`File content retrieved: ${file.name}`)
+      this.logger.log(`File content retrieved: ${file.name}`);
 
       return {
         content,
@@ -490,10 +543,10 @@ export class FilesService {
           createdAt: file.createdAt,
           updatedAt: file.updatedAt,
         },
-      }
+      };
     } catch (error) {
-      this.logger.error(`Get content failed: ${error.message}`)
-      throw new BadRequestException('读取文件内容失败')
+      this.logger.error(`Get content failed: ${error.message}`);
+      throw new BadRequestException('读取文件内容失败');
     }
   }
 
@@ -501,57 +554,56 @@ export class FilesService {
    * 更新文件内容（保存代码编辑）
    * ECP-C1: 防御性编程 - 权限验证和文件类型检查
    */
-  async updateFileContent(fileId: string, content: string, currentUser: User): Promise<FileEntity> {
+  async updateFileContent(
+    fileId: string,
+    content: string,
+    currentUser: User,
+  ): Promise<FileEntity> {
     const file = await this.prisma.projectFile.findUnique({
       where: { id: fileId },
       include: {
         project: true,
       },
-    })
+    });
 
     if (!file) {
-      throw new NotFoundException('文件不存在')
+      throw new NotFoundException('文件不存在');
     }
 
     if (file.type === 'folder') {
-      throw new BadRequestException('无法编辑文件夹')
+      throw new BadRequestException('无法编辑文件夹');
     }
 
     // 权限验证：项目所有者或文件上传者或管理员才能编辑
-    const isOwner = file.project.ownerId === currentUser.id
-    const isUploader = file.uploadedBy === currentUser.id
-    const isAdmin = currentUser.role === UserRole.SUPER_ADMIN
+    const isOwner = file.project.ownerId === currentUser.id;
+    const isUploader = file.uploadedBy === currentUser.id;
+    const isAdmin = currentUser.role === UserRole.SUPER_ADMIN;
 
     if (!isOwner && !isUploader && !isAdmin) {
-      throw new ForbiddenException('无权限编辑该文件')
+      throw new ForbiddenException('无权限编辑该文件');
     }
 
     // 检查文件是否为可编辑的代码文件
-    const ext = path.extname(file.name)
-    const isCodeFile = CODE_FILE_EXTENSIONS.includes(ext)
+    const ext = path.extname(file.name);
+    const isCodeFile = CODE_FILE_EXTENSIONS.includes(ext);
 
     if (!isCodeFile) {
-      throw new BadRequestException('该文件类型不支持在线编辑')
+      throw new BadRequestException('该文件类型不支持在线编辑');
     }
 
     // 将内容转换为Buffer
-    const buffer = Buffer.from(content, 'utf-8')
-    const newSize = buffer.length
+    const buffer = Buffer.from(content, 'utf-8');
+    const newSize = buffer.length;
 
     // 上传到MinIO（覆盖原文件）
     try {
-      await this.minioService.uploadFile(
-        file.path,
-        buffer,
-        newSize,
-        {
-          'Content-Type': file.mimeType,
-          'Original-Filename': Buffer.from(file.name, 'utf8').toString('base64'),
-        },
-      )
+      await this.minioService.uploadFile(file.path, buffer, newSize, {
+        'Content-Type': file.mimeType,
+        'Original-Filename': Buffer.from(file.name, 'utf8').toString('base64'),
+      });
     } catch (error) {
-      this.logger.error(`Update content failed: ${error.message}`)
-      throw new BadRequestException('保存文件失败')
+      this.logger.error(`Update content failed: ${error.message}`);
+      throw new BadRequestException('保存文件失败');
     }
 
     // 更新数据库中的文件大小和更新时间
@@ -561,9 +613,9 @@ export class FilesService {
         size: newSize,
         updatedAt: new Date(),
       },
-    })
+    });
 
-    this.logger.log(`File content updated: ${file.name} (${newSize} bytes)`)
+    this.logger.log(`File content updated: ${file.name} (${newSize} bytes)`);
 
     // Phase 3.2: 自动创建Commit记录
     try {
@@ -576,13 +628,13 @@ export class FilesService {
             take: 1,
           },
         },
-      })
+      });
 
       if (repository && repository.branches.length > 0) {
-        const mainBranch = repository.branches[0]
+        const mainBranch = repository.branches[0];
 
         // 自动生成commit message
-        const commitMessage = `Update ${file.name}`
+        const commitMessage = `Update ${file.name}`;
 
         // 创建Commit记录
         await this.repositoriesService.createCommit(
@@ -592,15 +644,19 @@ export class FilesService {
             message: commitMessage,
           },
           currentUser,
-        )
+        );
 
-        this.logger.log(`📝 Auto-commit created: "${commitMessage}"`)
+        this.logger.log(`📝 Auto-commit created: "${commitMessage}"`);
       } else {
-        this.logger.warn(`No repository or main branch found for project ${file.projectId}`)
+        this.logger.warn(
+          `No repository or main branch found for project ${file.projectId}`,
+        );
       }
     } catch (error) {
       // 如果commit创建失败，只记录警告，不影响文件保存成功
-      this.logger.warn(`Auto-commit failed for file ${file.name}: ${error.message}`)
+      this.logger.warn(
+        `Auto-commit failed for file ${file.name}: ${error.message}`,
+      );
     }
 
     return {
@@ -615,6 +671,6 @@ export class FilesService {
       folder: updatedFile.folder,
       createdAt: updatedFile.createdAt,
       updatedAt: updatedFile.updatedAt,
-    }
+    };
   }
 }

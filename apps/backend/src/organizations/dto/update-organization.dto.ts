@@ -60,8 +60,7 @@ export class UpdateOrganizationDto {
 
   // Quota fields - only SUPER_ADMIN can update these
   @ApiProperty({
-    description:
-      'Maximum number of projects (SUPER_ADMIN only)',
+    description: 'Maximum number of projects (SUPER_ADMIN only)',
     example: 1000,
     required: false,
     minimum: 1,
@@ -72,8 +71,7 @@ export class UpdateOrganizationDto {
   maxProjects?: number;
 
   @ApiProperty({
-    description:
-      'Maximum number of members (SUPER_ADMIN only)',
+    description: 'Maximum number of members (SUPER_ADMIN only)',
     example: 1000,
     required: false,
     minimum: 1,
@@ -84,8 +82,7 @@ export class UpdateOrganizationDto {
   maxMembers?: number;
 
   @ApiProperty({
-    description:
-      'Storage quota in bytes (SUPER_ADMIN only)',
+    description: 'Storage quota in bytes (SUPER_ADMIN only)',
     example: 107374182400,
     required: false,
     minimum: 0,

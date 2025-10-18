@@ -19,7 +19,7 @@ import {
   HttpException,
   HttpStatus,
   Logger,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -27,79 +27,79 @@ import {
   ApiBody,
   ApiParam,
   ApiQuery,
-} from '@nestjs/swagger'
-import { IsString, IsNotEmpty, IsArray, IsObject } from 'class-validator'
-import { RaftClusterService } from './raft-cluster.service'
-import { ClusterConfigService } from './cluster-config.service'
-import { Public } from '../auth/decorators/public.decorator'
-import type { Command, ClientResponse } from '../raft/types'
+} from '@nestjs/swagger';
+import { IsString, IsNotEmpty, IsArray, IsObject } from 'class-validator';
+import { RaftClusterService } from './raft-cluster.service';
+import { ClusterConfigService } from './cluster-config.service';
+import { Public } from '../auth/decorators/public.decorator';
+import type { Command, ClientResponse } from '../raft/types';
 
 // DTO类定义
 export class RaftCreateProjectDto {
   @IsString()
   @IsNotEmpty()
-  id: string
+  id: string;
 
   @IsString()
   @IsNotEmpty()
-  name: string
+  name: string;
 
   @IsString()
   @IsNotEmpty()
-  description: string
+  description: string;
 
   @IsString()
   @IsNotEmpty()
-  ownerId: string
+  ownerId: string;
 }
 
 export class RaftGitCommitDto {
   @IsString()
   @IsNotEmpty()
-  repositoryId: string
+  repositoryId: string;
 
   @IsString()
   @IsNotEmpty()
-  branchName: string
+  branchName: string;
 
   @IsString()
   @IsNotEmpty()
-  message: string
+  message: string;
 
   @IsObject()
-  author: { name: string; email: string }
+  author: { name: string; email: string };
 
   @IsArray()
-  files: Array<{ path: string; content: string; mimeType: string }>
+  files: Array<{ path: string; content: string; mimeType: string }>;
 }
 
 export class RaftGitBranchDto {
   @IsString()
   @IsNotEmpty()
-  repositoryId: string
+  repositoryId: string;
 
   @IsString()
   @IsNotEmpty()
-  branchName: string
+  branchName: string;
 
   @IsString()
   @IsNotEmpty()
-  fromBranch: string
+  fromBranch: string;
 }
 
 export class RaftExecuteCommandDto {
   @IsString()
   @IsNotEmpty()
-  type: string
+  type: string;
 
-  payload: any
+  payload: any;
 }
 
 @ApiTags('Raft Cluster')
 @Controller('raft-cluster')
 @Public()
 export class RaftClusterController {
-  private readonly logger = new Logger(RaftClusterController.name)
+  private readonly logger = new Logger(RaftClusterController.name);
 
   constructor(
     private readonly clusterService: RaftClusterService,
@@ -117,16 +117,16 @@ export class RaftClusterController {
       return {
         success: true,
         data: this.clusterService.getClusterStatus(),
-      }
+      };
     } catch (error) {
-      this.logger.error('Failed to get cluster status:', error)
+      this.logger.error('Failed to get cluster status:', error);
       throw new HttpException(
         {
           success: false,
           error: error.message,
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+      );
     }
   }
 
@@ -141,16 +141,16 @@ export class RaftClusterController {
       return {
         success: true,
         data: this.clusterService.getClusterMetrics(),
-      }
+      };
     } catch (error) {
-      this.logger.error('Failed to get cluster metrics:', error)
+      this.logger.error('Failed to get cluster metrics:', error);
       throw new HttpException(
         {
           success: false,
           error: error.message,
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+      );
     }
   }
 
@@ -162,8 +162,8 @@ export class RaftClusterController {
   @ApiResponse({ status: 200, description: '集群配置信息' })
   getClusterConfig() {
     try {
-      const settings = this.configService.getClusterSettings()
-      const validation = this.configService.validateConfig(settings)
+      const settings = this.configService.getClusterSettings();
+      const validation = this.configService.validateConfig(settings);
 
       return {
         success: true,
@@ -171,16 +171,16 @@ export class RaftClusterController {
           settings,
           validation,
         },
-      }
+      };
     } catch (error) {
-      this.logger.error('Failed to get cluster config:', error)
+      this.logger.error('Failed to get cluster config:', error);
       throw new HttpException(
         {
           success: false,
           error: error.message,
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+      );
     }
   }
 
@@ -193,20 +193,20 @@ export class RaftClusterController {
   @ApiResponse({ status: 500, description: '集群启动失败' })
   async startCluster() {
     try {
-      await this.clusterService.startCluster()
+      await this.clusterService.startCluster();
       return {
         success: true,
         message: 'Raft cluster started successfully',
-      }
+      };
     } catch (error) {
-      this.logger.error('Failed to start cluster:', error)
+      this.logger.error('Failed to start cluster:', error);
       throw new HttpException(
         {
           success: false,
           error: error.message,
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+      );
     }
   }
 
@@ -218,20 +218,20 @@ export class RaftClusterController {
   @ApiResponse({ status: 200, description: '集群停止成功' })
   async stopCluster() {
     try {
-      await this.clusterService.stopCluster()
+      await this.clusterService.stopCluster();
       return {
         success: true,
         message: 'Raft cluster stopped successfully',
-      }
+      };
     } catch (error) {
-      this.logger.error('Failed to stop cluster:', error)
+      this.logger.error('Failed to stop cluster:', error);
       throw new HttpException(
         {
           success: false,
           error: error.message,
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+      );
     }
   }
 
@@ -243,20 +243,20 @@ export class RaftClusterController {
   @ApiResponse({ status: 200, description: '集群重启成功' })
   async restartCluster() {
     try {
-      await this.clusterService.restartCluster()
+      await this.clusterService.restartCluster();
       return {
         success: true,
         message: 'Raft cluster restarted successfully',
-      }
+      };
     } catch (error) {
-      this.logger.error('Failed to restart cluster:', error)
+      this.logger.error('Failed to restart cluster:', error);
       throw new HttpException(
         {
           success: false,
           error: error.message,
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+      );
     }
   }
 
@@ -278,25 +278,25 @@ export class RaftClusterController {
             error: 'Command type and payload are required',
           },
           HttpStatus.BAD_REQUEST,
-        )
+        );
       }
 
       const command: Command = {
         type: commandDto.type as any,
         payload: commandDto.payload,
-      }
+      };
 
-      const result = await this.clusterService.executeCommand(command)
+      const result = await this.clusterService.executeCommand(command);
 
       return {
         success: true,
         data: result,
-      }
+      };
     } catch (error) {
-      this.logger.error('Failed to execute command:', error)
+      this.logger.error('Failed to execute command:', error);
 
       if (error instanceof HttpException) {
-        throw error
+        throw error;
       }
 
       throw new HttpException(
@@ -305,7 +305,7 @@ export class RaftClusterController {
           error: error.message,
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+      );
     }
   }
 
@@ -318,7 +318,7 @@ export class RaftClusterController {
   @ApiResponse({ status: 201, description: '项目创建成功' })
   async createProject(@Body() projectDto: RaftCreateProjectDto) {
     try {
-      const result = await this.clusterService.createProject(projectDto)
+      const result = await this.clusterService.createProject(projectDto);
 
       if (!result.success) {
         throw new HttpException(
@@ -328,19 +328,19 @@ export class RaftClusterController {
             leaderId: result.leaderId,
           },
           HttpStatus.SERVICE_UNAVAILABLE,
-        )
+        );
       }
 
       return {
         success: true,
         data: result,
         message: 'Project created successfully through Raft consensus',
-      }
+      };
     } catch (error) {
-      this.logger.error('Failed to create project:', error)
+      this.logger.error('Failed to create project:', error);
 
       if (error instanceof HttpException) {
-        throw error
+        throw error;
       }
 
       throw new HttpException(
@@ -349,7 +349,7 @@ export class RaftClusterController {
           error: error.message,
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+      );
     }
   }
 
@@ -362,7 +362,7 @@ export class RaftClusterController {
   @ApiResponse({ status: 200, description: 'Git提交成功' })
   async gitCommit(@Body() commitDto: RaftGitCommitDto) {
     try {
-      const result = await this.clusterService.gitCommit(commitDto)
+      const result = await this.clusterService.gitCommit(commitDto);
 
       if (!result.success) {
         throw new HttpException(
@@ -372,19 +372,19 @@ export class RaftClusterController {
             leaderId: result.leaderId,
           },
           HttpStatus.SERVICE_UNAVAILABLE,
-        )
+        );
       }
 
       return {
         success: true,
         data: result,
         message: 'Git commit executed successfully through Raft consensus',
-      }
+      };
     } catch (error) {
-      this.logger.error('Failed to execute git commit:', error)
+      this.logger.error('Failed to execute git commit:', error);
 
       if (error instanceof HttpException) {
-        throw error
+        throw error;
       }
 
       throw new HttpException(
@@ -393,7 +393,7 @@ export class RaftClusterController {
           error: error.message,
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+      );
     }
   }
 
@@ -406,7 +406,7 @@ export class RaftClusterController {
   @ApiResponse({ status: 201, description: 'Git分支创建成功' })
   async gitCreateBranch(@Body() branchDto: RaftGitBranchDto) {
     try {
-      const result = await this.clusterService.gitCreateBranch(branchDto)
+      const result = await this.clusterService.gitCreateBranch(branchDto);
 
       if (!result.success) {
         throw new HttpException(
@@ -416,19 +416,19 @@ export class RaftClusterController {
             leaderId: result.leaderId,
           },
           HttpStatus.SERVICE_UNAVAILABLE,
-        )
+        );
       }
 
       return {
         success: true,
         data: result,
         message: 'Git branch created successfully through Raft consensus',
-      }
+      };
     } catch (error) {
-      this.logger.error('Failed to create git branch:', error)
+      this.logger.error('Failed to create git branch:', error);
 
       if (error instanceof HttpException) {
-        throw error
+        throw error;
       }
 
       throw new HttpException(
@@ -437,7 +437,7 @@ export class RaftClusterController {
           error: error.message,
         },
         HttpStatus.INTERNAL_SERVER_ERROR,
-      )
+      );
     }
   }
 
@@ -449,8 +449,8 @@ export class RaftClusterController {
   @ApiResponse({ status: 200, description: '健康状态' })
   getHealth() {
     try {
-      const status = this.clusterService.getClusterStatus()
-      const isHealthy = status.status === 'running'
+      const status = this.clusterService.getClusterStatus();
+      const isHealthy = status.status === 'running';
 
       return {
         success: true,
@@ -459,15 +459,15 @@ export class RaftClusterController {
         isLeader: status.isLeader,
         currentTerm: status.currentTerm,
         timestamp: new Date().toISOString(),
-      }
+      };
     } catch (error) {
-      this.logger.error('Health check failed:', error)
+      this.logger.error('Health check failed:', error);
       return {
         success: false,
         healthy: false,
         error: error.message,
         timestamp: new Date().toISOString(),
-      }
+      };
     }
   }
 }

@@ -1,4 +1,11 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength, MaxLength, Matches } from 'class-validator'
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  MaxLength,
+  Matches,
+} from 'class-validator';
 
 export class RegisterDto {
   @IsString()
@@ -8,11 +15,11 @@ export class RegisterDto {
   @Matches(/^[a-zA-Z0-9_]+$/, {
     message: '用户名只能包含字母、数字和下划线',
   })
-  username: string
+  username: string;
 
   @IsEmail({}, { message: '请输入有效的邮箱地址' })
   @IsNotEmpty({ message: '邮箱不能为空' })
-  email: string
+  email: string;
 
   @IsString()
   @IsNotEmpty({ message: '密码不能为空' })
@@ -20,5 +27,5 @@ export class RegisterDto {
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
     message: '密码必须包含大小写字母和数字',
   })
-  password: string
+  password: string;
 }

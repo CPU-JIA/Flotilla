@@ -87,10 +87,7 @@ export class OrganizationsController {
     status: 404,
     description: 'Organization not found',
   })
-  findOne(
-    @Param('slug') slug: string,
-    @CurrentUser('id') userId: string,
-  ) {
+  findOne(@Param('slug') slug: string, @CurrentUser('id') userId: string) {
     return this.organizationsService.findBySlug(slug, userId);
   }
 
@@ -142,10 +139,7 @@ export class OrganizationsController {
     status: 404,
     description: 'Organization not found',
   })
-  remove(
-    @Param('slug') slug: string,
-    @CurrentUser('id') userId: string,
-  ) {
+  remove(@Param('slug') slug: string, @CurrentUser('id') userId: string) {
     return this.organizationsService.remove(slug, userId);
   }
 
@@ -218,7 +212,7 @@ export class OrganizationsController {
   @ApiOperation({
     summary: "Update member's role",
     description:
-      'Change a member\'s role in the organization. Requires ADMIN or OWNER role.',
+      "Change a member's role in the organization. Requires ADMIN or OWNER role.",
   })
   @ApiResponse({
     status: 200,
@@ -268,10 +262,7 @@ export class OrganizationsController {
     status: 404,
     description: 'Member not found',
   })
-  removeMember(
-    @Param('slug') slug: string,
-    @Param('userId') userId: string,
-  ) {
+  removeMember(@Param('slug') slug: string, @Param('userId') userId: string) {
     return this.organizationsService.removeMember(slug, userId);
   }
 }

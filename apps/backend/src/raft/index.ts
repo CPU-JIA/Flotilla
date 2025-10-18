@@ -6,10 +6,10 @@
  */
 
 // 核心实现
-export { RaftNode } from './raft-node'
-export { WebSocketTransport } from './websocket-transport'
-export { MemoryPersistentStorage, FilePersistentStorage } from './storage'
-export { GitStateMachine } from './git-state-machine'
+export { RaftNode } from './raft-node';
+export { WebSocketTransport } from './websocket-transport';
+export { MemoryPersistentStorage, FilePersistentStorage } from './storage';
+export { GitStateMachine } from './git-state-machine';
 
 // 测试工具 (仅在需要时导出)
 // export { TestCluster, RaftClusterTests, RaftPerformanceTests } from './cluster-test'
@@ -35,7 +35,11 @@ export type {
   RaftTimer,
   RaftEvent,
   RaftEventPayload,
-} from './types'
+} from './types';
 
 // 常量和枚举
-export { NodeState as NodeStates, CommandType as CommandTypes, RAFT_CONSTANTS } from './types'
+export {
+  NodeState as NodeStates,
+  CommandType as CommandTypes,
+  RAFT_CONSTANTS,
+} from './types';

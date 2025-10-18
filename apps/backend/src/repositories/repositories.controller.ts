@@ -13,19 +13,19 @@ import {
   Logger,
   Res,
   StreamableFile,
-} from '@nestjs/common'
-import { FileInterceptor } from '@nestjs/platform-express'
-import type { Response } from 'express'
-import { RepositoriesService } from './repositories.service'
-import { CreateBranchDto, CreateCommitDto } from './dto'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { CurrentUser } from '../auth/decorators/current-user.decorator'
-import type { User } from '@prisma/client'
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import type { Response } from 'express';
+import { RepositoriesService } from './repositories.service';
+import { CreateBranchDto, CreateCommitDto } from './dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { User } from '@prisma/client';
 
 @Controller('projects/:projectId/repository')
 @UseGuards(JwtAuthGuard)
 export class RepositoriesController {
-  private readonly logger = new Logger(RepositoriesController.name)
+  private readonly logger = new Logger(RepositoriesController.name);
 
   constructor(private readonly repositoriesService: RepositoriesService) {}
 
@@ -39,17 +39,22 @@ export class RepositoriesController {
     @Param('projectId') projectId: string,
     @CurrentUser() currentUser: User,
   ) {
-    this.logger.log(`🎯 Manually creating repository for project: ${projectId}`)
-    return this.repositoriesService.createRepository(projectId, currentUser)
+    this.logger.log(
+      `🎯 Manually creating repository for project: ${projectId}`,
+    );
+    return this.repositoriesService.createRepository(projectId, currentUser);
   }
 
   /**
    * 获取仓库信息
    */
   @Get()
-  async getRepository(@Param('projectId') projectId: string, @CurrentUser() currentUser: User) {
-    this.logger.log(`📂 Fetching repository for project: ${projectId}`)
-    return this.repositoriesService.getRepository(projectId, currentUser)
+  async getRepository(
+    @Param('projectId') projectId: string,
+    @CurrentUser() currentUser: User,
+  ) {
+    this.logger.log(`📂 Fetching repository for project: ${projectId}`);
+    return this.repositoriesService.getRepository(projectId, currentUser);
   }
 
   /**
@@ -62,17 +67,24 @@ export class RepositoriesController {
     @Body() createBranchDto: CreateBranchDto,
     @CurrentUser() currentUser: User,
   ) {
-    this.logger.log(`🌿 Creating branch in project: ${projectId}`)
-    return this.repositoriesService.createBranch(projectId, createBranchDto, currentUser)
+    this.logger.log(`🌿 Creating branch in project: ${projectId}`);
+    return this.repositoriesService.createBranch(
+      projectId,
+      createBranchDto,
+      currentUser,
+    );
   }
 
   /**
    * 获取分支列表
    */
   @Get('branches')
-  async getBranches(@Param('projectId') projectId: string, @CurrentUser() currentUser: User) {
-    this.logger.log(`📋 Fetching branches for project: ${projectId}`)
-    return this.repositoriesService.getBranches(projectId, currentUser)
+  async getBranches(
+    @Param('projectId') projectId: string,
+    @CurrentUser() currentUser: User,
+  ) {
+    this.logger.log(`📋 Fetching branches for project: ${projectId}`);
+    return this.repositoriesService.getBranches(projectId, currentUser);
   }
 
   /**
@@ -88,14 +100,16 @@ export class RepositoriesController {
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() currentUser: User,
   ) {
-    this.logger.log(`📤 Uploading file to project ${projectId}, branch ${branchId}`)
+    this.logger.log(
+      `📤 Uploading file to project ${projectId}, branch ${branchId}`,
+    );
     return this.repositoriesService.uploadFile(
       projectId,
       branchId,
       filePath,
       file.buffer,
       currentUser,
-    )
+    );
   }
 
   /**
@@ -107,8 +121,8 @@ export class RepositoriesController {
     @Param('branchId') branchId: string,
     @CurrentUser() currentUser: User,
   ) {
-    this.logger.log(`📋 Fetching files for branch ${branchId}`)
-    return this.repositoriesService.getFiles(projectId, branchId, currentUser)
+    this.logger.log(`📋 Fetching files for branch ${branchId}`);
+    return this.repositoriesService.getFiles(projectId, branchId, currentUser);
   }
 
   /**
@@ -122,20 +136,20 @@ export class RepositoriesController {
     @CurrentUser() currentUser: User,
     @Res({ passthrough: true }) res: Response,
   ) {
-    this.logger.log(`📥 Downloading file: ${filePath}`)
+    this.logger.log(`📥 Downloading file: ${filePath}`);
     const buffer = await this.repositoriesService.downloadFile(
       projectId,
       branchId,
       filePath,
       currentUser,
-    )
+    );
 
     res.set({
       'Content-Type': 'application/octet-stream',
       'Content-Disposition': `attachment; filename="${filePath.split('/').pop()}"`,
-    })
+    });
 
-    return new StreamableFile(buffer)
+    return new StreamableFile(buffer);
   }
 
   /**
@@ -148,8 +162,12 @@ export class RepositoriesController {
     @Body() createCommitDto: CreateCommitDto,
     @CurrentUser() currentUser: User,
   ) {
-    this.logger.log(`📝 Creating commit in project: ${projectId}`)
-    return this.repositoriesService.createCommit(projectId, createCommitDto, currentUser)
+    this.logger.log(`📝 Creating commit in project: ${projectId}`);
+    return this.repositoriesService.createCommit(
+      projectId,
+      createCommitDto,
+      currentUser,
+    );
   }
 
   /**
@@ -163,8 +181,14 @@ export class RepositoriesController {
     @Query('pageSize') pageSize: number = 20,
     @CurrentUser() currentUser: User,
   ) {
-    this.logger.log(`📋 Fetching commits for branch ${branchId}`)
-    return this.repositoriesService.getCommits(projectId, branchId, currentUser, page, pageSize)
+    this.logger.log(`📋 Fetching commits for branch ${branchId}`);
+    return this.repositoriesService.getCommits(
+      projectId,
+      branchId,
+      currentUser,
+      page,
+      pageSize,
+    );
   }
 
   /**
@@ -177,8 +201,13 @@ export class RepositoriesController {
     @Param('commitId') commitId: string,
     @CurrentUser() currentUser: User,
   ) {
-    this.logger.log(`📋 Fetching commit ${commitId} details`)
-    return this.repositoriesService.getCommit(projectId, branchId, commitId, currentUser)
+    this.logger.log(`📋 Fetching commit ${commitId} details`);
+    return this.repositoriesService.getCommit(
+      projectId,
+      branchId,
+      commitId,
+      currentUser,
+    );
   }
 
   /**
@@ -192,8 +221,14 @@ export class RepositoriesController {
     @CurrentUser() currentUser: User,
     @Query('compareTo') compareTo?: string,
   ) {
-    this.logger.log(`📊 Computing diff for commit ${commitId}`)
-    return this.repositoriesService.getCommitDiff(projectId, branchId, commitId, compareTo, currentUser)
+    this.logger.log(`📊 Computing diff for commit ${commitId}`);
+    return this.repositoriesService.getCommitDiff(
+      projectId,
+      branchId,
+      commitId,
+      compareTo,
+      currentUser,
+    );
   }
 
   /**
@@ -207,7 +242,13 @@ export class RepositoriesController {
     @CurrentUser() currentUser: User,
     @Query('path') filePath?: string,
   ) {
-    this.logger.log(`📋 Fetching files for commit ${commitId}`)
-    return this.repositoriesService.getCommitFiles(projectId, branchId, commitId, filePath, currentUser)
+    this.logger.log(`📋 Fetching files for commit ${commitId}`);
+    return this.repositoriesService.getCommitFiles(
+      projectId,
+      branchId,
+      commitId,
+      filePath,
+      currentUser,
+    );
   }
 }

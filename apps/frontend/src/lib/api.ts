@@ -16,6 +16,25 @@ import type {
   AdminQueryUsersParams,
 } from '@/types/admin'
 import type { ProjectFile, FilesListResponse } from '@/types/file'
+import type {
+  Organization,
+  OrganizationMember,
+  CreateOrganizationRequest,
+  UpdateOrganizationRequest,
+  AddOrganizationMemberRequest,
+  UpdateOrganizationMemberRoleRequest,
+} from '@/types/organization'
+import type {
+  Team,
+  TeamMember,
+  TeamProjectPermission,
+  CreateTeamRequest,
+  UpdateTeamRequest,
+  AddTeamMemberRequest,
+  UpdateTeamMemberRoleRequest,
+  AssignProjectPermissionRequest,
+  UpdateProjectPermissionRequest,
+} from '@/types/team'
 
 // Commit interface for type safety
 interface Commit {
@@ -553,6 +572,150 @@ export const api = {
     // 删除文件
     deleteFile: (id: string) =>
       apiRequest<{ message: string }>(`/files/${id}`, {
+        method: 'DELETE',
+      }),
+  },
+
+  /**
+   * 组织相关 API
+   * ECP-A1: SOLID原则 - 组织管理功能独立封装
+   */
+  organizations: {
+    // 获取用户所属组织列表
+    getAll: (params?: { page?: number; pageSize?: number; search?: string }) => {
+      const queryParams = new URLSearchParams()
+      if (params?.page) queryParams.append('page', params.page.toString())
+      if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString())
+      if (params?.search) queryParams.append('search', params.search)
+      return apiRequest<Organization[]>(`/organizations?${queryParams.toString()}`)
+    },
+
+    // 创建组织
+    create: (data: CreateOrganizationRequest) =>
+      apiRequest<Organization>('/organizations', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    // 获取组织详情
+    getBySlug: (slug: string) => apiRequest<Organization>(`/organizations/${slug}`),
+
+    // 更新组织
+    update: (slug: string, data: UpdateOrganizationRequest) =>
+      apiRequest<Organization>(`/organizations/${slug}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    // 删除组织
+    delete: (slug: string) =>
+      apiRequest<{ message: string }>(`/organizations/${slug}`, {
+        method: 'DELETE',
+      }),
+
+    // 获取组织成员列表
+    getMembers: (slug: string) =>
+      apiRequest<OrganizationMember[]>(`/organizations/${slug}/members`),
+
+    // 添加组织成员
+    addMember: (slug: string, data: AddOrganizationMemberRequest) =>
+      apiRequest<OrganizationMember>(`/organizations/${slug}/members`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    // 更新成员角色
+    updateMemberRole: (slug: string, userId: string, data: UpdateOrganizationMemberRoleRequest) =>
+      apiRequest<OrganizationMember>(`/organizations/${slug}/members/${userId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    // 移除成员
+    removeMember: (slug: string, userId: string) =>
+      apiRequest<{ message: string }>(`/organizations/${slug}/members/${userId}`, {
+        method: 'DELETE',
+      }),
+  },
+
+  /**
+   * Team相关 API
+   * ECP-A1: SOLID原则 - Team管理功能独立封装
+   */
+  teams: {
+    // 获取用户在组织中的Teams列表
+    getAll: (organizationSlug: string) =>
+      apiRequest<Team[]>(`/organizations/${organizationSlug}/teams`),
+
+    // 创建Team
+    create: (organizationSlug: string, data: CreateTeamRequest) =>
+      apiRequest<Team>(`/organizations/${organizationSlug}/teams`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    // 获取Team详情
+    getBySlug: (organizationSlug: string, teamSlug: string) =>
+      apiRequest<Team>(`/organizations/${organizationSlug}/teams/${teamSlug}`),
+
+    // 更新Team
+    update: (organizationSlug: string, teamSlug: string, data: UpdateTeamRequest) =>
+      apiRequest<Team>(`/organizations/${organizationSlug}/teams/${teamSlug}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    // 删除Team
+    delete: (organizationSlug: string, teamSlug: string) =>
+      apiRequest<{ message: string }>(`/organizations/${organizationSlug}/teams/${teamSlug}`, {
+        method: 'DELETE',
+      }),
+
+    // 获取Team成员列表
+    getMembers: (organizationSlug: string, teamSlug: string) =>
+      apiRequest<TeamMember[]>(`/organizations/${organizationSlug}/teams/${teamSlug}/members`),
+
+    // 添加Team成员
+    addMember: (organizationSlug: string, teamSlug: string, data: AddTeamMemberRequest) =>
+      apiRequest<TeamMember>(`/organizations/${organizationSlug}/teams/${teamSlug}/members`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    // 更新成员角色
+    updateMemberRole: (organizationSlug: string, teamSlug: string, userId: string, data: UpdateTeamMemberRoleRequest) =>
+      apiRequest<TeamMember>(`/organizations/${organizationSlug}/teams/${teamSlug}/members/${userId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    // 移除成员
+    removeMember: (organizationSlug: string, teamSlug: string, userId: string) =>
+      apiRequest<{ message: string }>(`/organizations/${organizationSlug}/teams/${teamSlug}/members/${userId}`, {
+        method: 'DELETE',
+      }),
+
+    // 获取Team项目权限列表
+    getPermissions: (organizationSlug: string, teamSlug: string) =>
+      apiRequest<TeamProjectPermission[]>(`/organizations/${organizationSlug}/teams/${teamSlug}/permissions`),
+
+    // 分配项目权限给Team
+    assignPermission: (organizationSlug: string, teamSlug: string, data: AssignProjectPermissionRequest) =>
+      apiRequest<TeamProjectPermission>(`/organizations/${organizationSlug}/teams/${teamSlug}/permissions`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    // 更新项目权限级别
+    updatePermission: (organizationSlug: string, teamSlug: string, projectId: string, data: UpdateProjectPermissionRequest) =>
+      apiRequest<TeamProjectPermission>(`/organizations/${organizationSlug}/teams/${teamSlug}/permissions/${projectId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    // 撤销项目权限
+    revokePermission: (organizationSlug: string, teamSlug: string, projectId: string) =>
+      apiRequest<{ message: string }>(`/organizations/${organizationSlug}/teams/${teamSlug}/permissions/${projectId}`, {
         method: 'DELETE',
       }),
   },

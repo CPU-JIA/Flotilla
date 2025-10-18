@@ -9,12 +9,12 @@
  * ECP-D1: 可测试性 - 便于单元测试
  */
 
-import type { PersistentStorage, PersistentState, LogEntry } from './types'
+import type { PersistentStorage, PersistentState, LogEntry } from './types';
 
 export class MemoryPersistentStorage implements PersistentStorage {
-  private currentTerm: number = 0
-  private votedFor: string | null = null
-  private log: LogEntry[] = []
+  private currentTerm: number = 0;
+  private votedFor: string | null = null;
+  private log: LogEntry[] = [];
 
   constructor(private readonly nodeId: string) {}
 
@@ -23,18 +23,20 @@ export class MemoryPersistentStorage implements PersistentStorage {
    */
   async saveTerm(term: number): Promise<void> {
     if (term < this.currentTerm) {
-      throw new Error(`Cannot save term ${term} less than current term ${this.currentTerm}`)
+      throw new Error(
+        `Cannot save term ${term} less than current term ${this.currentTerm}`,
+      );
     }
-    this.currentTerm = term
-    this.debugLog(`Saved term: ${term}`)
+    this.currentTerm = term;
+    this.debugLog(`Saved term: ${term}`);
   }
 
   /**
    * 保存投票信息
    */
   async saveVotedFor(votedFor: string | null): Promise<void> {
-    this.votedFor = votedFor
-    this.debugLog(`Saved votedFor: ${votedFor}`)
+    this.votedFor = votedFor;
+    this.debugLog(`Saved votedFor: ${votedFor}`);
   }
 
   /**
@@ -43,29 +45,31 @@ export class MemoryPersistentStorage implements PersistentStorage {
   async saveLogEntry(entry: LogEntry): Promise<void> {
     // 验证日志条目的有效性
     if (entry.index <= 0) {
-      throw new Error(`Invalid log entry index: ${entry.index}`)
+      throw new Error(`Invalid log entry index: ${entry.index}`);
     }
 
     if (entry.term < 0) {
-      throw new Error(`Invalid log entry term: ${entry.term}`)
+      throw new Error(`Invalid log entry term: ${entry.term}`);
     }
 
     // 确保日志索引连续
-    const expectedIndex = this.log.length + 1
+    const expectedIndex = this.log.length + 1;
     if (entry.index !== expectedIndex) {
       // 如果是替换现有条目
       if (entry.index <= this.log.length) {
-        this.log[entry.index - 1] = entry
-        this.debugLog(`Replaced log entry at index ${entry.index}`)
-        return
+        this.log[entry.index - 1] = entry;
+        this.debugLog(`Replaced log entry at index ${entry.index}`);
+        return;
       } else {
-        throw new Error(`Log entry index ${entry.index} is not consecutive, expected ${expectedIndex}`)
+        throw new Error(
+          `Log entry index ${entry.index} is not consecutive, expected ${expectedIndex}`,
+        );
       }
     }
 
     // 追加新日志条目
-    this.log.push(entry)
-    this.debugLog(`Saved log entry ${entry.index}: ${entry.command.type}`)
+    this.log.push(entry);
+    this.debugLog(`Saved log entry ${entry.index}: ${entry.command.type}`);
   }
 
   /**
@@ -76,10 +80,12 @@ export class MemoryPersistentStorage implements PersistentStorage {
       currentTerm: this.currentTerm,
       votedFor: this.votedFor,
       log: [...this.log], // 返回副本，防止外部修改
-    }
+    };
 
-    this.debugLog(`Loaded state: term=${state.currentTerm}, votedFor=${state.votedFor}, logLength=${state.log.length}`)
-    return state
+    this.debugLog(
+      `Loaded state: term=${state.currentTerm}, votedFor=${state.votedFor}, logLength=${state.log.length}`,
+    );
+    return state;
   }
 
   /**
@@ -87,13 +93,15 @@ export class MemoryPersistentStorage implements PersistentStorage {
    */
   async truncateLogFrom(index: number): Promise<void> {
     if (index <= 0) {
-      throw new Error(`Invalid truncate index: ${index}`)
+      throw new Error(`Invalid truncate index: ${index}`);
     }
 
-    const oldLength = this.log.length
-    this.log = this.log.slice(0, index - 1)
+    const oldLength = this.log.length;
+    this.log = this.log.slice(0, index - 1);
 
-    this.debugLog(`Truncated log from index ${index}, old length: ${oldLength}, new length: ${this.log.length}`)
+    this.debugLog(
+      `Truncated log from index ${index}, old length: ${oldLength}, new length: ${this.log.length}`,
+    );
   }
 
   /**
@@ -101,26 +109,26 @@ export class MemoryPersistentStorage implements PersistentStorage {
    */
   getLogEntry(index: number): LogEntry | undefined {
     if (index <= 0 || index > this.log.length) {
-      return undefined
+      return undefined;
     }
-    return this.log[index - 1]
+    return this.log[index - 1];
   }
 
   /**
    * 获取日志长度（用于调试）
    */
   getLogLength(): number {
-    return this.log.length
+    return this.log.length;
   }
 
   /**
    * 清空所有数据（用于测试）
    */
   async clear(): Promise<void> {
-    this.currentTerm = 0
-    this.votedFor = null
-    this.log = []
-    this.debugLog('Cleared all persistent data')
+    this.currentTerm = 0;
+    this.votedFor = null;
+    this.log = [];
+    this.debugLog('Cleared all persistent data');
   }
 
   /**
@@ -132,20 +140,20 @@ export class MemoryPersistentStorage implements PersistentStorage {
       currentTerm: this.currentTerm,
       votedFor: this.votedFor,
       logLength: this.log.length,
-      log: this.log.map(entry => ({
+      log: this.log.map((entry) => ({
         index: entry.index,
         term: entry.term,
         commandType: entry.command.type,
         timestamp: entry.timestamp,
       })),
-    }
+    };
   }
 
   /**
    * 调试日志
    */
   private debugLog(message: string): void {
-    console.log(`[${this.nodeId}] [STORAGE] ${message}`)
+    console.log(`[${this.nodeId}] [STORAGE] ${message}`);
   }
 }
 
@@ -156,30 +164,33 @@ export class MemoryPersistentStorage implements PersistentStorage {
  * 生产环境中应该使用更成熟的存储引擎
  */
 export class FilePersistentStorage implements PersistentStorage {
-  constructor(private readonly nodeId: string, private readonly dataDir: string) {}
+  constructor(
+    private readonly nodeId: string,
+    private readonly dataDir: string,
+  ) {}
 
   async saveTerm(term: number): Promise<void> {
     // TODO: 实现文件持久化
-    throw new Error('FilePersistentStorage not implemented yet')
+    throw new Error('FilePersistentStorage not implemented yet');
   }
 
   async saveVotedFor(votedFor: string | null): Promise<void> {
     // TODO: 实现文件持久化
-    throw new Error('FilePersistentStorage not implemented yet')
+    throw new Error('FilePersistentStorage not implemented yet');
   }
 
   async saveLogEntry(entry: LogEntry): Promise<void> {
     // TODO: 实现文件持久化
-    throw new Error('FilePersistentStorage not implemented yet')
+    throw new Error('FilePersistentStorage not implemented yet');
   }
 
   async loadState(): Promise<PersistentState> {
     // TODO: 实现文件持久化
-    throw new Error('FilePersistentStorage not implemented yet')
+    throw new Error('FilePersistentStorage not implemented yet');
   }
 
   async truncateLogFrom(index: number): Promise<void> {
     // TODO: 实现文件持久化
-    throw new Error('FilePersistentStorage not implemented yet')
+    throw new Error('FilePersistentStorage not implemented yet');
   }
 }

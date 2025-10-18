@@ -10,20 +10,20 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
-} from '@nestjs/common'
-import { UsersService, UserListResponse } from './users.service'
-import { UpdateUserDto, ChangePasswordDto, QueryUsersDto } from './dto'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { RolesGuard } from '../auth/guards/roles.guard'
-import { CurrentUser } from '../auth/decorators/current-user.decorator'
-import { Roles } from '../auth/decorators/roles.decorator'
-import type { User } from '@prisma/client'
-import { UserRole } from '@prisma/client'
+} from '@nestjs/common';
+import { UsersService, UserListResponse } from './users.service';
+import { UpdateUserDto, ChangePasswordDto, QueryUsersDto } from './dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { Roles } from '../auth/decorators/roles.decorator';
+import type { User } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
-  private readonly logger = new Logger(UsersController.name)
+  private readonly logger = new Logger(UsersController.name);
 
   constructor(private readonly usersService: UsersService) {}
 
@@ -31,9 +31,13 @@ export class UsersController {
    * 获取当前登录用户信息
    */
   @Get('profile/me')
-  async getCurrentUser(@CurrentUser() currentUser: User): Promise<Omit<User, 'passwordHash'>> {
-    this.logger.log(`👤 Fetching current user profile: ${currentUser.username}`)
-    return this.usersService.findOne(currentUser.id)
+  async getCurrentUser(
+    @CurrentUser() currentUser: User,
+  ): Promise<Omit<User, 'passwordHash'>> {
+    this.logger.log(
+      `👤 Fetching current user profile: ${currentUser.username}`,
+    );
+    return this.usersService.findOne(currentUser.id);
   }
 
   /**
@@ -44,8 +48,8 @@ export class UsersController {
     @Body() updateDto: UpdateUserDto,
     @CurrentUser() currentUser: User,
   ): Promise<Omit<User, 'passwordHash'>> {
-    this.logger.log(`✏️ Updating profile for ${currentUser.username}`)
-    return this.usersService.update(currentUser.id, updateDto, currentUser)
+    this.logger.log(`✏️ Updating profile for ${currentUser.username}`);
+    return this.usersService.update(currentUser.id, updateDto, currentUser);
   }
 
   /**
@@ -57,8 +61,12 @@ export class UsersController {
     @Body() changePasswordDto: ChangePasswordDto,
     @CurrentUser() currentUser: User,
   ): Promise<{ message: string }> {
-    this.logger.log(`🔒 Changing password for ${currentUser.username}`)
-    return this.usersService.changePassword(currentUser.id, changePasswordDto, currentUser)
+    this.logger.log(`🔒 Changing password for ${currentUser.username}`);
+    return this.usersService.changePassword(
+      currentUser.id,
+      changePasswordDto,
+      currentUser,
+    );
   }
 
   /**
@@ -67,8 +75,8 @@ export class UsersController {
   @Get()
   @Roles(UserRole.SUPER_ADMIN)
   async findAll(@Query() query: QueryUsersDto): Promise<UserListResponse> {
-    this.logger.log(`👥 Fetching users with query: ${JSON.stringify(query)}`)
-    return this.usersService.findAll(query)
+    this.logger.log(`👥 Fetching users with query: ${JSON.stringify(query)}`);
+    return this.usersService.findAll(query);
   }
 
   /**
@@ -76,8 +84,8 @@ export class UsersController {
    */
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Omit<User, 'passwordHash'>> {
-    this.logger.log(`👤 Fetching user: ${id}`)
-    return this.usersService.findOne(id)
+    this.logger.log(`👤 Fetching user: ${id}`);
+    return this.usersService.findOne(id);
   }
 
   /**
@@ -89,8 +97,8 @@ export class UsersController {
     @Body() updateDto: UpdateUserDto,
     @CurrentUser() currentUser: User,
   ): Promise<Omit<User, 'passwordHash'>> {
-    this.logger.log(`✏️ Updating user ${id} by ${currentUser.username}`)
-    return this.usersService.update(id, updateDto, currentUser)
+    this.logger.log(`✏️ Updating user ${id} by ${currentUser.username}`);
+    return this.usersService.update(id, updateDto, currentUser);
   }
 
   /**
@@ -103,8 +111,8 @@ export class UsersController {
     @Body() changePasswordDto: ChangePasswordDto,
     @CurrentUser() currentUser: User,
   ): Promise<{ message: string }> {
-    this.logger.log(`🔒 Changing password for user ${id}`)
-    return this.usersService.changePassword(id, changePasswordDto, currentUser)
+    this.logger.log(`🔒 Changing password for user ${id}`);
+    return this.usersService.changePassword(id, changePasswordDto, currentUser);
   }
 
   /**
@@ -117,7 +125,9 @@ export class UsersController {
     @Param('id') id: string,
     @CurrentUser() currentUser: User,
   ): Promise<{ message: string }> {
-    this.logger.warn(`🗑️ Deleting user ${id} by super admin ${currentUser.username}`)
-    return this.usersService.remove(id, currentUser)
+    this.logger.warn(
+      `🗑️ Deleting user ${id} by super admin ${currentUser.username}`,
+    );
+    return this.usersService.remove(id, currentUser);
   }
 }

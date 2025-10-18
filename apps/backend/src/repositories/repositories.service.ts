@@ -5,16 +5,16 @@ import {
   ConflictException,
   BadRequestException,
   Logger,
-} from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
-import { MinioService } from '../minio/minio.service'
-import { CreateBranchDto, CreateCommitDto } from './dto'
-import type { User, Repository, Branch, Commit, File } from '@prisma/client'
-import { MemberRole, UserRole } from '@prisma/client'
+} from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { MinioService } from '../minio/minio.service';
+import { CreateBranchDto, CreateCommitDto } from './dto';
+import type { User, Repository, Branch, Commit, File } from '@prisma/client';
+import { MemberRole, UserRole } from '@prisma/client';
 
 @Injectable()
 export class RepositoriesService {
-  private readonly logger = new Logger(RepositoriesService.name)
+  private readonly logger = new Logger(RepositoriesService.name);
 
   constructor(
     private prisma: PrismaService,
@@ -25,26 +25,29 @@ export class RepositoriesService {
    * 创建仓库（可被ProjectService和Controller调用）
    * ECP-A1: 单一职责
    */
-  async createRepository(projectId: string, currentUser?: User): Promise<Repository> {
+  async createRepository(
+    projectId: string,
+    currentUser?: User,
+  ): Promise<Repository> {
     // 如果提供了currentUser，则检查权限
     if (currentUser) {
-      await this.checkProjectPermission(projectId, currentUser, true)
+      await this.checkProjectPermission(projectId, currentUser, true);
     }
 
     // 检查Repository是否已存在
     const existingRepo = await this.prisma.repository.findUnique({
       where: { projectId },
-    })
+    });
 
     if (existingRepo) {
-      throw new ConflictException('仓库已存在')
+      throw new ConflictException('仓库已存在');
     }
 
     const repository = await this.prisma.repository.create({
       data: {
         projectId,
       },
-    })
+    });
 
     // 创建默认的main分支
     await this.prisma.branch.create({
@@ -52,10 +55,10 @@ export class RepositoriesService {
         name: 'main',
         repositoryId: repository.id,
       },
-    })
+    });
 
-    this.logger.log(`📂 Repository created for project ${projectId}`)
-    return repository
+    this.logger.log(`📂 Repository created for project ${projectId}`);
+    return repository;
   }
 
   /**
@@ -63,7 +66,7 @@ export class RepositoriesService {
    */
   async getRepository(projectId: string, currentUser: User): Promise<any> {
     // 检查项目权限
-    await this.checkProjectPermission(projectId, currentUser)
+    await this.checkProjectPermission(projectId, currentUser);
 
     const repository = await this.prisma.repository.findUnique({
       where: { projectId },
@@ -79,13 +82,13 @@ export class RepositoriesService {
           select: { files: true },
         },
       },
-    })
+    });
 
     if (!repository) {
-      throw new NotFoundException('仓库不存在')
+      throw new NotFoundException('仓库不存在');
     }
 
-    return repository
+    return repository;
   }
 
   /**
@@ -97,14 +100,14 @@ export class RepositoriesService {
     createBranchDto: CreateBranchDto,
     currentUser: User,
   ): Promise<Branch> {
-    await this.checkProjectPermission(projectId, currentUser, true)
+    await this.checkProjectPermission(projectId, currentUser, true);
 
     const repository = await this.prisma.repository.findUnique({
       where: { projectId },
-    })
+    });
 
     if (!repository) {
-      throw new NotFoundException('仓库不存在')
+      throw new NotFoundException('仓库不存在');
     }
 
     // 检查分支名是否已存在
@@ -113,10 +116,10 @@ export class RepositoriesService {
         repositoryId: repository.id,
         name: createBranchDto.name,
       },
-    })
+    });
 
     if (existingBranch) {
-      throw new ConflictException('分支名已存在')
+      throw new ConflictException('分支名已存在');
     }
 
     const branch = await this.prisma.branch.create({
@@ -124,24 +127,26 @@ export class RepositoriesService {
         name: createBranchDto.name,
         repositoryId: repository.id,
       },
-    })
+    });
 
-    this.logger.log(`🌿 Branch "${branch.name}" created in project ${projectId}`)
-    return branch
+    this.logger.log(
+      `🌿 Branch "${branch.name}" created in project ${projectId}`,
+    );
+    return branch;
   }
 
   /**
    * 获取分支列表
    */
   async getBranches(projectId: string, currentUser: User): Promise<Branch[]> {
-    await this.checkProjectPermission(projectId, currentUser)
+    await this.checkProjectPermission(projectId, currentUser);
 
     const repository = await this.prisma.repository.findUnique({
       where: { projectId },
-    })
+    });
 
     if (!repository) {
-      throw new NotFoundException('仓库不存在')
+      throw new NotFoundException('仓库不存在');
     }
 
     return this.prisma.branch.findMany({
@@ -152,7 +157,7 @@ export class RepositoriesService {
         },
       },
       orderBy: { createdAt: 'desc' },
-    })
+    });
   }
 
   /**
@@ -166,26 +171,31 @@ export class RepositoriesService {
     fileBuffer: Buffer,
     currentUser: User,
   ): Promise<File> {
-    await this.checkProjectPermission(projectId, currentUser, true)
+    await this.checkProjectPermission(projectId, currentUser, true);
 
     const branch = await this.prisma.branch.findUnique({
       where: { id: branchId },
       include: { repository: true },
-    })
+    });
 
     if (!branch || branch.repository.projectId !== projectId) {
-      throw new NotFoundException('分支不存在')
+      throw new NotFoundException('分支不存在');
     }
 
     // 生成MinIO对象名称
-    const objectName = `projects/${projectId}/branches/${branchId}/${filePath}`
+    const objectName = `projects/${projectId}/branches/${branchId}/${filePath}`;
 
     // 上传到MinIO
-    await this.minioService.uploadFile(objectName, fileBuffer, fileBuffer.length, {
-      'Content-Type': this.getContentType(filePath),
-      'Upload-User': currentUser.username,
-      'Upload-Time': new Date().toISOString(),
-    })
+    await this.minioService.uploadFile(
+      objectName,
+      fileBuffer,
+      fileBuffer.length,
+      {
+        'Content-Type': this.getContentType(filePath),
+        'Upload-User': currentUser.username,
+        'Upload-Time': new Date().toISOString(),
+      },
+    );
 
     // 创建或更新文件记录
     const file = await this.prisma.file.upsert({
@@ -209,10 +219,10 @@ export class RepositoriesService {
         size: fileBuffer.length,
         updatedAt: new Date(),
       },
-    })
+    });
 
-    this.logger.log(`📄 File uploaded: ${filePath} to branch ${branch.name}`)
-    return file
+    this.logger.log(`📄 File uploaded: ${filePath} to branch ${branch.name}`);
+    return file;
   }
 
   /**
@@ -224,7 +234,7 @@ export class RepositoriesService {
     filePath: string,
     currentUser: User,
   ): Promise<Buffer> {
-    await this.checkProjectPermission(projectId, currentUser)
+    await this.checkProjectPermission(projectId, currentUser);
 
     const file = await this.prisma.file.findFirst({
       where: {
@@ -234,13 +244,13 @@ export class RepositoriesService {
           projectId: projectId,
         },
       },
-    })
+    });
 
     if (!file) {
-      throw new NotFoundException('文件不存在')
+      throw new NotFoundException('文件不存在');
     }
 
-    return this.minioService.downloadFile(file.objectName)
+    return this.minioService.downloadFile(file.objectName);
   }
 
   /**
@@ -252,15 +262,15 @@ export class RepositoriesService {
     createCommitDto: CreateCommitDto,
     currentUser: User,
   ): Promise<Commit> {
-    await this.checkProjectPermission(projectId, currentUser, true)
+    await this.checkProjectPermission(projectId, currentUser, true);
 
     const branch = await this.prisma.branch.findUnique({
       where: { id: createCommitDto.branchId },
       include: { repository: true },
-    })
+    });
 
     if (!branch || branch.repository.projectId !== projectId) {
-      throw new NotFoundException('分支不存在')
+      throw new NotFoundException('分支不存在');
     }
 
     const commit = await this.prisma.commit.create({
@@ -279,10 +289,10 @@ export class RepositoriesService {
           },
         },
       },
-    })
+    });
 
-    this.logger.log(`📝 Commit created: ${commit.message.substring(0, 50)}...`)
-    return commit
+    this.logger.log(`📝 Commit created: ${commit.message.substring(0, 50)}...`);
+    return commit;
   }
 
   /**
@@ -296,9 +306,9 @@ export class RepositoriesService {
     page: number = 1,
     pageSize: number = 20,
   ): Promise<any> {
-    await this.checkProjectPermission(projectId, currentUser)
+    await this.checkProjectPermission(projectId, currentUser);
 
-    const skip = (page - 1) * pageSize
+    const skip = (page - 1) * pageSize;
 
     const [commits, total] = await Promise.all([
       this.prisma.commit.findMany({
@@ -318,35 +328,39 @@ export class RepositoriesService {
         take: pageSize,
       }),
       this.prisma.commit.count({ where: { branchId } }),
-    ])
+    ]);
 
     return {
       commits,
       total,
       page,
       pageSize,
-    }
+    };
   }
 
   /**
    * 获取文件列表
    */
-  async getFiles(projectId: string, branchId: string, currentUser: User): Promise<File[]> {
-    await this.checkProjectPermission(projectId, currentUser)
+  async getFiles(
+    projectId: string,
+    branchId: string,
+    currentUser: User,
+  ): Promise<File[]> {
+    await this.checkProjectPermission(projectId, currentUser);
 
     const branch = await this.prisma.branch.findUnique({
       where: { id: branchId },
       include: { repository: true },
-    })
+    });
 
     if (!branch || branch.repository.projectId !== projectId) {
-      throw new NotFoundException('分支不存在')
+      throw new NotFoundException('分支不存在');
     }
 
     return this.prisma.file.findMany({
       where: { branchId },
       orderBy: { path: 'asc' },
-    })
+    });
   }
 
   /**
@@ -359,7 +373,7 @@ export class RepositoriesService {
     commitId: string,
     currentUser: User,
   ): Promise<any> {
-    await this.checkProjectPermission(projectId, currentUser)
+    await this.checkProjectPermission(projectId, currentUser);
 
     const commit = await this.prisma.commit.findUnique({
       where: { id: commitId },
@@ -378,14 +392,14 @@ export class RepositoriesService {
           },
         },
       },
-    })
+    });
 
     if (!commit || commit.branchId !== branchId) {
-      throw new NotFoundException('提交不存在')
+      throw new NotFoundException('提交不存在');
     }
 
     if (commit.branch.repository.projectId !== projectId) {
-      throw new ForbiddenException('无权访问此提交')
+      throw new ForbiddenException('无权访问此提交');
     }
 
     // 获取此提交涉及的文件数量
@@ -399,13 +413,13 @@ export class RepositoriesService {
         path: true,
         size: true,
       },
-    })
+    });
 
     return {
       ...commit,
       filesCount: filesSnapshot.length,
       files: filesSnapshot,
-    }
+    };
   }
 
   /**
@@ -420,7 +434,7 @@ export class RepositoriesService {
     compareTo: string | undefined,
     currentUser: User,
   ): Promise<any> {
-    await this.checkProjectPermission(projectId, currentUser)
+    await this.checkProjectPermission(projectId, currentUser);
 
     const commit = await this.prisma.commit.findUnique({
       where: { id: commitId },
@@ -431,10 +445,10 @@ export class RepositoriesService {
           },
         },
       },
-    })
+    });
 
     if (!commit || commit.branch.repository.projectId !== projectId) {
-      throw new NotFoundException('提交不存在')
+      throw new NotFoundException('提交不存在');
     }
 
     // 获取当前提交时的文件快照
@@ -444,18 +458,18 @@ export class RepositoriesService {
         createdAt: { lte: commit.createdAt },
       },
       orderBy: { path: 'asc' },
-    })
+    });
 
-    let previousFiles: File[] = []
+    let previousFiles: File[] = [];
 
     if (compareTo) {
       // 与指定提交对比
       const compareCommit = await this.prisma.commit.findUnique({
         where: { id: compareTo },
-      })
+      });
 
       if (!compareCommit) {
-        throw new NotFoundException('对比提交不存在')
+        throw new NotFoundException('对比提交不存在');
       }
 
       previousFiles = await this.prisma.file.findMany({
@@ -464,7 +478,7 @@ export class RepositoriesService {
           createdAt: { lte: compareCommit.createdAt },
         },
         orderBy: { path: 'asc' },
-      })
+      });
     } else {
       // 与上一个提交对比
       const previousCommit = await this.prisma.commit.findFirst({
@@ -473,7 +487,7 @@ export class RepositoriesService {
           createdAt: { lt: commit.createdAt },
         },
         orderBy: { createdAt: 'desc' },
-      })
+      });
 
       if (previousCommit) {
         previousFiles = await this.prisma.file.findMany({
@@ -482,32 +496,35 @@ export class RepositoriesService {
             createdAt: { lte: previousCommit.createdAt },
           },
           orderBy: { path: 'asc' },
-        })
+        });
       }
     }
 
     // 计算diff
-    const currentFilesMap = new Map(currentFiles.map((f) => [f.path, f]))
-    const previousFilesMap = new Map(previousFiles.map((f) => [f.path, f]))
+    const currentFilesMap = new Map(currentFiles.map((f) => [f.path, f]));
+    const previousFilesMap = new Map(previousFiles.map((f) => [f.path, f]));
 
-    const added: File[] = []
-    const modified: File[] = []
-    const deleted: File[] = []
+    const added: File[] = [];
+    const modified: File[] = [];
+    const deleted: File[] = [];
 
     // 检查新增和修改
     for (const file of currentFiles) {
-      const prevFile = previousFilesMap.get(file.path)
+      const prevFile = previousFilesMap.get(file.path);
       if (!prevFile) {
-        added.push(file)
-      } else if (file.updatedAt > prevFile.updatedAt || file.size !== prevFile.size) {
-        modified.push(file)
+        added.push(file);
+      } else if (
+        file.updatedAt > prevFile.updatedAt ||
+        file.size !== prevFile.size
+      ) {
+        modified.push(file);
       }
     }
 
     // 检查删除
     for (const file of previousFiles) {
       if (!currentFilesMap.has(file.path)) {
-        deleted.push(file)
+        deleted.push(file);
       }
     }
 
@@ -528,7 +545,7 @@ export class RepositoriesService {
         modified,
         deleted,
       },
-    }
+    };
   }
 
   /**
@@ -542,7 +559,7 @@ export class RepositoriesService {
     filePath: string | undefined,
     currentUser: User,
   ): Promise<any> {
-    await this.checkProjectPermission(projectId, currentUser)
+    await this.checkProjectPermission(projectId, currentUser);
 
     const commit = await this.prisma.commit.findUnique({
       where: { id: commitId },
@@ -553,10 +570,10 @@ export class RepositoriesService {
           },
         },
       },
-    })
+    });
 
     if (!commit || commit.branch.repository.projectId !== projectId) {
-      throw new NotFoundException('提交不存在')
+      throw new NotFoundException('提交不存在');
     }
 
     if (filePath) {
@@ -568,14 +585,14 @@ export class RepositoriesService {
           createdAt: { lte: commit.createdAt },
         },
         orderBy: { createdAt: 'desc' },
-      })
+      });
 
       if (!file) {
-        throw new NotFoundException('文件在该提交时不存在')
+        throw new NotFoundException('文件在该提交时不存在');
       }
 
       // 下载文件内容
-      const content = await this.minioService.downloadFile(file.objectName)
+      const content = await this.minioService.downloadFile(file.objectName);
 
       return {
         file: {
@@ -585,7 +602,7 @@ export class RepositoriesService {
           mimeType: file.mimeType,
         },
         content: content.toString('utf-8'),
-      }
+      };
     } else {
       // 获取所有文件列表
       const files = await this.prisma.file.findMany({
@@ -594,7 +611,7 @@ export class RepositoriesService {
           createdAt: { lte: commit.createdAt },
         },
         orderBy: { path: 'asc' },
-      })
+      });
 
       return {
         commit: {
@@ -603,7 +620,7 @@ export class RepositoriesService {
           createdAt: commit.createdAt,
         },
         files,
-      }
+      };
     }
   }
 
@@ -623,28 +640,28 @@ export class RepositoriesService {
           where: { userId: currentUser.id },
         },
       },
-    })
+    });
 
     if (!project) {
-      throw new NotFoundException('项目不存在')
+      throw new NotFoundException('项目不存在');
     }
 
-    const isOwner = project.ownerId === currentUser.id
-    const member = project.members[0]
-    const isMember = !!member
-    const isAdmin = currentUser.role === UserRole.SUPER_ADMIN
+    const isOwner = project.ownerId === currentUser.id;
+    const member = project.members[0];
+    const isMember = !!member;
+    const isAdmin = currentUser.role === UserRole.SUPER_ADMIN;
 
     // 超级管理员拥有所有权限
     if (isAdmin) {
-      return
+      return;
     }
 
     if (!isOwner && !isMember) {
-      throw new ForbiddenException('您没有权限访问此项目')
+      throw new ForbiddenException('您没有权限访问此项目');
     }
 
     if (requireWrite && !isOwner && member?.role === MemberRole.VIEWER) {
-      throw new ForbiddenException('您没有写入权限')
+      throw new ForbiddenException('您没有写入权限');
     }
   }
 
@@ -653,7 +670,7 @@ export class RepositoriesService {
    * ECP-B1: DRY原则 - 统一处理
    */
   private getContentType(filePath: string): string {
-    const ext = filePath.split('.').pop()?.toLowerCase()
+    const ext = filePath.split('.').pop()?.toLowerCase();
     const mimeTypes: Record<string, string> = {
       txt: 'text/plain',
       js: 'application/javascript',
@@ -668,9 +685,8 @@ export class RepositoriesService {
       gif: 'image/gif',
       svg: 'image/svg+xml',
       pdf: 'application/pdf',
-    }
+    };
 
-    return mimeTypes[ext || ''] || 'application/octet-stream'
+    return mimeTypes[ext || ''] || 'application/octet-stream';
   }
 }
-

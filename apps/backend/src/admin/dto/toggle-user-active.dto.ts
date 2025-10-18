@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty } from 'class-validator'
+import { IsBoolean, IsNotEmpty } from 'class-validator';
 
 /**
  * 切换用户激活状态 DTO
@@ -7,5 +7,5 @@ import { IsBoolean, IsNotEmpty } from 'class-validator'
 export class ToggleUserActiveDto {
   @IsBoolean({ message: 'isActive 必须是布尔值' })
   @IsNotEmpty({ message: 'isActive 不能为空' })
-  isActive: boolean
+  isActive: boolean;
 }

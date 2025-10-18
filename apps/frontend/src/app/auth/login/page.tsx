@@ -6,7 +6,7 @@
  * ECP-C1: 防御性编程 - 表单验证和错误处理
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/auth-context'
@@ -17,7 +17,7 @@ import { ApiError } from '@/lib/api'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login } = useAuth()
+  const { login, isAuthenticated } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -25,6 +25,16 @@ export default function LoginPage() {
     usernameOrEmail: '',
     password: '',
   })
+
+  /**
+   * 监听认证状态变化，登录成功后自动跳转
+   * 修复：避免React状态更新时序竞争导致的重定向循环
+   */
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      router.push('/dashboard')
+    }
+  }, [isAuthenticated, isLoading, router])
 
   /**
    * 表单输入处理
@@ -57,15 +67,14 @@ export default function LoginPage() {
 
     try {
       await login(formData)
-      // 登录成功，跳转到首页
-      router.push('/dashboard')
+      // 登录成功，重置loading状态，让useEffect处理跳转
+      setIsLoading(false)
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message || '登录失败，请检查用户名和密码')
       } else {
         setError('网络错误，请稍后重试')
       }
-    } finally {
       setIsLoading(false)
     }
   }
@@ -112,7 +121,6 @@ export default function LoginPage() {
                 value={formData.usernameOrEmail}
                 onChange={handleChange}
                 disabled={isLoading}
-                required
               />
             </div>
 
@@ -126,7 +134,6 @@ export default function LoginPage() {
                 value={formData.password}
                 onChange={handleChange}
                 disabled={isLoading}
-                required
               />
             </div>
           </div>

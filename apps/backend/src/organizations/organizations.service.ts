@@ -364,9 +364,7 @@ export class OrganizationsService {
     });
 
     if (!user) {
-      throw new NotFoundException(
-        `User with email '${dto.email}' not found`,
-      );
+      throw new NotFoundException(`User with email '${dto.email}' not found`);
     }
 
     // Check member quota
@@ -377,15 +375,14 @@ export class OrganizationsService {
     }
 
     // Check if user is already a member
-    const existingMember =
-      await this.prisma.organizationMember.findUnique({
-        where: {
-          organizationId_userId: {
-            organizationId: org.id,
-            userId: user.id,
-          },
+    const existingMember = await this.prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: org.id,
+          userId: user.id,
         },
-      });
+      },
+    });
 
     if (existingMember) {
       throw new ConflictException(

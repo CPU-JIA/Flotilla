@@ -47,7 +47,26 @@ pnpm-debug.log*
 test-upload.txt
 test-upload-fixed.txt
 nul
+playwright-report/
+test-results/
 
 # Temporary files
 *~
 *.tmp
+*.backup
+test-file.md
+
+# Claude AI configuration
+.claude/
+
+# Docker cache
+.dockercache
+
+# Development scripts (Raft testing)
+raft-demo.ts
+raft-simple-test.ts
+raft-ultra-simple.ts
+raft-core-verify.ts
+raft-git-test.ts
+raft-advanced-test.ts
+raft-quick-test.ts

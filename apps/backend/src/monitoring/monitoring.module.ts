@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common'
-import { MonitoringController } from './monitoring.controller'
+import { Module } from '@nestjs/common';
+import { MonitoringController } from './monitoring.controller';
 
 /**
  * 监控模块
