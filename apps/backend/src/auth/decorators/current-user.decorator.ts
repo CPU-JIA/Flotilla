@@ -1,11 +1,15 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common'
-import { User } from '@prisma/client'
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { User } from '@prisma/client';
 
+/**
+ * Custom decorator to extract current user from request
+ * Usage: @CurrentUser() user: User
+ *
+ * Works with JwtAuthGuard which attaches user to request
+ */
 export const CurrentUser = createParamDecorator(
-  (data: keyof Omit<User, 'passwordHash'> | undefined, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest()
-    const user = request.user
-
-    return data ? user?.[data] : user
+  (data: unknown, ctx: ExecutionContext): User => {
+    const request = ctx.switchToHttp().getRequest();
+    return request.user;
   },
-)
+);

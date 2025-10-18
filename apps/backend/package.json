@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "raft:demo": "ts-node -r tsconfig-paths/register raft-demo.ts",
     "raft:test": "ts-node -r tsconfig-paths/register src/raft/cluster-test.ts",
-    "raft:performance": "ts-node -r tsconfig-paths/register src/raft/cluster-test.ts --performance"
+    "raft:performance": "ts-node -r tsconfig-paths/register src/raft/cluster-test.ts --performance",
+    "migrate:to-organizations": "ts-node -r tsconfig-paths/register prisma/migrate-to-organizations.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -87,5 +88,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }
