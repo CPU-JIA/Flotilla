@@ -270,6 +270,48 @@ Located at `apps/backend/prisma/schema.prisma`. Main models:
 4. Protected backend routes verify JWT via `JwtAuthGuard`
 5. User info extracted via `@CurrentUser()` decorator
 
+### Bootstrap Admin Mechanism
+
+**Status**: ✅ **IMPLEMENTED** (Added in commit d770744)
+
+The platform provides three methods to create the initial SUPER_ADMIN user:
+
+**1. Environment Variable Method (Production Recommended)**
+```bash
+# Set in .env file
+INITIAL_ADMIN_EMAIL="admin@company.com"
+
+# User registering with this email automatically becomes SUPER_ADMIN
+```
+
+**2. First User Auto-Promotion (Development Fallback)**
+- When the database has zero users, the first registered user automatically becomes SUPER_ADMIN
+- System logs warning in production mode
+- Convenient for development/testing environments
+
+**3. Database Seed Script (CI/CD Automation)**
+```bash
+# Set in .env file
+SEED_ADMIN_EMAIL="admin@company.com"
+SEED_ADMIN_PASSWORD="SecurePassword123!"
+
+# Run seed script
+cd apps/backend
+pnpm prisma db seed
+```
+
+**Security Features:**
+- Uses CUID for user IDs (prevents enumeration attacks)
+- No "ID=1 = SUPER_ADMIN" pattern
+- Explicit admin control for production via ENV variables
+- Warning logs when first-user auto-promotion occurs
+- Idempotent seed script (safe to run multiple times)
+
+**Implementation Location:**
+- `apps/backend/src/auth/auth.service.ts:56-96` - Bootstrap logic
+- `apps/backend/prisma/seed.ts` - Seed script
+- `.env.example` - ENV variable documentation
+
 ### File Upload Flow
 
 1. Frontend uploads file via `POST /api/files/upload` (multipart/form-data)
