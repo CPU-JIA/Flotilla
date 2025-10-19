@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Status**: 🚧 In Development
 **Version**: v1.0.0-MVP
-**Last Updated**: 2025-10-18
+**Last Updated**: 2025-10-19
 
 ## Prerequisites
 
@@ -240,6 +240,10 @@ apps/frontend/src/
   - Translation files: `src/locales/zh.ts`, `src/locales/en.ts`
   - Language context: `src/contexts/language-context.tsx`
   - Auto-persists language preference to localStorage
+  - **Translation Pattern**: Use nested keys like `t.section.subsection.field`
+    - Example: `t.projects.detail.loading`, `t.auth.registerTitle`
+  - **Template Strings**: Dynamic content uses `.replace()`: `t.projects.history.totalCommits.replace('{count}', String(total))`
+  - **Status**: ✅ Full i18n coverage across all pages (completed 2025-10-19)
 - **Theme System**: Dark/Light mode toggle using `next-themes`
   - System preference detection
   - Persistent theme storage
@@ -380,6 +384,7 @@ User
 
 Comprehensive documentation is available in the `/docs` directory:
 
+- **[品牌故事](./docs/品牌故事.md)** - Brand story and vision (bilingual: zh/en)
 - **[需求分析文档](./docs/需求分析文档.md)** - Requirements analysis
 - **[架构设计文档](./docs/架构设计文档.md)** - Architecture design
 - **[数据库设计文档](./docs/数据库设计文档.md)** - Database schema design
@@ -390,6 +395,11 @@ Comprehensive documentation is available in the `/docs` directory:
 **Important**: Always consult these documents before implementing major features to understand design decisions and architectural constraints.
 
 ## Development Philosophy
+
+### Brand Mission
+**"We don't just host code. We build consensus."**
+
+This project aims to make distributed teams as reliable as distributed systems, using Raft consensus algorithm as both a technical implementation and a philosophical metaphor. See `/docs/品牌故事.md` for the complete vision.
 
 ### Academic Rigor
 This is an academic project following structured software engineering lifecycle:
@@ -545,6 +555,14 @@ pnpm exec playwright show-trace test-results/<test-name>/trace.zip
 - Prettier for formatting: `pnpm format` (root)
 - ESLint for linting: `pnpm lint` (per app)
 - Follow NestJS/Next.js conventions
+
+### Internationalization Best Practices
+- **NEVER** hard-code user-facing strings in components
+- **ALWAYS** use translation keys from `src/locales/*.ts`
+- **Template strings** with dynamic content: use `.replace('{placeholder}', value)`
+- **Add translations in parallel**: Update both `zh.ts` and `en.ts` simultaneously
+- **Update TypeScript types**: Modify `language-context.tsx` interfaces when adding new translation keys
+- **React Hook dependencies**: Include `t` in dependency arrays for useCallback/useEffect when using translations
 
 ## Accessing Services
 
