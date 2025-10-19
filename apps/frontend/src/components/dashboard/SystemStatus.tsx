@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useState } from 'react'
+import { useLanguage } from '@/contexts/language-context'
 
 interface HealthStatus {
   status: 'ok' | 'error'
@@ -28,13 +29,28 @@ interface ServiceStatus {
 }
 
 export function SystemStatus() {
+  const { t } = useLanguage()
   const [services, setServices] = useState<ServiceStatus[]>([
-    { name: 'api', displayName: '后端API', status: 'unknown', icon: '🔄' },
-    { name: 'database', displayName: '数据库', status: 'unknown', icon: '🔄' },
+    { name: 'api', displayName: 'api', status: 'unknown', icon: '🔄' },
+    { name: 'database', displayName: 'database', status: 'unknown', icon: '🔄' },
     { name: 'minio', displayName: 'MinIO', status: 'unknown', icon: '🔄' },
     { name: 'redis', displayName: 'Redis', status: 'unknown', icon: '🔄' },
   ])
   const [isChecking, setIsChecking] = useState(false)
+
+  /**
+   * 获取服务显示名称（支持国际化）
+   */
+  const getServiceDisplayName = (name: string): string => {
+    switch (name) {
+      case 'api':
+        return t.dashboard.backendApi
+      case 'database':
+        return t.dashboard.database
+      default:
+        return name
+    }
+  }
 
   const checkSystemHealth = async () => {
     setIsChecking(true)
@@ -105,40 +121,40 @@ export function SystemStatus() {
   const getStatusClasses = (status: ServiceStatus['status']) => {
     switch (status) {
       case 'healthy':
-        return 'bg-green-50 border-green-100'
+        return 'bg-green-50 dark:bg-green-950 border-green-100 dark:border-green-900'
       case 'unhealthy':
-        return 'bg-red-50 border-red-100'
+        return 'bg-red-50 dark:bg-red-950 border-red-100 dark:border-red-900'
       case 'unknown':
       default:
-        return 'bg-yellow-50 border-yellow-100'
+        return 'bg-yellow-50 dark:bg-yellow-950 border-yellow-100 dark:border-yellow-900'
     }
   }
 
   const getStatusText = (status: ServiceStatus['status']) => {
     switch (status) {
       case 'healthy':
-        return <span className="text-green-600">正常运行</span>
+        return <span className="text-green-600 dark:text-green-400">{t.dashboard.running}</span>
       case 'unhealthy':
-        return <span className="text-red-600">服务异常</span>
+        return <span className="text-red-600 dark:text-red-400">{t.dashboard.error}</span>
       case 'unknown':
       default:
-        return <span className="text-yellow-600">检查中...</span>
+        return <span className="text-yellow-600 dark:text-yellow-400">{t.dashboard.unknown}</span>
     }
   }
 
   return (
-    <div className="border-t border-gray-200 pt-6">
+    <div className="border-t border-gray-200 dark:border-gray-800 pt-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-bold text-gray-900 mb-1">系统状态</h3>
-          <p className="text-sm text-gray-600">当前系统运行状态（自动刷新：30秒）</p>
+          <h3 className="text-lg font-bold text-card-foreground mb-1">{t.dashboard.systemStatus}</h3>
+          <p className="text-sm text-muted-foreground">{t.dashboard.systemStatusDesc}</p>
         </div>
         <button
           onClick={checkSystemHealth}
           disabled={isChecking}
-          className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {isChecking ? '检查中...' : '立即刷新'}
+          {isChecking ? t.dashboard.checking : t.dashboard.refreshNow}
         </button>
       </div>
 
@@ -149,7 +165,7 @@ export function SystemStatus() {
             className={`text-center p-4 rounded-xl border transition-all ${getStatusClasses(service.status)}`}
           >
             <div className="text-3xl mb-2">{service.icon}</div>
-            <div className="text-sm font-semibold text-gray-900">{service.displayName}</div>
+            <div className="text-sm font-semibold text-card-foreground">{getServiceDisplayName(service.name)}</div>
             <div className="text-xs mt-1">{getStatusText(service.status)}</div>
           </div>
         ))}

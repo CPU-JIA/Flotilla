@@ -83,7 +83,7 @@ export default function OrganizationDetailPage() {
   return (
     <AppLayout>
       <div
-        className="bg-white rounded-[14px] p-[22px]"
+        className="bg-card rounded-[14px] p-[22px]"
         style={{
           boxShadow: '10px 10px 15px black',
           filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))'

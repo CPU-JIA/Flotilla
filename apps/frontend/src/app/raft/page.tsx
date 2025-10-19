@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import { useLanguage } from '@/contexts/language-context';
 import ClusterTopology from './components/ClusterTopology';
 import MetricsChart from './components/MetricsChart';
 import ControlPanel from './components/ControlPanel';
@@ -13,6 +14,8 @@ import {
 } from './hooks/useRaftCluster';
 
 export default function RaftVisualizationPage() {
+  const { t } = useLanguage();
+
   // Fetch cluster data with HTTP polling
   const {
     data: clusterStatus,
@@ -54,13 +57,13 @@ export default function RaftVisualizationPage() {
               <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
               <div>
                 <h3 className="text-lg font-semibold text-red-900 dark:text-red-100">
-                  Failed to load cluster data
+                  {t.raft.failedToLoad}
                 </h3>
                 <p className="text-sm text-red-700 dark:text-red-300 mt-1">
                   {(statusError as Error)?.message || (metricsError as Error)?.message}
                 </p>
                 <p className="text-sm text-red-600 dark:text-red-400 mt-2">
-                  Please ensure the backend server is running at{' '}
+                  {t.raft.ensureBackendRunning}{' '}
                   <code className="px-1 py-0.5 bg-red-100 dark:bg-red-800 rounded">
                     http://localhost:4000
                   </code>
@@ -80,7 +83,7 @@ export default function RaftVisualizationPage() {
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-blue-600 dark:text-blue-400 animate-spin mx-auto mb-4" />
           <p className="text-gray-600 dark:text-gray-400 text-lg">
-            Loading Raft cluster visualization...
+            {t.raft.loadingVisualization}
           </p>
         </div>
       </div>
@@ -92,17 +95,17 @@ export default function RaftVisualizationPage() {
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-8 text-white shadow-2xl">
-          <h1 className="text-4xl font-bold mb-2">Raft Consensus Algorithm</h1>
+          <h1 className="text-4xl font-bold mb-2">{t.raft.title}</h1>
           <p className="text-blue-100 text-lg">
-            Real-time visualization of distributed consensus cluster
+            {t.raft.description}
           </p>
           <div className="mt-4 flex items-center gap-4 text-sm">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              <span>Live monitoring with HTTP polling (2s interval)</span>
+              <span>{t.raft.liveMonitoring}</span>
             </div>
             <div className="px-3 py-1 bg-white/20 rounded-full backdrop-blur-sm">
-              Term: {clusterStatus.term}
+              {t.raft.term}: {clusterStatus.term}
             </div>
           </div>
         </div>
@@ -114,7 +117,7 @@ export default function RaftVisualizationPage() {
             {/* Cluster Topology */}
             <div>
               <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-                Cluster Topology
+                {t.raft.clusterTopology}
               </h2>
               <ClusterTopology nodes={clusterStatus.nodes} leaderId={clusterStatus.leaderId} />
             </div>
@@ -122,7 +125,7 @@ export default function RaftVisualizationPage() {
             {/* Performance Metrics */}
             <div>
               <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-                Performance Metrics
+                {t.raft.performanceMetrics}
               </h2>
               <MetricsChart metrics={clusterMetrics} historicalData={historicalMetrics} />
             </div>
@@ -131,7 +134,7 @@ export default function RaftVisualizationPage() {
           {/* Right Column: Control Panel */}
           <div className="lg:col-span-1">
             <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
-              Control Panel
+              {t.raft.controlPanel}
             </h2>
             <ControlPanel
               nodes={clusterStatus.nodes}
@@ -151,13 +154,10 @@ export default function RaftVisualizationPage() {
         {/* Footer Information */}
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
           <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
-            About Raft Consensus
+            {t.raft.aboutRaft}
           </h3>
           <p className="text-blue-800 dark:text-blue-200 text-sm leading-relaxed">
-            Raft is a consensus algorithm designed to be easy to understand. It provides fault
-            tolerance and strong consistency for distributed systems. The algorithm ensures that
-            the cluster elects a leader, replicates logs across nodes, and maintains consensus even
-            during network partitions or node failures.
+            {t.raft.aboutRaftDescription}
           </p>
         </div>
       </div>

@@ -68,9 +68,9 @@ export function ProjectMembersPanel({
 
   const getRoleBadge = (role: string) => {
     const roleConfig = {
-      OWNER: { label: '所有者', color: 'bg-purple-100 text-purple-800' },
-      MEMBER: { label: '成员', color: 'bg-blue-100 text-blue-800' },
-      VIEWER: { label: '观察者', color: 'bg-gray-100 text-gray-800' }
+      OWNER: { label: '所有者', color: 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-400' },
+      MEMBER: { label: '成员', color: 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400' },
+      VIEWER: { label: '观察者', color: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300' }
     }
     const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.VIEWER
     return <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>{config.label}</span>
@@ -80,8 +80,8 @@ export function ProjectMembersPanel({
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">项目成员</h2>
-          <p className="text-gray-600 text-sm mt-1">共 {members.length} 名成员</p>
+          <h2 className="text-2xl font-bold text-card-foreground">项目成员</h2>
+          <p className="text-muted-foreground text-sm mt-1">共 {members.length} 名成员</p>
         </div>
         {canManageMembers && (
           <InviteMemberDialog projectId={projectId} onSuccess={onMembersChange} />
@@ -93,8 +93,8 @@ export function ProjectMembersPanel({
           <Card>
             <CardContent className="py-12 text-center">
               <div className="text-6xl mb-4">👥</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">暂无成员</h3>
-              <p className="text-gray-600 mb-4">邀请团队成员加入项目开始协作</p>
+              <h3 className="text-xl font-semibold text-card-foreground mb-2">暂无成员</h3>
+              <p className="text-muted-foreground mb-4">邀请团队成员加入项目开始协作</p>
               {canManageMembers && <InviteMemberDialog projectId={projectId} onSuccess={onMembersChange} />}
             </CardContent>
           </Card>
@@ -112,11 +112,11 @@ export function ProjectMembersPanel({
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="font-semibold text-gray-900">{member.user.username}</p>
+                            <p className="font-semibold text-card-foreground">{member.user.username}</p>
                             {getRoleBadge(member.role)}
                           </div>
-                          <p className="text-sm text-gray-600">📧 {member.user.email}</p>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-sm text-muted-foreground">📧 {member.user.email}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
                             📅 加入于 {new Date(member.joinedAt).toLocaleDateString('zh-CN')}
                           </p>
                         </div>
@@ -140,7 +140,7 @@ export function ProjectMembersPanel({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
                             onClick={() => handleRemoveMember(member.userId, member.user!.username)}
                             disabled={removing === member.userId}
                           >

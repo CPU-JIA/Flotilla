@@ -81,25 +81,18 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4"
-      style={{
-        background: `
-          radial-gradient(1200px 600px at 10% -10%, #dbeafe 0%, transparent 60%),
-          radial-gradient(1200px 600px at 110% 10%, #fde68a 0%, transparent 60%),
-          #f4f6f9
-        `
-      }}
+      className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-blue-50 via-gray-50 to-yellow-50 dark:from-blue-950 dark:via-gray-950 dark:to-yellow-950"
     >
       <div
-        className="bg-white rounded-[14px] p-8 max-w-md w-full"
+        className="bg-card rounded-[14px] p-8 max-w-md w-full"
         style={{
           boxShadow: '10px 10px 15px black',
           filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))'
         }}
       >
         <div className="space-y-1 mb-6">
-          <h1 className="text-2xl font-bold text-center">登录</h1>
-          <p className="text-center text-gray-600">
+          <h1 className="text-2xl font-bold text-center text-card-foreground">登录</h1>
+          <p className="text-center text-muted-foreground">
             欢迎回到 Cloud Dev Platform
           </p>
         </div>
@@ -147,11 +140,11 @@ export default function LoginPage() {
               {isLoading ? '登录中...' : '登录'}
             </Button>
 
-            <div className="text-sm text-center text-gray-600">
+            <div className="text-sm text-center text-muted-foreground">
               还没有账号？{' '}
               <Link
                 href="/auth/register"
-                className="text-blue-600 hover:underline font-medium"
+                className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
               >
                 立即注册
               </Link>

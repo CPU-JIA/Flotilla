@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/auth-context'
+import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,6 +19,7 @@ import { ApiError } from '@/lib/api'
 export default function RegisterPage() {
   const router = useRouter()
   const { register, isAuthenticated } = useAuth()
+  const { t } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -56,27 +58,27 @@ export default function RegisterPage() {
    */
   const validateForm = (): string | null => {
     if (!formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
-      return '请填写所有字段'
+      return t.auth.allFieldsRequired
     }
 
     // 用户名验证（3-20个字符，字母数字下划线）
     if (!/^[a-zA-Z0-9_]{3,20}$/.test(formData.username)) {
-      return '用户名必须是3-20个字符，只能包含字母、数字和下划线'
+      return t.auth.usernameInvalid
     }
 
     // 邮箱验证
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      return '请输入有效的邮箱地址'
+      return t.auth.emailInvalid
     }
 
     // 密码强度验证（至少8个字符）
     if (formData.password.length < 8) {
-      return '密码长度至少为8个字符'
+      return t.auth.passwordTooShort
     }
 
     // 确认密码匹配
     if (formData.password !== formData.confirmPassword) {
-      return '两次输入的密码不一致'
+      return t.auth.passwordMismatch
     }
 
     return null
@@ -109,9 +111,9 @@ export default function RegisterPage() {
       setIsLoading(false)
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message || '注册失败，请稍后重试')
+        setError(err.message || t.auth.registerFailed)
       } else {
-        setError('网络错误，请稍后重试')
+        setError(t.auth.networkError)
       }
       setIsLoading(false)
     }
@@ -129,16 +131,16 @@ export default function RegisterPage() {
       }}
     >
       <div
-        className="bg-white rounded-[14px] p-8 max-w-md w-full"
+        className="bg-card rounded-[14px] p-8 max-w-md w-full border border-border"
         style={{
           boxShadow: '10px 10px 15px black',
           filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))'
         }}
       >
         <div className="space-y-1 mb-6">
-          <h1 className="text-2xl font-bold text-center">注册</h1>
+          <h1 className="text-2xl font-bold text-center">{t.auth.registerTitle}</h1>
           <p className="text-center text-gray-600">
-            创建您的 Cloud Dev Platform 账号
+            {t.auth.registerSubtitle}
           </p>
         </div>
         <form onSubmit={handleSubmit}>
@@ -150,28 +152,28 @@ export default function RegisterPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="username">用户名</Label>
+              <Label htmlFor="username">{t.auth.username}</Label>
               <Input
                 id="username"
                 name="username"
                 type="text"
-                placeholder="请输入用户名（3-20个字符）"
+                placeholder={t.auth.usernamePlaceholder}
                 value={formData.username}
                 onChange={handleChange}
                 disabled={isLoading}
               />
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                只能包含字母、数字和下划线
+                {t.auth.usernameHelper}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">邮箱</Label>
+              <Label htmlFor="email">{t.auth.email}</Label>
               <Input
                 id="email"
                 name="email"
                 type="text"
-                placeholder="请输入邮箱地址"
+                placeholder={t.auth.emailPlaceholder}
                 value={formData.email}
                 onChange={handleChange}
                 disabled={isLoading}
@@ -179,12 +181,12 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">密码</Label>
+              <Label htmlFor="password">{t.auth.password}</Label>
               <Input
                 id="password"
                 name="password"
                 type="password"
-                placeholder="请输入密码（至少8个字符）"
+                placeholder={t.auth.passwordPlaceholder}
                 value={formData.password}
                 onChange={handleChange}
                 disabled={isLoading}
@@ -192,12 +194,12 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">确认密码</Label>
+              <Label htmlFor="confirmPassword">{t.auth.confirmPassword}</Label>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
-                placeholder="请再次输入密码"
+                placeholder={t.auth.confirmPasswordPlaceholder}
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 disabled={isLoading}
@@ -211,16 +213,16 @@ export default function RegisterPage() {
               className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? '注册中...' : '注册'}
+              {isLoading ? t.auth.registering : t.auth.registerButton}
             </Button>
 
             <div className="text-sm text-center text-gray-600">
-              已有账号？{' '}
+              {t.auth.alreadyHaveAccount}{' '}
               <Link
                 href="/auth/login"
                 className="text-blue-600 hover:underline font-medium"
               >
-                立即登录
+                {t.auth.loginNow}
               </Link>
             </div>
           </div>

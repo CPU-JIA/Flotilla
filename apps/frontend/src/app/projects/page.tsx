@@ -10,6 +10,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/auth-context'
+import { useLanguage } from '@/contexts/language-context'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,6 +23,7 @@ import type { Project, ProjectsResponse } from '@/types/project'
 export default function ProjectsPage() {
   const router = useRouter()
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const { t } = useLanguage()
 
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
@@ -49,14 +51,14 @@ export default function ProjectsPage() {
       setTotal(response.total)
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message || '获取项目列表失败')
+        setError(err.message || t.projects.fetchError)
       } else {
-        setError('网络错误，请稍后重试')
+        setError(t.projects.networkError)
       }
     } finally {
       setLoading(false)
     }
-  }, [page])
+  }, [page, pageSize, t])
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -75,7 +77,7 @@ export default function ProjectsPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-gray-100 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">加载中...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">{t.loading}</p>
         </div>
       </div>
     )
@@ -83,9 +85,9 @@ export default function ProjectsPage() {
 
   return (
     <AppLayout>
-      {/* 白色卡片容器 - lab.html样式 */}
+      {/* 白色卡片容器 - lab.html样式 + Dark模式支持 */}
       <div
-        className="bg-white rounded-[14px] p-6"
+        className="bg-card rounded-[14px] p-6"
         style={{
           boxShadow: '10px 10px 15px black',
           filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))'
@@ -95,9 +97,9 @@ export default function ProjectsPage() {
           {/* 页头 */}
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">我的项目</h2>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
-                共 {total} 个项目
+              <h2 className="text-3xl font-bold text-card-foreground">{t.projects.myProjects}</h2>
+              <p className="text-muted-foreground mt-1">
+                {t.projects.totalProjects.replace('{count}', total.toString())}
               </p>
             </div>
             <CreateProjectDialog onSuccess={fetchProjects} />
@@ -107,7 +109,7 @@ export default function ProjectsPage() {
           <div className="flex gap-4">
             <Input
               type="text"
-              placeholder="搜索项目..."
+              placeholder={t.projects.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => {
@@ -122,7 +124,7 @@ export default function ProjectsPage() {
               setPage(1)
               fetchProjects(searchQuery)
             }}>
-              搜索
+              {t.projects.search}
             </Button>
           </div>
 
@@ -153,11 +155,11 @@ export default function ProjectsPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <div className="text-6xl mb-4">📁</div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                  {searchQuery ? '未找到匹配的项目' : '还没有项目'}
+                <h3 className="text-xl font-semibold text-card-foreground mb-2">
+                  {searchQuery ? t.projects.noMatchingProjects : t.projects.noProjectsYet}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
-                  {searchQuery ? '尝试使用不同的关键词搜索' : '创建您的第一个项目开始协作'}
+                <p className="text-muted-foreground mb-4">
+                  {searchQuery ? t.projects.tryDifferentKeywords : t.projects.createFirstProject}
                 </p>
                 {!searchQuery && <CreateProjectDialog onSuccess={fetchProjects} />}
               </CardContent>
@@ -171,18 +173,18 @@ export default function ProjectsPage() {
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg">{project.name}</CardTitle>
                         <Badge variant={project.visibility === 'PUBLIC' ? 'default' : 'secondary'}>
-                          {project.visibility === 'PUBLIC' ? '公开' : '私有'}
+                          {project.visibility === 'PUBLIC' ? t.projects.visibility.public : t.projects.visibility.private}
                         </Badge>
                       </div>
                       <CardDescription className="line-clamp-2">
-                        {project.description || '暂无描述'}
+                        {project.description || t.projects.noDescription}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                         <div className="flex items-center gap-1">
                           <span>👥</span>
-                          <span>{project._count?.members || 0} 成员</span>
+                          <span>{project._count?.members || 0} {t.projects.members}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span>📅</span>
@@ -191,7 +193,7 @@ export default function ProjectsPage() {
                       </div>
                     </CardContent>
                     <CardFooter className="text-xs text-gray-500 dark:text-gray-500">
-                      所有者: {project.owner?.username || '未知'}
+                      {t.projects.owner}: {project.owner?.username || t.projects.unknown}
                     </CardFooter>
                   </Card>
                 </Link>
@@ -207,17 +209,19 @@ export default function ProjectsPage() {
                 onClick={() => setPage(page - 1)}
                 disabled={page === 1 || loading}
               >
-                上一页
+                {t.projects.previousPage}
               </Button>
               <span className="text-sm text-gray-600 dark:text-gray-400">
-                第 {page} 页 / 共 {Math.ceil(total / pageSize)} 页
+                {t.projects.pageInfo
+                  .replace('{current}', page.toString())
+                  .replace('{total}', Math.ceil(total / pageSize).toString())}
               </span>
               <Button
                 variant="outline"
                 onClick={() => setPage(page + 1)}
                 disabled={page >= Math.ceil(total / pageSize) || loading}
               >
-                下一页
+                {t.projects.nextPage}
               </Button>
             </div>
           )}

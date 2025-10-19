@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -53,6 +54,7 @@ export default function VersionHistoryPage() {
   const params = useParams()
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { t } = useLanguage()
   const projectId = params.id as string
   const branchId = searchParams.get('branchId')
 
@@ -68,7 +70,7 @@ export default function VersionHistoryPage() {
   // 获取提交历史
   const fetchCommits = useCallback(async () => {
     if (!branchId) {
-      setError('缺少分支ID参数')
+      setError(t.projects.history.noBranchSelected)
       setLoading(false)
       return
     }
@@ -79,12 +81,12 @@ export default function VersionHistoryPage() {
       setCommits(data.commits || [])
       setTotal(data.total || 0)
     } catch (err) {
-      setError('加载提交历史失败')
+      setError(t.projects.history.loadFailed)
       console.error(err)
     } finally {
       setLoading(false)
     }
-  }, [projectId, branchId, page])
+  }, [projectId, branchId, page, t])
 
   // 获取提交diff
   const fetchCommitDiff = useCallback(async (commitId: string) => {
@@ -132,14 +134,14 @@ export default function VersionHistoryPage() {
 
   if (!branchId) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="max-w-md">
           <CardContent className="p-8 text-center">
             <div className="text-6xl mb-4">⚠️</div>
-            <h2 className="text-xl font-bold mb-2">缺少分支参数</h2>
-            <p className="text-gray-600 mb-4">请从项目页面选择分支查看版本历史</p>
+            <h2 className="text-xl font-bold mb-2">{t.projects.history.noBranchSelected}</h2>
+            <p className="text-muted-foreground mb-4">{t.projects.history.noBranchDesc}</p>
             <Button onClick={() => router.push(`/projects/${projectId}`)}>
-              返回项目
+              {t.projects.history.backToProject}
             </Button>
           </CardContent>
         </Card>
@@ -148,7 +150,7 @@ export default function VersionHistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-7xl mx-auto px-4">
         {/* 页头 */}
         <div className="mb-6">
@@ -157,18 +159,18 @@ export default function VersionHistoryPage() {
               <Button
                 variant="outline"
                 onClick={() => router.push(`/projects/${projectId}`)}
-                className="bg-white"
+                className="bg-card"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                返回项目
+                {t.projects.history.backToProject}
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">版本历史</h1>
-                <p className="text-gray-600 mt-1">查看所有提交记录和代码变更</p>
+                <h1 className="text-3xl font-bold text-card-foreground">{t.projects.history.title}</h1>
+                <p className="text-muted-foreground mt-1">{t.projects.history.description}</p>
               </div>
             </div>
             <Badge variant="outline" className="text-lg px-4 py-2">
-              共 {total} 个提交
+              {t.projects.history.totalCommits.replace('{count}', String(total))}
             </Badge>
           </div>
         </div>
@@ -184,23 +186,23 @@ export default function VersionHistoryPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 左侧：提交列表 */}
           <div className="lg:col-span-1">
-            <Card className="bg-white rounded-2xl shadow-sm">
+            <Card className="bg-card rounded-2xl shadow-sm">
               <CardHeader>
-                <CardTitle>提交历史</CardTitle>
+                <CardTitle>{t.projects.history.commitHistory}</CardTitle>
                 <CardDescription>
-                  点击查看详细变更
+                  {t.projects.history.clickToView}
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4 max-h-[calc(100vh-250px)] overflow-y-auto">
                 {loading ? (
                   <div className="text-center py-8">
                     <div className="text-4xl mb-2">⏳</div>
-                    <p className="text-gray-600">加载中...</p>
+                    <p className="text-muted-foreground">{t.projects.history.loading}</p>
                   </div>
                 ) : commits.length === 0 ? (
                   <div className="text-center py-8">
                     <div className="text-4xl mb-2">📭</div>
-                    <p className="text-gray-600">暂无提交记录</p>
+                    <p className="text-muted-foreground">{t.projects.history.noCommits}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -211,15 +213,15 @@ export default function VersionHistoryPage() {
                         className={`
                           p-4 rounded-xl border-2 transition-all cursor-pointer
                           ${selectedCommit === commit.id
-                            ? 'bg-blue-50 border-blue-500'
-                            : 'bg-white border-gray-200 hover:border-blue-300'
+                            ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500'
+                            : 'bg-card border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
                           }
                         `}
                       >
                         <div className="flex items-start gap-3">
                           <div className="text-2xl">📝</div>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-gray-900 truncate mb-1">
+                            <p className="font-semibold text-card-foreground truncate mb-1">
                               {commit.message}
                             </p>
                             <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -229,9 +231,9 @@ export default function VersionHistoryPage() {
                               <span>{formatDate(commit.createdAt)}</span>
                             </div>
                             {commit.filesCount !== undefined && (
-                              <div className="mt-2 text-xs text-gray-600">
+                              <div className="mt-2 text-xs text-muted-foreground">
                                 <FileText className="w-3 h-3 inline mr-1" />
-                                {commit.filesCount} 个文件
+                                {commit.filesCount}{t.projects.history.filesCount}
                               </div>
                             )}
                           </div>
@@ -250,10 +252,12 @@ export default function VersionHistoryPage() {
                       disabled={page === 1}
                       onClick={() => setPage(p => p - 1)}
                     >
-                      上一页
+                      {t.projects.history.previousPage}
                     </Button>
-                    <span className="text-sm text-gray-600">
-                      第 {page} 页 / 共 {Math.ceil(total / 20)} 页
+                    <span className="text-sm text-muted-foreground">
+                      {t.projects.history.pageInfo
+                        .replace('{current}', String(page))
+                        .replace('{total}', String(Math.ceil(total / 20)))}
                     </span>
                     <Button
                       variant="outline"
@@ -261,7 +265,7 @@ export default function VersionHistoryPage() {
                       disabled={page >= Math.ceil(total / 20)}
                       onClick={() => setPage(p => p + 1)}
                     >
-                      下一页
+                      {t.projects.history.nextPage}
                     </Button>
                   </div>
                 )}
@@ -272,26 +276,26 @@ export default function VersionHistoryPage() {
           {/* 右侧：Diff详情 */}
           <div className="lg:col-span-2">
             {!selectedCommit ? (
-              <Card className="bg-white rounded-2xl shadow-sm">
+              <Card className="bg-card rounded-2xl shadow-sm">
                 <CardContent className="p-16 text-center">
                   <div className="text-6xl mb-4">👈</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">
-                    选择一个提交
+                  <h3 className="text-xl font-bold text-card-foreground mb-2">
+                    {t.projects.history.selectCommit}
                   </h3>
-                  <p className="text-gray-600">
-                    在左侧列表中点击任意提交查看详细变更
+                  <p className="text-muted-foreground">
+                    {t.projects.history.selectCommitDesc}
                   </p>
                 </CardContent>
               </Card>
             ) : diffLoading ? (
-              <Card className="bg-white rounded-2xl shadow-sm">
+              <Card className="bg-card rounded-2xl shadow-sm">
                 <CardContent className="p-16 text-center">
                   <div className="text-6xl mb-4 animate-spin">⏳</div>
-                  <p className="text-gray-600">加载变更详情...</p>
+                  <p className="text-muted-foreground">{t.projects.history.loadingDetails}</p>
                 </CardContent>
               </Card>
             ) : commitDiff ? (
-              <Card className="bg-white rounded-2xl shadow-sm">
+              <Card className="bg-card rounded-2xl shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     📊 变更详情
@@ -308,21 +312,21 @@ export default function VersionHistoryPage() {
                       <div className="text-2xl font-bold text-green-600">
                         {commitDiff.stats.added}
                       </div>
-                      <div className="text-sm text-gray-600">新增</div>
+                      <div className="text-sm text-muted-foreground">{t.projects.history.additions}</div>
                     </div>
                     <div className="bg-yellow-50 rounded-xl p-4 text-center border border-yellow-200">
                       <Edit className="w-6 h-6 text-yellow-600 mx-auto mb-2" />
                       <div className="text-2xl font-bold text-yellow-600">
                         {commitDiff.stats.modified}
                       </div>
-                      <div className="text-sm text-gray-600">修改</div>
+                      <div className="text-sm text-muted-foreground">{t.projects.history.modified}</div>
                     </div>
                     <div className="bg-red-50 rounded-xl p-4 text-center border border-red-200">
                       <Minus className="w-6 h-6 text-red-600 mx-auto mb-2" />
                       <div className="text-2xl font-bold text-red-600">
                         {commitDiff.stats.deleted}
                       </div>
-                      <div className="text-sm text-gray-600">删除</div>
+                      <div className="text-sm text-muted-foreground">{t.projects.history.deletions}</div>
                     </div>
                   </div>
 
@@ -332,16 +336,16 @@ export default function VersionHistoryPage() {
                   <Tabs defaultValue="all" className="w-full">
                     <TabsList className="grid w-full grid-cols-4">
                       <TabsTrigger value="all">
-                        全部 ({commitDiff.stats.total})
+                        {t.projects.history.all} ({commitDiff.stats.total})
                       </TabsTrigger>
                       <TabsTrigger value="added">
-                        新增 ({commitDiff.stats.added})
+                        {t.projects.history.additions} ({commitDiff.stats.added})
                       </TabsTrigger>
                       <TabsTrigger value="modified">
-                        修改 ({commitDiff.stats.modified})
+                        {t.projects.history.modified} ({commitDiff.stats.modified})
                       </TabsTrigger>
                       <TabsTrigger value="deleted">
-                        删除 ({commitDiff.stats.deleted})
+                        {t.projects.history.deletions} ({commitDiff.stats.deleted})
                       </TabsTrigger>
                     </TabsList>
 
@@ -356,7 +360,7 @@ export default function VersionHistoryPage() {
                               <Plus className="w-4 h-4 text-green-600" />
                               <code className="text-sm font-mono">{file.path}</code>
                             </div>
-                            <span className="text-xs text-gray-600">
+                            <span className="text-xs text-muted-foreground">
                               {formatSize(file.size)}
                             </span>
                           </div>
@@ -370,7 +374,7 @@ export default function VersionHistoryPage() {
                               <Edit className="w-4 h-4 text-yellow-600" />
                               <code className="text-sm font-mono">{file.path}</code>
                             </div>
-                            <span className="text-xs text-gray-600">
+                            <span className="text-xs text-muted-foreground">
                               {formatSize(file.size)}
                             </span>
                           </div>
@@ -384,7 +388,7 @@ export default function VersionHistoryPage() {
                               <Minus className="w-4 h-4 text-red-600" />
                               <code className="text-sm font-mono line-through">{file.path}</code>
                             </div>
-                            <span className="text-xs text-gray-600">
+                            <span className="text-xs text-muted-foreground">
                               {formatSize(file.size)}
                             </span>
                           </div>
@@ -403,7 +407,7 @@ export default function VersionHistoryPage() {
                               <Plus className="w-4 h-4 text-green-600" />
                               <code className="text-sm font-mono">{file.path}</code>
                             </div>
-                            <span className="text-xs text-gray-600">
+                            <span className="text-xs text-muted-foreground">
                               {formatSize(file.size)}
                             </span>
                           </div>
@@ -422,7 +426,7 @@ export default function VersionHistoryPage() {
                               <Edit className="w-4 h-4 text-yellow-600" />
                               <code className="text-sm font-mono">{file.path}</code>
                             </div>
-                            <span className="text-xs text-gray-600">
+                            <span className="text-xs text-muted-foreground">
                               {formatSize(file.size)}
                             </span>
                           </div>
@@ -441,7 +445,7 @@ export default function VersionHistoryPage() {
                               <Minus className="w-4 h-4 text-red-600" />
                               <code className="text-sm font-mono line-through">{file.path}</code>
                             </div>
-                            <span className="text-xs text-gray-600">
+                            <span className="text-xs text-muted-foreground">
                               {formatSize(file.size)}
                             </span>
                           </div>

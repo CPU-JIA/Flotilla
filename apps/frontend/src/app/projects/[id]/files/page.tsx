@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -21,6 +22,7 @@ import type { Project } from '@/types/project'
 export default function FilesPage() {
   const params = useParams()
   const router = useRouter()
+  const { t } = useLanguage()
   const projectId = params.id as string
 
   const [project, setProject] = useState<Project | null>(null)
@@ -48,13 +50,13 @@ export default function FilesPage() {
         if (err instanceof ApiError) {
           setError(err.message)
         } else {
-          setError('加载项目信息失败')
+          setError(t.projects.files.loadProject)
         }
       }
     }
 
     loadProject()
-  }, [projectId])
+  }, [projectId, t])
 
   // 加载文件列表
   const loadFiles = useCallback(async () => {
@@ -72,14 +74,14 @@ export default function FilesPage() {
       setTotalSize(response.totalSize)
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message || '加载文件列表失败')
+        setError(err.message || t.projects.files.loadFilesFailed)
       } else {
-        setError('网络错误，请稍后重试')
+        setError(t.projects.files.networkError)
       }
     } finally {
       setLoading(false)
     }
-  }, [projectId, currentFolder, searchQuery])
+  }, [projectId, currentFolder, searchQuery, t])
 
   useEffect(() => {
     loadFiles()
@@ -115,9 +117,9 @@ export default function FilesPage() {
       document.body.removeChild(a)
     } catch (err) {
       if (err instanceof ApiError) {
-        alert(err.message || '下载失败')
+        alert(err.message || t.projects.files.downloadFailed)
       } else {
-        alert('下载失败，请稍后重试')
+        alert(t.projects.files.downloadFailedRetry)
       }
     }
   }
@@ -129,9 +131,9 @@ export default function FilesPage() {
       loadFiles() // 重新加载文件列表
     } catch (err) {
       if (err instanceof ApiError) {
-        alert(err.message || '删除失败')
+        alert(err.message || t.projects.files.deleteFailed)
       } else {
-        alert('删除失败，请稍后重试')
+        alert(t.projects.files.deleteFailedRetry)
       }
     }
   }
@@ -153,12 +155,12 @@ export default function FilesPage() {
     const pathParts = currentFolder.split('/').filter(Boolean)
 
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-600">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <button
           onClick={() => setCurrentFolder('/')}
           className="hover:text-blue-600 transition-colors"
         >
-          📁 根目录
+          {t.projects.files.rootFolder}
         </button>
         {pathParts.map((part, index) => {
           const path = `/${pathParts.slice(0, index + 1).join('/')}/`
@@ -180,17 +182,17 @@ export default function FilesPage() {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="text-4xl mb-4">⏳</div>
-          <p className="text-gray-600">加载中...</p>
+          <p className="text-muted-foreground">{t.loading}</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-7xl mx-auto px-4">
         {/* 页头 */}
         <div className="mb-6">
@@ -199,27 +201,27 @@ export default function FilesPage() {
               <Button
                 variant="outline"
                 onClick={() => router.push(`/projects/${projectId}`)}
-                className="bg-white"
+                className="bg-card"
               >
-                ← 返回项目
+                {t.projects.detail.backToProject}
               </Button>
-              <h1 className="text-3xl font-bold text-gray-900">{project.name} - 文件管理</h1>
+              <h1 className="text-3xl font-bold text-card-foreground">{project.name} - {t.projects.files.title}</h1>
             </div>
             <Button
               onClick={() => router.push(`/projects/${projectId}/editor`)}
               className="bg-blue-600 text-white hover:bg-blue-700"
             >
-              📝 打开代码编辑器
+              {t.projects.files.openEditor}
             </Button>
           </div>
 
           {/* 存储使用情况 */}
-          <Card className="bg-white rounded-[14px] shadow-[10px_10px_15px_black]">
+          <Card className="bg-card rounded-[14px] shadow-[10px_10px_15px_black]">
             <CardContent className="p-[22px]">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">存储使用</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-sm text-muted-foreground">{t.projects.files.storage}</p>
+                  <p className="text-2xl font-bold text-card-foreground">
                     {formatStorageSize(totalSize)} / 1.00 GB
                   </p>
                 </div>
@@ -237,7 +239,7 @@ export default function FilesPage() {
 
         {/* 导航栏 */}
         <div className="mb-6">
-          <Card className="bg-white rounded-[14px] shadow-[10px_10px_15px_black]">
+          <Card className="bg-card rounded-[14px] shadow-[10px_10px_15px_black]">
             <CardContent className="p-[22px]">
               <div className="flex items-center justify-between gap-4">
                 {renderBreadcrumb()}
@@ -247,9 +249,9 @@ export default function FilesPage() {
                     <Button
                       variant="outline"
                       onClick={handleBackClick}
-                      className="bg-white"
+                      className="bg-card"
                     >
-                      ⬆️ 上级目录
+                      ⬆️ {t.projects.files.parentFolder}
                     </Button>
                   )}
                 </div>
@@ -261,11 +263,11 @@ export default function FilesPage() {
         {/* 搜索和操作栏 */}
         {canManage && (
           <div className="mb-6">
-            <Card className="bg-white rounded-[14px] shadow-[10px_10px_15px_black]">
+            <Card className="bg-card rounded-[14px] shadow-[10px_10px_15px_black]">
               <CardContent className="p-[22px]">
                 <div className="flex items-center gap-4">
                   <Input
-                    placeholder="搜索文件..."
+                    placeholder={t.projects.files.searchPlaceholder}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="flex-1"
@@ -284,7 +286,7 @@ export default function FilesPage() {
         {/* 文件上传区域 */}
         {canManage && (
           <div className="mb-6">
-            <Card className="bg-white rounded-[14px] shadow-[10px_10px_15px_black]">
+            <Card className="bg-card rounded-[14px] shadow-[10px_10px_15px_black]">
               <CardContent className="p-[22px]">
                 <FileUpload
                   projectId={projectId}
@@ -313,10 +315,10 @@ export default function FilesPage() {
         {/* 文件列表 */}
         <div className="mb-6">
           {loading ? (
-            <Card className="bg-white rounded-[14px] shadow-[10px_10px_15px_black]">
+            <Card className="bg-card rounded-[14px] shadow-[10px_10px_15px_black]">
               <CardContent className="p-[22px] text-center">
                 <div className="text-6xl mb-4">⏳</div>
-                <p className="text-gray-600">加载文件列表中...</p>
+                <p className="text-muted-foreground">{t.projects.files.loadingFiles}</p>
               </CardContent>
             </Card>
           ) : (

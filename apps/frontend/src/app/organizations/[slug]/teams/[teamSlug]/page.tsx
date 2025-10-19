@@ -83,7 +83,7 @@ export default function TeamDetailPage() {
   return (
     <AppLayout>
       <div
-        className="bg-white rounded-[14px] p-[22px]"
+        className="bg-card rounded-[14px] p-[22px]"
         style={{
           boxShadow: '10px 10px 15px black',
           filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))'
@@ -99,7 +99,7 @@ export default function TeamDetailPage() {
             <div className="text-6xl mb-4">⚠️</div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{error}</h3>
             <Button onClick={() => router.push(`/organizations/${organizationSlug}/teams`)} className="mt-4">
-              {t.loading === t.loading ? '返回团队列表' : 'Back to Teams'}
+              {t.teams.backToList}
             </Button>
           </div>
         ) : team ? (
@@ -119,11 +119,11 @@ export default function TeamDetailPage() {
                     )}
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 text-base">
-                    {team.description || (t.loading === t.loading ? '暂无描述' : 'No description')}
+                    {team.description || t.teams.noDescription}
                   </p>
                 </div>
                 <Button variant="outline" onClick={() => router.push(`/organizations/${organizationSlug}/teams`)}>
-                  {t.loading === t.loading ? '← 返回列表' : '← Back'}
+                  {t.teams.backToList}
                 </Button>
               </div>
 

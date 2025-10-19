@@ -79,9 +79,9 @@ export default function OrganizationsPage() {
 
   return (
     <AppLayout>
-      {/* 白色卡片容器 - 与项目页面保持一致 */}
+      {/* 白色卡片容器 - 与项目页面保持一致 + Dark模式支持 */}
       <div
-        className="bg-white rounded-[14px] p-6"
+        className="bg-card rounded-[14px] p-6"
         style={{
           boxShadow: '10px 10px 15px black',
           filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))'
@@ -91,10 +91,10 @@ export default function OrganizationsPage() {
           {/* 页头 */}
           <div className="flex justify-between items-center">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              <h2 className="text-3xl font-bold text-card-foreground">
                 {t.organizations.myOrganizations}
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
+              <p className="text-muted-foreground mt-1">
                 {t.loading === t.loading ? `共 ${organizations.length} 个组织` : `${organizations.length} organizations`}
               </p>
             </div>
@@ -147,13 +147,13 @@ export default function OrganizationsPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <div className="text-6xl mb-4">🏢</div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                <h3 className="text-xl font-semibold text-card-foreground mb-2">
                   {searchQuery
                     ? (t.loading === t.loading ? '未找到匹配的组织' : 'No matching organizations found')
                     : t.organizations.noOrganizations
                   }
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 mb-4">
+                <p className="text-muted-foreground mb-4">
                   {searchQuery
                     ? (t.loading === t.loading ? '尝试使用不同的关键词搜索' : 'Try different keywords')
                     : (t.loading === t.loading ? '创建您的第一个组织开始协作' : 'Create your first organization to start collaboration')

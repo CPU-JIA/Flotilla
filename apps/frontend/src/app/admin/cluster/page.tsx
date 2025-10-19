@@ -9,6 +9,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useLanguage } from '@/contexts/language-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -62,6 +63,7 @@ interface ClusterConfig {
 }
 
 export default function RaftClusterPage() {
+  const { t } = useLanguage()
   const [status, setStatus] = useState<ClusterStatus | null>(null)
   const [metrics, setMetrics] = useState<ClusterMetrics | null>(null)
   const [config, setConfig] = useState<ClusterConfig | null>(null)
@@ -173,8 +175,8 @@ export default function RaftClusterPage() {
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Raft集群管理</h1>
-          <p className="text-muted-foreground">分布式共识算法集群监控与管理</p>
+          <h1 className="text-3xl font-bold">{t.raft.management.title}</h1>
+          <p className="text-muted-foreground">{t.raft.management.description}</p>
         </div>
 
         {/* 集群控制按钮 */}
@@ -185,7 +187,7 @@ export default function RaftClusterPage() {
             variant="default"
           >
             <Play className="w-4 h-4 mr-2" />
-            启动
+            {t.raft.management.start}
           </Button>
           <Button
             onClick={() => handleClusterAction('stop')}
@@ -193,7 +195,7 @@ export default function RaftClusterPage() {
             variant="outline"
           >
             <Square className="w-4 h-4 mr-2" />
-            停止
+            {t.raft.management.stop}
           </Button>
           <Button
             onClick={() => handleClusterAction('restart')}
@@ -201,7 +203,7 @@ export default function RaftClusterPage() {
             variant="outline"
           >
             <RotateCcw className="w-4 h-4 mr-2" />
-            重启
+            {t.raft.management.restart}
           </Button>
         </div>
       </div>
@@ -219,16 +221,16 @@ export default function RaftClusterPage() {
         {/* 集群状态 */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">集群状态</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.raft.management.clusterStatus}</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-2">
               <div className={`w-3 h-3 rounded-full ${getStatusColor(status?.status || 'stopped')}`} />
-              <span className="text-2xl font-bold capitalize">{status?.status || 'Unknown'}</span>
+              <span className="text-2xl font-bold capitalize">{status?.status || t.raft.management.unknown}</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              节点ID: {status?.nodeId || 'N/A'}
+              {t.raft.management.nodeId}: {status?.nodeId || 'N/A'}
             </p>
           </CardContent>
         </Card>
@@ -236,15 +238,15 @@ export default function RaftClusterPage() {
         {/* Leader信息 */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Leader状态</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.raft.management.leaderStatus}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {status?.isLeader ? '是Leader' : '非Leader'}
+              {status?.isLeader ? t.raft.management.isLeader : t.raft.management.notLeader}
             </div>
             <p className="text-xs text-muted-foreground">
-              当前任期: {status?.currentTerm || 0}
+              {t.raft.management.currentTerm}: {status?.currentTerm || 0}
             </p>
           </CardContent>
         </Card>
@@ -252,13 +254,13 @@ export default function RaftClusterPage() {
         {/* 集群大小 */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">集群规模</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.raft.management.clusterSize}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{status?.clusterSize || 0} 节点</div>
+            <div className="text-2xl font-bold">{status?.clusterSize || 0} {t.raft.management.nodes}</div>
             <p className="text-xs text-muted-foreground">
-              配置节点数量
+              {t.raft.management.configuredNodes}
             </p>
           </CardContent>
         </Card>
@@ -266,7 +268,7 @@ export default function RaftClusterPage() {
         {/* 运行时间 */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">运行时间</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.raft.management.uptime}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -274,7 +276,7 @@ export default function RaftClusterPage() {
               {metrics ? Math.floor(metrics.uptime / 60) : 0}m
             </div>
             <p className="text-xs text-muted-foreground">
-              {metrics?.uptime || 0} 秒
+              {metrics?.uptime || 0} {t.raft.management.seconds}
             </p>
           </CardContent>
         </Card>
@@ -283,10 +285,10 @@ export default function RaftClusterPage() {
       {/* 主要内容区域 - 使用Tab分组 */}
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">集群概览</TabsTrigger>
-          <TabsTrigger value="topology">拓扑图</TabsTrigger>
-          <TabsTrigger value="commands">分布式命令</TabsTrigger>
-          <TabsTrigger value="config">配置信息</TabsTrigger>
+          <TabsTrigger value="overview">{t.raft.management.clusterOverview}</TabsTrigger>
+          <TabsTrigger value="topology">{t.raft.management.topologyMap}</TabsTrigger>
+          <TabsTrigger value="commands">{t.raft.management.distributedCommands}</TabsTrigger>
+          <TabsTrigger value="config">{t.raft.management.configInfo}</TabsTrigger>
         </TabsList>
 
         {/* 集群概览 */}
@@ -297,27 +299,27 @@ export default function RaftClusterPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Zap className="w-5 h-5" />
-                  性能指标
+                  {t.raft.performanceMetrics}
                 </CardTitle>
-                <CardDescription>集群性能和操作统计</CardDescription>
+                <CardDescription>{t.raft.management.performanceDescription}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{metrics.totalCommands}</div>
-                    <div className="text-sm text-muted-foreground">总命令数</div>
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{metrics.totalCommands}</div>
+                    <div className="text-sm text-muted-foreground">{t.raft.management.totalCommands}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">{metrics.commandsPerSecond.toFixed(1)}</div>
-                    <div className="text-sm text-muted-foreground">命令/秒</div>
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">{metrics.commandsPerSecond.toFixed(1)}</div>
+                    <div className="text-sm text-muted-foreground">{t.raft.management.commandsPerSecond}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-600">{metrics.averageResponseTime.toFixed(0)}ms</div>
-                    <div className="text-sm text-muted-foreground">平均响应时间</div>
+                    <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{metrics.averageResponseTime.toFixed(0)}ms</div>
+                    <div className="text-sm text-muted-foreground">{t.raft.management.averageResponseTime}</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600">{metrics.leaderElections}</div>
-                    <div className="text-sm text-muted-foreground">Leader选举次数</div>
+                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{metrics.leaderElections}</div>
+                    <div className="text-sm text-muted-foreground">{t.raft.management.leaderElections}</div>
                   </div>
                 </div>
               </CardContent>
@@ -328,8 +330,8 @@ export default function RaftClusterPage() {
           {status?.nodesState && status.nodesState.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>节点状态详情</CardTitle>
-                <CardDescription>集群中各节点的详细状态信息</CardDescription>
+                <CardTitle>{t.raft.management.nodeStatusDetails}</CardTitle>
+                <CardDescription>{t.raft.management.nodeStatusDescription}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -347,13 +349,13 @@ export default function RaftClusterPage() {
                         <div>
                           <div className="font-semibold">{node.nodeId}</div>
                           <div className="text-sm text-muted-foreground">
-                            任期: {node.currentTerm}
+                            {t.raft.term}: {node.currentTerm}
                           </div>
                         </div>
                       </div>
                       <div className="text-right text-sm">
-                        <div>日志长度: {node.logLength}</div>
-                        <div className="text-muted-foreground">已应用: {node.lastApplied}</div>
+                        <div>{t.raft.management.logLength}: {node.logLength}</div>
+                        <div className="text-muted-foreground">{t.raft.management.appliedLogs}: {node.lastApplied}</div>
                       </div>
                     </div>
                   ))}
@@ -381,22 +383,22 @@ export default function RaftClusterPage() {
           {config && (
             <Card>
               <CardHeader>
-                <CardTitle>集群配置</CardTitle>
-                <CardDescription>当前Raft集群的配置参数</CardDescription>
+                <CardTitle>{t.raft.management.clusterConfig}</CardTitle>
+                <CardDescription>{t.raft.management.clusterConfigDescription}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <h4 className="font-semibold">基本配置</h4>
+                    <h4 className="font-semibold">{t.raft.management.basicConfig}</h4>
                     <div className="text-sm space-y-1">
-                      <div>节点列表: {config.settings.nodes.join(', ')}</div>
-                      <div>选举超时: {config.settings.electionTimeoutMin}-{config.settings.electionTimeoutMax}ms</div>
-                      <div>心跳间隔: {config.settings.heartbeatInterval}ms</div>
-                      <div>RPC超时: {config.settings.rpcTimeout}ms</div>
+                      <div>{t.raft.management.nodeList}: {config.settings.nodes.join(', ')}</div>
+                      <div>{t.raft.management.electionTimeout}: {config.settings.electionTimeoutMin}-{config.settings.electionTimeoutMax}ms</div>
+                      <div>{t.raft.management.heartbeatInterval}: {config.settings.heartbeatInterval}ms</div>
+                      <div>{t.raft.management.rpcTimeout}: {config.settings.rpcTimeout}ms</div>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <h4 className="font-semibold">端口映射</h4>
+                    <h4 className="font-semibold">{t.raft.management.portMapping}</h4>
                     <div className="text-sm space-y-1">
                       {Object.entries(config.settings.ports).map(([nodeId, port]) => (
                         <div key={nodeId}>{nodeId}: {port}</div>
@@ -412,7 +414,7 @@ export default function RaftClusterPage() {
                     <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>
-                        配置验证失败: {config.validation.errors.join(', ')}
+                        {t.raft.management.configValidationFailed}: {config.validation.errors.join(', ')}
                       </AlertDescription>
                     </Alert>
                   </>
