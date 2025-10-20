@@ -4,6 +4,7 @@ import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Server, Zap, Clock, CheckCircle, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import Image from 'next/image'
 
 type NodeState = 'leader' | 'follower' | 'candidate' | 'down'
 
@@ -266,6 +267,24 @@ export function RaftLiveDemo() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Production Cluster Screenshot */}
+          <div className="mt-12">
+            <h3 className="text-2xl font-semibold mb-6 text-center">
+              Production 3-Node Cluster
+            </h3>
+            <div className="relative aspect-video rounded-2xl overflow-hidden border border-border/40 bg-card/50 backdrop-blur-sm shadow-2xl">
+              <Image
+                src="/images/raft-cluster-3nodes.png"
+                alt="Flotilla 3-Node Raft Cluster Running in Production"
+                fill
+                className="object-contain"
+              />
+            </div>
+            <p className="text-center text-sm text-foreground/60 mt-4">
+              Live monitoring of a 3-node Raft cluster with real-time health checks and log replication
+            </p>
           </div>
 
           {/* Bottom Info */}

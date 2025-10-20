@@ -83,7 +83,7 @@ docker-compose logs -f
 
 1. **克隆仓库**
 ```bash
-git clone https://github.com/CPU-JIA/Cloud-Dev-Platform.git
+git clone https://github.com/CPU-JIA/Flotilla.git
 cd Cloud-Dev-Platform
 ```
 

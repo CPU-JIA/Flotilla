@@ -49,18 +49,16 @@ export function Header() {
           {/* Left: Logo + Brand */}
           <Link
             href="/"
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
             <Image
-              src="/logo.svg"
+              src="/images/logo-transparent.png"
               alt="Flotilla Logo"
-              width={32}
-              height={32}
-              className="w-8 h-8"
+              width={120}
+              height={40}
+              className="h-10 w-auto"
+              priority
             />
-            <span className="font-bold text-lg hidden sm:inline">
-              Flotilla
-            </span>
           </Link>
 
           {/* Center: Navigation (Desktop only) */}
