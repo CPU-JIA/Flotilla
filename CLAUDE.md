@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**基于云计算的开发协作平台** - A cloud-based code hosting and collaboration platform with distributed consensus algorithm (simplified Raft).
+**Flotilla** - A cloud-based code hosting and collaboration platform with distributed consensus algorithm (simplified Raft).
 
 **Status**: 🚧 In Development
 **Version**: v1.0.0-MVP

@@ -31,7 +31,7 @@ pnpm dev
           Documentation
         </h1>
         <p className="text-xl text-foreground/60 max-w-2xl">
-          Everything you need to know about Cloud Dev Platform. From quick start to advanced architecture.
+          Everything you need to know about Flotilla. From quick start to advanced architecture.
         </p>
       </div>
 

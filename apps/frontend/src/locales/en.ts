@@ -7,7 +7,7 @@ import type { Translations } from '@/contexts/language-context'
 
 export const en: Translations = {
   // Common
-  appName: 'Cloud Dev Platform',
+  appName: 'Flotilla',
   loading: 'Loading...',
   error: 'Error',
   success: 'Success',
@@ -29,7 +29,7 @@ export const en: Translations = {
 
   // Dashboard
   dashboard: {
-    welcome: 'Welcome to Cloud Dev Platform',
+    welcome: 'Welcome to Flotilla',
     loginSuccess: 'You have successfully logged in',
     username: 'Username',
     email: 'Email',
@@ -207,7 +207,7 @@ export const en: Translations = {
     confirmPassword: 'Confirm Password',
     // Register Page
     registerTitle: 'Register',
-    registerSubtitle: 'Create your Cloud Dev Platform account',
+    registerSubtitle: 'Create your Flotilla account',
     usernamePlaceholder: 'Enter username (3-20 characters)',
     usernameHelper: 'Only letters, numbers, and underscores',
     emailPlaceholder: 'Enter email address',

@@ -10,7 +10,7 @@ import { generateMetadata as generateSEO } from '@/lib/seo'
 import type { Metadata, Viewport } from 'next'
 
 export const metadata: Metadata = generateSEO({
-  title: 'Cloud Dev Platform',
+  title: 'Flotilla',
   description: 'Production-ready distributed code hosting with Raft consensus algorithm. 150ms automatic failover. Full-stack TypeScript. Academic rigor. MIT License.',
   keywords: ['open source', 'self-hosted', 'monorepo', 'pnpm', 'Docker'],
 })

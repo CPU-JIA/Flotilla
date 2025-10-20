@@ -1,5 +1,5 @@
 export default function sitemap() {
-  const baseUrl = 'https://clouddev.com'
+  const baseUrl = 'https://flotilla.dev'
   const currentDate = new Date().toISOString()
 
   const routes = [

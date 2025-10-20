@@ -26,7 +26,7 @@ test.describe('仪表板功能测试', () => {
 
   test('应该成功显示仪表板页面', async ({ page }) => {
     // 验证页面标题
-    await expect(page).toHaveTitle(/Cloud Dev Platform/i)
+    await expect(page).toHaveTitle(/Flotilla/i)
 
     // 验证导航栏存在
     await expect(page.locator('header')).toBeVisible()

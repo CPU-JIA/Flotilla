@@ -2,7 +2,7 @@
 
 ## 📊 项目概览
 
-**项目名称**: Cloud Dev Platform 官网完整重构
+**项目名称**: Flotilla 官网完整重构
 **开发周期**: 2025-10-20 (Day 1-4, 约8小时)
 **技术栈**: Next.js 15 + React 19 + TypeScript 5.7 + Tailwind CSS 4
 **完成状态**: ✅ **100% 完成** (核心功能 + 次要页面 + SEO优化)
@@ -340,7 +340,7 @@ rm -rf .next && pnpm dev
 ### Meta标签配置
 ```typescript
 {
-  title: "Cloud Dev Platform",
+  title: "Flotilla",
   description: "Production-ready distributed code hosting...",
   keywords: ["Raft", "TypeScript", "Next.js", ...],
 
@@ -353,7 +353,7 @@ rm -rf .next && pnpm dev
 
   twitter: {
     card: "summary_large_image",
-    creator: "@CloudDevPlatform"
+    creator: "@FlotillaHQ"
   }
 }
 ```
@@ -452,13 +452,13 @@ cd website
 vercel --prod
 
 # 环境变量
-NEXT_PUBLIC_APP_URL=https://app.clouddev.com
+NEXT_PUBLIC_APP_URL=https://app.flotilla.dev
 ```
 
 ### 域名配置
-- **主域名**: clouddev.com → 官网
-- **应用域名**: app.clouddev.com → 主应用
-- **文档域名**: docs.clouddev.com → 文档站点
+- **主域名**: flotilla.dev → 官网
+- **应用域名**: app.flotilla.dev → 主应用
+- **文档域名**: docs.flotilla.dev → 文档站点
 
 ### 性能优化
 - ✅ 启用Vercel Edge Network (全球CDN)

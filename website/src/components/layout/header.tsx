@@ -54,13 +54,13 @@ export function Header() {
           >
             <Image
               src="/logo.svg"
-              alt="Cloud Dev Platform Logo"
+              alt="Flotilla Logo"
               width={32}
               height={32}
               className="w-8 h-8"
             />
             <span className="font-bold text-lg hidden sm:inline">
-              Cloud Dev Platform
+              Flotilla
             </span>
           </Link>
 

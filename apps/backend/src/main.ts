@@ -39,7 +39,7 @@ async function bootstrap() {
 
   // Swagger API 文档配置
   const config = new DocumentBuilder()
-    .setTitle('Cloud Dev Platform API')
+    .setTitle('Flotilla API')
     .setDescription('基于云计算的开发协作平台 RESTful API 文档')
     .setVersion('1.0')
     .addBearerAuth(

@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cloud Dev Platform - 基于云计算的开发协作平台",
+  title: "Flotilla - 基于云计算的开发协作平台",
   description: "A cloud-based development collaboration platform with distributed consensus",
 };
 

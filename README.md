@@ -1,4 +1,4 @@
-# Cloud Dev Platform | 基于云计算的开发协作平台
+# Flotilla | 基于云计算的开发协作平台
 
 > **We don't just host code. We build consensus.** | **我们不只是托管代码，我们构建共识。**
 

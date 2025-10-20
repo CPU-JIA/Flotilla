@@ -15,11 +15,11 @@ export function generateMetadata({
   ogImage = '/og-image.png',
   noindex = false,
 }: SEOProps): Metadata {
-  const siteTitle = 'Cloud Dev Platform'
+  const siteTitle = 'Flotilla'
   const fullTitle = title === siteTitle ? title : `${title} | ${siteTitle}`
 
   return {
-    metadataBase: new URL('https://clouddev.com'),
+    metadataBase: new URL('https://flotilla.dev'),
     title: fullTitle,
     description,
     keywords: [
@@ -34,7 +34,7 @@ export function generateMetadata({
     ],
     authors: [{ name: 'JIA', url: 'https://github.com/CPU-JIA' }],
     creator: 'JIA',
-    publisher: 'Cloud Dev Platform',
+    publisher: 'Flotilla',
     robots: noindex ? 'noindex, nofollow' : 'index, follow',
     openGraph: {
       type: 'website',
@@ -57,7 +57,7 @@ export function generateMetadata({
       title: fullTitle,
       description,
       images: [ogImage],
-      creator: '@CloudDevPlatform',
+      creator: '@FlotillaHQ',
     },
   }
 }

@@ -62,7 +62,7 @@ export default {
   },
   footer: {
     tagline: 'We build consensus.',
-    copyright: '© 2025 Cloud Dev Platform. Created with ❤️ by JIA',
+    copyright: '© 2025 Flotilla. Created with ❤️ by JIA',
     quickLinks: 'Quick Links',
     quickStart: 'Quick Start',
     architecture: 'Architecture',

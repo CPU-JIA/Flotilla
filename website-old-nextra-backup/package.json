@@ -1,7 +1,7 @@
 {
   "name": "cloud-dev-platform-website",
   "version": "1.0.0",
-  "description": "Official documentation website for Cloud Dev Platform",
+  "description": "Official documentation website for Flotilla",
   "private": true,
   "type": "module",
   "scripts": {

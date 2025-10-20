@@ -7,7 +7,7 @@ import type { Translations } from '@/contexts/language-context'
 
 export const zh: Translations = {
   // 通用
-  appName: 'Cloud Dev Platform',
+  appName: 'Flotilla',
   loading: '加载中...',
   error: '错误',
   success: '成功',
@@ -29,7 +29,7 @@ export const zh: Translations = {
 
   // 仪表盘
   dashboard: {
-    welcome: '欢迎来到 Cloud Dev Platform',
+    welcome: '欢迎来到 Flotilla',
     loginSuccess: '您已成功登录系统',
     username: '用户名',
     email: '邮箱',
@@ -207,7 +207,7 @@ export const zh: Translations = {
     confirmPassword: '确认密码',
     // 注册页面
     registerTitle: '注册',
-    registerSubtitle: '创建您的 Cloud Dev Platform 账号',
+    registerSubtitle: '创建您的 Flotilla 账号',
     usernamePlaceholder: '请输入用户名（3-20个字符）',
     usernameHelper: '只能包含字母、数字和下划线',
     emailPlaceholder: '请输入邮箱地址',

@@ -34,13 +34,13 @@ export function Footer() {
             <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <Image
                 src="/logo.svg"
-                alt="Cloud Dev Platform Logo"
+                alt="Flotilla Logo"
                 width={32}
                 height={32}
                 className="w-8 h-8"
               />
               <span className="font-bold text-lg">
-                Cloud Dev Platform
+                Flotilla
               </span>
             </Link>
             <p className="text-sm text-foreground/60 max-w-xs">

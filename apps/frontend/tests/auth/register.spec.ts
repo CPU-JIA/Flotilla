@@ -27,7 +27,7 @@ test.describe('用户注册功能测试', () => {
 
   test('应该成功显示注册页面', async ({ page }) => {
     // 验证页面标题
-    await expect(page).toHaveTitle(/Cloud Dev Platform/i)
+    await expect(page).toHaveTitle(/Flotilla/i)
 
     // 验证注册卡片标题
     await expect(page.getByRole('heading', { name: '注册' })).toBeVisible()

@@ -93,7 +93,7 @@ export default function LoginPage() {
         <div className="space-y-1 mb-6">
           <h1 className="text-2xl font-bold text-center text-card-foreground">登录</h1>
           <p className="text-center text-muted-foreground">
-            欢迎回到 Cloud Dev Platform
+            欢迎回到 Flotilla
           </p>
         </div>
         <form onSubmit={handleSubmit}>

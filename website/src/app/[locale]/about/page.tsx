@@ -21,7 +21,7 @@ export default function AboutPage() {
             In distributed systems, <strong>consensus is everything</strong>. When nodes cannot agree, systems fail. When teams cannot align, projects stall. When developers lack reliable tools, innovation slows.
           </p>
           <p className="text-foreground/80 leading-relaxed mb-4">
-            That is why we built <strong>Cloud Dev Platform</strong>. Not just another Git hosting service. A platform where <em>distributed consensus</em> is not just a feature—it is the foundation.
+            That is why we built <strong>Flotilla</strong>. Not just another Git hosting service. A platform where <em>distributed consensus</em> is not just a feature—it is the foundation.
           </p>
           <p className="text-foreground/80 leading-relaxed mb-4">
             We implemented the <strong>Raft algorithm</strong> not because it is trendy, but because it works. 150ms failover. Zero downtime. Automatic leader election. This is how reliable systems operate.
@@ -88,7 +88,7 @@ export default function AboutPage() {
               </div>
             </div>
             <p className="text-foreground/80 leading-relaxed mb-4">
-              Software engineer passionate about distributed systems, type safety, and developer experience. Built Cloud Dev Platform as an academic project to demonstrate production-ready Raft consensus implementation.
+              Software engineer passionate about distributed systems, type safety, and developer experience. Built Flotilla as an academic project to demonstrate production-ready Raft consensus implementation.
             </p>
             <p className="text-foreground/80 leading-relaxed">
               Believes in rigorous software engineering: SOLID principles, comprehensive testing, complete documentation. Every commit follows the same high standards.

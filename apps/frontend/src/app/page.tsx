@@ -38,7 +38,7 @@ export default function Home() {
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center space-y-4">
           <CardTitle className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Cloud Dev Platform
+            Flotilla
           </CardTitle>
           <CardDescription className="text-lg">
             基于云计算的开发协作平台

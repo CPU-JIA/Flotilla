@@ -1,6 +1,6 @@
-# Cloud Dev Platform Website
+# Flotilla Website
 
-> Official documentation website for Cloud Dev Platform
+> Official documentation website for Flotilla
 
 **Built with:** [Nextra](https://nextra.site/) (Next.js 15 + MDX)
 
@@ -104,7 +104,7 @@ export default withNextra({
 
 ### `theme.config.tsx`
 
-- Logo: Text-based "Cloud Dev Platform"
+- Logo: Text-based "Flotilla"
 - GitHub link integration
 - i18n language switcher (EN/ZH)
 - Footer with MIT license

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Cloud Dev Platform - 我们构建共识',
+  title: 'Flotilla - 我们构建共识',
   description: '基于Raft共识算法的云原生开发平台。让分布式团队像分布式系统一样可靠。',
 }
 

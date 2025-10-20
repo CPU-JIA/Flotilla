@@ -1,6 +1,6 @@
 # 官网开发完成报告 (Website Development Completion Report)
 
-**项目**: Cloud Dev Platform 官方网站  
+**项目**: Flotilla 官方网站  
 **开发日期**: 2025-10-19  
 **状态**: ✅ **完全完成并集成**  
 **框架**: Nextra 4.6.0 (Next.js 15 + MDX)
@@ -95,7 +95,7 @@ export default withNextra({
 ```
 
 #### `theme.config.tsx`
-- Logo: "Cloud Dev Platform" (文字)
+- Logo: "Flotilla" (文字)
 - GitHub集成: https://github.com/CPU-JIA/Cloud-Dev-Platform
 - i18n语言切换器: EN/ZH
 - 深色模式支持

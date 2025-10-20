@@ -62,7 +62,7 @@ export default {
   },
   footer: {
     tagline: '我们构建共识。',
-    copyright: '© 2025 Cloud Dev Platform. 创建者：JIA',
+    copyright: '© 2025 Flotilla. 创建者：JIA',
     quickLinks: '快速链接',
     quickStart: '快速开始',
     architecture: '架构文档',

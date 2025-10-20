@@ -6,7 +6,7 @@ import { ExternalLink, Github, Star } from 'lucide-react'
 export default function ShowcasePage() {
   const projects = [
     {
-      name: 'Cloud Dev Platform',
+      name: 'Flotilla',
       description: 'The platform itself - distributed code hosting with Raft consensus algorithm',
       image: '/logo.svg',
       github: 'https://github.com/CPU-JIA/Cloud-Dev-Platform',
@@ -43,7 +43,7 @@ export default function ShowcasePage() {
             Showcase
           </h1>
           <p className="text-xl text-foreground/60 max-w-2xl mx-auto">
-            Real-world projects built with Cloud Dev Platform. Production-ready distributed systems.
+            Real-world projects built with Flotilla. Production-ready distributed systems.
           </p>
         </div>
 
@@ -133,7 +133,7 @@ export default function ShowcasePage() {
         {/* CTA */}
         <div className="text-center mt-16 p-8 rounded-2xl bg-secondary/20 border border-border/40">
           <h2 className="text-2xl font-bold mb-4">
-            Built something with Cloud Dev Platform?
+            Built something with Flotilla?
           </h2>
           <p className="text-foreground/70 mb-6">
             We'd love to feature your project here. Submit a pull request or open an issue on GitHub.

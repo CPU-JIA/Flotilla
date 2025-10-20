@@ -20,13 +20,13 @@ test.describe('用户登录功能测试', () => {
 
   test('应该成功显示登录页面', async ({ page }) => {
     // 验证页面标题
-    await expect(page).toHaveTitle(/Cloud Dev Platform/i)
+    await expect(page).toHaveTitle(/Flotilla/i)
 
     // 验证登录卡片标题
     await expect(page.locator('text=登录').first()).toBeVisible()
 
     // 验证欢迎描述
-    await expect(page.locator('text=欢迎回到 Cloud Dev Platform')).toBeVisible()
+    await expect(page.locator('text=欢迎回到 Flotilla')).toBeVisible()
 
     // 验证表单字段存在
     await expect(page.getByLabel('用户名或邮箱')).toBeVisible()

@@ -5,7 +5,7 @@ import { Accordion } from '@/components/ui/accordion'
 export default function FAQPage() {
   const faqs = [
     {
-      question: 'What makes Cloud Dev Platform different from GitHub/GitLab?',
+      question: 'What makes Flotilla different from GitHub/GitLab?',
       answer: 'We implement real distributed consensus with the Raft algorithm, not just replication. When a node fails, the cluster automatically elects a new leader in ~150ms with zero downtime. This is production-grade distributed systems, not just Git hosting.',
     },
     {
@@ -55,7 +55,7 @@ export default function FAQPage() {
             Frequently Asked Questions
           </h1>
           <p className="text-xl text-foreground/60">
-            Everything you need to know about Cloud Dev Platform
+            Everything you need to know about Flotilla
           </p>
         </div>
 
