@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { ArrowRight, Github, Rocket, BookOpen, Code, TestTube } from 'lucide-react'
 import { CodeBlock } from '@/components/ui/code-block'
 
@@ -56,13 +57,13 @@ pnpm dev
         />
 
         <div className="mt-6 flex gap-3">
-          <a
+          <Link
             href="/docs/quick-start"
             className="inline-flex items-center gap-2 px-6 h-11 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
           >
             Full Quick Start Guide
             <ArrowRight className="h-4 w-4" />
-          </a>
+          </Link>
           <a
             href="https://github.com/CPU-JIA/Cloud-Dev-Platform"
             target="_blank"

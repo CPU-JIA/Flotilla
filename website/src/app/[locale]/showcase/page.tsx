@@ -136,7 +136,7 @@ export default function ShowcasePage() {
             Built something with Flotilla?
           </h2>
           <p className="text-foreground/70 mb-6">
-            We'd love to feature your project here. Submit a pull request or open an issue on GitHub.
+            We would love to feature your project here. Submit a pull request or open an issue on GitHub.
           </p>
           <a
             href="https://github.com/CPU-JIA/Cloud-Dev-Platform/issues/new"

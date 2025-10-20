@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Accordion } from '@/components/ui/accordion'
 
 export default function FAQPage() {
@@ -79,12 +80,12 @@ export default function FAQPage() {
             >
               Open an Issue
             </a>
-            <a
+            <Link
               href="/docs"
               className="inline-flex items-center gap-2 px-6 h-11 rounded-lg border border-border hover:bg-secondary transition-colors font-medium"
             >
               Read the Docs
-            </a>
+            </Link>
           </div>
         </div>
       </div>

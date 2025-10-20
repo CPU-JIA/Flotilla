@@ -125,8 +125,8 @@ services:
   # 官网 Next.js
   website:
     build:
-      context: ./website
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: website/Dockerfile
     container_name: flotilla-website
     restart: unless-stopped
     ports:

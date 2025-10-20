@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
 import {
@@ -179,12 +180,12 @@ export function FeaturesBentoGrid() {
           <p className="text-foreground/60 mb-6">
             Want to see it in action?
           </p>
-          <a
+          <Link
             href="/docs"
             className="inline-flex items-center gap-2 px-8 h-12 rounded-lg bg-foreground text-background hover:bg-foreground/90 transition-colors font-medium shadow-lg"
           >
             Explore Documentation →
-          </a>
+          </Link>
         </motion.div>
       </div>
     </section>

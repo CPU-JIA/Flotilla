@@ -8,7 +8,6 @@ import { Github, Menu, X } from 'lucide-react'
 import Image from 'next/image'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { LanguageSwitcher } from '@/components/ui/language-switcher'
-import { cn } from '@/lib/utils'
 
 export function Header() {
   const t = useTranslations()

@@ -1,4 +1,5 @@
 import { useTranslations } from 'next-intl'
+import Link from 'next/link'
 import { ArrowRight, Github, Zap } from 'lucide-react'
 import { FeaturesBentoGrid } from '@/components/sections/features-bento-grid'
 import { RaftLiveDemo } from '@/components/sections/raft-live-demo'
@@ -64,7 +65,7 @@ class RaftNode {
             {/* Heading */}
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight">
               <span className="block text-foreground">
-                We don't just host code.
+                We do not just host code.
               </span>
               <span className="block mt-2 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                 We build consensus.
@@ -79,7 +80,7 @@ class RaftNode {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
               <a
-                href={process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:4000'}
+                href={process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}
                 className="group inline-flex items-center gap-2 px-8 h-12 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 font-medium"
               >
                 {t('hero.cta')}
@@ -141,14 +142,13 @@ class RaftNode {
                 code={raftCodeExample}
                 language="typescript"
                 filename="apps/backend/src/raft/raft-node.ts"
-                showLineNumbers
               />
 
               <div className="space-y-6 lg:pt-8">
                 <div className="space-y-4">
                   <h3 className="text-2xl font-bold">Production-Ready Implementation</h3>
                   <p className="text-foreground/70 leading-relaxed">
-                    Our Raft implementation isn't a toy demo. It's production-grade code with:
+                    Our Raft implementation is not a toy demo. It is production-grade code with:
                   </p>
                   <ul className="space-y-2 text-foreground/70">
                     <li className="flex items-start gap-2">
@@ -170,12 +170,12 @@ class RaftNode {
                   </ul>
                 </div>
 
-                <a
+                <Link
                   href="/docs/raft"
                   className="inline-flex items-center gap-2 px-6 h-11 rounded-lg bg-foreground text-background hover:bg-foreground/90 transition-colors font-medium"
                 >
                   Read Raft Documentation →
-                </a>
+                </Link>
               </div>
             </div>
           </div>
@@ -192,19 +192,19 @@ class RaftNode {
             Join developers who are building reliable distributed systems with academic rigor and production-ready tools.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
+            <Link
               href="/docs"
               className="inline-flex items-center gap-2 px-8 h-12 rounded-lg bg-foreground text-background hover:bg-foreground/90 transition-colors font-medium shadow-lg"
             >
               Get Started
               <ArrowRight className="h-4 w-4" />
-            </a>
-            <a
+            </Link>
+            <Link
               href="/showcase"
               className="inline-flex items-center gap-2 px-8 h-12 rounded-lg border border-border hover:bg-secondary transition-colors font-medium"
             >
               View Showcase
-            </a>
+            </Link>
           </div>
         </div>
       </section>

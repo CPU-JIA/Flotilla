@@ -228,7 +228,7 @@ export function RaftLiveDemo() {
                       animate={{ opacity: 1 }}
                       className="h-full flex items-center justify-center text-foreground/40 text-sm"
                     >
-                      Click "Simulate Leader Failure" to start...
+                      Click &quot;Simulate Leader Failure&quot; to start...
                     </motion.div>
                   ) : (
                     <div className="space-y-2 font-mono text-sm">

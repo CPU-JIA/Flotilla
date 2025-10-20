@@ -10,14 +10,12 @@ interface CodeBlockProps {
   code: string
   language?: string
   filename?: string
-  showLineNumbers?: boolean
 }
 
 export function CodeBlock({
   code,
   language = 'typescript',
   filename,
-  showLineNumbers = true,
 }: CodeBlockProps) {
   const { theme } = useTheme()
   const [html, setHtml] = React.useState<string>('')

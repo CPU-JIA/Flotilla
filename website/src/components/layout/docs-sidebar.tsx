@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { useTranslations } from 'next-intl'
 import { Link } from '@/lib/i18n'
 import { ChevronRight, FileText, BookOpen, Settings, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -16,8 +15,6 @@ interface DocSection {
 }
 
 export function DocsSidebar() {
-  const t = useTranslations()
-
   const sections: DocSection[] = [
     {
       title: 'Getting Started',
