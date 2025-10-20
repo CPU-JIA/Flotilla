@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Status**: 🚧 In Development
 **Version**: v1.0.0-MVP
-**Last Updated**: 2025-10-19
+**Last Updated**: 2025-10-20
 
 ## Prerequisites
 
@@ -30,6 +30,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Tailwind CSS 4** - Utility-first CSS
 - **Shadcn/ui** - Component library (Radix UI based)
 - **Monaco Editor** - Code editor integration
+- **TanStack Query 5** - Server state management (used in Raft monitoring)
+- **React Flow** - Interactive node graphs (Raft cluster topology visualization)
+- **Recharts** - Data visualization (metrics charts)
 - **Playwright** - E2E testing framework
 
 ### Backend (`apps/backend`)
@@ -234,7 +237,10 @@ apps/frontend/src/
 - **App Router**: Uses Next.js 15 App Router with Server Components
 - **API client**: Centralized `api.ts` handles all backend requests with error handling
 - **Form handling**: Uses `react-hook-form` + `zod` for validation
-- **State management**: Primarily React Context (no global state library yet)
+- **State management**:
+  - Server state: TanStack Query for Raft monitoring (`/raft` page)
+  - UI state: React Context (auth, language, theme)
+  - Note: Zustand is installed but currently unused
 - **Monaco Editor**: Integrated for code editing with language auto-detection
 - **i18n Support**: Multi-language support (zh/en) via React Context
   - Translation files: `src/locales/zh.ts`, `src/locales/en.ts`
@@ -435,6 +441,30 @@ The platform implements a simplified Raft consensus algorithm for distributed co
 - Performance testing support via `pnpm raft:performance`
 
 For implementation details, see `/docs/分布式共识算法设计方案.md`.
+
+### Raft Monitoring UI
+
+**Frontend Raft Dashboard** (`/raft` page):
+- **Real-time Cluster Visualization**: Interactive topology graph showing node relationships
+  - Uses React Flow for draggable node graph
+  - Color-coded node states (Leader: green, Follower: blue, Candidate: yellow)
+  - Live WebSocket connection for state updates
+- **Metrics Charts**: Performance monitoring with Recharts
+  - Request latency over time
+  - Throughput metrics
+  - Leader election events
+- **Cluster Management**: Control panel for node operations
+  - Add/remove nodes dynamically
+  - View node logs and status
+  - Monitor consensus state
+
+**Key Components** (`apps/frontend/src/app/raft/components/`):
+- `ClusterTopology.tsx` - React Flow visualization
+- `MetricsChart.tsx` - Recharts performance graphs
+- `NodeList.tsx` - Node management UI
+
+**Data Fetching** (`apps/frontend/src/app/raft/hooks/`):
+- `useRaftCluster.ts` - TanStack Query hooks for cluster state
 
 ## Docker Production Deployment
 

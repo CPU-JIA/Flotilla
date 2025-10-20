@@ -1,0 +1,62 @@
+import Image from 'next/image'
+
+# Raft Consensus Visualization
+
+> **Status**: 🚧 Under Construction
+
+This page will feature a live demonstration of the Raft consensus algorithm in action.
+
+## Coming Soon
+
+- **Live Cluster Visualization**: Watch 3-node Raft cluster in real-time
+- **Interactive Leader Election**: Trigger leader failures and observe recovery
+- **Log Replication Demo**: See how commands propagate across nodes
+- **Performance Metrics**: Monitor heartbeats, latency, and throughput
+
+<div style={{ textAlign: 'center', margin: '3rem 0', backgroundColor: 'var(--nextra-bg)', padding: '2rem', borderRadius: '1rem' }}>
+  <Image
+    src="/images/3节点集群运行.png"
+    alt="Raft Consensus Algorithm - 3-node cluster with Leader and Follower nodes"
+    width={700}
+    height={500}
+    style={{ borderRadius: '0.5rem', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}
+  />
+  <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: 'var(--nextra-fg-secondary)' }}>
+    Raft Consensus: Node 2 (Leader) replicates logs to Node 1 and Node 3 (Followers)
+  </div>
+</div>
+
+## In the Meantime
+
+Explore the Raft implementation in the main repository:
+
+- **Source Code**: `/apps/backend/src/raft` - Core Raft node implementation
+- **WebSocket Gateway**: `/apps/backend/src/raft-cluster` - Real-time cluster communication
+- **Test Demos**: Run `pnpm raft:demo` in the backend directory
+
+## Architecture Overview
+
+Flotilla implements a production-grade Raft consensus algorithm with:
+
+- **Leader Election**: Automatic election with randomized timeouts (150-300ms)
+- **Log Replication**: Persistent logs with strong consistency guarantees
+- **WebSocket Transport**: Real-time inter-node communication
+- **State Machine**: Git-aware state machine for repository operations
+
+## Key Features
+
+1. **Production-Ready**: Not a demo—actual persistent storage and crash recovery
+2. **150ms Failover**: Rapid leader election ensures minimal downtime
+3. **Strong Consistency**: All committed entries are durable and replicated
+4. **Distributed Coordination**: Coordinates operations across multiple backend nodes
+
+## Technical Details
+
+For implementation details, see:
+- [Raft Algorithm Design Document](https://github.com/CPU-JIA/Cloud-Dev-Platform/blob/main/docs/分布式共识算法设计方案.md)
+- [Architecture Design Document](https://github.com/CPU-JIA/Cloud-Dev-Platform/blob/main/docs/架构设计文档.md)
+
+---
+
+**Want to contribute to this visualization?**
+Check out the [GitHub repository](https://github.com/CPU-JIA/Cloud-Dev-Platform) and open a PR!

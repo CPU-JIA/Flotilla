@@ -1,0 +1,17 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://clouddev.com/sitemap.xml
+
+# Disallow private pages
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+
+# Allow crawling of public resources
+Allow: /docs
+Allow: /showcase
+Allow: /about
+Allow: /faq

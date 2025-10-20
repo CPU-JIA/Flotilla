@@ -1,0 +1,223 @@
+# Quick Start Guide
+
+<div style={{
+  display: 'flex',
+  alignItems: 'center',
+  gap: '1.5rem',
+  padding: '1rem',
+  backgroundColor: 'var(--nextra-bg)',
+  borderLeft: '4px solid #0070f3',
+  borderRadius: '0.5rem',
+  marginBottom: '2rem',
+  flexWrap: 'wrap'
+}}>
+  <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+    ⏱️ <strong>Setup Time:</strong> 10-15 minutes
+  </span>
+  <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+    📖 <strong>Read Time:</strong> 8 min read
+  </span>
+  <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+    💻 <strong>Requirements:</strong> 4GB RAM, 10GB disk
+  </span>
+</div>
+
+Get Cloud Dev Platform running locally in **10 minutes**.
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Node.js** >= 20.0.0 ([Download](https://nodejs.org/))
+- **pnpm** >= 10.0.0 (Install: `npm install -g pnpm`)
+- **Docker** & Docker Compose ([Download](https://www.docker.com/products/docker-desktop))
+- **Git** ([Download](https://git-scm.com/downloads))
+
+## Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/CPU-JIA/Cloud-Dev-Platform.git
+cd Cloud-Dev-Platform
+```
+
+## Step 2: Install Dependencies
+
+```bash
+# Install all dependencies using pnpm workspace
+pnpm install
+```
+
+This will install dependencies for both frontend and backend applications.
+
+## Step 3: Configure Environment Variables
+
+```bash
+# Copy the example environment file
+cp .env.example .env
+```
+
+Open `.env` and configure the following **required** variables:
+
+```bash
+# Database
+DATABASE_URL="postgresql://devplatform:devplatform123@localhost:5434/cloud_dev_platform"
+
+# JWT Secrets (generate your own in production!)
+JWT_SECRET="your-super-secret-jwt-key"
+JWT_REFRESH_SECRET="your-super-secret-refresh-key"
+
+# MinIO (Object Storage)
+MINIO_ENDPOINT="localhost"
+MINIO_PORT="9000"
+MINIO_ACCESS_KEY="minioadmin"
+MINIO_SECRET_KEY="minioadmin123"
+
+# Redis
+REDIS_HOST="localhost"
+REDIS_PORT="6380"
+
+# Backend URL (for frontend)
+NEXT_PUBLIC_API_URL="http://localhost:4000"
+```
+
+> **Note**: The `.env.example` file contains all available configuration options with detailed comments.
+
+## Step 4: Start Infrastructure Services
+
+Start PostgreSQL, Redis, and MinIO using Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+Verify all containers are running:
+
+```bash
+docker-compose ps
+```
+
+You should see:
+- ✅ `cloud-dev-postgres` (PostgreSQL on port 5434)
+- ✅ `cloud-dev-redis` (Redis on port 6380)
+- ✅ `cloud-dev-minio` (MinIO on ports 9000/9001)
+
+## Step 5: Run Database Migrations
+
+```bash
+cd apps/backend
+pnpm prisma migrate dev
+```
+
+This will:
+1. Create the database schema
+2. Generate Prisma Client
+3. Seed initial data (if configured)
+
+## Step 6: Start Development Servers
+
+### Option A: Start Both Frontend and Backend
+
+```bash
+# From project root
+pnpm dev
+```
+
+### Option B: Start Services Individually
+
+```bash
+# Terminal 1: Start Backend
+pnpm --filter backend dev
+
+# Terminal 2: Start Frontend
+pnpm --filter frontend dev
+```
+
+## Access the Platform
+
+Once all services are running, you can access:
+
+| Service | URL | Credentials |
+|---------|-----|-------------|
+| **Frontend** | http://localhost:3000 | Register new account |
+| **Backend API** | http://localhost:4000/api | - |
+| **API Docs (Swagger)** | http://localhost:4000/api/docs | - |
+| **MinIO Console** | http://localhost:9001 | minioadmin / minioadmin123 |
+
+## First-Time Setup
+
+1. **Register an account**: Visit http://localhost:3000/auth/register
+2. **Create an organization**: After login, create your first organization
+3. **Create a project**: Navigate to Projects and create a new project
+4. **Upload files**: Use the file manager to upload code files
+
+## Troubleshooting
+
+### Database Connection Error
+
+**Error**: `Can't reach database server at localhost:5434`
+
+**Solution**:
+```bash
+# Check if PostgreSQL container is running
+docker-compose ps
+
+# If not running, start it
+docker-compose up -d postgres
+
+# Check logs
+docker-compose logs postgres
+```
+
+### Port Already in Use
+
+**Error**: `Port 3000 is already in use`
+
+**Solution**:
+```bash
+# Change frontend port in apps/frontend/package.json
+"dev": "next dev -p 3001"
+
+# Or kill the process using port 3000
+# On Windows:
+netstat -ano | findstr :3000
+taskkill /PID <PID> /F
+
+# On macOS/Linux:
+lsof -ti:3000 | xargs kill -9
+```
+
+### Prisma Client Not Generated
+
+**Error**: `Cannot find module '@prisma/client'`
+
+**Solution**:
+```bash
+cd apps/backend
+pnpm prisma generate
+```
+
+### Docker Compose Not Starting
+
+**Error**: `docker-compose: command not found`
+
+**Solution**:
+- Ensure Docker Desktop is installed and running
+- On newer Docker versions, use `docker compose` (space instead of hyphen)
+
+## Next Steps
+
+- 📖 [Architecture Overview](/docs/architecture) - Understand the system design
+- 🔒 [Authentication Guide](/docs/authentication) - Learn about JWT auth flow
+- 🎯 [Raft Algorithm](/docs/raft-algorithm) - Explore the consensus implementation
+- 🧪 [Testing Guide](/docs/testing) - Run E2E and unit tests
+
+## Need Help?
+
+- **GitHub Issues**: [Report bugs or request features](https://github.com/CPU-JIA/Cloud-Dev-Platform/issues)
+- **Documentation**: See `/docs` folder in the repository
+- **Community**: Join discussions on GitHub Discussions
+
+---
+
+**Estimated Setup Time**: 10-15 minutes
+**Minimum System Requirements**: 4GB RAM, 10GB disk space

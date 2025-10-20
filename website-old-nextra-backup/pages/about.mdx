@@ -1,0 +1,163 @@
+import Image from 'next/image'
+
+# About Flotilla
+
+> **We don't just host code. We build consensus.**
+
+## Origin Story
+
+When software teams scatter across timezones, we've mastered distributed *systems* but still struggle with distributed *collaboration*. Merge conflicts, permission disputes, communication breakdowns—these aren't technical problems. They're **consensus problems**.
+
+Flotilla started with a simple question: **If the Raft algorithm can achieve consensus among distributed nodes, why can't distributed teams?**
+
+## Philosophy: Craftsmanship Meets Academic Rigor
+
+This isn't a weekend hack. This is a full-lifecycle software engineering project:
+
+- **Requirements → Architecture → Implementation → Testing → Documentation**
+
+  Every line of code is backed by design docs. Every feature has test coverage. Every decision follows **ECP (Engineering & Code Principles)**: SOLID, DRY, KISS, defensive programming.
+
+- **Raft Consensus isn't a gimmick—it's production-grade**
+
+  WebSocket real-time communication, persistent log storage, leader election, log replication. This is real distributed systems engineering, not a demo.
+
+- **Internationalization-first**, not "i18n-friendly"
+
+  zh/en bilingual support isn't an afterthought—it's baked into the architecture from line one. Technology should transcend language barriers, not reinforce them.
+
+## Our Three Non-Negotiables
+
+### 1. Academic Rigor + Production Ready
+
+We write paper-grade documentation *and* production-grade code. No compromises.
+
+### 2. Global by Design
+
+From API responses to error messages, from timezone handling to permission models—every detail considers cross-cultural complexity.
+
+### 3. Developer First, Always
+
+We don't build "user-friendly but developer-painful" tools. Monaco Editor, Playwright E2E, Prisma ORM—we use the best because you deserve it.
+
+## Vision: Collaboration as Reliable as Distributed Systems
+
+<div style={{ textAlign: 'center', margin: '3rem 0' }}>
+  <Image
+    src="/images/全球协作团队.png"
+    alt="Global distributed team collaboration with Flotilla"
+    width={800}
+    height={600}
+    style={{ borderRadius: '1rem', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}
+  />
+</div>
+
+We believe the best tools follow Unix philosophy: **Do one thing, and do it well.**
+
+Flotilla does one thing: **Make distributed teams as reliable as distributed systems.**
+
+No more @everyone in Slack.
+No more "URGENT" in email subjects.
+No more "let's sync again" in meetings.
+
+When code is consensus, when permissions are protocols, when history is truth—collaboration just *happens*.
+
+**This isn't utopia. This is engineering.**
+
+## Project Status
+
+- **Version**: v1.0.0-MVP
+- **Status**: 🚧 In Active Development
+- **License**: MIT
+- **First Commit**: 2025-10-18
+
+## Technology Stack
+
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS
+- **Backend**: NestJS 11, Prisma 6, PostgreSQL 16, Redis 7
+- **Consensus**: Production-grade Raft algorithm
+- **Testing**: Playwright E2E + Jest unit tests
+- **Infrastructure**: Docker Compose, MinIO
+
+## Documentation
+
+Comprehensive documentation is available in the main repository:
+
+- [Requirements Analysis (需求分析)](https://github.com/CPU-JIA/Cloud-Dev-Platform/blob/main/docs/需求分析文档.md)
+- [Architecture Design (架构设计)](https://github.com/CPU-JIA/Cloud-Dev-Platform/blob/main/docs/架构设计文档.md)
+- [Database Design (数据库设计)](https://github.com/CPU-JIA/Cloud-Dev-Platform/blob/main/docs/数据库设计文档.md)
+- [Raft Algorithm Design (Raft算法设计)](https://github.com/CPU-JIA/Cloud-Dev-Platform/blob/main/docs/分布式共识算法设计方案.md)
+- [Organization & Team Permissions (组织与团队权限)](https://github.com/CPU-JIA/Cloud-Dev-Platform/blob/main/docs/组织与团队权限架构设计.md)
+
+## Get Involved
+
+<div style={{ textAlign: 'center', margin: '3rem 0' }}>
+  <Image
+    src="/images/写作氛围.png"
+    alt="Open source community collaboration atmosphere"
+    width={800}
+    height={800}
+    style={{ borderRadius: '1rem', boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)' }}
+  />
+</div>
+
+- **GitHub**: [CPU-JIA/Cloud-Dev-Platform](https://github.com/CPU-JIA/Cloud-Dev-Platform)
+- **Issues**: [Report bugs or request features](https://github.com/CPU-JIA/Cloud-Dev-Platform/issues)
+- **Discussions**: Join the conversation on GitHub
+
+---
+
+## Team
+
+<div style={{
+  padding: '2rem',
+  backgroundColor: 'var(--nextra-bg)',
+  borderRadius: '0.5rem',
+  border: '1px solid var(--nextra-border)'
+}}>
+  <div style={{ marginBottom: '1.5rem' }}>
+    <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>Created by JIA</h3>
+    <p style={{ fontSize: '0.875rem', color: 'var(--nextra-fg-secondary)' }}>
+      Academic project developed with engineering rigor and production mindset.
+    </p>
+  </div>
+
+  <div style={{
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+    gap: '1rem',
+    marginTop: '1.5rem',
+    paddingTop: '1.5rem',
+    borderTop: '1px solid var(--nextra-border)'
+  }}>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ fontSize: '2rem', fontWeight: 700, color: '#667eea' }}>1</div>
+      <div style={{ fontSize: '0.875rem', color: 'var(--nextra-fg-secondary)' }}>Core Developer</div>
+    </div>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ fontSize: '2rem', fontWeight: 700, color: '#667eea' }}>Open</div>
+      <div style={{ fontSize: '0.875rem', color: 'var(--nextra-fg-secondary)' }}>Community</div>
+    </div>
+    <div style={{ textAlign: 'center' }}>
+      <div style={{ fontSize: '2rem', fontWeight: 700, color: '#667eea' }}>100%</div>
+      <div style={{ fontSize: '0.875rem', color: 'var(--nextra-fg-secondary)' }}>Open Source</div>
+    </div>
+  </div>
+
+  <div style={{
+    marginTop: '1.5rem',
+    padding: '1rem',
+    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+    borderRadius: '0.5rem',
+    textAlign: 'center'
+  }}>
+    <p style={{ fontSize: '0.875rem', fontWeight: 600 }}>
+      🤝 Join the team! We welcome contributors from around the world.
+    </p>
+  </div>
+</div>
+
+---
+
+**Want to contribute?**
+Fork the repo. Read the docs. Break things. Build consensus.

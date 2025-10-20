@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+:root {
+  /* Background & Foreground */
+  --background: 0 0% 100%; /* #ffffff */
+  --foreground: 222 47% 11%; /* #0f172a */
+
+  /* Primary Colors (Purple-Blue) */
+  --primary: 244 67% 64%; /* #667eea */
+  --primary-foreground: 0 0% 100%;
+
+  /* Accent Colors (Green - Consensus) */
+  --accent: 158 64% 52%; /* #10b981 */
+  --accent-foreground: 0 0% 100%;
+
+  /* Secondary (Muted backgrounds) */
+  --secondary: 210 40% 96%; /* #f1f5f9 */
+  --secondary-foreground: 222 47% 11%;
+
+  /* Muted (Subtle text) */
+  --muted: 215 16% 47%; /* #64748b */
+  --muted-foreground: 215 16% 47%;
+
+  /* Border */
+  --border: 214 32% 91%; /* #e2e8f0 */
+
+  /* Glassmorphism */
+  --glass-bg: 0 0% 100% / 0.1;
+  --glass-border: 0 0% 100% / 0.2;
+
+  /* Card */
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  /* Input */
+  --input: 214 32% 91%;
+  --ring: 244 67% 64%;
+
+  /* Radius */
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  /* Colors */
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-border: hsl(var(--border));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  /* Fonts */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Border Radius */
+  --default-border-radius: var(--radius);
+}
+
+.dark {
+  /* Background & Foreground */
+  --background: 222 47% 11%; /* #0f172a */
+  --foreground: 210 40% 96%; /* #f1f5f9 */
+
+  /* Primary Colors (Lighter in dark mode) */
+  --primary: 244 67% 75%; /* #818cf8 */
+  --primary-foreground: 222 47% 11%;
+
+  /* Accent Colors */
+  --accent: 158 64% 62%; /* #34d399 */
+  --accent-foreground: 222 47% 11%;
+
+  /* Secondary */
+  --secondary: 222 47% 18%; /* #1e293b */
+  --secondary-foreground: 210 40% 96%;
+
+  /* Muted */
+  --muted: 215 20% 35%; /* #475569 */
+  --muted-foreground: 215 16% 65%;
+
+  /* Border */
+  --border: 217 33% 27%; /* #334155 */
+
+  /* Glassmorphism for dark mode */
+  --glass-bg: 0 0% 0% / 0.1;
+  --glass-border: 0 0% 100% / 0.1;
+
+  /* Card */
+  --card: 222 47% 14%;
+  --card-foreground: 210 40% 96%;
+
+  /* Input */
+  --input: 217 33% 27%;
+  --ring: 244 67% 75%;
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-background text-foreground;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus visible styles */
+*:focus-visible {
+  @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+}

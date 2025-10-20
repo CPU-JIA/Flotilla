@@ -1,0 +1,18 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Leader节点（顶部，绿色，代表共识达成） -->
+  <circle cx="60" cy="30" r="12" fill="#10b981" opacity="0.9"/>
+  <circle cx="60" cy="30" r="8" fill="#10b981"/>
+
+  <!-- Follower节点1（左下，紫色） -->
+  <circle cx="30" cy="75" r="12" fill="#667eea" opacity="0.7"/>
+  <circle cx="30" cy="75" r="8" fill="#667eea"/>
+
+  <!-- Follower节点2（右下，紫色） -->
+  <circle cx="90" cy="75" r="12" fill="#667eea" opacity="0.7"/>
+  <circle cx="90" cy="75" r="8" fill="#667eea"/>
+
+  <!-- 连接线（代表共识通信） -->
+  <line x1="60" y1="35" x2="33" y2="70" stroke="#667eea" stroke-width="2" opacity="0.4"/>
+  <line x1="60" y1="35" x2="87" y2="70" stroke="#667eea" stroke-width="2" opacity="0.4"/>
+  <line x1="33" y1="78" x2="87" y2="78" stroke="#667eea" stroke-width="2" opacity="0.4"/>
+</svg>
