@@ -44,6 +44,33 @@ Cloud-Dev-Platform/
 └── package.json          # 根 package.json
 ```
 
+## 🐳 Docker 一键启动（推荐）
+
+**最快的启动方式！** 使用 Docker Compose 一键启动所有服务：
+
+```bash
+# 1. 复制环境变量配置
+cp .env.example .env
+
+# 2. 一键启动所有服务
+docker-compose up -d
+
+# 3. 查看服务状态
+docker-compose ps
+
+# 4. 查看日志
+docker-compose logs -f
+```
+
+**访问地址：**
+- 前端应用：http://localhost:3000
+- 官方网站：http://localhost:3003
+- 后端 API：http://localhost:4000/api
+- Swagger 文档：http://localhost:4000/api/docs
+- MinIO 控制台：http://localhost:9001 (minioadmin / minioadmin123)
+
+详细的 Docker 使用说明请查看 [DOCKER_QUICKSTART.md](./DOCKER_QUICKSTART.md)
+
 ## 🛠️ 开发环境设置
 
 ### 前置要求

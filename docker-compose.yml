@@ -2,7 +2,7 @@ services:
   # PostgreSQL 16 - 主数据库
   postgres:
     image: postgres:16-alpine
-    container_name: cloud-dev-postgres
+    container_name: flotilla-postgres
     restart: unless-stopped
     ports:
       - '5434:5432'
@@ -25,7 +25,7 @@ services:
   # Redis 7 - 缓存和会话存储
   redis:
     image: redis:7-alpine
-    container_name: cloud-dev-redis
+    container_name: flotilla-redis
     restart: unless-stopped
     ports:
       - '6380:6379'
@@ -43,7 +43,7 @@ services:
   # MinIO - 对象存储（S3兼容）
   minio:
     image: minio/minio:latest
-    container_name: cloud-dev-minio
+    container_name: flotilla-minio
     restart: unless-stopped
     ports:
       - '9000:9000'   # API端口
@@ -67,7 +67,7 @@ services:
     build:
       context: .
       dockerfile: apps/backend/Dockerfile
-    container_name: cloud-dev-backend
+    container_name: flotilla-backend
     restart: unless-stopped
     ports:
       - '4000:4000'
@@ -107,7 +107,7 @@ services:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
-    container_name: cloud-dev-frontend
+    container_name: flotilla-frontend
     restart: unless-stopped
     ports:
       - '3000:3000'
@@ -122,10 +122,26 @@ services:
     networks:
       - cloud-dev-network
 
+  # 官网 Next.js
+  website:
+    build:
+      context: ./website
+      dockerfile: Dockerfile
+    container_name: flotilla-website
+    restart: unless-stopped
+    ports:
+      - '3003:3003'
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      NEXT_TELEMETRY_DISABLED: 1
+    networks:
+      - cloud-dev-network
+
   # PostgreSQL 从库（可选，用于读写分离）
   postgres-replica:
     image: postgres:16-alpine
-    container_name: cloud-dev-postgres-replica
+    container_name: flotilla-postgres-replica
     restart: unless-stopped
     ports:
       - '5435:5432'
