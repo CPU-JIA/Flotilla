@@ -37,6 +37,16 @@ enum RaftNodeState {
   LEADER // 领导者
 }
 
+enum IssueState {
+  OPEN // 开放状态
+  CLOSED // 已关闭
+}
+
+enum MilestoneState {
+  OPEN // 进行中
+  CLOSED // 已完成
+}
+
 enum OrgRole {
   OWNER // 组织所有者（最高权限）
   ADMIN // 组织管理员（可管理成员和设置）
@@ -72,6 +82,9 @@ model User {
   uploadedFiles       ProjectFile[]
   organizationMembers OrganizationMember[]
   teamMembers         TeamMember[]
+  authoredIssues      Issue[]              @relation("IssueAuthor")
+  issueComments       IssueComment[]       @relation("IssueCommentAuthor")
+  issueEvents         IssueEvent[]         @relation("IssueEventActor")
 
   @@index([email])
   @@index([username])
@@ -218,6 +231,9 @@ model Project {
   members         ProjectMember[]
   projectFiles    ProjectFile[]
   teamPermissions TeamProjectPermission[]
+  issues          Issue[]
+  labels          Label[]
+  milestones      Milestone[]
 
   @@unique([ownerId, name])
   @@unique([organizationId, name])
@@ -403,4 +419,122 @@ model ProjectFile {
   @@index([folder])
   @@index([type])
   @@map("project_files")
+}
+
+// ============================================
+// Issue 追踪系统模块
+// ============================================
+
+model Issue {
+  id        String     @id @default(cuid())
+  projectId String
+  number    Int // 项目内唯一编号（自增）
+  title     String     @db.VarChar(500)
+  body      String?    @db.Text
+  state     IssueState @default(OPEN)
+  authorId  String
+
+  // 关联关系（多对多）
+  assigneeIds  String[] // 分配给的用户ID数组
+  labelIds     String[] // 标签ID数组
+  milestoneId  String?
+
+  closedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // 关系
+  project   Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author    User           @relation("IssueAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  milestone Milestone?     @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  comments  IssueComment[]
+  events    IssueEvent[]
+
+  @@unique([projectId, number])
+  @@index([projectId])
+  @@index([authorId])
+  @@index([state])
+  @@index([milestoneId])
+  @@index([createdAt])
+  @@map("issues")
+}
+
+model Label {
+  id          String  @id @default(cuid())
+  projectId   String
+  name        String  @db.VarChar(50)
+  color       String  @db.VarChar(7) // Hex color (#RRGGBB)
+  description String? @db.VarChar(200)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, name])
+  @@index([projectId])
+  @@map("labels")
+}
+
+model Milestone {
+  id          String         @id @default(cuid())
+  projectId   String
+  title       String         @db.VarChar(200)
+  description String?        @db.Text
+  dueDate     DateTime?
+  state       MilestoneState @default(OPEN)
+  closedAt    DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  issues  Issue[]
+
+  @@unique([projectId, title])
+  @@index([projectId])
+  @@index([state])
+  @@index([dueDate])
+  @@map("milestones")
+}
+
+model IssueComment {
+  id       String @id @default(cuid())
+  issueId  String
+  authorId String
+  body     String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  issue  Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  author User  @relation("IssueCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("issue_comments")
+}
+
+model IssueEvent {
+  id       String   @id @default(cuid())
+  issueId  String
+  actorId  String
+  event    String   @db.VarChar(50) // 事件类型：opened, closed, reopened, assigned, labeled, etc.
+  metadata Json? // 事件相关元数据
+
+  createdAt DateTime @default(now())
+
+  // 关系
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  actor User  @relation("IssueEventActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+  @@index([actorId])
+  @@index([event])
+  @@index([createdAt])
+  @@map("issue_events")
 }

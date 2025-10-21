@@ -1,0 +1,147 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
+import { IssuesService } from './issues.service';
+import { CreateIssueDto } from './dto/create-issue.dto';
+import { UpdateIssueDto } from './dto/update-issue.dto';
+import { QueryIssueDto } from './dto/query-issue.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+
+@ApiTags('Issues')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('projects/:projectId/issues')
+export class IssuesController {
+  constructor(private readonly issuesService: IssuesService) {}
+
+  @Post()
+  @ApiOperation({ summary: '创建Issue' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiResponse({
+    status: 201,
+    description: 'Issue创建成功',
+  })
+  @ApiResponse({ status: 400, description: '请求参数错误' })
+  @ApiResponse({ status: 401, description: '未授权' })
+  create(
+    @Param('projectId') projectId: string,
+    @CurrentUser('id') userId: string,
+    @Body() createIssueDto: CreateIssueDto,
+  ) {
+    return this.issuesService.create(projectId, userId, createIssueDto);
+  }
+
+  @Get()
+  @ApiOperation({ summary: '获取Issue列表' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiResponse({
+    status: 200,
+    description: '返回Issue列表（分页）',
+  })
+  findAll(
+    @Param('projectId') projectId: string,
+    @Query() query: QueryIssueDto,
+  ) {
+    return this.issuesService.findAll(projectId, query);
+  }
+
+  @Get(':number')
+  @ApiOperation({ summary: '获取单个Issue' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiParam({ name: 'number', description: 'Issue编号' })
+  @ApiResponse({
+    status: 200,
+    description: '返回Issue详情',
+  })
+  @ApiResponse({ status: 404, description: 'Issue不存在' })
+  findOne(
+    @Param('projectId') projectId: string,
+    @Param('number', ParseIntPipe) number: number,
+  ) {
+    return this.issuesService.findOne(projectId, number);
+  }
+
+  @Patch(':number')
+  @ApiOperation({ summary: '更新Issue' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiParam({ name: 'number', description: 'Issue编号' })
+  @ApiResponse({
+    status: 200,
+    description: 'Issue更新成功',
+  })
+  @ApiResponse({ status: 404, description: 'Issue不存在' })
+  update(
+    @Param('projectId') projectId: string,
+    @Param('number', ParseIntPipe) number: number,
+    @CurrentUser('id') userId: string,
+    @Body() updateIssueDto: UpdateIssueDto,
+  ) {
+    return this.issuesService.update(projectId, number, userId, updateIssueDto);
+  }
+
+  @Post(':number/close')
+  @ApiOperation({ summary: '关闭Issue' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiParam({ name: 'number', description: 'Issue编号' })
+  @ApiResponse({
+    status: 200,
+    description: 'Issue已关闭',
+  })
+  @ApiResponse({ status: 404, description: 'Issue不存在' })
+  close(
+    @Param('projectId') projectId: string,
+    @Param('number', ParseIntPipe) number: number,
+  ) {
+    return this.issuesService.close(projectId, number);
+  }
+
+  @Post(':number/reopen')
+  @ApiOperation({ summary: '重新打开Issue' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiParam({ name: 'number', description: 'Issue编号' })
+  @ApiResponse({
+    status: 200,
+    description: 'Issue已重新打开',
+  })
+  @ApiResponse({ status: 404, description: 'Issue不存在' })
+  reopen(
+    @Param('projectId') projectId: string,
+    @Param('number', ParseIntPipe) number: number,
+  ) {
+    return this.issuesService.reopen(projectId, number);
+  }
+
+  @Delete(':number')
+  @ApiOperation({ summary: '删除Issue' })
+  @ApiParam({ name: 'projectId', description: '项目ID' })
+  @ApiParam({ name: 'number', description: 'Issue编号' })
+  @ApiResponse({
+    status: 204,
+    description: 'Issue已删除',
+  })
+  @ApiResponse({ status: 404, description: 'Issue不存在' })
+  async remove(
+    @Param('projectId') projectId: string,
+    @Param('number', ParseIntPipe) number: number,
+  ) {
+    await this.issuesService.remove(projectId, number);
+    return { message: 'Issue deleted successfully' };
+  }
+}

@@ -6,9 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Flotilla** - A cloud-based code hosting and collaboration platform with distributed consensus algorithm (simplified Raft).
 
-**Status**: 🚧 In Development
+**Status**: 🚧 Phase 1 - Foundation (Issue System Development)
 **Version**: v1.0.0-MVP
-**Last Updated**: 2025-10-20
+**Last Updated**: 2025-10-21
+**Current Sprint**: Sprint 1 - Issue Tracking System
+**Roadmap**: See [ROADMAP_2025.md](./docs/ROADMAP_2025.md) for 24-month strategic plan
 
 ## Prerequisites
 
@@ -423,6 +425,37 @@ Comprehensive documentation is available in the `/docs` directory:
 - **[Changelog](./CHANGELOG.md)** - Project changelog
 
 **Important**: Always consult these documents before implementing major features to understand design decisions and architectural constraints.
+
+## Phase 1 Development Guide (Current)
+
+### Current Focus: Issue Tracking System
+
+**Sprint 1 Goals** (Week 1-2):
+- Design and implement complete Issue tracking system
+- Support Issue CRUD, Labels, Milestones, Assignees
+- Implement Issue templates and search functionality
+- Full test coverage (Unit + E2E)
+
+**Development Workflow**:
+1. **Design First**: Create data model in Prisma schema
+2. **TDD Approach**: Write failing tests before implementation
+3. **API Contract**: Document all endpoints with Swagger decorators
+4. **ECP Compliance**: Follow SOLID, DRY, KISS principles
+5. **Test Coverage**: Maintain ≥70% unit test coverage
+
+**Upcoming Sprints**:
+- Sprint 2: Notification System (In-app + Email)
+- Sprint 3-4: Git Protocol Layer (Technical research + Implementation)
+- Sprint 5-6: Pull Request & Code Review System
+
+**Key Implementation Guidelines**:
+- All Issue operations must go through Prisma ORM
+- Use NestJS validation pipes for DTO validation
+- Implement pagination for Issue lists (default: 20 items/page)
+- Support Markdown in Issue body with sanitization
+- Auto-increment Issue number per project (not global ID)
+
+For complete roadmap, see [ROADMAP_2025.md](./docs/ROADMAP_2025.md).
 
 ## Development Philosophy
 

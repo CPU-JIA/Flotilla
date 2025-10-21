@@ -15,6 +15,7 @@ import { OrganizationsModule } from './organizations/organizations.module';
 import { TeamsModule } from './teams/teams.module';
 import { RaftClusterModule } from './raft-cluster/raft-cluster.module';
 import { MonitoringModule } from './monitoring/monitoring.module';
+import { IssuesModule } from './issues/issues.module';
 import { PerformanceMonitoringMiddleware } from './common/middleware/performance-monitoring.middleware';
 
 @Module({
@@ -36,6 +37,7 @@ import { PerformanceMonitoringMiddleware } from './common/middleware/performance
     TeamsModule,
     RaftClusterModule,
     MonitoringModule,
+    IssuesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
