@@ -106,21 +106,37 @@ export function CreateTeamDialog({ organizationSlug, onSuccess, trigger }: Creat
     // 前端验证
     const trimmedName = formData.name.trim()
     if (!trimmedName || trimmedName.length < 2) {
-      setError(t.loading === t.loading ? '团队名称至少需要2个字符' : 'Team name requires at least 2 characters')
+      setError(
+        t.loading === t.loading
+          ? '团队名称至少需要2个字符'
+          : 'Team name requires at least 2 characters'
+      )
       return
     }
     if (trimmedName.length > MAX_NAME_LENGTH) {
-      setError(t.loading === t.loading ? `团队名称最多${MAX_NAME_LENGTH}个字符` : `Team name max ${MAX_NAME_LENGTH} characters`)
+      setError(
+        t.loading === t.loading
+          ? `团队名称最多${MAX_NAME_LENGTH}个字符`
+          : `Team name max ${MAX_NAME_LENGTH} characters`
+      )
       return
     }
 
     const trimmedSlug = formData.slug.trim()
     if (!trimmedSlug || trimmedSlug.length < 2) {
-      setError(t.loading === t.loading ? '团队标识至少需要2个字符' : 'Team slug requires at least 2 characters')
+      setError(
+        t.loading === t.loading
+          ? '团队标识至少需要2个字符'
+          : 'Team slug requires at least 2 characters'
+      )
       return
     }
     if (trimmedSlug.length > MAX_SLUG_LENGTH) {
-      setError(t.loading === t.loading ? `团队标识最多${MAX_SLUG_LENGTH}个字符` : `Team slug max ${MAX_SLUG_LENGTH} characters`)
+      setError(
+        t.loading === t.loading
+          ? `团队标识最多${MAX_SLUG_LENGTH}个字符`
+          : `Team slug max ${MAX_SLUG_LENGTH} characters`
+      )
       return
     }
     if (!isValidSlug(trimmedSlug)) {
@@ -130,7 +146,11 @@ export function CreateTeamDialog({ organizationSlug, onSuccess, trigger }: Creat
 
     const trimmedDescription = formData.description?.trim() || ''
     if (trimmedDescription.length > MAX_DESCRIPTION_LENGTH) {
-      setError(t.loading === t.loading ? `描述最多${MAX_DESCRIPTION_LENGTH}个字符` : `Description max ${MAX_DESCRIPTION_LENGTH} characters`)
+      setError(
+        t.loading === t.loading
+          ? `描述最多${MAX_DESCRIPTION_LENGTH}个字符`
+          : `Description max ${MAX_DESCRIPTION_LENGTH} characters`
+      )
       return
     }
 
@@ -182,8 +202,7 @@ export function CreateTeamDialog({ organizationSlug, onSuccess, trigger }: Creat
             <DialogDescription>
               {t.loading === t.loading
                 ? '填写团队信息以创建一个新的团队'
-                : 'Fill in team details to create a new team'
-              }
+                : 'Fill in team details to create a new team'}
             </DialogDescription>
           </DialogHeader>
 
@@ -197,13 +216,19 @@ export function CreateTeamDialog({ organizationSlug, onSuccess, trigger }: Creat
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="name">{t.teams.name} *</Label>
-                <span className={`text-xs ${formData.name.length > MAX_NAME_LENGTH ? 'text-red-600' : 'text-gray-500'}`}>
+                <span
+                  className={`text-xs ${formData.name.length > MAX_NAME_LENGTH ? 'text-red-600' : 'text-gray-500'}`}
+                >
                   {formData.name.length} / {MAX_NAME_LENGTH}
                 </span>
               </div>
               <Input
                 id="name"
-                placeholder={t.loading === t.loading ? '请输入团队名称（2-100个字符）' : 'Enter team name (2-100 characters)'}
+                placeholder={
+                  t.loading === t.loading
+                    ? '请输入团队名称（2-100个字符）'
+                    : 'Enter team name (2-100 characters)'
+                }
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 disabled={isLoading}
@@ -214,25 +239,31 @@ export function CreateTeamDialog({ organizationSlug, onSuccess, trigger }: Creat
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="slug">{t.teams.slug} *</Label>
-                <span className={`text-xs ${
-                  formData.slug.length > MAX_SLUG_LENGTH ? 'text-red-600' :
-                  formData.slug && !isValidSlug(formData.slug) ? 'text-orange-600' :
-                  'text-gray-500'
-                }`}>
+                <span
+                  className={`text-xs ${
+                    formData.slug.length > MAX_SLUG_LENGTH
+                      ? 'text-red-600'
+                      : formData.slug && !isValidSlug(formData.slug)
+                        ? 'text-orange-600'
+                        : 'text-gray-500'
+                  }`}
+                >
                   {formData.slug.length} / {MAX_SLUG_LENGTH}
                 </span>
               </div>
               <Input
                 id="slug"
-                placeholder={t.loading === t.loading ? '团队URL标识（如：frontend-team）' : 'Team URL slug (e.g., frontend-team)'}
+                placeholder={
+                  t.loading === t.loading
+                    ? '团队URL标识（如：frontend-team）'
+                    : 'Team URL slug (e.g., frontend-team)'
+                }
                 value={formData.slug}
                 onChange={(e) => handleChange('slug', e.target.value.toLowerCase())}
                 disabled={isLoading}
                 required
               />
-              <p className="text-xs text-gray-500">
-                {t.teams.slugHelper}
-              </p>
+              <p className="text-xs text-gray-500">{t.teams.slugHelper}</p>
               {formData.slug && !isValidSlug(formData.slug) && (
                 <p className="text-xs text-orange-600">
                   {t.loading === t.loading ? '⚠ 格式不正确，请检查' : '⚠ Invalid format'}
@@ -243,13 +274,19 @@ export function CreateTeamDialog({ organizationSlug, onSuccess, trigger }: Creat
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="description">{t.teams.description}</Label>
-                <span className={`text-xs ${(formData.description?.length || 0) > MAX_DESCRIPTION_LENGTH ? 'text-red-600' : 'text-gray-500'}`}>
+                <span
+                  className={`text-xs ${(formData.description?.length || 0) > MAX_DESCRIPTION_LENGTH ? 'text-red-600' : 'text-gray-500'}`}
+                >
                   {formData.description?.length || 0} / {MAX_DESCRIPTION_LENGTH}
                 </span>
               </div>
               <Textarea
                 id="description"
-                placeholder={t.loading === t.loading ? '请输入团队描述（可选，最多500字符）' : 'Enter team description (optional, max 500 characters)'}
+                placeholder={
+                  t.loading === t.loading
+                    ? '请输入团队描述（可选，最多500字符）'
+                    : 'Enter team description (optional, max 500 characters)'
+                }
                 value={formData.description}
                 onChange={(e) => handleChange('description', e.target.value)}
                 disabled={isLoading}
@@ -259,14 +296,25 @@ export function CreateTeamDialog({ organizationSlug, onSuccess, trigger }: Creat
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={isLoading}
+            >
               {t.cancel}
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || !formData.name || !formData.slug || !isValidSlug(formData.slug)}
+              disabled={
+                isLoading || !formData.name || !formData.slug || !isValidSlug(formData.slug)
+              }
             >
-              {isLoading ? (t.loading === t.loading ? '创建中...' : 'Creating...') : t.teams.createNew}
+              {isLoading
+                ? t.loading === t.loading
+                  ? '创建中...'
+                  : 'Creating...'
+                : t.teams.createNew}
             </Button>
           </DialogFooter>
         </form>

@@ -55,17 +55,29 @@ export function SettingsTab({ organization, onUpdate }: SettingsTabProps) {
     // 验证
     const trimmedName = formData.name.trim()
     if (!trimmedName || trimmedName.length < 2) {
-      setError(t.loading === t.loading ? '组织名称至少需要2个字符' : 'Organization name requires at least 2 characters')
+      setError(
+        t.loading === t.loading
+          ? '组织名称至少需要2个字符'
+          : 'Organization name requires at least 2 characters'
+      )
       return
     }
     if (trimmedName.length > MAX_NAME_LENGTH) {
-      setError(t.loading === t.loading ? `组织名称最多${MAX_NAME_LENGTH}个字符` : `Organization name max ${MAX_NAME_LENGTH} characters`)
+      setError(
+        t.loading === t.loading
+          ? `组织名称最多${MAX_NAME_LENGTH}个字符`
+          : `Organization name max ${MAX_NAME_LENGTH} characters`
+      )
       return
     }
 
     const trimmedDescription = formData.description.trim()
     if (trimmedDescription.length > MAX_DESCRIPTION_LENGTH) {
-      setError(t.loading === t.loading ? `描述最多${MAX_DESCRIPTION_LENGTH}个字符` : `Description max ${MAX_DESCRIPTION_LENGTH} characters`)
+      setError(
+        t.loading === t.loading
+          ? `描述最多${MAX_DESCRIPTION_LENGTH}个字符`
+          : `Description max ${MAX_DESCRIPTION_LENGTH} characters`
+      )
       return
     }
 
@@ -94,14 +106,19 @@ export function SettingsTab({ organization, onUpdate }: SettingsTabProps) {
       return
     }
 
-    const confirmMessage = t.loading === t.loading
-      ? `${t.organizations.deleteConfirm}\n\n此操作不可撤销！请输入组织名称 "${organization.name}" 确认删除：`
-      : `${t.organizations.deleteConfirm}\n\nThis action cannot be undone! Enter organization name "${organization.name}" to confirm:`
+    const confirmMessage =
+      t.loading === t.loading
+        ? `${t.organizations.deleteConfirm}\n\n此操作不可撤销！请输入组织名称 "${organization.name}" 确认删除：`
+        : `${t.organizations.deleteConfirm}\n\nThis action cannot be undone! Enter organization name "${organization.name}" to confirm:`
 
     const userInput = prompt(confirmMessage)
     if (userInput !== organization.name) {
       if (userInput !== null) {
-        alert(t.loading === t.loading ? '组织名称不匹配，删除已取消' : 'Organization name mismatch, deletion cancelled')
+        alert(
+          t.loading === t.loading
+            ? '组织名称不匹配，删除已取消'
+            : 'Organization name mismatch, deletion cancelled'
+        )
       }
       return
     }
@@ -129,7 +146,9 @@ export function SettingsTab({ organization, onUpdate }: SettingsTabProps) {
         <CardHeader>
           <CardTitle>{t.loading === t.loading ? '基本信息' : 'Basic Information'}</CardTitle>
           <CardDescription>
-            {t.loading === t.loading ? '更新组织的名称和描述' : 'Update organization name and description'}
+            {t.loading === t.loading
+              ? '更新组织的名称和描述'
+              : 'Update organization name and description'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -148,7 +167,9 @@ export function SettingsTab({ organization, onUpdate }: SettingsTabProps) {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="name">{t.organizations.name} *</Label>
-                <span className={`text-xs ${formData.name.length > MAX_NAME_LENGTH ? 'text-red-600' : 'text-gray-500'}`}>
+                <span
+                  className={`text-xs ${formData.name.length > MAX_NAME_LENGTH ? 'text-red-600' : 'text-gray-500'}`}
+                >
                   {formData.name.length} / {MAX_NAME_LENGTH}
                 </span>
               </div>
@@ -161,7 +182,9 @@ export function SettingsTab({ organization, onUpdate }: SettingsTabProps) {
               />
               {organization.isPersonal && (
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {t.loading === t.loading ? '个人组织名称不可修改' : 'Personal organization name cannot be changed'}
+                  {t.loading === t.loading
+                    ? '个人组织名称不可修改'
+                    : 'Personal organization name cannot be changed'}
                 </p>
               )}
             </div>
@@ -169,7 +192,9 @@ export function SettingsTab({ organization, onUpdate }: SettingsTabProps) {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="description">{t.organizations.description}</Label>
-                <span className={`text-xs ${formData.description.length > MAX_DESCRIPTION_LENGTH ? 'text-red-600' : 'text-gray-500'}`}>
+                <span
+                  className={`text-xs ${formData.description.length > MAX_DESCRIPTION_LENGTH ? 'text-red-600' : 'text-gray-500'}`}
+                >
                   {formData.description.length} / {MAX_DESCRIPTION_LENGTH}
                 </span>
               </div>
@@ -178,17 +203,18 @@ export function SettingsTab({ organization, onUpdate }: SettingsTabProps) {
                 value={formData.description}
                 onChange={(e) => handleChange('description', e.target.value)}
                 disabled={isUpdating}
-                placeholder={t.loading === t.loading ? '组织描述（可选）' : 'Organization description (optional)'}
+                placeholder={
+                  t.loading === t.loading
+                    ? '组织描述（可选）'
+                    : 'Organization description (optional)'
+                }
                 rows={4}
               />
             </div>
 
             <div className="flex justify-end">
               <Button type="submit" disabled={isUpdating}>
-                {isUpdating
-                  ? (t.loading === t.loading ? '保存中...' : 'Saving...')
-                  : t.save
-                }
+                {isUpdating ? (t.loading === t.loading ? '保存中...' : 'Saving...') : t.save}
               </Button>
             </div>
           </form>
@@ -200,7 +226,9 @@ export function SettingsTab({ organization, onUpdate }: SettingsTabProps) {
         <CardHeader>
           <CardTitle>{t.organizations.slug}</CardTitle>
           <CardDescription>
-            {t.loading === t.loading ? '组织的URL标识（创建后不可修改）' : 'Organization URL slug (cannot be changed after creation)'}
+            {t.loading === t.loading
+              ? '组织的URL标识（创建后不可修改）'
+              : 'Organization URL slug (cannot be changed after creation)'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -219,7 +247,9 @@ export function SettingsTab({ organization, onUpdate }: SettingsTabProps) {
             {t.loading === t.loading ? '危险操作' : 'Danger Zone'}
           </CardTitle>
           <CardDescription>
-            {t.loading === t.loading ? '这些操作不可撤销，请谨慎操作' : 'These actions are irreversible, proceed with caution'}
+            {t.loading === t.loading
+              ? '这些操作不可撤销，请谨慎操作'
+              : 'These actions are irreversible, proceed with caution'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -231,9 +261,12 @@ export function SettingsTab({ organization, onUpdate }: SettingsTabProps) {
                 </h4>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   {organization.isPersonal
-                    ? (t.loading === t.loading ? '个人组织不能删除' : 'Personal organization cannot be deleted')
-                    : (t.loading === t.loading ? '永久删除此组织及其所有数据' : 'Permanently delete this organization and all its data')
-                  }
+                    ? t.loading === t.loading
+                      ? '个人组织不能删除'
+                      : 'Personal organization cannot be deleted'
+                    : t.loading === t.loading
+                      ? '永久删除此组织及其所有数据'
+                      : 'Permanently delete this organization and all its data'}
                 </p>
               </div>
               <Button
@@ -242,10 +275,7 @@ export function SettingsTab({ organization, onUpdate }: SettingsTabProps) {
                 onClick={handleDelete}
                 disabled={isDeleting || organization.isPersonal}
               >
-                {isDeleting
-                  ? (t.loading === t.loading ? '删除中...' : 'Deleting...')
-                  : t.delete
-                }
+                {isDeleting ? (t.loading === t.loading ? '删除中...' : 'Deleting...') : t.delete}
               </Button>
             </div>
           </div>

@@ -14,7 +14,14 @@ import { useLanguage } from '@/contexts/language-context'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { CreateOrganizationDialog } from '@/components/organizations/create-organization-dialog'
 import { api, ApiError } from '@/lib/api'
@@ -34,25 +41,28 @@ export default function OrganizationsPage() {
    * 获取组织列表
    * ECP-C2: 系统化错误处理
    */
-  const fetchOrganizations = useCallback(async (query?: string) => {
-    setLoading(true)
-    setError('')
+  const fetchOrganizations = useCallback(
+    async (query?: string) => {
+      setLoading(true)
+      setError('')
 
-    try {
-      const response = await api.organizations.getAll({
-        search: query || undefined,
-      })
-      setOrganizations(response)
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message || t.error)
-      } else {
-        setError(t.editor.networkError)
+      try {
+        const response = await api.organizations.getAll({
+          search: query || undefined,
+        })
+        setOrganizations(response)
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setError(err.message || t.error)
+        } else {
+          setError(t.editor.networkError)
+        }
+      } finally {
+        setLoading(false)
       }
-    } finally {
-      setLoading(false)
-    }
-  }, [t])
+    },
+    [t]
+  )
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -84,7 +94,7 @@ export default function OrganizationsPage() {
         className="bg-card rounded-[14px] p-6"
         style={{
           boxShadow: '10px 10px 15px black',
-          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))'
+          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))',
         }}
       >
         <div className="space-y-6">
@@ -95,7 +105,9 @@ export default function OrganizationsPage() {
                 {t.organizations.myOrganizations}
               </h2>
               <p className="text-muted-foreground mt-1">
-                {t.loading === t.loading ? `共 ${organizations.length} 个组织` : `${organizations.length} organizations`}
+                {t.loading === t.loading
+                  ? `共 ${organizations.length} 个组织`
+                  : `${organizations.length} organizations`}
               </p>
             </div>
             <CreateOrganizationDialog onSuccess={fetchOrganizations} />
@@ -149,15 +161,19 @@ export default function OrganizationsPage() {
                 <div className="text-6xl mb-4">🏢</div>
                 <h3 className="text-xl font-semibold text-card-foreground mb-2">
                   {searchQuery
-                    ? (t.loading === t.loading ? '未找到匹配的组织' : 'No matching organizations found')
-                    : t.organizations.noOrganizations
-                  }
+                    ? t.loading === t.loading
+                      ? '未找到匹配的组织'
+                      : 'No matching organizations found'
+                    : t.organizations.noOrganizations}
                 </h3>
                 <p className="text-muted-foreground mb-4">
                   {searchQuery
-                    ? (t.loading === t.loading ? '尝试使用不同的关键词搜索' : 'Try different keywords')
-                    : (t.loading === t.loading ? '创建您的第一个组织开始协作' : 'Create your first organization to start collaboration')
-                  }
+                    ? t.loading === t.loading
+                      ? '尝试使用不同的关键词搜索'
+                      : 'Try different keywords'
+                    : t.loading === t.loading
+                      ? '创建您的第一个组织开始协作'
+                      : 'Create your first organization to start collaboration'}
                 </p>
                 {!searchQuery && <CreateOrganizationDialog onSuccess={fetchOrganizations} />}
               </CardContent>
@@ -178,24 +194,31 @@ export default function OrganizationsPage() {
                           )}
                         </CardTitle>
                         {org.myRole && (
-                          <Badge variant={
-                            org.myRole === 'OWNER' ? 'default' :
-                            org.myRole === 'ADMIN' ? 'secondary' :
-                            'outline'
-                          }>
+                          <Badge
+                            variant={
+                              org.myRole === 'OWNER'
+                                ? 'default'
+                                : org.myRole === 'ADMIN'
+                                  ? 'secondary'
+                                  : 'outline'
+                            }
+                          >
                             {t.organizations.roles[org.myRole]}
                           </Badge>
                         )}
                       </div>
                       <CardDescription className="line-clamp-2">
-                        {org.description || (t.loading === t.loading ? '暂无描述' : 'No description')}
+                        {org.description ||
+                          (t.loading === t.loading ? '暂无描述' : 'No description')}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                         <div className="flex items-center gap-1">
                           <span>👥</span>
-                          <span>{org._count?.members || 0} {t.organizations.members}</span>
+                          <span>
+                            {org._count?.members || 0} {t.organizations.members}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span>📅</span>

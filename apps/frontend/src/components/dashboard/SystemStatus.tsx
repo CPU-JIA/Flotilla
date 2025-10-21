@@ -146,7 +146,9 @@ export function SystemStatus() {
     <div className="border-t border-gray-200 dark:border-gray-800 pt-6">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-bold text-card-foreground mb-1">{t.dashboard.systemStatus}</h3>
+          <h3 className="text-lg font-bold text-card-foreground mb-1">
+            {t.dashboard.systemStatus}
+          </h3>
           <p className="text-sm text-muted-foreground">{t.dashboard.systemStatusDesc}</p>
         </div>
         <button
@@ -165,7 +167,9 @@ export function SystemStatus() {
             className={`text-center p-4 rounded-xl border transition-all ${getStatusClasses(service.status)}`}
           >
             <div className="text-3xl mb-2">{service.icon}</div>
-            <div className="text-sm font-semibold text-card-foreground">{getServiceDisplayName(service.name)}</div>
+            <div className="text-sm font-semibold text-card-foreground">
+              {getServiceDisplayName(service.name)}
+            </div>
             <div className="text-xs mt-1">{getStatusText(service.status)}</div>
           </div>
         ))}

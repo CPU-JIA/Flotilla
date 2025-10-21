@@ -25,7 +25,9 @@ test.describe('代码编辑器功能测试', () => {
     await page.goto('/projects')
     await page.waitForTimeout(2000)
 
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -47,7 +49,9 @@ test.describe('代码编辑器功能测试', () => {
     await page.goto('/projects')
     await page.waitForTimeout(2000)
 
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -75,7 +79,9 @@ test.describe('代码编辑器功能测试', () => {
     await page.goto('/projects')
     await page.waitForTimeout(2000)
 
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -109,7 +115,9 @@ test.describe('代码编辑器功能测试', () => {
     await page.goto('/projects')
     await page.waitForTimeout(2000)
 
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -123,7 +131,9 @@ test.describe('代码编辑器功能测试', () => {
 
         // 查找保存状态指示器
         const saveIndicator = page.locator('text=/正在保存|保存|已保存|Saving|Saved/i').first()
-        const saveIndicatorExists = await saveIndicator.isVisible({ timeout: 3000 }).catch(() => false)
+        const saveIndicatorExists = await saveIndicator
+          .isVisible({ timeout: 3000 })
+          .catch(() => false)
 
         if (saveIndicatorExists) {
           await expect(saveIndicator).toBeVisible()
@@ -136,7 +146,9 @@ test.describe('代码编辑器功能测试', () => {
     await page.goto('/projects')
     await page.waitForTimeout(2000)
 
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -164,7 +176,9 @@ test.describe('代码编辑器功能测试', () => {
     await page.goto('/projects')
     await page.waitForTimeout(2000)
 
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -177,7 +191,9 @@ test.describe('代码编辑器功能测试', () => {
         await page.waitForTimeout(3000)
 
         // 查找版本历史按钮
-        const historyButton = page.getByRole('button', { name: /版本历史|Version History|History/i })
+        const historyButton = page.getByRole('button', {
+          name: /版本历史|Version History|History/i,
+        })
         const historyExists = await historyButton.isVisible({ timeout: 3000 }).catch(() => false)
 
         if (historyExists) {
@@ -191,7 +207,9 @@ test.describe('代码编辑器功能测试', () => {
     await page.goto('/projects')
     await page.waitForTimeout(2000)
 
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -232,7 +250,9 @@ test.describe('代码编辑器功能测试', () => {
     await page.goto('/projects')
     await page.waitForTimeout(2000)
 
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -245,7 +265,9 @@ test.describe('代码编辑器功能测试', () => {
         await page.waitForTimeout(3000)
 
         // 点击版本历史按钮
-        const historyButton = page.getByRole('button', { name: /版本历史|Version History|History/i })
+        const historyButton = page.getByRole('button', {
+          name: /版本历史|Version History|History/i,
+        })
         const historyExists = await historyButton.isVisible({ timeout: 3000 }).catch(() => false)
 
         if (historyExists) {
@@ -268,7 +290,9 @@ test.describe('代码编辑器功能测试', () => {
     await page.goto('/projects')
     await page.waitForTimeout(2000)
 
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -281,7 +305,9 @@ test.describe('代码编辑器功能测试', () => {
         await page.waitForTimeout(3000)
 
         // 查找文件树容器
-        const fileTree = page.locator('[data-testid="file-tree"], [class*="file-tree"], nav').first()
+        const fileTree = page
+          .locator('[data-testid="file-tree"], [class*="file-tree"], nav')
+          .first()
         const fileTreeExists = await fileTree.isVisible({ timeout: 3000 }).catch(() => false)
 
         if (fileTreeExists) {

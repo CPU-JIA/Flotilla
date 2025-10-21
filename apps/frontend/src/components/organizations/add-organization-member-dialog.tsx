@@ -10,7 +10,13 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Dialog,
   DialogContent,
@@ -31,7 +37,7 @@ interface AddOrganizationMemberDialogProps {
 
 export function AddOrganizationMemberDialog({
   organizationSlug,
-  onSuccess
+  onSuccess,
 }: AddOrganizationMemberDialogProps) {
   const { t } = useLanguage()
   const [open, setOpen] = useState(false)
@@ -53,7 +59,7 @@ export function AddOrganizationMemberDialog({
     try {
       await api.organizations.addMember(organizationSlug, {
         userId: userId.trim(),
-        role
+        role,
       })
       setOpen(false)
       setUserId('')
@@ -85,8 +91,7 @@ export function AddOrganizationMemberDialog({
             <DialogDescription>
               {t.loading === t.loading
                 ? '输入要添加的用户ID并选择角色'
-                : 'Enter user ID and select role'
-              }
+                : 'Enter user ID and select role'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -99,7 +104,11 @@ export function AddOrganizationMemberDialog({
               <Label htmlFor="userId">{t.organizations.selectUser} *</Label>
               <Input
                 id="userId"
-                placeholder={t.loading === t.loading ? '输入用户ID（如: cm...）' : 'Enter user ID (e.g., cm...)'}
+                placeholder={
+                  t.loading === t.loading
+                    ? '输入用户ID（如: cm...）'
+                    : 'Enter user ID (e.g., cm...)'
+                }
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
                 required
@@ -108,8 +117,7 @@ export function AddOrganizationMemberDialog({
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {t.loading === t.loading
                   ? '提示：可以在用户管理页面查看用户ID'
-                  : 'Tip: View user IDs in user management page'
-                }
+                  : 'Tip: View user IDs in user management page'}
               </p>
             </div>
             <div className="space-y-2">
@@ -124,24 +132,34 @@ export function AddOrganizationMemberDialog({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ADMIN">
-                    {t.organizations.roles.ADMIN} - {t.loading === t.loading ? '可以管理组织和成员' : 'Can manage organization and members'}
+                    {t.organizations.roles.ADMIN} -{' '}
+                    {t.loading === t.loading
+                      ? '可以管理组织和成员'
+                      : 'Can manage organization and members'}
                   </SelectItem>
                   <SelectItem value="MEMBER">
-                    {t.organizations.roles.MEMBER} - {t.loading === t.loading ? '普通成员' : 'Regular member'}
+                    {t.organizations.roles.MEMBER} -{' '}
+                    {t.loading === t.loading ? '普通成员' : 'Regular member'}
                   </SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={isLoading}
+            >
               {t.cancel}
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading
-                ? (t.loading === t.loading ? '添加中...' : 'Adding...')
-                : t.organizations.addMember
-              }
+                ? t.loading === t.loading
+                  ? '添加中...'
+                  : 'Adding...'
+                : t.organizations.addMember}
             </Button>
           </DialogFooter>
         </form>

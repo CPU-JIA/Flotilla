@@ -91,7 +91,7 @@ export default function AdminDashboard() {
         className="bg-card rounded-[14px] p-6"
         style={{
           boxShadow: '10px 10px 15px black',
-          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))'
+          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))',
         }}
       >
         {/* 页头 */}
@@ -111,8 +111,12 @@ export default function AdminDashboard() {
             <div className="text-3xl font-bold text-card-foreground mb-1">{stats.users.total}</div>
             <div className="text-sm text-muted-foreground mb-3">{t.admin.totalUsers}</div>
             <div className="flex gap-3 text-xs">
-              <span className="text-green-600 dark:text-green-400 font-medium">✓ {stats.users.active} {t.admin.active}</span>
-              <span className="text-gray-400">✗ {stats.users.inactive} {t.admin.inactive}</span>
+              <span className="text-green-600 dark:text-green-400 font-medium">
+                ✓ {stats.users.active} {t.admin.active}
+              </span>
+              <span className="text-gray-400">
+                ✗ {stats.users.inactive} {t.admin.inactive}
+              </span>
             </div>
           </div>
 
@@ -122,11 +126,17 @@ export default function AdminDashboard() {
               <div className="text-4xl">📁</div>
               <div className="text-sm text-muted-foreground">{t.admin.projects}</div>
             </div>
-            <div className="text-3xl font-bold text-card-foreground mb-1">{stats.projects.total}</div>
+            <div className="text-3xl font-bold text-card-foreground mb-1">
+              {stats.projects.total}
+            </div>
             <div className="text-sm text-muted-foreground mb-3">{t.admin.totalProjects}</div>
             <div className="flex gap-3 text-xs">
-              <span className="text-blue-600 dark:text-blue-400 font-medium">🌍 {stats.projects.public} {t.admin.public}</span>
-              <span className="text-gray-400">🔒 {stats.projects.private} {t.admin.private}</span>
+              <span className="text-blue-600 dark:text-blue-400 font-medium">
+                🌍 {stats.projects.public} {t.admin.public}
+              </span>
+              <span className="text-gray-400">
+                🔒 {stats.projects.private} {t.admin.private}
+              </span>
             </div>
           </div>
 
@@ -136,7 +146,9 @@ export default function AdminDashboard() {
               <div className="text-4xl">📝</div>
               <div className="text-sm text-muted-foreground">{t.admin.commits}</div>
             </div>
-            <div className="text-3xl font-bold text-card-foreground mb-1">{stats.commits.total}</div>
+            <div className="text-3xl font-bold text-card-foreground mb-1">
+              {stats.commits.total}
+            </div>
             <div className="text-sm text-muted-foreground mb-3">{t.admin.totalCommits}</div>
             <div className="text-xs text-gray-400">{t.admin.allCodeCommits}</div>
           </div>
@@ -147,11 +159,19 @@ export default function AdminDashboard() {
               <div className="text-4xl">👑</div>
               <div className="text-sm text-muted-foreground">{t.admin.roles}</div>
             </div>
-            <div className="text-sm text-muted-foreground mb-3">{t.admin.permissionDistribution}</div>
+            <div className="text-sm text-muted-foreground mb-3">
+              {t.admin.permissionDistribution}
+            </div>
             <div className="space-y-1 text-xs">
-              <div className="text-red-600 dark:text-red-400 font-medium">{t.admin.superAdmins}：{stats.users.superAdmins}</div>
-              <div className="text-gray-400">{t.admin.admins}：{stats.users.admins}</div>
-              <div className="text-muted-foreground">{t.admin.regularUsers}：{stats.users.regularUsers}</div>
+              <div className="text-red-600 dark:text-red-400 font-medium">
+                {t.admin.superAdmins}：{stats.users.superAdmins}
+              </div>
+              <div className="text-gray-400">
+                {t.admin.admins}：{stats.users.admins}
+              </div>
+              <div className="text-muted-foreground">
+                {t.admin.regularUsers}：{stats.users.regularUsers}
+              </div>
             </div>
           </div>
         </div>
@@ -166,10 +186,10 @@ export default function AdminDashboard() {
                   {t.admin.enterManagement}
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-card-foreground mb-2">{t.admin.userManagement}</h3>
-              <p className="text-muted-foreground text-sm">
-                {t.admin.userManagementDesc}
-              </p>
+              <h3 className="text-xl font-bold text-card-foreground mb-2">
+                {t.admin.userManagement}
+              </h3>
+              <p className="text-muted-foreground text-sm">{t.admin.userManagementDesc}</p>
             </div>
           </Link>
 
@@ -181,10 +201,10 @@ export default function AdminDashboard() {
                   {t.admin.enterManagement}
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-card-foreground mb-2">{t.admin.projectManagement}</h3>
-              <p className="text-muted-foreground text-sm">
-                {t.admin.projectManagementDesc}
-              </p>
+              <h3 className="text-xl font-bold text-card-foreground mb-2">
+                {t.admin.projectManagement}
+              </h3>
+              <p className="text-muted-foreground text-sm">{t.admin.projectManagementDesc}</p>
             </div>
           </Link>
 
@@ -196,10 +216,10 @@ export default function AdminDashboard() {
                   {t.admin.enterManagement}
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-card-foreground mb-2">{t.admin.raftClusterManagement}</h3>
-              <p className="text-muted-foreground text-sm">
-                {t.admin.raftClusterManagementDesc}
-              </p>
+              <h3 className="text-xl font-bold text-card-foreground mb-2">
+                {t.admin.raftClusterManagement}
+              </h3>
+              <p className="text-muted-foreground text-sm">{t.admin.raftClusterManagementDesc}</p>
             </div>
           </Link>
         </div>
@@ -230,7 +250,9 @@ export default function AdminDashboard() {
 
           {/* 最近创建项目 */}
           <div className="bg-card rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
-            <h3 className="text-lg font-bold text-card-foreground mb-1">{t.admin.recentProjects}</h3>
+            <h3 className="text-lg font-bold text-card-foreground mb-1">
+              {t.admin.recentProjects}
+            </h3>
             <p className="text-sm text-muted-foreground mb-4">{t.admin.recentProjectsDesc}</p>
             <div className="space-y-3">
               {stats.recent.projects.map((project) => (
@@ -240,7 +262,9 @@ export default function AdminDashboard() {
                 >
                   <div>
                     <div className="font-medium text-card-foreground">{project.name}</div>
-                    <div className="text-xs text-muted-foreground">{t.admin.by} {project.owner.username}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {t.admin.by} {project.owner.username}
+                    </div>
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {new Date(project.createdAt).toLocaleDateString('zh-CN')}

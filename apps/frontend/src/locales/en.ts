@@ -282,6 +282,9 @@ export const en: Translations = {
     deleteSuccess: 'Team deleted',
     createSuccess: 'Team created successfully',
     updateSuccess: 'Team updated successfully',
+    addMemberSuccess: 'Member added successfully',
+    removeMemberSuccess: 'Member removed',
+    confirmRemoveMember: 'Remove member {name}?',
     slugHelper: 'Lowercase letters, numbers, and hyphens only',
     roles: {
       MAINTAINER: 'Maintainer',
@@ -357,7 +360,8 @@ export const en: Translations = {
     performanceMetrics: 'Performance Metrics',
     controlPanel: 'Control Panel',
     aboutRaft: 'About Raft Consensus',
-    aboutRaftDescription: 'Raft is a consensus algorithm designed to be easy to understand. It provides fault tolerance and strong consistency for distributed systems. The algorithm ensures that the cluster elects a leader, replicates logs across nodes, and maintains consensus even during network partitions or node failures.',
+    aboutRaftDescription:
+      'Raft is a consensus algorithm designed to be easy to understand. It provides fault tolerance and strong consistency for distributed systems. The algorithm ensures that the cluster elects a leader, replicates logs across nodes, and maintains consensus even during network partitions or node failures.',
     failedToLoad: 'Failed to load cluster data',
     ensureBackendRunning: 'Please ensure the backend server is running at',
     loadingVisualization: 'Loading Raft cluster visualization...',
@@ -461,7 +465,7 @@ export const en: Translations = {
       operationFailed: 'Operation failed',
       banned: 'Banned',
       updateRole: 'Update Role',
-      confirmUpdateRole: 'Are you sure you want to change this user\'s role to {role}?',
+      confirmUpdateRole: "Are you sure you want to change this user's role to {role}?",
       roleUpdateSuccess: 'Role updated successfully',
       delete: 'Delete',
       confirmDelete: 'Are you sure you want to delete this user? This action cannot be undone!',
@@ -496,9 +500,23 @@ export const en: Translations = {
       createdAt: 'Created at',
       viewDetails: 'View Details',
       delete: 'Delete',
-      confirmDelete: 'Are you sure you want to delete project "{name}"? This action cannot be undone!',
+      confirmDelete:
+        'Are you sure you want to delete project "{name}"? This action cannot be undone!',
       deleteSuccess: 'Project deleted',
       deleteFailed: 'Delete failed',
     },
+  },
+
+  // Form validation
+  validation: {
+    emailRequired: 'Please enter email address',
+    invalidEmail: 'Invalid email format',
+    fieldRequired: 'This field is required',
+    passwordTooShort: 'Password must be at least 6 characters',
+    passwordMismatch: 'Passwords do not match',
+    usernameInvalid: 'Username can only contain letters, numbers and underscores',
+    slugInvalid: 'Slug can only contain lowercase letters, numbers and hyphens',
+    nameTooShort: 'Name must be at least 2 characters',
+    descriptionTooLong: 'Description cannot exceed 500 characters',
   },
 }

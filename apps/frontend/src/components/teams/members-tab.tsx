@@ -6,15 +6,22 @@
  * ECP-C1: 防御性编程 - 权限检查和email验证
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
-import { useLanguage } from '@/contexts/language-context'
-import { api, ApiError } from '@/lib/api'
+import { api } from '@/lib/api'
+import { useErrorHandler } from '@/hooks/use-error-handler'
+import { useFormValidation } from '@/hooks/use-form-validation'
 import type { TeamMember, TeamRole } from '@/types/team'
 
 interface MembersTabProps {
@@ -24,16 +31,9 @@ interface MembersTabProps {
   currentUserRole?: TeamRole
 }
 
-/**
- * 验证email格式
- * ECP-C1: 防御性编程
- */
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-}
-
 export function MembersTab({ organizationSlug, teamSlug, canManage }: MembersTabProps) {
-  const { t } = useLanguage()
+  const { t, handleError, handleSuccess } = useErrorHandler()
+  const { validateEmail } = useFormValidation()
   const [members, setMembers] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
@@ -46,22 +46,22 @@ export function MembersTab({ organizationSlug, teamSlug, canManage }: MembersTab
   const [newMemberRole, setNewMemberRole] = useState<TeamRole>('MEMBER')
   const [addError, setAddError] = useState('')
 
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     setLoading(true)
     try {
       const data = await api.teams.getMembers(organizationSlug, teamSlug)
       setMembers(data)
     } catch (err) {
       console.error('Failed to fetch members:', err)
-      alert(err instanceof ApiError ? err.message : t.error)
+      handleError(err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [organizationSlug, teamSlug, handleError])
 
   useEffect(() => {
     fetchMembers()
-  }, [organizationSlug, teamSlug])
+  }, [fetchMembers])
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -69,12 +69,9 @@ export function MembersTab({ organizationSlug, teamSlug, canManage }: MembersTab
 
     // 前端验证
     const trimmedEmail = newMemberEmail.trim()
-    if (!trimmedEmail) {
-      setAddError(t.loading === t.loading ? '请输入邮箱地址' : 'Please enter email address')
-      return
-    }
-    if (!isValidEmail(trimmedEmail)) {
-      setAddError(t.loading === t.loading ? '邮箱格式不正确' : 'Invalid email format')
+    const emailError = validateEmail(trimmedEmail)
+    if (emailError) {
+      setAddError(emailError)
       return
     }
 
@@ -88,12 +85,11 @@ export function MembersTab({ organizationSlug, teamSlug, canManage }: MembersTab
       setNewMemberEmail('')
       setNewMemberRole('MEMBER')
       setShowAddForm(false)
-      alert(t.loading === t.loading ? '成员添加成功' : 'Member added successfully')
+      handleSuccess(t.teams.addMemberSuccess)
     } catch (err) {
-      if (err instanceof ApiError) {
-        setAddError(err.message || t.error)
-      } else {
-        setAddError(t.editor.networkError)
+      handleError(err)
+      if (err instanceof Error) {
+        setAddError(err.message)
       }
     } finally {
       setAddingMember(false)
@@ -105,35 +101,25 @@ export function MembersTab({ organizationSlug, teamSlug, canManage }: MembersTab
     try {
       await api.teams.updateMemberRole(organizationSlug, teamSlug, userId, { role: newRole })
       await fetchMembers()
-      alert(t.teams.updateSuccess)
+      handleSuccess(t.teams.updateSuccess)
     } catch (err) {
-      if (err instanceof ApiError) {
-        alert(err.message || t.error)
-      } else {
-        alert(t.editor.networkError)
-      }
+      handleError(err)
     } finally {
       setUpdating(null)
     }
   }
 
   const handleRemoveMember = async (userId: string, username: string) => {
-    const confirmMessage = t.loading === t.loading
-      ? `确定要移除成员 ${username} 吗？`
-      : `Remove member ${username}?`
+    const confirmMessage = t.teams.confirmRemoveMember.replace('{name}', username)
     if (!confirm(confirmMessage)) return
 
     setRemoving(userId)
     try {
       await api.teams.removeMember(organizationSlug, teamSlug, userId)
       await fetchMembers()
-      alert(t.loading === t.loading ? '成员已移除' : 'Member removed')
+      handleSuccess(t.teams.removeMemberSuccess)
     } catch (err) {
-      if (err instanceof ApiError) {
-        alert(err.message || t.error)
-      } else {
-        alert(t.editor.networkError)
-      }
+      handleError(err)
     } finally {
       setRemoving(null)
     }
@@ -142,7 +128,7 @@ export function MembersTab({ organizationSlug, teamSlug, canManage }: MembersTab
   const getRoleBadge = (role: TeamRole) => {
     const roleConfig = {
       MAINTAINER: { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-      MEMBER: { color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200' }
+      MEMBER: { color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200' },
     }
     const config = roleConfig[role]
     return (
@@ -156,9 +142,7 @@ export function MembersTab({ organizationSlug, teamSlug, canManage }: MembersTab
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            {t.teams.members}
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t.teams.members}</h2>
           <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
             {t.loading === t.loading ? `共 ${members.length} 名成员` : `${members.length} members`}
           </p>
@@ -179,7 +163,11 @@ export function MembersTab({ organizationSlug, teamSlug, canManage }: MembersTab
                 <Label>{t.loading === t.loading ? '成员邮箱' : 'Member Email'} *</Label>
                 <Input
                   type="email"
-                  placeholder={t.loading === t.loading ? '请输入组织成员的邮箱地址' : 'Enter organization member email'}
+                  placeholder={
+                    t.loading === t.loading
+                      ? '请输入组织成员的邮箱地址'
+                      : 'Enter organization member email'
+                  }
                   value={newMemberEmail}
                   onChange={(e) => {
                     setNewMemberEmail(e.target.value)
@@ -197,7 +185,11 @@ export function MembersTab({ organizationSlug, teamSlug, canManage }: MembersTab
 
               <div>
                 <Label>{t.teams.role} *</Label>
-                <Select value={newMemberRole} onValueChange={(v) => setNewMemberRole(v as TeamRole)} disabled={addingMember}>
+                <Select
+                  value={newMemberRole}
+                  onValueChange={(v) => setNewMemberRole(v as TeamRole)}
+                  disabled={addingMember}
+                >
                   <SelectTrigger className="mt-2">
                     <SelectValue />
                   </SelectTrigger>
@@ -216,7 +208,11 @@ export function MembersTab({ organizationSlug, teamSlug, canManage }: MembersTab
 
               <div className="flex gap-3">
                 <Button type="submit" disabled={addingMember || !newMemberEmail.trim()}>
-                  {addingMember ? (t.loading === t.loading ? '添加中...' : 'Adding...') : t.teams.addMember}
+                  {addingMember
+                    ? t.loading === t.loading
+                      ? '添加中...'
+                      : 'Adding...'
+                    : t.teams.addMember}
                 </Button>
                 <Button
                   type="button"
@@ -253,9 +249,7 @@ export function MembersTab({ organizationSlug, teamSlug, canManage }: MembersTab
               {t.loading === t.loading ? '添加成员开始协作' : 'Add members to start collaboration'}
             </p>
             {canManage && !showAddForm && (
-              <Button onClick={() => setShowAddForm(true)}>
-                {t.teams.addMember}
-              </Button>
+              <Button onClick={() => setShowAddForm(true)}>{t.teams.addMember}</Button>
             )}
           </CardContent>
         </Card>
@@ -263,7 +257,6 @@ export function MembersTab({ organizationSlug, teamSlug, canManage }: MembersTab
         <div className="space-y-4">
           {members.map((member) => {
             if (!member.user) return null
-            const isMaintainer = member.role === 'MAINTAINER'
 
             return (
               <Card key={member.userId} className="hover:shadow-md transition-shadow">
@@ -294,7 +287,9 @@ export function MembersTab({ organizationSlug, teamSlug, canManage }: MembersTab
                       <div className="flex items-center gap-3">
                         <Select
                           value={member.role}
-                          onValueChange={(value) => handleUpdateRole(member.userId, value as TeamRole)}
+                          onValueChange={(value) =>
+                            handleUpdateRole(member.userId, value as TeamRole)
+                          }
                           disabled={updating === member.userId}
                         >
                           <SelectTrigger className="w-32">
@@ -313,9 +308,10 @@ export function MembersTab({ organizationSlug, teamSlug, canManage }: MembersTab
                           disabled={removing === member.userId}
                         >
                           {removing === member.userId
-                            ? (t.loading === t.loading ? '移除中...' : 'Removing...')
-                            : t.teams.removeMember
-                          }
+                            ? t.loading === t.loading
+                              ? '移除中...'
+                              : 'Removing...'
+                            : t.teams.removeMember}
                         </Button>
                       </div>
                     )}

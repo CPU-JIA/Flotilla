@@ -44,7 +44,7 @@ export default function FilesPage() {
         // 检查用户权限（项目所有者或OWNER/MEMBER角色可以管理文件）
         const currentUser = await api.auth.me()
         const isOwner = projectData.ownerId === currentUser.id
-        const userRole = projectData.members?.find(m => m.userId === currentUser.id)?.role
+        const userRole = projectData.members?.find((m) => m.userId === currentUser.id)?.role
         setCanManage(isOwner || userRole === 'OWNER' || userRole === 'MEMBER')
       } catch (err) {
         if (err instanceof ApiError) {
@@ -205,7 +205,9 @@ export default function FilesPage() {
               >
                 {t.projects.detail.backToProject}
               </Button>
-              <h1 className="text-3xl font-bold text-card-foreground">{project.name} - {t.projects.files.title}</h1>
+              <h1 className="text-3xl font-bold text-card-foreground">
+                {project.name} - {t.projects.files.title}
+              </h1>
             </div>
             <Button
               onClick={() => router.push(`/projects/${projectId}/editor`)}
@@ -246,11 +248,7 @@ export default function FilesPage() {
 
                 <div className="flex items-center gap-2">
                   {currentFolder !== '/' && (
-                    <Button
-                      variant="outline"
-                      onClick={handleBackClick}
-                      className="bg-card"
-                    >
+                    <Button variant="outline" onClick={handleBackClick} className="bg-card">
                       ⬆️ {t.projects.files.parentFolder}
                     </Button>
                   )}

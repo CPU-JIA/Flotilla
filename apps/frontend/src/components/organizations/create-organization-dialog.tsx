@@ -105,21 +105,37 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
     // 前端验证
     const trimmedName = formData.name.trim()
     if (!trimmedName || trimmedName.length < 2) {
-      setError(t.loading === t.loading ? '组织名称至少需要2个字符' : 'Organization name requires at least 2 characters')
+      setError(
+        t.loading === t.loading
+          ? '组织名称至少需要2个字符'
+          : 'Organization name requires at least 2 characters'
+      )
       return
     }
     if (trimmedName.length > MAX_NAME_LENGTH) {
-      setError(t.loading === t.loading ? `组织名称最多${MAX_NAME_LENGTH}个字符` : `Organization name max ${MAX_NAME_LENGTH} characters`)
+      setError(
+        t.loading === t.loading
+          ? `组织名称最多${MAX_NAME_LENGTH}个字符`
+          : `Organization name max ${MAX_NAME_LENGTH} characters`
+      )
       return
     }
 
     const trimmedSlug = formData.slug.trim()
     if (!trimmedSlug || trimmedSlug.length < 2) {
-      setError(t.loading === t.loading ? '组织标识至少需要2个字符' : 'Organization slug requires at least 2 characters')
+      setError(
+        t.loading === t.loading
+          ? '组织标识至少需要2个字符'
+          : 'Organization slug requires at least 2 characters'
+      )
       return
     }
     if (trimmedSlug.length > MAX_SLUG_LENGTH) {
-      setError(t.loading === t.loading ? `组织标识最多${MAX_SLUG_LENGTH}个字符` : `Organization slug max ${MAX_SLUG_LENGTH} characters`)
+      setError(
+        t.loading === t.loading
+          ? `组织标识最多${MAX_SLUG_LENGTH}个字符`
+          : `Organization slug max ${MAX_SLUG_LENGTH} characters`
+      )
       return
     }
     if (!isValidSlug(trimmedSlug)) {
@@ -129,7 +145,11 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
 
     const trimmedDescription = formData.description?.trim() || ''
     if (trimmedDescription.length > MAX_DESCRIPTION_LENGTH) {
-      setError(t.loading === t.loading ? `描述最多${MAX_DESCRIPTION_LENGTH}个字符` : `Description max ${MAX_DESCRIPTION_LENGTH} characters`)
+      setError(
+        t.loading === t.loading
+          ? `描述最多${MAX_DESCRIPTION_LENGTH}个字符`
+          : `Description max ${MAX_DESCRIPTION_LENGTH} characters`
+      )
       return
     }
 
@@ -180,8 +200,7 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
             <DialogDescription>
               {t.loading === t.loading
                 ? '填写组织信息以创建一个新的组织'
-                : 'Fill in organization details to create a new organization'
-              }
+                : 'Fill in organization details to create a new organization'}
             </DialogDescription>
           </DialogHeader>
 
@@ -195,13 +214,19 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="name">{t.organizations.name} *</Label>
-                <span className={`text-xs ${formData.name.length > MAX_NAME_LENGTH ? 'text-red-600' : 'text-gray-500'}`}>
+                <span
+                  className={`text-xs ${formData.name.length > MAX_NAME_LENGTH ? 'text-red-600' : 'text-gray-500'}`}
+                >
                   {formData.name.length} / {MAX_NAME_LENGTH}
                 </span>
               </div>
               <Input
                 id="name"
-                placeholder={t.loading === t.loading ? '请输入组织名称（2-100个字符）' : 'Enter organization name (2-100 characters)'}
+                placeholder={
+                  t.loading === t.loading
+                    ? '请输入组织名称（2-100个字符）'
+                    : 'Enter organization name (2-100 characters)'
+                }
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 disabled={isLoading}
@@ -212,25 +237,31 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="slug">{t.organizations.slug} *</Label>
-                <span className={`text-xs ${
-                  formData.slug.length > MAX_SLUG_LENGTH ? 'text-red-600' :
-                  formData.slug && !isValidSlug(formData.slug) ? 'text-orange-600' :
-                  'text-gray-500'
-                }`}>
+                <span
+                  className={`text-xs ${
+                    formData.slug.length > MAX_SLUG_LENGTH
+                      ? 'text-red-600'
+                      : formData.slug && !isValidSlug(formData.slug)
+                        ? 'text-orange-600'
+                        : 'text-gray-500'
+                  }`}
+                >
                   {formData.slug.length} / {MAX_SLUG_LENGTH}
                 </span>
               </div>
               <Input
                 id="slug"
-                placeholder={t.loading === t.loading ? '组织URL标识（如：my-org）' : 'Organization URL slug (e.g., my-org)'}
+                placeholder={
+                  t.loading === t.loading
+                    ? '组织URL标识（如：my-org）'
+                    : 'Organization URL slug (e.g., my-org)'
+                }
                 value={formData.slug}
                 onChange={(e) => handleChange('slug', e.target.value.toLowerCase())}
                 disabled={isLoading}
                 required
               />
-              <p className="text-xs text-gray-500">
-                {t.organizations.slugHelper}
-              </p>
+              <p className="text-xs text-gray-500">{t.organizations.slugHelper}</p>
               {formData.slug && !isValidSlug(formData.slug) && (
                 <p className="text-xs text-orange-600">
                   {t.loading === t.loading ? '⚠ 格式不正确，请检查' : '⚠ Invalid format'}
@@ -241,13 +272,19 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="description">{t.organizations.description}</Label>
-                <span className={`text-xs ${(formData.description?.length || 0) > MAX_DESCRIPTION_LENGTH ? 'text-red-600' : 'text-gray-500'}`}>
+                <span
+                  className={`text-xs ${(formData.description?.length || 0) > MAX_DESCRIPTION_LENGTH ? 'text-red-600' : 'text-gray-500'}`}
+                >
                   {formData.description?.length || 0} / {MAX_DESCRIPTION_LENGTH}
                 </span>
               </div>
               <Textarea
                 id="description"
-                placeholder={t.loading === t.loading ? '请输入组织描述（可选，最多500字符）' : 'Enter organization description (optional, max 500 characters)'}
+                placeholder={
+                  t.loading === t.loading
+                    ? '请输入组织描述（可选，最多500字符）'
+                    : 'Enter organization description (optional, max 500 characters)'
+                }
                 value={formData.description}
                 onChange={(e) => handleChange('description', e.target.value)}
                 disabled={isLoading}
@@ -257,14 +294,25 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={isLoading}
+            >
               {t.cancel}
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || !formData.name || !formData.slug || !isValidSlug(formData.slug)}
+              disabled={
+                isLoading || !formData.name || !formData.slug || !isValidSlug(formData.slug)
+              }
             >
-              {isLoading ? (t.loading === t.loading ? '创建中...' : 'Creating...') : t.organizations.createNew}
+              {isLoading
+                ? t.loading === t.loading
+                  ? '创建中...'
+                  : 'Creating...'
+                : t.organizations.createNew}
             </Button>
           </DialogFooter>
         </form>

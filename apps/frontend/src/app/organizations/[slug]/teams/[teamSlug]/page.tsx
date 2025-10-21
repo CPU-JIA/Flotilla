@@ -86,7 +86,7 @@ export default function TeamDetailPage() {
         className="bg-card rounded-[14px] p-[22px]"
         style={{
           boxShadow: '10px 10px 15px black',
-          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))'
+          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))',
         }}
       >
         {loading ? (
@@ -98,7 +98,10 @@ export default function TeamDetailPage() {
           <div className="text-center py-12">
             <div className="text-6xl mb-4">⚠️</div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{error}</h3>
-            <Button onClick={() => router.push(`/organizations/${organizationSlug}/teams`)} className="mt-4">
+            <Button
+              onClick={() => router.push(`/organizations/${organizationSlug}/teams`)}
+              className="mt-4"
+            >
               {t.teams.backToList}
             </Button>
           </div>
@@ -122,7 +125,10 @@ export default function TeamDetailPage() {
                     {team.description || t.teams.noDescription}
                   </p>
                 </div>
-                <Button variant="outline" onClick={() => router.push(`/organizations/${organizationSlug}/teams`)}>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push(`/organizations/${organizationSlug}/teams`)}
+                >
                   {t.teams.backToList}
                 </Button>
               </div>
@@ -212,11 +218,7 @@ export default function TeamDetailPage() {
               </TabsContent>
 
               <TabsContent value="settings" className="mt-6">
-                <SettingsTab
-                  organizationSlug={organizationSlug}
-                  team={team}
-                  onUpdate={fetchTeam}
-                />
+                <SettingsTab organizationSlug={organizationSlug} team={team} onUpdate={fetchTeam} />
               </TabsContent>
             </Tabs>
           </div>

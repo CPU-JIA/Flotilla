@@ -12,7 +12,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Dialog,
   DialogContent,
@@ -57,12 +63,15 @@ export function CreateProjectDialog({ onSuccess, trigger }: CreateProjectDialogP
   useEffect(() => {
     if (open && user) {
       setIsCheckingLimit(true)
-      api.projects.getAll({ page: 1, pageSize: 1 })
+      api.projects
+        .getAll({ page: 1, pageSize: 1 })
         .then((response) => {
           setProjectCount(response.total)
           // 检查是否达到限制（超级管理员无限制）
           if (user.role !== 'SUPER_ADMIN' && response.total >= MAX_PROJECTS_USER) {
-            setError(`普通用户最多创建${MAX_PROJECTS_USER}个项目。当前已有${response.total}个项目。`)
+            setError(
+              `普通用户最多创建${MAX_PROJECTS_USER}个项目。当前已有${response.total}个项目。`
+            )
           }
         })
         .catch(() => {
@@ -157,9 +166,7 @@ export function CreateProjectDialog({ onSuccess, trigger }: CreateProjectDialogP
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>创建新项目</DialogTitle>
-            <DialogDescription>
-              填写项目信息以创建一个新的开发项目
-            </DialogDescription>
+            <DialogDescription>填写项目信息以创建一个新的开发项目</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -169,7 +176,9 @@ export function CreateProjectDialog({ onSuccess, trigger }: CreateProjectDialogP
                 {user.role === 'SUPER_ADMIN' ? (
                   <p>✨ 您是超级管理员，可以创建无限个项目</p>
                 ) : (
-                  <p>📊 当前已创建 {projectCount} / {MAX_PROJECTS_USER} 个项目</p>
+                  <p>
+                    📊 当前已创建 {projectCount} / {MAX_PROJECTS_USER} 个项目
+                  </p>
                 )}
               </div>
             )}
@@ -183,7 +192,9 @@ export function CreateProjectDialog({ onSuccess, trigger }: CreateProjectDialogP
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="name">项目名称 *</Label>
-                <span className={`text-xs ${formData.name.length > MAX_NAME_LENGTH ? 'text-red-600' : 'text-gray-500'}`}>
+                <span
+                  className={`text-xs ${formData.name.length > MAX_NAME_LENGTH ? 'text-red-600' : 'text-gray-500'}`}
+                >
                   {formData.name.length} / {MAX_NAME_LENGTH}
                 </span>
               </div>
@@ -201,7 +212,9 @@ export function CreateProjectDialog({ onSuccess, trigger }: CreateProjectDialogP
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="description">项目描述</Label>
-                <span className={`text-xs ${(formData.description?.length || 0) > MAX_DESCRIPTION_LENGTH ? 'text-red-600' : 'text-gray-500'}`}>
+                <span
+                  className={`text-xs ${(formData.description?.length || 0) > MAX_DESCRIPTION_LENGTH ? 'text-red-600' : 'text-gray-500'}`}
+                >
                   {formData.description?.length || 0} / {MAX_DESCRIPTION_LENGTH}
                 </span>
               </div>
@@ -234,7 +247,12 @@ export function CreateProjectDialog({ onSuccess, trigger }: CreateProjectDialogP
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isLoading || isCheckingLimit}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={isLoading || isCheckingLimit}
+            >
               取消
             </Button>
             <Button

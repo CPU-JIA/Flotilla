@@ -53,17 +53,29 @@ export function SettingsTab({ organizationSlug, team, onUpdate }: SettingsTabPro
     // 前端验证
     const trimmedName = formData.name?.trim() || ''
     if (!trimmedName || trimmedName.length < 2) {
-      setError(t.loading === t.loading ? '团队名称至少需要2个字符' : 'Team name requires at least 2 characters')
+      setError(
+        t.loading === t.loading
+          ? '团队名称至少需要2个字符'
+          : 'Team name requires at least 2 characters'
+      )
       return
     }
     if (trimmedName.length > MAX_NAME_LENGTH) {
-      setError(t.loading === t.loading ? `团队名称最多${MAX_NAME_LENGTH}个字符` : `Team name max ${MAX_NAME_LENGTH} characters`)
+      setError(
+        t.loading === t.loading
+          ? `团队名称最多${MAX_NAME_LENGTH}个字符`
+          : `Team name max ${MAX_NAME_LENGTH} characters`
+      )
       return
     }
 
     const trimmedDescription = formData.description?.trim() || ''
     if (trimmedDescription.length > MAX_DESCRIPTION_LENGTH) {
-      setError(t.loading === t.loading ? `描述最多${MAX_DESCRIPTION_LENGTH}个字符` : `Description max ${MAX_DESCRIPTION_LENGTH} characters`)
+      setError(
+        t.loading === t.loading
+          ? `描述最多${MAX_DESCRIPTION_LENGTH}个字符`
+          : `Description max ${MAX_DESCRIPTION_LENGTH} characters`
+      )
       return
     }
 
@@ -72,7 +84,10 @@ export function SettingsTab({ organizationSlug, team, onUpdate }: SettingsTabPro
     try {
       await api.teams.update(organizationSlug, team.slug, {
         name: trimmedName !== team.name ? trimmedName : undefined,
-        description: trimmedDescription !== (team.description || '') ? (trimmedDescription || undefined) : undefined,
+        description:
+          trimmedDescription !== (team.description || '')
+            ? trimmedDescription || undefined
+            : undefined,
       })
       alert(t.teams.updateSuccess)
       onUpdate()
@@ -88,14 +103,16 @@ export function SettingsTab({ organizationSlug, team, onUpdate }: SettingsTabPro
   }
 
   const handleDelete = async () => {
-    const confirmMessage = t.loading === t.loading
-      ? `确定要删除团队 "${team.name}" 吗？此操作无法撤销。`
-      : `Delete team "${team.name}"? This action cannot be undone.`
+    const confirmMessage =
+      t.loading === t.loading
+        ? `确定要删除团队 "${team.name}" 吗？此操作无法撤销。`
+        : `Delete team "${team.name}"? This action cannot be undone.`
     if (!confirm(confirmMessage)) return
 
-    const doubleConfirmMessage = t.loading === t.loading
-      ? '再次确认：删除后所有团队数据将丢失，是否继续？'
-      : 'Confirm again: All team data will be lost. Continue?'
+    const doubleConfirmMessage =
+      t.loading === t.loading
+        ? '再次确认：删除后所有团队数据将丢失，是否继续？'
+        : 'Confirm again: All team data will be lost. Continue?'
     if (!confirm(doubleConfirmMessage)) return
 
     setIsDeleting(true)
@@ -136,7 +153,9 @@ export function SettingsTab({ organizationSlug, team, onUpdate }: SettingsTabPro
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="name">{t.teams.name} *</Label>
-                <span className={`text-xs ${(formData.name?.length || 0) > MAX_NAME_LENGTH ? 'text-red-600' : 'text-gray-500'}`}>
+                <span
+                  className={`text-xs ${(formData.name?.length || 0) > MAX_NAME_LENGTH ? 'text-red-600' : 'text-gray-500'}`}
+                >
                   {formData.name?.length || 0} / {MAX_NAME_LENGTH}
                 </span>
               </div>
@@ -152,7 +171,9 @@ export function SettingsTab({ organizationSlug, team, onUpdate }: SettingsTabPro
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label htmlFor="description">{t.teams.description}</Label>
-                <span className={`text-xs ${(formData.description?.length || 0) > MAX_DESCRIPTION_LENGTH ? 'text-red-600' : 'text-gray-500'}`}>
+                <span
+                  className={`text-xs ${(formData.description?.length || 0) > MAX_DESCRIPTION_LENGTH ? 'text-red-600' : 'text-gray-500'}`}
+                >
                   {formData.description?.length || 0} / {MAX_DESCRIPTION_LENGTH}
                 </span>
               </div>
@@ -161,7 +182,11 @@ export function SettingsTab({ organizationSlug, team, onUpdate }: SettingsTabPro
                 value={formData.description || ''}
                 onChange={(e) => handleChange('description', e.target.value)}
                 disabled={isUpdating}
-                placeholder={t.loading === t.loading ? '请输入团队描述（可选）' : 'Enter team description (optional)'}
+                placeholder={
+                  t.loading === t.loading
+                    ? '请输入团队描述（可选）'
+                    : 'Enter team description (optional)'
+                }
                 rows={4}
               />
             </div>
@@ -194,15 +219,13 @@ export function SettingsTab({ organizationSlug, team, onUpdate }: SettingsTabPro
         <CardHeader>
           <CardTitle>{t.teams.slug}</CardTitle>
           <CardDescription>
-            {t.loading === t.loading ? '团队的唯一标识符（不可修改）' : 'Team unique identifier (read-only)'}
+            {t.loading === t.loading
+              ? '团队的唯一标识符（不可修改）'
+              : 'Team unique identifier (read-only)'}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Input
-            value={team.slug}
-            disabled
-            className="font-mono bg-gray-50 dark:bg-gray-800"
-          />
+          <Input value={team.slug} disabled className="font-mono bg-gray-50 dark:bg-gray-800" />
         </CardContent>
       </Card>
 
@@ -213,7 +236,9 @@ export function SettingsTab({ organizationSlug, team, onUpdate }: SettingsTabPro
             {t.loading === t.loading ? '危险区域' : 'Danger Zone'}
           </CardTitle>
           <CardDescription>
-            {t.loading === t.loading ? '删除团队操作无法撤销，请谨慎操作' : 'Deleting a team is irreversible'}
+            {t.loading === t.loading
+              ? '删除团队操作无法撤销，请谨慎操作'
+              : 'Deleting a team is irreversible'}
           </CardDescription>
         </CardHeader>
         <CardContent>

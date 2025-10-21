@@ -33,12 +33,41 @@ export function FileList({
   // 检查文件是否可编辑（代码文件）
   const isEditableFile = (fileName: string): boolean => {
     const codeExtensions = [
-      '.js', '.ts', '.tsx', '.jsx', '.py', '.java', '.cpp', '.c', '.h', '.hpp',
-      '.cs', '.go', '.rs', '.php', '.rb', '.swift', '.kt', '.scala', '.sh',
-      '.html', '.css', '.scss', '.sass', '.less', '.vue', '.json', '.xml',
-      '.yaml', '.yml', '.md', '.txt', '.sql', '.proto',
+      '.js',
+      '.ts',
+      '.tsx',
+      '.jsx',
+      '.py',
+      '.java',
+      '.cpp',
+      '.c',
+      '.h',
+      '.hpp',
+      '.cs',
+      '.go',
+      '.rs',
+      '.php',
+      '.rb',
+      '.swift',
+      '.kt',
+      '.scala',
+      '.sh',
+      '.html',
+      '.css',
+      '.scss',
+      '.sass',
+      '.less',
+      '.vue',
+      '.json',
+      '.xml',
+      '.yaml',
+      '.yml',
+      '.md',
+      '.txt',
+      '.sql',
+      '.proto',
     ]
-    return codeExtensions.some(ext => fileName.toLowerCase().endsWith(ext))
+    return codeExtensions.some((ext) => fileName.toLowerCase().endsWith(ext))
   }
 
   const formatFileSize = (bytes: number): string => {
@@ -117,12 +146,8 @@ export function FileList({
       <Card>
         <CardContent className="py-12 text-center">
           <div className="text-6xl mb-4">📂</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            文件夹为空
-          </h3>
-          <p className="text-gray-600">
-            上传文件或创建文件夹开始管理项目文件
-          </p>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">文件夹为空</h3>
+          <p className="text-gray-600">上传文件或创建文件夹开始管理项目文件</p>
         </CardContent>
       </Card>
     )
@@ -131,10 +156,7 @@ export function FileList({
   return (
     <div className="space-y-2">
       {files.map((file) => (
-        <Card
-          key={file.id}
-          className="hover:shadow-md transition-shadow cursor-pointer"
-        >
+        <Card key={file.id} className="hover:shadow-md transition-shadow cursor-pointer">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div
@@ -145,17 +167,11 @@ export function FileList({
                   }
                 }}
               >
-                <div className="text-4xl flex-shrink-0">
-                  {getFileIcon(file)}
-                </div>
+                <div className="text-4xl flex-shrink-0">{getFileIcon(file)}</div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 truncate">
-                    {file.name}
-                  </p>
+                  <p className="font-semibold text-gray-900 truncate">{file.name}</p>
                   <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                    {file.type === 'file' && (
-                      <span>{formatFileSize(file.size)}</span>
-                    )}
+                    {file.type === 'file' && <span>{formatFileSize(file.size)}</span>}
                     <span>
                       {new Date(file.createdAt).toLocaleDateString('zh-CN', {
                         year: 'numeric',

@@ -14,9 +14,17 @@ import { useLanguage } from '@/contexts/language-context'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { CreateProjectDialog } from '@/components/projects/create-project-dialog'
+import { ProjectCardSkeleton } from '@/components/common/loading-skeleton'
 import { api, ApiError } from '@/lib/api'
 import type { Project, ProjectsResponse } from '@/types/project'
 
@@ -37,28 +45,31 @@ export default function ProjectsPage() {
    * 获取项目列表
    * ECP-C2: 系统化错误处理
    */
-  const fetchProjects = useCallback(async (query?: string) => {
-    setLoading(true)
-    setError('')
+  const fetchProjects = useCallback(
+    async (query?: string) => {
+      setLoading(true)
+      setError('')
 
-    try {
-      const response: ProjectsResponse = await api.projects.getAll({
-        page,
-        pageSize,
-        search: query || undefined,
-      })
-      setProjects(response.projects)
-      setTotal(response.total)
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message || t.projects.fetchError)
-      } else {
-        setError(t.projects.networkError)
+      try {
+        const response: ProjectsResponse = await api.projects.getAll({
+          page,
+          pageSize,
+          search: query || undefined,
+        })
+        setProjects(response.projects)
+        setTotal(response.total)
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setError(err.message || t.projects.fetchError)
+        } else {
+          setError(t.projects.networkError)
+        }
+      } finally {
+        setLoading(false)
       }
-    } finally {
-      setLoading(false)
-    }
-  }, [page, pageSize, t])
+    },
+    [page, pageSize, t]
+  )
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -90,7 +101,7 @@ export default function ProjectsPage() {
         className="bg-card rounded-[14px] p-6"
         style={{
           boxShadow: '10px 10px 15px black',
-          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))'
+          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))',
         }}
       >
         <div className="space-y-6">
@@ -120,10 +131,12 @@ export default function ProjectsPage() {
               }}
               className="max-w-md"
             />
-            <Button onClick={() => {
-              setPage(1)
-              fetchProjects(searchQuery)
-            }}>
+            <Button
+              onClick={() => {
+                setPage(1)
+                fetchProjects(searchQuery)
+              }}
+            >
               {t.projects.search}
             </Button>
           </div>
@@ -137,20 +150,7 @@ export default function ProjectsPage() {
 
           {/* 项目列表 */}
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardHeader>
-                    <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mt-2"></div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mt-2"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <ProjectCardSkeleton />
           ) : projects.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
@@ -173,7 +173,9 @@ export default function ProjectsPage() {
                       <div className="flex justify-between items-start">
                         <CardTitle className="text-lg">{project.name}</CardTitle>
                         <Badge variant={project.visibility === 'PUBLIC' ? 'default' : 'secondary'}>
-                          {project.visibility === 'PUBLIC' ? t.projects.visibility.public : t.projects.visibility.private}
+                          {project.visibility === 'PUBLIC'
+                            ? t.projects.visibility.public
+                            : t.projects.visibility.private}
                         </Badge>
                       </div>
                       <CardDescription className="line-clamp-2">
@@ -184,7 +186,9 @@ export default function ProjectsPage() {
                       <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                         <div className="flex items-center gap-1">
                           <span>👥</span>
-                          <span>{project._count?.members || 0} {t.projects.members}</span>
+                          <span>
+                            {project._count?.members || 0} {t.projects.members}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <span>📅</span>

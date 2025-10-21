@@ -282,6 +282,9 @@ export const zh: Translations = {
     deleteSuccess: '团队已删除',
     createSuccess: '团队创建成功',
     updateSuccess: '团队更新成功',
+    addMemberSuccess: '成员添加成功',
+    removeMemberSuccess: '成员已移除',
+    confirmRemoveMember: '确定要移除成员 {name} 吗？',
     slugHelper: '仅限小写字母、数字和连字符',
     roles: {
       MAINTAINER: '维护者',
@@ -357,7 +360,8 @@ export const zh: Translations = {
     performanceMetrics: '性能指标',
     controlPanel: '控制面板',
     aboutRaft: '关于 Raft 共识',
-    aboutRaftDescription: 'Raft 是一种易于理解的共识算法。它为分布式系统提供容错性和强一致性。该算法确保集群选举出领导者，在节点之间复制日志，并在网络分区或节点故障时保持共识。',
+    aboutRaftDescription:
+      'Raft 是一种易于理解的共识算法。它为分布式系统提供容错性和强一致性。该算法确保集群选举出领导者，在节点之间复制日志，并在网络分区或节点故障时保持共识。',
     failedToLoad: '加载集群数据失败',
     ensureBackendRunning: '请确保后端服务器运行在',
     loadingVisualization: '正在加载 Raft 集群可视化...',
@@ -500,5 +504,18 @@ export const zh: Translations = {
       deleteSuccess: '项目已删除',
       deleteFailed: '删除失败',
     },
+  },
+
+  // 表单验证
+  validation: {
+    emailRequired: '请输入邮箱地址',
+    invalidEmail: '邮箱格式不正确',
+    fieldRequired: '此字段为必填项',
+    passwordTooShort: '密码长度至少为6位',
+    passwordMismatch: '两次输入的密码不一致',
+    usernameInvalid: '用户名只能包含字母、数字和下划线',
+    slugInvalid: 'Slug只能包含小写字母、数字和连字符',
+    nameTooShort: '名称长度至少为2个字符',
+    descriptionTooLong: '描述长度不能超过500个字符',
   },
 }

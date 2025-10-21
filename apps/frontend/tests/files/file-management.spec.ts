@@ -1,6 +1,5 @@
 import { TEST_USERS } from '../fixtures'
 import { test, expect } from '@playwright/test'
-import path from 'path'
 
 /**
  * 文件管理功能自动化测试
@@ -28,7 +27,9 @@ test.describe('文件管理功能测试', () => {
     await page.waitForTimeout(2000)
 
     // 点击第一个项目
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -52,7 +53,9 @@ test.describe('文件管理功能测试', () => {
     await page.goto('/projects')
     await page.waitForTimeout(2000)
 
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -80,7 +83,9 @@ test.describe('文件管理功能测试', () => {
     await page.goto('/projects')
     await page.waitForTimeout(2000)
 
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -109,7 +114,9 @@ test.describe('文件管理功能测试', () => {
     await page.goto('/projects')
     await page.waitForTimeout(2000)
 
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -122,8 +129,12 @@ test.describe('文件管理功能测试', () => {
         await page.waitForTimeout(2000)
 
         // 验证要么显示文件列表，要么显示空状态
-        const hasFiles = await page.locator('[data-testid="file-item"], .file-item, li').count() > 0
-        const hasEmptyState = await page.locator('text=/暂无文件|No Files|Empty/i').isVisible({ timeout: 2000 }).catch(() => false)
+        const hasFiles =
+          (await page.locator('[data-testid="file-item"], .file-item, li').count()) > 0
+        const hasEmptyState = await page
+          .locator('text=/暂无文件|No Files|Empty/i')
+          .isVisible({ timeout: 2000 })
+          .catch(() => false)
 
         // 至少应该有文件列表容器或空状态提示
         expect(hasFiles || hasEmptyState || true).toBe(true)
@@ -135,7 +146,9 @@ test.describe('文件管理功能测试', () => {
     await page.goto('/projects')
     await page.waitForTimeout(2000)
 
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -166,7 +179,9 @@ test.describe('文件管理功能测试', () => {
     await page.goto('/projects')
     await page.waitForTimeout(2000)
 
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -202,7 +217,9 @@ test.describe('文件管理功能测试', () => {
     await page.goto('/projects')
     await page.waitForTimeout(2000)
 
-    const firstProject = page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').first()
+    const firstProject = page
+      .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+      .first()
     const projectExists = await firstProject.isVisible({ timeout: 3000 }).catch(() => false)
 
     if (projectExists) {
@@ -215,8 +232,12 @@ test.describe('文件管理功能测试', () => {
         await page.waitForTimeout(2000)
 
         // 查找"新建文件夹"按钮
-        const newFolderButton = page.getByRole('button', { name: /新建文件夹|New Folder|Create Folder/i })
-        const newFolderExists = await newFolderButton.isVisible({ timeout: 3000 }).catch(() => false)
+        const newFolderButton = page.getByRole('button', {
+          name: /新建文件夹|New Folder|Create Folder/i,
+        })
+        const newFolderExists = await newFolderButton
+          .isVisible({ timeout: 3000 })
+          .catch(() => false)
 
         if (newFolderExists) {
           await newFolderButton.click()

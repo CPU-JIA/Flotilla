@@ -86,7 +86,7 @@ export default function OrganizationDetailPage() {
         className="bg-card rounded-[14px] p-[22px]"
         style={{
           boxShadow: '10px 10px 15px black',
-          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))'
+          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))',
         }}
       >
         {loading ? (
@@ -113,22 +113,25 @@ export default function OrganizationDetailPage() {
                       {organization.name}
                     </h1>
                     {organization.isPersonal && (
-                      <Badge variant="outline">
-                        {t.organizations.personal}
-                      </Badge>
+                      <Badge variant="outline">{t.organizations.personal}</Badge>
                     )}
                     {organization.myRole && (
-                      <Badge variant={
-                        organization.myRole === 'OWNER' ? 'default' :
-                        organization.myRole === 'ADMIN' ? 'secondary' :
-                        'outline'
-                      }>
+                      <Badge
+                        variant={
+                          organization.myRole === 'OWNER'
+                            ? 'default'
+                            : organization.myRole === 'ADMIN'
+                              ? 'secondary'
+                              : 'outline'
+                        }
+                      >
                         {t.organizations.roles[organization.myRole]}
                       </Badge>
                     )}
                   </div>
                   <p className="text-gray-600 dark:text-gray-400 text-base">
-                    {organization.description || (t.loading === t.loading ? '暂无描述' : 'No description')}
+                    {organization.description ||
+                      (t.loading === t.loading ? '暂无描述' : 'No description')}
                   </p>
                 </div>
                 <Button variant="outline" onClick={() => router.push('/organizations')}>
@@ -216,7 +219,8 @@ export default function OrganizationDetailPage() {
                         {t.organizations.description}
                       </h4>
                       <p className="text-gray-900 dark:text-gray-100">
-                        {organization.description || (t.loading === t.loading ? '暂无描述' : 'No description')}
+                        {organization.description ||
+                          (t.loading === t.loading ? '暂无描述' : 'No description')}
                       </p>
                     </div>
                     <div>
@@ -226,8 +230,9 @@ export default function OrganizationDetailPage() {
                       <Badge variant={organization.isPersonal ? 'outline' : 'default'}>
                         {organization.isPersonal
                           ? t.organizations.personal
-                          : (t.loading === t.loading ? '团队组织' : 'Team Organization')
-                        }
+                          : t.loading === t.loading
+                            ? '团队组织'
+                            : 'Team Organization'}
                       </Badge>
                     </div>
                   </CardContent>
@@ -243,10 +248,7 @@ export default function OrganizationDetailPage() {
               </TabsContent>
 
               <TabsContent value="teams" className="mt-6">
-                <TeamsTab
-                  organizationSlug={organization.slug}
-                  canManage={canManage}
-                />
+                <TeamsTab organizationSlug={organization.slug} canManage={canManage} />
               </TabsContent>
 
               <TabsContent value="settings" className="mt-6">

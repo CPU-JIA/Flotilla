@@ -9,7 +9,13 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { InviteMemberDialog } from './invite-member-dialog'
 import { api, ApiError } from '@/lib/api'
 import type { ProjectMember } from '@/types/project'
@@ -25,7 +31,7 @@ export function ProjectMembersPanel({
   projectId,
   members,
   canManageMembers,
-  onMembersChange
+  onMembersChange,
 }: ProjectMembersPanelProps) {
   const [updating, setUpdating] = useState<string | null>(null)
   const [removing, setRemoving] = useState<string | null>(null)
@@ -33,7 +39,11 @@ export function ProjectMembersPanel({
   const handleUpdateRole = async (userId: string, newRole: string) => {
     setUpdating(userId)
     try {
-      await api.projects.updateMemberRole(projectId, userId, newRole as 'OWNER' | 'MEMBER' | 'VIEWER')
+      await api.projects.updateMemberRole(
+        projectId,
+        userId,
+        newRole as 'OWNER' | 'MEMBER' | 'VIEWER'
+      )
       onMembersChange()
       alert('成员角色已更新')
     } catch (err) {
@@ -68,12 +78,25 @@ export function ProjectMembersPanel({
 
   const getRoleBadge = (role: string) => {
     const roleConfig = {
-      OWNER: { label: '所有者', color: 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-400' },
-      MEMBER: { label: '成员', color: 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400' },
-      VIEWER: { label: '观察者', color: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300' }
+      OWNER: {
+        label: '所有者',
+        color: 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-400',
+      },
+      MEMBER: {
+        label: '成员',
+        color: 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400',
+      },
+      VIEWER: {
+        label: '观察者',
+        color: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300',
+      },
     }
     const config = roleConfig[role as keyof typeof roleConfig] || roleConfig.VIEWER
-    return <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>{config.label}</span>
+    return (
+      <span className={`px-2 py-1 rounded-full text-xs font-medium ${config.color}`}>
+        {config.label}
+      </span>
+    )
   }
 
   return (
@@ -95,7 +118,9 @@ export function ProjectMembersPanel({
               <div className="text-6xl mb-4">👥</div>
               <h3 className="text-xl font-semibold text-card-foreground mb-2">暂无成员</h3>
               <p className="text-muted-foreground mb-4">邀请团队成员加入项目开始协作</p>
-              {canManageMembers && <InviteMemberDialog projectId={projectId} onSuccess={onMembersChange} />}
+              {canManageMembers && (
+                <InviteMemberDialog projectId={projectId} onSuccess={onMembersChange} />
+              )}
             </CardContent>
           </Card>
         ) : (
@@ -112,7 +137,9 @@ export function ProjectMembersPanel({
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="font-semibold text-card-foreground">{member.user.username}</p>
+                            <p className="font-semibold text-card-foreground">
+                              {member.user.username}
+                            </p>
                             {getRoleBadge(member.role)}
                           </div>
                           <p className="text-sm text-muted-foreground">📧 {member.user.email}</p>

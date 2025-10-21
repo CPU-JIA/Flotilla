@@ -127,21 +127,19 @@ export default function RegisterPage() {
           radial-gradient(1200px 600px at 10% -10%, #dbeafe 0%, transparent 60%),
           radial-gradient(1200px 600px at 110% 10%, #fde68a 0%, transparent 60%),
           #f4f6f9
-        `
+        `,
       }}
     >
       <div
         className="bg-card rounded-[14px] p-8 max-w-md w-full border border-border"
         style={{
           boxShadow: '10px 10px 15px black',
-          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))'
+          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))',
         }}
       >
         <div className="space-y-1 mb-6">
           <h1 className="text-2xl font-bold text-center">{t.auth.registerTitle}</h1>
-          <p className="text-center text-gray-600">
-            {t.auth.registerSubtitle}
-          </p>
+          <p className="text-center text-gray-600">{t.auth.registerSubtitle}</p>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
@@ -162,9 +160,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 disabled={isLoading}
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {t.auth.usernameHelper}
-              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t.auth.usernameHelper}</p>
             </div>
 
             <div className="space-y-2">
@@ -208,20 +204,13 @@ export default function RegisterPage() {
           </div>
 
           <div className="flex flex-col space-y-4 mt-6">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? t.auth.registering : t.auth.registerButton}
             </Button>
 
             <div className="text-sm text-center text-gray-600">
               {t.auth.alreadyHaveAccount}{' '}
-              <Link
-                href="/auth/login"
-                className="text-blue-600 hover:underline font-medium"
-              >
+              <Link href="/auth/login" className="text-blue-600 hover:underline font-medium">
                 {t.auth.loginNow}
               </Link>
             </div>

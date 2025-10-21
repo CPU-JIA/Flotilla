@@ -20,15 +20,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Monorepo Architecture
 - **pnpm workspace** - Package manager with workspace support
-- **Apps**: `apps/backend` (NestJS) + `apps/frontend` (Next.js)
+- **Apps**:
+  - `apps/backend` (NestJS) - Main API server
+  - `apps/frontend` (Next.js) - Web application
+  - `website/` (Next.js) - Marketing/landing page (port 3003, separate from monorepo workspace)
 - **Note**: The `packages/` directory is reserved for future shared packages but is currently empty
 
 ### Frontend (`apps/frontend`)
 - **Next.js 15.5** with Turbopack - React framework with SSR/SSG
 - **React 19** - UI library
 - **TypeScript 5.7** - Type system
-- **Tailwind CSS 4** - Utility-first CSS
-- **Shadcn/ui** - Component library (Radix UI based)
+- **Tailwind CSS 4** - Utility-first CSS (with `@theme` directive configuration)
+- **Shadcn/ui** - Component library (Radix UI based, 80% usage)
+- **Mantine 7.15** - Enterprise-grade components (20% usage for advanced features)
+  - Core, Hooks, Form, Notifications, Dates, Charts
+  - Synchronized with next-themes via `useMantineThemeSync()` hook
 - **Monaco Editor** - Code editor integration
 - **TanStack Query 5** - Server state management (used in Raft monitoring)
 - **React Flow** - Interactive node graphs (Raft cluster topology visualization)
@@ -70,6 +76,9 @@ pnpm dev
 # Start individual apps
 pnpm --filter backend dev    # Backend on http://localhost:4000
 pnpm --filter frontend dev   # Frontend on http://localhost:3000
+
+# Start website (separate from monorepo workspace)
+cd website && pnpm dev       # Website on http://localhost:3003
 ```
 
 ### Backend Commands
@@ -85,6 +94,7 @@ pnpm start:debug            # Debug mode with --inspect
 pnpm prisma migrate dev     # Create and apply migration
 pnpm prisma studio          # Open Prisma Studio GUI
 pnpm prisma generate        # Regenerate Prisma Client
+pnpm migrate:to-organizations  # Migration script for organization structure
 
 # Testing
 pnpm test                   # Run unit tests (Jest)
@@ -124,7 +134,6 @@ pnpm test                   # Run all Playwright tests
 pnpm test:ui                # Interactive UI mode
 pnpm test:debug             # Debug mode
 pnpm test:report            # View test report
-pnpm test:headed            # Run tests in headed browser
 
 # Run specific test file
 pnpm exec playwright test tests/auth/login.spec.ts
@@ -162,9 +171,13 @@ docker-compose down
 docker-compose logs -f [service-name]
 
 # Database backup/restore
-docker exec cloud-dev-postgres pg_dump -U devplatform cloud_dev_platform > backup.sql
-docker exec -i cloud-dev-postgres psql -U devplatform cloud_dev_platform < backup.sql
+docker exec flotilla-postgres pg_dump -U devplatform cloud_dev_platform > backup.sql
+docker exec -i flotilla-postgres psql -U devplatform cloud_dev_platform < backup.sql
 ```
+
+**Container Naming Convention**: All Docker containers use the `flotilla-*` prefix:
+- `flotilla-postgres`, `flotilla-redis`, `flotilla-minio` (infrastructure)
+- `flotilla-backend`, `flotilla-frontend`, `flotilla-website` (application services)
 
 ## Architecture Overview
 
@@ -390,6 +403,7 @@ User
 
 Comprehensive documentation is available in the `/docs` directory:
 
+### Core Documentation
 - **[品牌故事](./docs/品牌故事.md)** - Brand story and vision (bilingual: zh/en)
 - **[需求分析文档](./docs/需求分析文档.md)** - Requirements analysis
 - **[架构设计文档](./docs/架构设计文档.md)** - Architecture design
@@ -397,6 +411,16 @@ Comprehensive documentation is available in the `/docs` directory:
 - **[分布式共识算法设计方案](./docs/分布式共识算法设计方案.md)** - Raft algorithm design
 - **[组织与团队权限架构设计](./docs/组织与团队权限架构设计.md)** - Organization & team permission system
 - **[UI设计与实现文档](./docs/UI设计与实现文档.md)** - UI implementation guide
+
+### Design System & Frontend Documentation
+- **[Design System](./apps/frontend/DESIGN_SYSTEM.md)** - Comprehensive design system documentation (colors, typography, components)
+- **[Testing Guide](./apps/frontend/TESTING_GUIDE.md)** - E2E testing guide and checklist
+- **[Performance Checklist](./apps/frontend/PERFORMANCE_CHECKLIST.md)** - Performance optimization guidelines
+
+### Strategic Planning
+- **[2025 Roadmap](./docs/ROADMAP_2025.md)** - 24-month strategic development plan
+- **[UI/UX Upgrade Plan](./docs/UI_UX_UPGRADE_PLAN.md)** - 7-day UI/UX upgrade execution plan
+- **[Changelog](./CHANGELOG.md)** - Project changelog
 
 **Important**: Always consult these documents before implementing major features to understand design decisions and architectural constraints.
 
@@ -489,7 +513,7 @@ docker-compose up -d frontend --force-recreate
 **Verification Steps**:
 ```bash
 # 1. Check container is using latest image
-docker inspect cloud-dev-frontend --format='{{.Image}}' | head -c 12
+docker inspect flotilla-frontend --format='{{.Image}}' | head -c 12
 docker images cloud-dev-platform-frontend:latest --format='{{.ID}}'
 # The first 12 characters should match
 
@@ -501,7 +525,7 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:4000  # Should return 20
 **Common Gotchas**:
 - Next.js production builds are cached aggressively - use `--no-cache` if seeing stale code
 - Environment variables are baked into frontend build - rebuild after changing `NEXT_PUBLIC_*` vars
-- Database migrations must be run manually: `docker exec cloud-dev-backend pnpm prisma migrate deploy`
+- Database migrations must be run manually: `docker exec flotilla-backend pnpm prisma migrate deploy`
 
 ## Common Debugging Patterns
 
@@ -511,16 +535,16 @@ Playwright E2E tests create organizations and teams. PostgreSQL may accumulate t
 
 ```bash
 # Check organization count (limit is typically 10 for testing)
-docker exec cloud-dev-postgres psql -U devplatform -d cloud_dev_platform -c "SELECT COUNT(*) FROM organizations;"
+docker exec flotilla-postgres psql -U devplatform -d cloud_dev_platform -c "SELECT COUNT(*) FROM organizations;"
 
 # View recent organizations
-docker exec cloud-dev-postgres psql -U devplatform -d cloud_dev_platform -c "SELECT id, name, slug, \"isPersonal\" FROM organizations ORDER BY \"createdAt\" DESC LIMIT 10;"
+docker exec flotilla-postgres psql -U devplatform -d cloud_dev_platform -c "SELECT id, name, slug, \"isPersonal\" FROM organizations ORDER BY \"createdAt\" DESC LIMIT 10;"
 
 # Clean up test organizations (keep personal orgs)
-docker exec cloud-dev-postgres psql -U devplatform -d cloud_dev_platform -c "DELETE FROM organizations WHERE \"isPersonal\" = false;"
+docker exec flotilla-postgres psql -U devplatform -d cloud_dev_platform -c "DELETE FROM organizations WHERE \"isPersonal\" = false;"
 
 # Clean up all teams
-docker exec cloud-dev-postgres psql -U devplatform -d cloud_dev_platform -c "DELETE FROM teams;"
+docker exec flotilla-postgres psql -U devplatform -d cloud_dev_platform -c "DELETE FROM teams;"
 ```
 
 ### Playwright Test Debugging
@@ -571,6 +595,7 @@ pnpm exec playwright show-trace test-results/<test-name>/trace.zip
 
 ### Ports
 - Frontend: `3000`
+- Website (marketing page): `3003`
 - Backend: `4000` (API at `/api`, Swagger at `/api/docs`)
 - PostgreSQL: `5434` (host) / `5432` (container)
 - Redis: `6380` (host) / `6379` (container)
@@ -597,6 +622,7 @@ pnpm exec playwright show-trace test-results/<test-name>/trace.zip
 ## Accessing Services
 
 - **Frontend**: http://localhost:3000
+- **Website (marketing)**: http://localhost:3003
 - **Backend API**: http://localhost:4000/api
 - **Swagger Docs**: http://localhost:4000/api/docs
 - **MinIO Console**: http://localhost:9001 (minioadmin / minioadmin123)

@@ -27,27 +27,30 @@ export default function AdminUsersPage() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
 
-  const fetchUsers = useCallback(async (searchQuery?: string) => {
-    try {
-      setLoading(true)
-      setError('')
-      const data = await api.admin.getAllUsers({
-        page,
-        pageSize: 20,
-        search: searchQuery || undefined,
-      })
-      setUsers(data.users)
-      setTotal(data.total)
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message)
-      } else {
-        setError(t.admin.users.loadingUsersFailed)
+  const fetchUsers = useCallback(
+    async (searchQuery?: string) => {
+      try {
+        setLoading(true)
+        setError('')
+        const data = await api.admin.getAllUsers({
+          page,
+          pageSize: 20,
+          search: searchQuery || undefined,
+        })
+        setUsers(data.users)
+        setTotal(data.total)
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setError(err.message)
+        } else {
+          setError(t.admin.users.loadingUsersFailed)
+        }
+      } finally {
+        setLoading(false)
       }
-    } finally {
-      setLoading(false)
-    }
-  }, [page, t])
+    },
+    [page, t]
+  )
 
   useEffect(() => {
     if (isLoading) return
@@ -155,14 +158,16 @@ export default function AdminUsersPage() {
         className="bg-card rounded-[14px] p-6"
         style={{
           boxShadow: '10px 10px 15px black',
-          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))'
+          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))',
         }}
       >
         {/* 页头 */}
         <div className="mb-8 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-card-foreground">{t.admin.users.title}</h1>
-            <p className="text-muted-foreground mt-1">{t.admin.users.totalUsers.replace('{count}', total.toString())}</p>
+            <p className="text-muted-foreground mt-1">
+              {t.admin.users.totalUsers.replace('{count}', total.toString())}
+            </p>
           </div>
           <AddUserDialog onSuccess={fetchUsers} />
         </div>
@@ -211,9 +216,7 @@ export default function AdminUsersPage() {
                   {/* 用户信息 */}
                   <div className="flex-1">
                     <div className="flex items-center gap-3 flex-wrap">
-                      <div className="font-bold text-lg text-card-foreground">
-                        {user.username}
-                      </div>
+                      <div className="font-bold text-lg text-card-foreground">{user.username}</div>
                       <span
                         className={`px-3 py-1 rounded-full text-xs font-medium border ${getRoleBadgeClass(
                           user.role
@@ -227,15 +230,23 @@ export default function AdminUsersPage() {
                         </span>
                       )}
                     </div>
-                    <div className="text-sm text-muted-foreground mt-2">
-                      📧 {user.email}
-                    </div>
+                    <div className="text-sm text-muted-foreground mt-2">📧 {user.email}</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      📅 {t.admin.users.createdAt}: {new Date(user.createdAt).toLocaleString('zh-CN')}
+                      📅 {t.admin.users.createdAt}:{' '}
+                      {new Date(user.createdAt).toLocaleString('zh-CN')}
                     </div>
                     {user._count && (
                       <div className="text-xs text-muted-foreground mt-1">
-                        📁 {t.admin.users.ownsProjects.replace('{count}', user._count.ownedProjects.toString())}，{t.admin.users.participatesProjects.replace('{count}', user._count.projectMembers.toString())}
+                        📁{' '}
+                        {t.admin.users.ownsProjects.replace(
+                          '{count}',
+                          user._count.ownedProjects.toString()
+                        )}
+                        ，
+                        {t.admin.users.participatesProjects.replace(
+                          '{count}',
+                          user._count.projectMembers.toString()
+                        )}
                       </div>
                     )}
                   </div>
@@ -261,14 +272,14 @@ export default function AdminUsersPage() {
                     {currentUser?.role === 'SUPER_ADMIN' && (
                       <select
                         value={user.role}
-                        onChange={(e) =>
-                          handleUpdateRole(user.id, e.target.value as UserRole)
-                        }
+                        onChange={(e) => handleUpdateRole(user.id, e.target.value as UserRole)}
                         className="px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-card text-card-foreground"
                         disabled={user.id === currentUser?.id}
                       >
                         <option value={UserRole.USER}>{t.admin.users.roles.USER}</option>
-                        <option value={UserRole.SUPER_ADMIN}>{t.admin.users.roles.SUPER_ADMIN}</option>
+                        <option value={UserRole.SUPER_ADMIN}>
+                          {t.admin.users.roles.SUPER_ADMIN}
+                        </option>
                       </select>
                     )}
 

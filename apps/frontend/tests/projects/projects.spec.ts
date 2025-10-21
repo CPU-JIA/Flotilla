@@ -32,14 +32,18 @@ test.describe('项目管理功能测试', () => {
     await page.goto('/projects')
 
     // 验证页面标题
-    await expect(page.locator('h1, h2').filter({ hasText: /项目|Projects/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('h1, h2').filter({ hasText: /项目|Projects/i })).toBeVisible({
+      timeout: 5000,
+    })
   })
 
   test('应该显示创建新项目按钮', async ({ page }) => {
     await page.goto('/projects')
 
     // 验证创建项目按钮存在
-    await expect(page.getByRole('button', { name: /创建.*项目|Create.*Project/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('button', { name: /创建.*项目|Create.*Project/i })).toBeVisible({
+      timeout: 5000,
+    })
   })
 
   test('应该能够打开创建项目对话框', async ({ page }) => {
@@ -66,7 +70,10 @@ test.describe('项目管理功能测试', () => {
     await page.getByLabel(/项目描述|Description/i).fill(testProject.description)
 
     // 提交表单
-    await page.getByRole('button', { name: /创建|Create/i }).last().click()
+    await page
+      .getByRole('button', { name: /创建|Create/i })
+      .last()
+      .click()
 
     // 验证项目创建成功（可能跳转到项目详情页或显示成功消息）
     await page.waitForTimeout(2000)
@@ -84,7 +91,10 @@ test.describe('项目管理功能测试', () => {
     await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 3000 })
 
     // 不填写项目名称，直接提交
-    await page.getByRole('button', { name: /创建|Create/i }).last().click()
+    await page
+      .getByRole('button', { name: /创建|Create/i })
+      .last()
+      .click()
 
     // 对话框应该仍然可见（验证失败）
     await expect(page.locator('[role="dialog"]')).toBeVisible()
@@ -116,9 +126,15 @@ test.describe('项目管理功能测试', () => {
     await page.waitForTimeout(2000)
 
     // 验证要么显示项目列表，要么显示"暂无项目"提示
-    const hasProjects = await page.locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]').count() > 0
+    const hasProjects =
+      (await page
+        .locator('[data-testid="project-card"], .project-card, a[href*="/projects/"]')
+        .count()) > 0
     // 检查可能的空状态文本（更宽松的匹配）
-    const hasEmptyState = await page.locator('text=/暂无|No.*Project|Empty|没有项目/i').isVisible().catch(() => false)
+    const hasEmptyState = await page
+      .locator('text=/暂无|No.*Project|Empty|没有项目/i')
+      .isVisible()
+      .catch(() => false)
 
     // 至少应该有其中一个
     expect(hasProjects || hasEmptyState).toBe(true)
@@ -128,7 +144,9 @@ test.describe('项目管理功能测试', () => {
     await page.goto('/projects')
 
     // 查找搜索框（如果存在）
-    const searchInput = page.locator('input[type="search"], input[placeholder*="搜索"], input[placeholder*="Search"]').first()
+    const searchInput = page
+      .locator('input[type="search"], input[placeholder*="搜索"], input[placeholder*="Search"]')
+      .first()
 
     if (await searchInput.isVisible({ timeout: 2000 }).catch(() => false)) {
       // 输入搜索关键词

@@ -32,7 +32,7 @@ export function ClusterTopology({ nodes, currentNodeId }: ClusterTopologyProps) 
 
   // 触发动画更新
   useEffect(() => {
-    setAnimationKey(prev => prev + 1)
+    setAnimationKey((prev) => prev + 1)
   }, [nodes])
 
   // 获取节点颜色和图标
@@ -90,9 +90,9 @@ export function ClusterTopology({ nodes, currentNodeId }: ClusterTopologyProps) 
   }
 
   // 获取Leader节点
-  const leader = nodes.find(node => node.state === 'LEADER')
-  const followers = nodes.filter(node => node.state === 'FOLLOWER')
-  const candidates = nodes.filter(node => node.state === 'CANDIDATE')
+  const leader = nodes.find((node) => node.state === 'LEADER')
+  const followers = nodes.filter((node) => node.state === 'FOLLOWER')
+  const candidates = nodes.filter((node) => node.state === 'CANDIDATE')
 
   return (
     <Card>
@@ -109,11 +109,11 @@ export function ClusterTopology({ nodes, currentNodeId }: ClusterTopologyProps) 
             <svg className="absolute inset-0 w-full h-full pointer-events-none">
               {followers.map((follower) => {
                 const leaderPos = getNodePosition(
-                  nodes.findIndex(n => n.nodeId === leader.nodeId),
+                  nodes.findIndex((n) => n.nodeId === leader.nodeId),
                   nodes.length
                 )
                 const followerPos = getNodePosition(
-                  nodes.findIndex(n => n.nodeId === follower.nodeId),
+                  nodes.findIndex((n) => n.nodeId === follower.nodeId),
                   nodes.length
                 )
 
@@ -157,9 +157,7 @@ export function ClusterTopology({ nodes, currentNodeId }: ClusterTopologyProps) 
                              hover:scale-110 transition-transform duration-200`}
                 >
                   {style.icon}
-                  <span className={`text-xs font-bold ${style.textColor} mt-1`}>
-                    {node.nodeId}
-                  </span>
+                  <span className={`text-xs font-bold ${style.textColor} mt-1`}>{node.nodeId}</span>
                 </div>
 
                 {/* 节点状态信息 */}
@@ -237,7 +235,10 @@ export function ClusterTopology({ nodes, currentNodeId }: ClusterTopologyProps) 
             <span>Candidate - 正在竞选Leader</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-1 bg-blue-500" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 50%, 50% 100%, 0 50%)' }} />
+            <div
+              className="w-4 h-1 bg-blue-500"
+              style={{ clipPath: 'polygon(0 0, 100% 0, 100% 50%, 50% 100%, 0 50%)' }}
+            />
             <span>心跳/日志复制连接</span>
           </div>
         </div>

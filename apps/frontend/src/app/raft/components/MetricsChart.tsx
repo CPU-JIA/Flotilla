@@ -1,6 +1,6 @@
-'use client';
+'use client'
 
-import React, { useMemo } from 'react';
+import React, { useMemo } from 'react'
 import {
   LineChart,
   Line,
@@ -14,25 +14,25 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from 'recharts';
-import { ClusterMetrics } from '../hooks/useRaftCluster';
+} from 'recharts'
+import { ClusterMetrics } from '../hooks/useRaftCluster'
 
 interface MetricsChartProps {
-  metrics: ClusterMetrics;
-  historicalData?: ClusterMetrics[];
+  metrics: ClusterMetrics
+  historicalData?: ClusterMetrics[]
 }
 
 export default function MetricsChart({ metrics, historicalData = [] }: MetricsChartProps) {
   // Prepare time-series data for performance charts
   const performanceData = useMemo(() => {
-    const allData = [...historicalData, metrics].slice(-20); // Keep last 20 data points
-    return allData.map((m, index) => ({
+    const allData = [...historicalData, metrics].slice(-20) // Keep last 20 data points
+    return allData.map((m) => ({
       time: new Date(m.timestamp).toLocaleTimeString(),
       rps: m.requestsPerSecond,
       latency: m.averageLatency,
       consensus: m.consensusRate * 100,
-    }));
-  }, [metrics, historicalData]);
+    }))
+  }, [metrics, historicalData])
 
   // Prepare node-level metrics
   const nodeMetricsData = useMemo(() => {
@@ -41,8 +41,8 @@ export default function MetricsChart({ metrics, historicalData = [] }: MetricsCh
       requests: nm.requestCount,
       errors: nm.errorCount,
       uptime: Math.floor(nm.uptime / 60), // Convert to minutes
-    }));
-  }, [metrics]);
+    }))
+  }, [metrics])
 
   return (
     <div className="space-y-6">
@@ -103,9 +103,7 @@ export default function MetricsChart({ metrics, historicalData = [] }: MetricsCh
 
       {/* Consensus Rate */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-          Consensus Rate
-        </h3>
+        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Consensus Rate</h3>
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={performanceData}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-gray-300 dark:stroke-gray-600" />
@@ -170,5 +168,5 @@ export default function MetricsChart({ metrics, historicalData = [] }: MetricsCh
         </ResponsiveContainer>
       </div>
     </div>
-  );
+  )
 }

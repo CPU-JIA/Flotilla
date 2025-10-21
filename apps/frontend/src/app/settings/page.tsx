@@ -294,13 +294,16 @@ export default function SettingsPage() {
 
         {/* 修改密码 */}
         <section>
-          <h2 className="text-xl font-bold text-card-foreground mb-6">{t.settings.changePassword}</h2>
+          <h2 className="text-xl font-bold text-card-foreground mb-6">
+            {t.settings.changePassword}
+          </h2>
 
           <form onSubmit={handleChangePassword} className="space-y-6">
             {/* 当前密码 */}
             <div>
               <Label htmlFor="currentPassword" className="text-sm font-medium text-foreground">
-                {t.settings.currentPassword} <span className="text-red-500">{t.settings.required}</span>
+                {t.settings.currentPassword}{' '}
+                <span className="text-red-500">{t.settings.required}</span>
               </Label>
               <Input
                 id="currentPassword"
@@ -335,7 +338,8 @@ export default function SettingsPage() {
             {/* 确认新密码 */}
             <div>
               <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
-                {t.settings.confirmPassword} <span className="text-red-500">{t.settings.required}</span>
+                {t.settings.confirmPassword}{' '}
+                <span className="text-red-500">{t.settings.required}</span>
               </Label>
               <Input
                 id="confirmPassword"
@@ -353,7 +357,9 @@ export default function SettingsPage() {
 
             {/* 密码要求提示 */}
             <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <p className="text-sm text-blue-800 dark:text-blue-300 font-medium mb-2">{t.settings.passwordRequirements}</p>
+              <p className="text-sm text-blue-800 dark:text-blue-300 font-medium mb-2">
+                {t.settings.passwordRequirements}
+              </p>
               <ul className="text-xs text-blue-700 dark:text-blue-400 space-y-1 list-disc list-inside">
                 <li>{t.settings.passwordMinLength}</li>
                 <li>{t.settings.passwordUppercase}</li>

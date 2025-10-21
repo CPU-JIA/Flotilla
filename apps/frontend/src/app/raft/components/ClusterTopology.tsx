@@ -1,6 +1,6 @@
-'use client';
+'use client'
 
-import React, { useMemo } from 'react';
+import React, { useMemo } from 'react'
 import {
   ReactFlow,
   Node,
@@ -10,21 +10,21 @@ import {
   MiniMap,
   NodeTypes,
   Position,
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { RaftNodeStatus, NodeState } from '../hooks/useRaftCluster';
+} from '@xyflow/react'
+import '@xyflow/react/dist/style.css'
+import { RaftNodeStatus, NodeState } from '../hooks/useRaftCluster'
 
 // ============================================
 // Custom Node Component
 // ============================================
 
 interface NodeData extends Record<string, unknown> {
-  label: string;
-  state: NodeState;
-  term: number;
-  isLeader: boolean;
-  commitIndex: number;
-  lastHeartbeat: string;
+  label: string
+  state: NodeState
+  term: number
+  isLeader: boolean
+  commitIndex: number
+  lastHeartbeat: string
 }
 
 function RaftNode({ data }: { data: NodeData }) {
@@ -33,11 +33,11 @@ function RaftNode({ data }: { data: NodeData }) {
     FOLLOWER: 'bg-blue-500 border-blue-600 shadow-blue-500/50',
     CANDIDATE: 'bg-purple-500 border-purple-600 shadow-purple-500/50',
     OFFLINE: 'bg-gray-400 border-gray-500 shadow-gray-500/50',
-  };
+  }
 
-  const baseClasses = 'px-6 py-4 rounded-lg border-4 shadow-2xl transition-all duration-300';
-  const stateClass = stateColors[data.state];
-  const leaderGlow = data.isLeader ? 'ring-4 ring-amber-300 ring-opacity-75' : '';
+  const baseClasses = 'px-6 py-4 rounded-lg border-4 shadow-2xl transition-all duration-300'
+  const stateClass = stateColors[data.state]
+  const leaderGlow = data.isLeader ? 'ring-4 ring-amber-300 ring-opacity-75' : ''
 
   return (
     <div className={`${baseClasses} ${stateClass} ${leaderGlow}`}>
@@ -60,20 +60,20 @@ function RaftNode({ data }: { data: NodeData }) {
         )}
       </div>
     </div>
-  );
+  )
 }
 
 const nodeTypes: NodeTypes = {
   raftNode: RaftNode,
-};
+}
 
 // ============================================
 // Main Component
 // ============================================
 
 interface ClusterTopologyProps {
-  nodes: RaftNodeStatus[];
-  leaderId: string | null;
+  nodes: RaftNodeStatus[]
+  leaderId: string | null
 }
 
 export default function ClusterTopology({ nodes, leaderId }: ClusterTopologyProps) {
@@ -81,10 +81,10 @@ export default function ClusterTopology({ nodes, leaderId }: ClusterTopologyProp
   const flowNodes: Node<NodeData>[] = useMemo(() => {
     return nodes.map((node, index) => {
       const positions = [
-        { x: 250, y: 50 },   // Node 1 (top)
-        { x: 100, y: 250 },  // Node 2 (bottom-left)
-        { x: 400, y: 250 },  // Node 3 (bottom-right)
-      ];
+        { x: 250, y: 50 }, // Node 1 (top)
+        { x: 100, y: 250 }, // Node 2 (bottom-left)
+        { x: 400, y: 250 }, // Node 3 (bottom-right)
+      ]
 
       return {
         id: node.nodeId,
@@ -100,14 +100,14 @@ export default function ClusterTopology({ nodes, leaderId }: ClusterTopologyProp
         },
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
-      };
-    });
-  }, [nodes]);
+      }
+    })
+  }, [nodes])
 
   // Create edges connecting all nodes (full mesh for Raft)
   const flowEdges: Edge[] = useMemo(() => {
-    const edges: Edge[] = [];
-    const nodeIds = nodes.map((n) => n.nodeId);
+    const edges: Edge[] = []
+    const nodeIds = nodes.map((n) => n.nodeId)
 
     for (let i = 0; i < nodeIds.length; i++) {
       for (let j = i + 1; j < nodeIds.length; j++) {
@@ -118,18 +118,19 @@ export default function ClusterTopology({ nodes, leaderId }: ClusterTopologyProp
           target: nodeIds[j],
           animated: nodeIds[i] === leaderId || nodeIds[j] === leaderId,
           style: {
-            stroke: leaderId && (nodeIds[i] === leaderId || nodeIds[j] === leaderId)
-              ? '#f59e0b'
-              : '#94a3b8',
+            stroke:
+              leaderId && (nodeIds[i] === leaderId || nodeIds[j] === leaderId)
+                ? '#f59e0b'
+                : '#94a3b8',
             strokeWidth: 2,
           },
           type: 'smoothstep',
-        });
+        })
       }
     }
 
-    return edges;
-  }, [nodes, leaderId]);
+    return edges
+  }, [nodes, leaderId])
 
   return (
     <div className="w-full h-[500px] bg-gray-100 dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-700">
@@ -144,21 +145,21 @@ export default function ClusterTopology({ nodes, leaderId }: ClusterTopologyProp
         <Controls />
         <MiniMap
           nodeColor={(node) => {
-            const data = node.data as NodeData;
+            const data = node.data as NodeData
             switch (data.state) {
               case 'LEADER':
-                return '#f59e0b';
+                return '#f59e0b'
               case 'FOLLOWER':
-                return '#3b82f6';
+                return '#3b82f6'
               case 'CANDIDATE':
-                return '#a855f7';
+                return '#a855f7'
               default:
-                return '#9ca3af';
+                return '#9ca3af'
             }
           }}
           maskColor="rgba(0, 0, 0, 0.2)"
         />
       </ReactFlow>
     </div>
-  );
+  )
 }

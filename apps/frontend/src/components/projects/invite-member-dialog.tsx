@@ -10,7 +10,13 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Dialog,
   DialogContent,
@@ -47,7 +53,7 @@ export function InviteMemberDialog({ projectId, onSuccess }: InviteMemberDialogP
     try {
       await api.projects.addMember(projectId, {
         userId: userId.trim(),
-        role
+        role,
       })
       setOpen(false)
       setUserId('')
@@ -76,9 +82,7 @@ export function InviteMemberDialog({ projectId, onSuccess }: InviteMemberDialogP
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>邀请成员加入项目</DialogTitle>
-            <DialogDescription>
-              输入要邀请的用户ID并选择角色
-            </DialogDescription>
+            <DialogDescription>输入要邀请的用户ID并选择角色</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {error && (
@@ -96,13 +100,15 @@ export function InviteMemberDialog({ projectId, onSuccess }: InviteMemberDialogP
                 required
                 disabled={isLoading}
               />
-              <p className="text-xs text-gray-500">
-                提示：可以在用户管理页面查看用户ID
-              </p>
+              <p className="text-xs text-gray-500">提示：可以在用户管理页面查看用户ID</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="role">成员角色 *</Label>
-              <Select value={role} onValueChange={(value) => setRole(value as 'MEMBER' | 'VIEWER')} disabled={isLoading}>
+              <Select
+                value={role}
+                onValueChange={(value) => setRole(value as 'MEMBER' | 'VIEWER')}
+                disabled={isLoading}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -114,7 +120,12 @@ export function InviteMemberDialog({ projectId, onSuccess }: InviteMemberDialogP
             </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={isLoading}
+            >
               取消
             </Button>
             <Button type="submit" disabled={isLoading}>

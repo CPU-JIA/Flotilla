@@ -9,7 +9,13 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Dialog,
   DialogContent,
@@ -107,9 +113,7 @@ export function AddUserDialog({ onSuccess }: AddUserDialogProps) {
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>添加新用户</DialogTitle>
-            <DialogDescription>
-              填写用户信息以创建一个新的系统用户
-            </DialogDescription>
+            <DialogDescription>填写用户信息以创建一个新的系统用户</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -176,7 +180,12 @@ export function AddUserDialog({ onSuccess }: AddUserDialogProps) {
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} disabled={isLoading}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={isLoading}
+            >
               取消
             </Button>
             <Button type="submit" disabled={isLoading}>

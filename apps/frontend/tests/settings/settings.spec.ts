@@ -84,8 +84,8 @@ test.describe('个人设置功能测试', () => {
 
     // 验证错误提示（HTML5验证或自定义验证）
     // 由于是required minLength=3，浏览器会阻止提交
-    const validationMessage = await usernameInput.evaluate((el: HTMLInputElement) =>
-      el.validationMessage
+    const validationMessage = await usernameInput.evaluate(
+      (el: HTMLInputElement) => el.validationMessage
     )
     expect(validationMessage).not.toBe('')
   })
@@ -112,8 +112,8 @@ test.describe('个人设置功能测试', () => {
 
     // 验证HTML5 required验证阻止提交
     const newPasswordInput = page.locator('#newPassword')
-    const validationMessage = await newPasswordInput.evaluate((el: HTMLInputElement) =>
-      el.validationMessage
+    const validationMessage = await newPasswordInput.evaluate(
+      (el: HTMLInputElement) => el.validationMessage
     )
     expect(validationMessage).not.toBe('')
   })

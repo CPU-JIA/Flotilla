@@ -1,20 +1,20 @@
-'use client';
+'use client'
 
-import React from 'react';
-import { Play, Square, RotateCcw, Activity } from 'lucide-react';
-import { RaftNodeStatus } from '../hooks/useRaftCluster';
+import React from 'react'
+import { Play, Square, RotateCcw, Activity } from 'lucide-react'
+import { RaftNodeStatus } from '../hooks/useRaftCluster'
 
 interface ControlPanelProps {
-  nodes: RaftNodeStatus[];
-  clusterSize: number;
-  leaderId: string | null;
-  term: number;
-  onStartCluster: () => void;
-  onStopCluster: () => void;
-  onRestartCluster: () => void;
-  isStarting: boolean;
-  isStopping: boolean;
-  isRestarting: boolean;
+  nodes: RaftNodeStatus[]
+  clusterSize: number
+  leaderId: string | null
+  term: number
+  onStartCluster: () => void
+  onStopCluster: () => void
+  onRestartCluster: () => void
+  isStarting: boolean
+  isStopping: boolean
+  isRestarting: boolean
 }
 
 export default function ControlPanel({
@@ -29,8 +29,8 @@ export default function ControlPanel({
   isStopping,
   isRestarting,
 }: ControlPanelProps) {
-  const activeNodes = nodes.filter((n) => n.state !== 'OFFLINE').length;
-  const hasLeader = leaderId !== null;
+  const activeNodes = nodes.filter((n) => n.state !== 'OFFLINE').length
+  const hasLeader = leaderId !== null
 
   return (
     <div className="space-y-4">
@@ -38,9 +38,7 @@ export default function ControlPanel({
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-2 mb-4">
           <Activity className="w-5 h-5 text-blue-500" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Cluster Status
-          </h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Cluster Status</h3>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -133,9 +131,7 @@ export default function ControlPanel({
 
       {/* Node Status Panel */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
-          Node Status
-        </h3>
+        <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Node Status</h3>
 
         <div className="space-y-2">
           {nodes.map((node) => (
@@ -150,9 +146,7 @@ export default function ControlPanel({
                   }`}
                 />
                 <div>
-                  <p className="font-semibold text-gray-900 dark:text-white">
-                    Node {node.nodeId}
-                  </p>
+                  <p className="font-semibold text-gray-900 dark:text-white">Node {node.nodeId}</p>
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     {node.state} | Term {node.currentTerm} | Commit {node.commitIndex}
                   </p>
@@ -169,5 +163,5 @@ export default function ControlPanel({
         </div>
       </div>
     </div>
-  );
+  )
 }

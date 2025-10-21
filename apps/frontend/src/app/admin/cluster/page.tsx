@@ -140,11 +140,7 @@ export default function RaftClusterPage() {
   // 自动刷新 - ECP-D1: 正确声明useEffect依赖
   useEffect(() => {
     const fetchData = async () => {
-      await Promise.all([
-        fetchClusterStatus(),
-        fetchClusterMetrics(),
-        fetchClusterConfig(),
-      ])
+      await Promise.all([fetchClusterStatus(), fetchClusterMetrics(), fetchClusterConfig()])
     }
 
     fetchData()
@@ -161,12 +157,18 @@ export default function RaftClusterPage() {
   // 状态颜色映射
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'running': return 'bg-green-500'
-      case 'starting': return 'bg-yellow-500'
-      case 'stopping': return 'bg-orange-500'
-      case 'stopped': return 'bg-gray-500'
-      case 'error': return 'bg-red-500'
-      default: return 'bg-gray-500'
+      case 'running':
+        return 'bg-green-500'
+      case 'starting':
+        return 'bg-yellow-500'
+      case 'stopping':
+        return 'bg-orange-500'
+      case 'stopped':
+        return 'bg-gray-500'
+      case 'error':
+        return 'bg-red-500'
+      default:
+        return 'bg-gray-500'
     }
   }
 
@@ -226,8 +228,12 @@ export default function RaftClusterPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-2">
-              <div className={`w-3 h-3 rounded-full ${getStatusColor(status?.status || 'stopped')}`} />
-              <span className="text-2xl font-bold capitalize">{status?.status || t.raft.management.unknown}</span>
+              <div
+                className={`w-3 h-3 rounded-full ${getStatusColor(status?.status || 'stopped')}`}
+              />
+              <span className="text-2xl font-bold capitalize">
+                {status?.status || t.raft.management.unknown}
+              </span>
             </div>
             <p className="text-xs text-muted-foreground">
               {t.raft.management.nodeId}: {status?.nodeId || 'N/A'}
@@ -258,10 +264,10 @@ export default function RaftClusterPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{status?.clusterSize || 0} {t.raft.management.nodes}</div>
-            <p className="text-xs text-muted-foreground">
-              {t.raft.management.configuredNodes}
-            </p>
+            <div className="text-2xl font-bold">
+              {status?.clusterSize || 0} {t.raft.management.nodes}
+            </div>
+            <p className="text-xs text-muted-foreground">{t.raft.management.configuredNodes}</p>
           </CardContent>
         </Card>
 
@@ -306,20 +312,36 @@ export default function RaftClusterPage() {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{metrics.totalCommands}</div>
-                    <div className="text-sm text-muted-foreground">{t.raft.management.totalCommands}</div>
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      {metrics.totalCommands}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {t.raft.management.totalCommands}
+                    </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">{metrics.commandsPerSecond.toFixed(1)}</div>
-                    <div className="text-sm text-muted-foreground">{t.raft.management.commandsPerSecond}</div>
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      {metrics.commandsPerSecond.toFixed(1)}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {t.raft.management.commandsPerSecond}
+                    </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{metrics.averageResponseTime.toFixed(0)}ms</div>
-                    <div className="text-sm text-muted-foreground">{t.raft.management.averageResponseTime}</div>
+                    <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                      {metrics.averageResponseTime.toFixed(0)}ms
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {t.raft.management.averageResponseTime}
+                    </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{metrics.leaderElections}</div>
-                    <div className="text-sm text-muted-foreground">{t.raft.management.leaderElections}</div>
+                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                      {metrics.leaderElections}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {t.raft.management.leaderElections}
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -336,12 +358,18 @@ export default function RaftClusterPage() {
               <CardContent>
                 <div className="space-y-4">
                   {status.nodesState.map((node) => (
-                    <div key={node.nodeId} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={node.nodeId}
+                      className="flex items-center justify-between p-4 border rounded-lg"
+                    >
                       <div className="flex items-center space-x-4">
                         <Badge
                           className={
-                            node.state === 'LEADER' ? 'bg-blue-500' :
-                            node.state === 'FOLLOWER' ? 'bg-green-500' : 'bg-yellow-500'
+                            node.state === 'LEADER'
+                              ? 'bg-blue-500'
+                              : node.state === 'FOLLOWER'
+                                ? 'bg-green-500'
+                                : 'bg-yellow-500'
                           }
                         >
                           {node.state}
@@ -354,8 +382,12 @@ export default function RaftClusterPage() {
                         </div>
                       </div>
                       <div className="text-right text-sm">
-                        <div>{t.raft.management.logLength}: {node.logLength}</div>
-                        <div className="text-muted-foreground">{t.raft.management.appliedLogs}: {node.lastApplied}</div>
+                        <div>
+                          {t.raft.management.logLength}: {node.logLength}
+                        </div>
+                        <div className="text-muted-foreground">
+                          {t.raft.management.appliedLogs}: {node.lastApplied}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -367,10 +399,7 @@ export default function RaftClusterPage() {
 
         {/* 集群拓扑 */}
         <TabsContent value="topology">
-          <ClusterTopology
-            nodes={status?.nodesState || []}
-            currentNodeId={status?.nodeId}
-          />
+          <ClusterTopology nodes={status?.nodesState || []} currentNodeId={status?.nodeId} />
         </TabsContent>
 
         {/* 分布式命令 */}
@@ -391,17 +420,28 @@ export default function RaftClusterPage() {
                   <div className="space-y-2">
                     <h4 className="font-semibold">{t.raft.management.basicConfig}</h4>
                     <div className="text-sm space-y-1">
-                      <div>{t.raft.management.nodeList}: {config.settings.nodes.join(', ')}</div>
-                      <div>{t.raft.management.electionTimeout}: {config.settings.electionTimeoutMin}-{config.settings.electionTimeoutMax}ms</div>
-                      <div>{t.raft.management.heartbeatInterval}: {config.settings.heartbeatInterval}ms</div>
-                      <div>{t.raft.management.rpcTimeout}: {config.settings.rpcTimeout}ms</div>
+                      <div>
+                        {t.raft.management.nodeList}: {config.settings.nodes.join(', ')}
+                      </div>
+                      <div>
+                        {t.raft.management.electionTimeout}: {config.settings.electionTimeoutMin}-
+                        {config.settings.electionTimeoutMax}ms
+                      </div>
+                      <div>
+                        {t.raft.management.heartbeatInterval}: {config.settings.heartbeatInterval}ms
+                      </div>
+                      <div>
+                        {t.raft.management.rpcTimeout}: {config.settings.rpcTimeout}ms
+                      </div>
                     </div>
                   </div>
                   <div className="space-y-2">
                     <h4 className="font-semibold">{t.raft.management.portMapping}</h4>
                     <div className="text-sm space-y-1">
                       {Object.entries(config.settings.ports).map(([nodeId, port]) => (
-                        <div key={nodeId}>{nodeId}: {port}</div>
+                        <div key={nodeId}>
+                          {nodeId}: {port}
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -414,7 +454,8 @@ export default function RaftClusterPage() {
                     <Alert variant="destructive">
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>
-                        {t.raft.management.configValidationFailed}: {config.validation.errors.join(', ')}
+                        {t.raft.management.configValidationFailed}:{' '}
+                        {config.validation.errors.join(', ')}
                       </AlertDescription>
                     </Alert>
                   </>

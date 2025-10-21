@@ -6,12 +6,16 @@
  * ECP-C3: 性能意识 - 按需加载文件内容
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { CodeEditor } from '@/components/editor'
 import { api, ApiError } from '@/lib/api'
+
+// 懒加载CodeEditor（Monaco Editor体积较大）
+const CodeEditor = lazy(() =>
+  import('@/components/editor/CodeEditor').then((mod) => ({ default: mod.CodeEditor }))
+)
 import { detectLanguage } from '@/lib/language-detector'
 import { useLanguage } from '@/contexts/language-context'
 import type { ProjectFile } from '@/types/file'
@@ -242,7 +246,9 @@ export default function EditorPage() {
           >
             ← {t.editor.backToFiles}
           </Button>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">{project.name} - {t.editor.codeEditor}</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            {project.name} - {t.editor.codeEditor}
+          </h1>
         </div>
 
         {currentFile && (
@@ -301,14 +307,20 @@ export default function EditorPage() {
                     key={file.id}
                     onClick={() => handleFileClick(file)}
                     className={`w-full p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3 ${
-                      currentFile?.id === file.id ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500' : ''
+                      currentFile?.id === file.id
+                        ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500'
+                        : ''
                     }`}
                   >
                     <span className="text-xl">{getFileIcon(file)}</span>
                     <div className="flex-1 overflow-hidden">
-                      <p className="text-gray-900 dark:text-white text-sm truncate font-medium">{file.name}</p>
+                      <p className="text-gray-900 dark:text-white text-sm truncate font-medium">
+                        {file.name}
+                      </p>
                       <p className="text-gray-500 dark:text-gray-400 text-xs">
-                        {file.type === 'folder' ? t.editor.folder : `${(file.size / 1024).toFixed(1)} KB`}
+                        {file.type === 'folder'
+                          ? t.editor.folder
+                          : `${(file.size / 1024).toFixed(1)} KB`}
                       </p>
                     </div>
                   </button>
@@ -335,22 +347,38 @@ export default function EditorPage() {
               </div>
             </div>
           ) : currentFile ? (
-            <CodeEditor
-              fileId={currentFile.id}
-              projectId={projectId}
-              initialContent={fileContent}
-              language={detectLanguage(currentFile.name)}
-              onSave={() => {
-                // 保存成功后的回调（可选）
-                console.log('File saved:', currentFile.name)
-              }}
-            />
+            <Suspense
+              fallback={
+                <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-800">
+                  <div className="text-center">
+                    <div className="text-lg text-gray-600 dark:text-gray-400">
+                      {t.editor.loading}
+                    </div>
+                  </div>
+                </div>
+              }
+            >
+              <CodeEditor
+                fileId={currentFile.id}
+                projectId={projectId}
+                initialContent={fileContent}
+                language={detectLanguage(currentFile.name)}
+                onSave={() => {
+                  // 保存成功后的回调（可选）
+                  console.log('File saved:', currentFile.name)
+                }}
+              />
+            </Suspense>
           ) : (
             <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-800">
               <div className="text-center">
                 <div className="text-6xl mb-4">📝</div>
-                <p className="text-gray-600 dark:text-gray-400 text-lg">{t.editor.selectFileToEdit}</p>
-                <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">{t.editor.languageSupport}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-lg">
+                  {t.editor.selectFileToEdit}
+                </p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
+                  {t.editor.languageSupport}
+                </p>
               </div>
             </div>
           )}

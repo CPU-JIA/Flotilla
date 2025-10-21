@@ -26,27 +26,30 @@ export default function AdminProjectsPage() {
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
 
-  const fetchProjects = useCallback(async (searchQuery?: string) => {
-    try {
-      setLoading(true)
-      setError('')
-      const data = await api.projects.getAll({
-        page,
-        pageSize: 20,
-        search: searchQuery || undefined,
-      })
-      setProjects(data.projects)
-      setTotal(data.total)
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message)
-      } else {
-        setError(t.admin.projectsPage.loadingProjectsFailed)
+  const fetchProjects = useCallback(
+    async (searchQuery?: string) => {
+      try {
+        setLoading(true)
+        setError('')
+        const data = await api.projects.getAll({
+          page,
+          pageSize: 20,
+          search: searchQuery || undefined,
+        })
+        setProjects(data.projects)
+        setTotal(data.total)
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setError(err.message)
+        } else {
+          setError(t.admin.projectsPage.loadingProjectsFailed)
+        }
+      } finally {
+        setLoading(false)
       }
-    } finally {
-      setLoading(false)
-    }
-  }, [page, t])
+    },
+    [page, t]
+  )
 
   useEffect(() => {
     if (isLoading) return
@@ -99,13 +102,15 @@ export default function AdminProjectsPage() {
         className="bg-card rounded-[14px] p-6"
         style={{
           boxShadow: '10px 10px 15px black',
-          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))'
+          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))',
         }}
       >
         {/* 页头 */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-card-foreground">{t.admin.projectsPage.title}</h1>
-          <p className="text-muted-foreground mt-1">{t.admin.projectsPage.totalProjects.replace('{count}', total.toString())}</p>
+          <p className="text-muted-foreground mt-1">
+            {t.admin.projectsPage.totalProjects.replace('{count}', total.toString())}
+          </p>
         </div>
 
         {/* 搜索栏 */}
@@ -141,7 +146,9 @@ export default function AdminProjectsPage() {
 
         {/* 项目列表 */}
         <div className="bg-card rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
-          <h2 className="text-xl font-bold text-card-foreground mb-6">{t.admin.projectsPage.projectList}</h2>
+          <h2 className="text-xl font-bold text-card-foreground mb-6">
+            {t.admin.projectsPage.projectList}
+          </h2>
 
           {projects.length === 0 ? (
             <div className="text-center py-12">
@@ -150,7 +157,9 @@ export default function AdminProjectsPage() {
                 {search ? t.admin.projectsPage.noMatchingProjects : t.admin.projectsPage.noProjects}
               </h3>
               <p className="text-muted-foreground">
-                {search ? t.admin.projectsPage.tryDifferentKeywords : t.admin.projectsPage.noProjectsCreated}
+                {search
+                  ? t.admin.projectsPage.tryDifferentKeywords
+                  : t.admin.projectsPage.noProjectsCreated}
               </p>
             </div>
           ) : (
@@ -178,7 +187,9 @@ export default function AdminProjectsPage() {
                                 : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700'
                             }`}
                           >
-                            {project.visibility === 'PUBLIC' ? `🌍 ${t.admin.projectsPage.public}` : `🔒 ${t.admin.projectsPage.private}`}
+                            {project.visibility === 'PUBLIC'
+                              ? `🌍 ${t.admin.projectsPage.public}`
+                              : `🔒 ${t.admin.projectsPage.private}`}
                           </span>
                         </div>
                         <div className="text-sm text-muted-foreground mb-2">
@@ -186,16 +197,22 @@ export default function AdminProjectsPage() {
                         </div>
                         <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
                           <span>
-                            👤 {t.admin.projectsPage.owner}: <span className="font-medium text-card-foreground">{project.owner?.username || t.admin.projectsPage.unknown}</span>
+                            👤 {t.admin.projectsPage.owner}:{' '}
+                            <span className="font-medium text-card-foreground">
+                              {project.owner?.username || t.admin.projectsPage.unknown}
+                            </span>
                           </span>
                           <span>
-                            👥 {t.admin.projectsPage.members}: {project._count?.members || 0} {t.admin.projectsPage.people}
+                            👥 {t.admin.projectsPage.members}: {project._count?.members || 0}{' '}
+                            {t.admin.projectsPage.people}
                           </span>
                           <span>
-                            📅 {t.admin.projectsPage.createdAt}: {new Date(project.createdAt).toLocaleDateString('zh-CN')}
+                            📅 {t.admin.projectsPage.createdAt}:{' '}
+                            {new Date(project.createdAt).toLocaleDateString('zh-CN')}
                           </span>
                           <span>
-                            🔖 ID: <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">
+                            🔖 ID:{' '}
+                            <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs">
                               {project.id.substring(0, 8)}...
                             </code>
                           </span>

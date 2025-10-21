@@ -214,11 +214,7 @@ export async function apiRequest<T = unknown>(
     // 处理非 2xx 响应
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      throw new ApiError(
-        response.status,
-        errorData.message || response.statusText,
-        errorData
-      )
+      throw new ApiError(response.status, errorData.message || response.statusText, errorData)
     }
 
     // 解析响应
@@ -242,22 +238,34 @@ export const api = {
    */
   auth: {
     login: (data: { usernameOrEmail: string; password: string }) =>
-      apiRequest<AuthResponse>('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }, false),
+      apiRequest<AuthResponse>(
+        '/auth/login',
+        {
+          method: 'POST',
+          body: JSON.stringify(data),
+        },
+        false
+      ),
 
     register: (data: { username: string; email: string; password: string }) =>
-      apiRequest<AuthResponse>('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }, false),
+      apiRequest<AuthResponse>(
+        '/auth/register',
+        {
+          method: 'POST',
+          body: JSON.stringify(data),
+        },
+        false
+      ),
 
     refresh: (refreshToken: string) =>
-      apiRequest<RefreshTokenResponse>('/auth/refresh', {
-        method: 'POST',
-        body: JSON.stringify({ refreshToken }),
-      }, false),
+      apiRequest<RefreshTokenResponse>(
+        '/auth/refresh',
+        {
+          method: 'POST',
+          body: JSON.stringify({ refreshToken }),
+        },
+        false
+      ),
 
     me: () => apiRequest<User>('/auth/me'),
 
@@ -278,7 +286,9 @@ export const api = {
       if (params?.page) queryParams.append('page', params.page.toString())
       if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString())
       if (params?.search) queryParams.append('search', params.search)
-      return apiRequest<{users: User[], total: number, page: number, pageSize: number}>(`/users?${queryParams.toString()}`)
+      return apiRequest<{ users: User[]; total: number; page: number; pageSize: number }>(
+        `/users?${queryParams.toString()}`
+      )
     },
 
     getById: (id: string) => apiRequest<User>(`/users/${id}`),
@@ -290,13 +300,13 @@ export const api = {
       }),
 
     updatePassword: (id: string, data: { oldPassword: string; newPassword: string }) =>
-      apiRequest<{message: string}>(`/users/${id}/password`, {
+      apiRequest<{ message: string }>(`/users/${id}/password`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
 
     delete: (id: string) =>
-      apiRequest<{message: string}>(`/users/${id}`, {
+      apiRequest<{ message: string }>(`/users/${id}`, {
         method: 'DELETE',
       }),
   },
@@ -305,7 +315,12 @@ export const api = {
    * 项目相关 API
    */
   projects: {
-    getAll: (params?: { page?: number; pageSize?: number; search?: string; visibility?: string }) => {
+    getAll: (params?: {
+      page?: number
+      pageSize?: number
+      search?: string
+      visibility?: string
+    }) => {
       const queryParams = new URLSearchParams()
       if (params?.page) queryParams.append('page', params.page.toString())
       if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString())
@@ -322,30 +337,33 @@ export const api = {
         body: JSON.stringify(data),
       }),
 
-    update: (id: string, data: { name?: string; description?: string; visibility?: 'PUBLIC' | 'PRIVATE' }) =>
+    update: (
+      id: string,
+      data: { name?: string; description?: string; visibility?: 'PUBLIC' | 'PRIVATE' }
+    ) =>
       apiRequest<Project>(`/projects/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
       }),
 
     delete: (id: string) =>
-      apiRequest<{message: string}>(`/projects/${id}`, {
+      apiRequest<{ message: string }>(`/projects/${id}`, {
         method: 'DELETE',
       }),
 
     addMember: (projectId: string, data: { userId: string; role: 'OWNER' | 'MEMBER' | 'VIEWER' }) =>
-      apiRequest<{message: string}>(`/projects/${projectId}/members`, {
+      apiRequest<{ message: string }>(`/projects/${projectId}/members`, {
         method: 'POST',
         body: JSON.stringify(data),
       }),
 
     removeMember: (projectId: string, userId: string) =>
-      apiRequest<{message: string}>(`/projects/${projectId}/members/${userId}`, {
+      apiRequest<{ message: string }>(`/projects/${projectId}/members/${userId}`, {
         method: 'DELETE',
       }),
 
     updateMemberRole: (projectId: string, userId: string, role: 'OWNER' | 'MEMBER' | 'VIEWER') =>
-      apiRequest<{message: string}>(`/projects/${projectId}/members/${userId}/role`, {
+      apiRequest<{ message: string }>(`/projects/${projectId}/members/${userId}/role`, {
         method: 'PUT',
         body: JSON.stringify({ role }),
       }),
@@ -357,12 +375,14 @@ export const api = {
   repositories: {
     // 手动创建Repository（用于未自动创建的旧项目）
     createRepository: (projectId: string) =>
-      apiRequest<{id: string, projectId: string}>(`/projects/${projectId}/repository`, {
+      apiRequest<{ id: string; projectId: string }>(`/projects/${projectId}/repository`, {
         method: 'POST',
       }),
 
     getRepository: (projectId: string) =>
-      apiRequest<{id: string, projectId: string, defaultBranch: string}>(`/projects/${projectId}/repository`),
+      apiRequest<{ id: string; projectId: string; defaultBranch: string }>(
+        `/projects/${projectId}/repository`
+      ),
 
     getBranches: (projectId: string) =>
       apiRequest<Branch[]>(`/projects/${projectId}/repository/branches`),
@@ -385,7 +405,7 @@ export const api = {
       return fetch(`${API_BASE_URL}/projects/${projectId}/repository/branches/${branchId}/files`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: formData,
       }).then(async (response) => {
@@ -399,18 +419,27 @@ export const api = {
 
     downloadFile: (projectId: string, branchId: string, filePath: string) => {
       const accessToken = getAccessToken()
-      return fetch(`${API_BASE_URL}/projects/${projectId}/repository/branches/${branchId}/files/download?path=${encodeURIComponent(filePath)}`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      })
+      return fetch(
+        `${API_BASE_URL}/projects/${projectId}/repository/branches/${branchId}/files/download?path=${encodeURIComponent(filePath)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      )
     },
 
-    getCommits: (projectId: string, branchId: string, params?: { page?: number; pageSize?: number }) => {
+    getCommits: (
+      projectId: string,
+      branchId: string,
+      params?: { page?: number; pageSize?: number }
+    ) => {
       const queryParams = new URLSearchParams()
       if (params?.page) queryParams.append('page', params.page.toString())
       if (params?.pageSize) queryParams.append('pageSize', params.pageSize.toString())
-      return apiRequest<{commits: Commit[], total: number, page: number, pageSize: number}>(`/projects/${projectId}/repository/branches/${branchId}/commits?${queryParams.toString()}`)
+      return apiRequest<{ commits: Commit[]; total: number; page: number; pageSize: number }>(
+        `/projects/${projectId}/repository/branches/${branchId}/commits?${queryParams.toString()}`
+      )
     },
 
     createCommit: (projectId: string, data: { branchId: string; message: string }) =>
@@ -421,14 +450,18 @@ export const api = {
 
     // 获取单个提交详情
     getCommit: (projectId: string, branchId: string, commitId: string) =>
-      apiRequest<unknown>(`/projects/${projectId}/repository/branches/${branchId}/commits/${commitId}`),
+      apiRequest<unknown>(
+        `/projects/${projectId}/repository/branches/${branchId}/commits/${commitId}`
+      ),
 
     // 获取提交间差异
     getCommitDiff: (projectId: string, branchId: string, commitId: string, compareTo?: string) => {
       const queryParams = new URLSearchParams()
       if (compareTo) queryParams.append('compareTo', compareTo)
       const query = queryParams.toString() ? `?${queryParams.toString()}` : ''
-      return apiRequest<CommitDiff>(`/projects/${projectId}/repository/branches/${branchId}/commits/${commitId}/diff${query}`)
+      return apiRequest<CommitDiff>(
+        `/projects/${projectId}/repository/branches/${branchId}/commits/${commitId}/diff${query}`
+      )
     },
 
     // 获取提交的文件内容
@@ -436,7 +469,9 @@ export const api = {
       const queryParams = new URLSearchParams()
       if (filePath) queryParams.append('path', filePath)
       const query = queryParams.toString() ? `?${queryParams.toString()}` : ''
-      return apiRequest<unknown>(`/projects/${projectId}/repository/branches/${branchId}/commits/${commitId}/files${query}`)
+      return apiRequest<unknown>(
+        `/projects/${projectId}/repository/branches/${branchId}/commits/${commitId}/files${query}`
+      )
     },
   },
 
@@ -505,7 +540,13 @@ export const api = {
    */
   files: {
     // 获取文件列表
-    getFiles: (params: { projectId: string; folder?: string; search?: string; page?: number; pageSize?: number }) => {
+    getFiles: (params: {
+      projectId: string
+      folder?: string
+      search?: string
+      page?: number
+      pageSize?: number
+    }) => {
       const queryParams = new URLSearchParams()
       queryParams.append('projectId', params.projectId)
       if (params.folder) queryParams.append('folder', params.folder)
@@ -526,7 +567,7 @@ export const api = {
       return fetch(`${API_BASE_URL}/files/upload`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: formData,
       }).then(async (response) => {
@@ -564,7 +605,7 @@ export const api = {
       const accessToken = getAccessToken()
       return fetch(`${API_BASE_URL}/files/${id}/download`, {
         headers: {
-          'Authorization': `Bearer ${accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       })
     },
@@ -683,40 +724,71 @@ export const api = {
       }),
 
     // 更新成员角色
-    updateMemberRole: (organizationSlug: string, teamSlug: string, userId: string, data: UpdateTeamMemberRoleRequest) =>
-      apiRequest<TeamMember>(`/organizations/${organizationSlug}/teams/${teamSlug}/members/${userId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-      }),
+    updateMemberRole: (
+      organizationSlug: string,
+      teamSlug: string,
+      userId: string,
+      data: UpdateTeamMemberRoleRequest
+    ) =>
+      apiRequest<TeamMember>(
+        `/organizations/${organizationSlug}/teams/${teamSlug}/members/${userId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(data),
+        }
+      ),
 
     // 移除成员
     removeMember: (organizationSlug: string, teamSlug: string, userId: string) =>
-      apiRequest<{ message: string }>(`/organizations/${organizationSlug}/teams/${teamSlug}/members/${userId}`, {
-        method: 'DELETE',
-      }),
+      apiRequest<{ message: string }>(
+        `/organizations/${organizationSlug}/teams/${teamSlug}/members/${userId}`,
+        {
+          method: 'DELETE',
+        }
+      ),
 
     // 获取Team项目权限列表
     getPermissions: (organizationSlug: string, teamSlug: string) =>
-      apiRequest<TeamProjectPermission[]>(`/organizations/${organizationSlug}/teams/${teamSlug}/permissions`),
+      apiRequest<TeamProjectPermission[]>(
+        `/organizations/${organizationSlug}/teams/${teamSlug}/permissions`
+      ),
 
     // 分配项目权限给Team
-    assignPermission: (organizationSlug: string, teamSlug: string, data: AssignProjectPermissionRequest) =>
-      apiRequest<TeamProjectPermission>(`/organizations/${organizationSlug}/teams/${teamSlug}/permissions`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
+    assignPermission: (
+      organizationSlug: string,
+      teamSlug: string,
+      data: AssignProjectPermissionRequest
+    ) =>
+      apiRequest<TeamProjectPermission>(
+        `/organizations/${organizationSlug}/teams/${teamSlug}/permissions`,
+        {
+          method: 'POST',
+          body: JSON.stringify(data),
+        }
+      ),
 
     // 更新项目权限级别
-    updatePermission: (organizationSlug: string, teamSlug: string, projectId: string, data: UpdateProjectPermissionRequest) =>
-      apiRequest<TeamProjectPermission>(`/organizations/${organizationSlug}/teams/${teamSlug}/permissions/${projectId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-      }),
+    updatePermission: (
+      organizationSlug: string,
+      teamSlug: string,
+      projectId: string,
+      data: UpdateProjectPermissionRequest
+    ) =>
+      apiRequest<TeamProjectPermission>(
+        `/organizations/${organizationSlug}/teams/${teamSlug}/permissions/${projectId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(data),
+        }
+      ),
 
     // 撤销项目权限
     revokePermission: (organizationSlug: string, teamSlug: string, projectId: string) =>
-      apiRequest<{ message: string }>(`/organizations/${organizationSlug}/teams/${teamSlug}/permissions/${projectId}`, {
-        method: 'DELETE',
-      }),
+      apiRequest<{ message: string }>(
+        `/organizations/${organizationSlug}/teams/${teamSlug}/permissions/${projectId}`,
+        {
+          method: 'DELETE',
+        }
+      ),
   },
 }

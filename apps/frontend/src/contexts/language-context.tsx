@@ -283,6 +283,9 @@ export interface Translations {
     deleteSuccess: string
     createSuccess: string
     updateSuccess: string
+    addMemberSuccess: string
+    removeMemberSuccess: string
+    confirmRemoveMember: string
     slugHelper: string
     roles: {
       MAINTAINER: string
@@ -500,6 +503,19 @@ export interface Translations {
       deleteSuccess: string
       deleteFailed: string
     }
+  }
+
+  // 表单验证
+  validation: {
+    emailRequired: string
+    invalidEmail: string
+    fieldRequired: string
+    passwordTooShort: string
+    passwordMismatch: string
+    usernameInvalid: string
+    slugInvalid: string
+    nameTooShort: string
+    descriptionTooLong: string
   }
 }
 

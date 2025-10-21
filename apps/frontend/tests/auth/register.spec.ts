@@ -66,7 +66,9 @@ test.describe('用户注册功能测试', () => {
     await page.getByRole('button', { name: '注册' }).click()
 
     // 等待错误消息出现
-    await expect(page.locator('text=用户名必须是3-20个字符，只能包含字母、数字和下划线')).toBeVisible({ timeout: 5000 })
+    await expect(
+      page.locator('text=用户名必须是3-20个字符，只能包含字母、数字和下划线')
+    ).toBeVisible({ timeout: 5000 })
   })
 
   test('应该验证用户名格式（包含非法字符）', async ({ page }) => {
@@ -80,7 +82,9 @@ test.describe('用户注册功能测试', () => {
     await page.getByRole('button', { name: '注册' }).click()
 
     // 等待错误消息出现
-    await expect(page.locator('text=用户名必须是3-20个字符，只能包含字母、数字和下划线')).toBeVisible({ timeout: 5000 })
+    await expect(
+      page.locator('text=用户名必须是3-20个字符，只能包含字母、数字和下划线')
+    ).toBeVisible({ timeout: 5000 })
   })
 
   test('应该验证邮箱格式', async ({ page }) => {
@@ -198,8 +202,10 @@ test.describe('用户注册功能测试', () => {
 
     // 验证按钮在加载时显示"注册中..."
     // 注意：这个测试可能需要根据网络速度调整
-    await expect(submitButton).toHaveText('注册中...', { timeout: 1000 }).catch(() => {
-      // 如果响应太快，按钮可能直接跳转，这是正常的
-    })
+    await expect(submitButton)
+      .toHaveText('注册中...', { timeout: 1000 })
+      .catch(() => {
+        // 如果响应太快，按钮可能直接跳转，这是正常的
+      })
   })
 })

@@ -34,9 +34,8 @@ Cloud-Dev-Platform/
 ├── apps/
 │   ├── backend/          # NestJS 后端服务
 │   └── frontend/         # Next.js 前端应用
-├── packages/             # 共享包
-│   ├── shared/           # 共享类型和工具
-│   └── ui/               # 共享UI组件
+├── website/              # Next.js 官网（独立项目）
+├── packages/             # 共享包（保留用于未来扩展）
 ├── docs/                 # 文档
 ├── scripts/              # 脚本
 ├── docker-compose.yml    # Docker 编排
@@ -227,4 +226,4 @@ MIT License
 
 **Status**: 🚧 开发中
 **Version**: v1.0.0-MVP
-**Last Updated**: 2025-10-19
+**Last Updated**: 2025-10-20

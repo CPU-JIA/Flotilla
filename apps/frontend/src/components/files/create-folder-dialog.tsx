@@ -88,9 +88,7 @@ export function CreateFolderDialog({ projectId, parentPath, onSuccess }: CreateF
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>创建新文件夹</DialogTitle>
-            <DialogDescription>
-              在当前目录下创建一个新文件夹
-            </DialogDescription>
+            <DialogDescription>在当前目录下创建一个新文件夹</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -119,7 +117,9 @@ export function CreateFolderDialog({ projectId, parentPath, onSuccess }: CreateF
             </div>
 
             <div className="text-sm text-gray-600">
-              <p>当前路径: <span className="font-mono">{parentPath}</span></p>
+              <p>
+                当前路径: <span className="font-mono">{parentPath}</span>
+              </p>
             </div>
           </div>
 

@@ -8,8 +8,14 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { CreateTeamDialog } from '@/components/teams/create-team-dialog'
 import { useLanguage } from '@/contexts/language-context'
@@ -48,9 +54,7 @@ export function TeamsTab({ organizationSlug, canManage }: TeamsTabProps) {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            {t.teams.title}
-          </h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t.teams.title}</h2>
           <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
             {t.loading === t.loading ? `共 ${teams.length} 个团队` : `${teams.length} teams`}
           </p>
@@ -83,7 +87,9 @@ export function TeamsTab({ organizationSlug, canManage }: TeamsTabProps) {
               {t.teams.noTeams}
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {t.loading === t.loading ? '创建您的第一个团队开始协作' : 'Create your first team to start collaboration'}
+              {t.loading === t.loading
+                ? '创建您的第一个团队开始协作'
+                : 'Create your first team to start collaboration'}
             </p>
             {canManage && (
               <CreateTeamDialog organizationSlug={organizationSlug} onSuccess={fetchTeams} />
@@ -112,11 +118,15 @@ export function TeamsTab({ organizationSlug, canManage }: TeamsTabProps) {
                   <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                     <div className="flex items-center gap-1">
                       <span>👥</span>
-                      <span>{team._count?.members || 0} {t.teams.members}</span>
+                      <span>
+                        {team._count?.members || 0} {t.teams.members}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span>🔑</span>
-                      <span>{team._count?.projectPermissions || 0} {t.teams.projects}</span>
+                      <span>
+                        {team._count?.projectPermissions || 0} {t.teams.projects}
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-500 mt-2">

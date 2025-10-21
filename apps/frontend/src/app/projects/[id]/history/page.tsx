@@ -89,19 +89,22 @@ export default function VersionHistoryPage() {
   }, [projectId, branchId, page, t])
 
   // 获取提交diff
-  const fetchCommitDiff = useCallback(async (commitId: string) => {
-    if (!branchId) return
+  const fetchCommitDiff = useCallback(
+    async (commitId: string) => {
+      if (!branchId) return
 
-    try {
-      setDiffLoading(true)
-      const data = await api.repositories.getCommitDiff(projectId, branchId, commitId)
-      setCommitDiff(data)
-    } catch (err) {
-      console.error('加载diff失败:', err)
-    } finally {
-      setDiffLoading(false)
-    }
-  }, [projectId, branchId])
+      try {
+        setDiffLoading(true)
+        const data = await api.repositories.getCommitDiff(projectId, branchId, commitId)
+        setCommitDiff(data)
+      } catch (err) {
+        console.error('加载diff失败:', err)
+      } finally {
+        setDiffLoading(false)
+      }
+    },
+    [projectId, branchId]
+  )
 
   useEffect(() => {
     fetchCommits()
@@ -165,7 +168,9 @@ export default function VersionHistoryPage() {
                 {t.projects.history.backToProject}
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-card-foreground">{t.projects.history.title}</h1>
+                <h1 className="text-3xl font-bold text-card-foreground">
+                  {t.projects.history.title}
+                </h1>
                 <p className="text-muted-foreground mt-1">{t.projects.history.description}</p>
               </div>
             </div>
@@ -189,9 +194,7 @@ export default function VersionHistoryPage() {
             <Card className="bg-card rounded-2xl shadow-sm">
               <CardHeader>
                 <CardTitle>{t.projects.history.commitHistory}</CardTitle>
-                <CardDescription>
-                  {t.projects.history.clickToView}
-                </CardDescription>
+                <CardDescription>{t.projects.history.clickToView}</CardDescription>
               </CardHeader>
               <CardContent className="p-4 max-h-[calc(100vh-250px)] overflow-y-auto">
                 {loading ? (
@@ -212,9 +215,10 @@ export default function VersionHistoryPage() {
                         onClick={() => handleCommitClick(commit.id)}
                         className={`
                           p-4 rounded-xl border-2 transition-all cursor-pointer
-                          ${selectedCommit === commit.id
-                            ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500'
-                            : 'bg-card border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
+                          ${
+                            selectedCommit === commit.id
+                              ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500'
+                              : 'bg-card border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600'
                           }
                         `}
                       >
@@ -233,7 +237,8 @@ export default function VersionHistoryPage() {
                             {commit.filesCount !== undefined && (
                               <div className="mt-2 text-xs text-muted-foreground">
                                 <FileText className="w-3 h-3 inline mr-1" />
-                                {commit.filesCount}{t.projects.history.filesCount}
+                                {commit.filesCount}
+                                {t.projects.history.filesCount}
                               </div>
                             )}
                           </div>
@@ -250,7 +255,7 @@ export default function VersionHistoryPage() {
                       variant="outline"
                       size="sm"
                       disabled={page === 1}
-                      onClick={() => setPage(p => p - 1)}
+                      onClick={() => setPage((p) => p - 1)}
                     >
                       {t.projects.history.previousPage}
                     </Button>
@@ -263,7 +268,7 @@ export default function VersionHistoryPage() {
                       variant="outline"
                       size="sm"
                       disabled={page >= Math.ceil(total / 20)}
-                      onClick={() => setPage(p => p + 1)}
+                      onClick={() => setPage((p) => p + 1)}
                     >
                       {t.projects.history.nextPage}
                     </Button>
@@ -282,9 +287,7 @@ export default function VersionHistoryPage() {
                   <h3 className="text-xl font-bold text-card-foreground mb-2">
                     {t.projects.history.selectCommit}
                   </h3>
-                  <p className="text-muted-foreground">
-                    {t.projects.history.selectCommitDesc}
-                  </p>
+                  <p className="text-muted-foreground">{t.projects.history.selectCommitDesc}</p>
                 </CardContent>
               </Card>
             ) : diffLoading ? (
@@ -297,12 +300,8 @@ export default function VersionHistoryPage() {
             ) : commitDiff ? (
               <Card className="bg-card rounded-2xl shadow-sm">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    📊 变更详情
-                  </CardTitle>
-                  <CardDescription>
-                    {commitDiff.commit.message}
-                  </CardDescription>
+                  <CardTitle className="flex items-center gap-2">📊 变更详情</CardTitle>
+                  <CardDescription>{commitDiff.commit.message}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {/* 统计信息 */}
@@ -312,21 +311,27 @@ export default function VersionHistoryPage() {
                       <div className="text-2xl font-bold text-green-600">
                         {commitDiff.stats.added}
                       </div>
-                      <div className="text-sm text-muted-foreground">{t.projects.history.additions}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {t.projects.history.additions}
+                      </div>
                     </div>
                     <div className="bg-yellow-50 rounded-xl p-4 text-center border border-yellow-200">
                       <Edit className="w-6 h-6 text-yellow-600 mx-auto mb-2" />
                       <div className="text-2xl font-bold text-yellow-600">
                         {commitDiff.stats.modified}
                       </div>
-                      <div className="text-sm text-muted-foreground">{t.projects.history.modified}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {t.projects.history.modified}
+                      </div>
                     </div>
                     <div className="bg-red-50 rounded-xl p-4 text-center border border-red-200">
                       <Minus className="w-6 h-6 text-red-600 mx-auto mb-2" />
                       <div className="text-2xl font-bold text-red-600">
                         {commitDiff.stats.deleted}
                       </div>
-                      <div className="text-sm text-muted-foreground">{t.projects.history.deletions}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {t.projects.history.deletions}
+                      </div>
                     </div>
                   </div>
 

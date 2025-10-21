@@ -43,7 +43,10 @@ test.describe('仪表板功能测试', () => {
 
   test('应该能够通过导航栏跳转到项目页面', async ({ page }) => {
     // 点击项目链接（使用first()避免匹配多个元素）
-    await page.getByRole('link', { name: /项目|Projects/i }).first().click()
+    await page
+      .getByRole('link', { name: /项目|Projects/i })
+      .first()
+      .click()
 
     // 验证跳转到项目页面
     await expect(page).toHaveURL(/\/projects/, { timeout: 5000 })

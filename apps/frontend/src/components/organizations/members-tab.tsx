@@ -6,10 +6,16 @@
  * ECP-C1: 防御性编程 - 权限检查
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { useLanguage } from '@/contexts/language-context'
 import { AddOrganizationMemberDialog } from './add-organization-member-dialog'
@@ -29,7 +35,7 @@ export function MembersTab({ organizationSlug, canManage, currentUserRole }: Mem
   const [updating, setUpdating] = useState<string | null>(null)
   const [removing, setRemoving] = useState<string | null>(null)
 
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     setLoading(true)
     try {
       const data = await api.organizations.getMembers(organizationSlug)
@@ -40,11 +46,11 @@ export function MembersTab({ organizationSlug, canManage, currentUserRole }: Mem
     } finally {
       setLoading(false)
     }
-  }
+  }, [organizationSlug, t.error])
 
   useEffect(() => {
     fetchMembers()
-  }, [organizationSlug])
+  }, [fetchMembers])
 
   const handleUpdateRole = async (userId: string, newRole: OrgRole) => {
     setUpdating(userId)
@@ -64,9 +70,8 @@ export function MembersTab({ organizationSlug, canManage, currentUserRole }: Mem
   }
 
   const handleRemoveMember = async (userId: string, username: string) => {
-    const confirmMessage = t.loading === t.loading
-      ? `确定要移除成员 ${username} 吗？`
-      : `Remove member ${username}?`
+    const confirmMessage =
+      t.loading === t.loading ? `确定要移除成员 ${username} 吗？` : `Remove member ${username}?`
     if (!confirm(confirmMessage)) return
 
     setRemoving(userId)
@@ -89,7 +94,7 @@ export function MembersTab({ organizationSlug, canManage, currentUserRole }: Mem
     const roleConfig = {
       OWNER: { color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' },
       ADMIN: { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-      MEMBER: { color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200' }
+      MEMBER: { color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200' },
     }
     const config = roleConfig[role]
     return (
@@ -131,7 +136,9 @@ export function MembersTab({ organizationSlug, canManage, currentUserRole }: Mem
               {t.organizations.noMembers}
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {t.loading === t.loading ? '邀请成员加入组织开始协作' : 'Invite members to start collaboration'}
+              {t.loading === t.loading
+                ? '邀请成员加入组织开始协作'
+                : 'Invite members to start collaboration'}
             </p>
             {canManage && (
               <AddOrganizationMemberDialog
@@ -177,7 +184,9 @@ export function MembersTab({ organizationSlug, canManage, currentUserRole }: Mem
                       <div className="flex items-center gap-3">
                         <Select
                           value={member.role}
-                          onValueChange={(value) => handleUpdateRole(member.userId, value as OrgRole)}
+                          onValueChange={(value) =>
+                            handleUpdateRole(member.userId, value as OrgRole)
+                          }
                           disabled={updating === member.userId}
                         >
                           <SelectTrigger className="w-32">
@@ -196,9 +205,10 @@ export function MembersTab({ organizationSlug, canManage, currentUserRole }: Mem
                           disabled={removing === member.userId}
                         >
                           {removing === member.userId
-                            ? (t.loading === t.loading ? '移除中...' : 'Removing...')
-                            : t.organizations.removeMember
-                          }
+                            ? t.loading === t.loading
+                              ? '移除中...'
+                              : 'Removing...'
+                            : t.organizations.removeMember}
                         </Button>
                       </div>
                     )}

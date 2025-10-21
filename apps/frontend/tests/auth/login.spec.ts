@@ -135,9 +135,11 @@ test.describe('用户登录功能测试', () => {
 
     // 验证按钮在加载时显示"登录中..."
     // 注意：这个测试可能需要根据网络速度调整
-    await expect(submitButton).toHaveText('登录中...', { timeout: 1000 }).catch(() => {
-      // 如果响应太快，按钮可能直接跳转，这是正常的
-    })
+    await expect(submitButton)
+      .toHaveText('登录中...', { timeout: 1000 })
+      .catch(() => {
+        // 如果响应太快，按钮可能直接跳转，这是正常的
+      })
   })
 
   test('应该在登录时禁用输入字段', async ({ page }) => {
@@ -150,9 +152,11 @@ test.describe('用户登录功能测试', () => {
 
     // 验证输入字段在加载时被禁用
     // 注意：这个测试可能需要根据网络速度调整
-    await expect(page.getByLabel('用户名或邮箱')).toBeDisabled({ timeout: 500 }).catch(() => {
-      // 如果响应太快，可能直接跳转，这是正常的
-    })
+    await expect(page.getByLabel('用户名或邮箱'))
+      .toBeDisabled({ timeout: 500 })
+      .catch(() => {
+        // 如果响应太快，可能直接跳转，这是正常的
+      })
   })
 
   test('应该能够通过链接跳转到注册页面', async ({ page }) => {
@@ -177,10 +181,12 @@ test.describe('用户登录功能测试', () => {
     await page.getByLabel('用户名或邮箱').fill('newtext')
 
     // 验证错误消息消失
-    await expect(page.locator('.bg-red-50, .dark\\:bg-red-900\\/20')).not.toBeVisible({ timeout: 1000 })
+    await expect(page.locator('.bg-red-50, .dark\\:bg-red-900\\/20')).not.toBeVisible({
+      timeout: 1000,
+    })
   })
 
-  test('应该保持登录状态 - 刷新后仍然登录', async ({ page, context }) => {
+  test('应该保持登录状态 - 刷新后仍然登录', async ({ page }) => {
     // 先登录
     await page.getByLabel('用户名或邮箱').fill(testUser.username)
     await page.getByLabel('密码').fill(testUser.password)

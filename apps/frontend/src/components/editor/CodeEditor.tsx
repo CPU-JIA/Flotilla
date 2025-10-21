@@ -82,7 +82,10 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
 
     try {
       setLoadingCommits(true)
-      const response = await api.repositories.getCommits(projectId, branchId, { page: 1, pageSize: 20 }) as unknown as { commits: Commit[], total: number, page: number, pageSize: number }
+      const response = (await api.repositories.getCommits(projectId, branchId, {
+        page: 1,
+        pageSize: 20,
+      })) as unknown as { commits: Commit[]; total: number; page: number; pageSize: number }
       setCommits(response.commits || [])
     } catch (error) {
       console.error('Failed to load commits:', error)
@@ -130,35 +133,41 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   }, [lastSaved, showHistory, branchId, loadCommits])
 
   // ECP-C2: 系统化错误处理 - 保存文件内容
-  const saveContent = useCallback(async (newContent: string) => {
-    try {
-      setSaving(true)
-      await api.files.updateFileContent(fileId, newContent)
-      setLastSaved(new Date())
-      onSave?.(newContent)
-    } catch (error) {
-      console.error('Failed to save file:', error)
-      // TODO: 显示错误提示 toast
-    } finally {
-      setSaving(false)
-    }
-  }, [fileId, onSave])
+  const saveContent = useCallback(
+    async (newContent: string) => {
+      try {
+        setSaving(true)
+        await api.files.updateFileContent(fileId, newContent)
+        setLastSaved(new Date())
+        onSave?.(newContent)
+      } catch (error) {
+        console.error('Failed to save file:', error)
+        // TODO: 显示错误提示 toast
+      } finally {
+        setSaving(false)
+      }
+    },
+    [fileId, onSave]
+  )
 
   // ECP-C3: 性能意识 - 使用防抖减少API调用
-  const handleEditorChange = useCallback((value: string | undefined) => {
-    if (value === undefined) return
-    setContent(value)
+  const handleEditorChange = useCallback(
+    (value: string | undefined) => {
+      if (value === undefined) return
+      setContent(value)
 
-    // 清除之前的定时器
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current)
-    }
+      // 清除之前的定时器
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+      }
 
-    // 设置新的自动保存定时器（2秒防抖）
-    saveTimeoutRef.current = setTimeout(() => {
-      saveContent(value)
-    }, 2000)
-  }, [saveContent])
+      // 设置新的自动保存定时器（2秒防抖）
+      saveTimeoutRef.current = setTimeout(() => {
+        saveContent(value)
+      }, 2000)
+    },
+    [saveContent]
+  )
 
   // 组件卸载时清理定时器
   useEffect(() => {
@@ -260,10 +269,11 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           {/* 预览区（仅markdown文件显示） */}
           {isMarkdown && viewMode === 'preview' && (
             <div className="h-full overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-900 p-8">
-              <div className="markdown-body max-w-5xl mx-auto px-12" style={{ backgroundColor: 'transparent' }}>
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {content}
-                </ReactMarkdown>
+              <div
+                className="markdown-body max-w-5xl mx-auto px-12"
+                style={{ backgroundColor: 'transparent' }}
+              >
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
               </div>
             </div>
           )}
@@ -280,7 +290,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           />
 
           {/* 侧边栏容器 */}
-          <div className="
+          <div
+            className="
             fixed lg:relative
             inset-y-0 right-0 lg:inset-y-auto
             w-full sm:w-[320px] lg:w-[380px] xl:w-[400px]
@@ -289,7 +300,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             z-50 lg:z-auto
             transform lg:transform-none
             shadow-xl lg:shadow-none
-          ">
+          "
+          >
             {/* 侧边栏标题 */}
             <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-white dark:bg-gray-800">
               <h3 className="text-gray-900 dark:text-white font-semibold">📜 版本历史</h3>
@@ -302,76 +314,81 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
               </button>
             </div>
 
-          {/* 提交列表 */}
-          <div className="flex-1 overflow-y-auto">
-            {!repositoryExists ? (
-              <div className="p-4 text-center text-gray-600 dark:text-gray-400">
-                <div className="text-2xl mb-2">⚠️</div>
-                <p className="text-sm">版本控制未初始化</p>
-                <p className="text-xs mt-2">项目的Git仓库尚未创建</p>
-                <p className="text-xs mt-1 text-gray-400 dark:text-gray-500">保存文件后会自动初始化</p>
-              </div>
-            ) : loadingCommits ? (
-              <div className="p-4 text-center text-gray-600 dark:text-gray-400">
-                <div className="text-2xl mb-2 animate-pulse">⏳</div>
-                <p className="text-sm">加载中...</p>
-              </div>
-            ) : commits.length === 0 ? (
-              <div className="p-4 text-center text-gray-600 dark:text-gray-400">
-                <div className="text-2xl mb-2">📝</div>
-                <p className="text-sm">暂无提交记录</p>
-                <p className="text-xs mt-1">保存文件后会自动创建提交</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                {commits.map((commit) => (
-                  <div
-                    key={commit.id}
-                    className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                    title={`${commit.message}\n\n作者: ${commit.author.username}\n时间: ${new Date(commit.createdAt).toLocaleString('zh-CN')}`}
-                  >
-                    <div className="flex gap-3">
-                      {/* 作者头像 */}
-                      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
-                        {commit.author.username[0].toUpperCase()}
-                      </div>
-
-                      {/* 提交详情 - 优化布局 */}
-                      <div className="flex-1 min-w-0">
-                        {/* 提交信息 - 限制显示行数 */}
-                        <div className="text-gray-900 dark:text-white text-sm mb-1 line-clamp-2 break-words leading-relaxed">
-                          {commit.message}
+            {/* 提交列表 */}
+            <div className="flex-1 overflow-y-auto">
+              {!repositoryExists ? (
+                <div className="p-4 text-center text-gray-600 dark:text-gray-400">
+                  <div className="text-2xl mb-2">⚠️</div>
+                  <p className="text-sm">版本控制未初始化</p>
+                  <p className="text-xs mt-2">项目的Git仓库尚未创建</p>
+                  <p className="text-xs mt-1 text-gray-400 dark:text-gray-500">
+                    保存文件后会自动初始化
+                  </p>
+                </div>
+              ) : loadingCommits ? (
+                <div className="p-4 text-center text-gray-600 dark:text-gray-400">
+                  <div className="text-2xl mb-2 animate-pulse">⏳</div>
+                  <p className="text-sm">加载中...</p>
+                </div>
+              ) : commits.length === 0 ? (
+                <div className="p-4 text-center text-gray-600 dark:text-gray-400">
+                  <div className="text-2xl mb-2">📝</div>
+                  <p className="text-sm">暂无提交记录</p>
+                  <p className="text-xs mt-1">保存文件后会自动创建提交</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {commits.map((commit) => (
+                    <div
+                      key={commit.id}
+                      className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                      title={`${commit.message}\n\n作者: ${commit.author.username}\n时间: ${new Date(commit.createdAt).toLocaleString('zh-CN')}`}
+                    >
+                      <div className="flex gap-3">
+                        {/* 作者头像 */}
+                        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium flex-shrink-0">
+                          {commit.author.username[0].toUpperCase()}
                         </div>
 
-                        {/* 作者和时间信息 - 水平布局节省空间 */}
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-gray-600 dark:text-gray-400 truncate flex-1 mr-2">
-                            {commit.author.username}
-                          </span>
-                          <span className="text-gray-400 dark:text-gray-500 flex-shrink-0">
-                            {(() => {
-                              const now = new Date()
-                              const commitDate = new Date(commit.createdAt)
-                              const diffMs = now.getTime() - commitDate.getTime()
-                              const diffMins = Math.floor(diffMs / (1000 * 60))
-                              const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-                              const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+                        {/* 提交详情 - 优化布局 */}
+                        <div className="flex-1 min-w-0">
+                          {/* 提交信息 - 限制显示行数 */}
+                          <div className="text-gray-900 dark:text-white text-sm mb-1 line-clamp-2 break-words leading-relaxed">
+                            {commit.message}
+                          </div>
 
-                              if (diffMins < 1) return '刚刚'
-                              if (diffMins < 60) return `${diffMins}分钟前`
-                              if (diffHours < 24) return `${diffHours}小时前`
-                              if (diffDays < 7) return `${diffDays}天前`
-                              return commitDate.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
-                            })()}
-                          </span>
+                          {/* 作者和时间信息 - 水平布局节省空间 */}
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600 dark:text-gray-400 truncate flex-1 mr-2">
+                              {commit.author.username}
+                            </span>
+                            <span className="text-gray-400 dark:text-gray-500 flex-shrink-0">
+                              {(() => {
+                                const now = new Date()
+                                const commitDate = new Date(commit.createdAt)
+                                const diffMs = now.getTime() - commitDate.getTime()
+                                const diffMins = Math.floor(diffMs / (1000 * 60))
+                                const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+                                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+                                if (diffMins < 1) return '刚刚'
+                                if (diffMins < 60) return `${diffMins}分钟前`
+                                if (diffHours < 24) return `${diffHours}小时前`
+                                if (diffDays < 7) return `${diffDays}天前`
+                                return commitDate.toLocaleDateString('zh-CN', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                })
+                              })()}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </>
       )}

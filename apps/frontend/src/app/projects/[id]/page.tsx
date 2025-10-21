@@ -64,7 +64,7 @@ export default function ProjectDetailPage() {
       try {
         const branches = await api.repositories.getBranches(projectId)
         if (branches && branches.length > 0) {
-          const defaultBranch = branches.find(b => b.name === 'main') || branches[0]
+          const defaultBranch = branches.find((b) => b.name === 'main') || branches[0]
           setDefaultBranchId(defaultBranch.id)
         }
       } catch (branchErr) {
@@ -129,7 +129,13 @@ export default function ProjectDetailPage() {
 
   return (
     <AppLayout>
-      <div className="bg-card rounded-[14px] p-[22px]" style={{boxShadow: '10px 10px 15px black', filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))'}}>
+      <div
+        className="bg-card rounded-[14px] p-[22px]"
+        style={{
+          boxShadow: '10px 10px 15px black',
+          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))',
+        }}
+      >
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
@@ -139,7 +145,9 @@ export default function ProjectDetailPage() {
           <div className="text-center py-12">
             <div className="text-6xl mb-4">⚠️</div>
             <h3 className="text-xl font-semibold text-card-foreground mb-2">{error}</h3>
-            <Button onClick={() => router.push('/projects')} className="mt-4">{t.projects.detail.backToList}</Button>
+            <Button onClick={() => router.push('/projects')} className="mt-4">
+              {t.projects.detail.backToList}
+            </Button>
           </div>
         ) : project ? (
           <div className="space-y-8">
@@ -149,42 +157,68 @@ export default function ProjectDetailPage() {
                   <div className="flex items-center gap-3 mb-2">
                     <h1 className="text-3xl font-bold text-card-foreground">{project.name}</h1>
                     <Badge variant={project.visibility === 'PUBLIC' ? 'default' : 'secondary'}>
-                      {project.visibility === 'PUBLIC' ? `🌍 ${t.projects.visibility.public}` : `🔒 ${t.projects.visibility.private}`}
+                      {project.visibility === 'PUBLIC'
+                        ? `🌍 ${t.projects.visibility.public}`
+                        : `🔒 ${t.projects.visibility.private}`}
                     </Badge>
                   </div>
-                  <p className="text-muted-foreground text-base">{project.description || t.projects.noDescription}</p>
+                  <p className="text-muted-foreground text-base">
+                    {project.description || t.projects.noDescription}
+                  </p>
                 </div>
-                <Button variant="outline" onClick={() => router.push('/projects')}>← {t.projects.detail.backToList}</Button>
+                <Button variant="outline" onClick={() => router.push('/projects')}>
+                  ← {t.projects.detail.backToList}
+                </Button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
                 <Card>
-                  <CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-muted-foreground">{t.projects.detail.owner}</CardTitle></CardHeader>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      {t.projects.detail.owner}
+                    </CardTitle>
+                  </CardHeader>
                   <CardContent>
                     <div className="flex items-center gap-2">
                       <span className="text-2xl">👤</span>
                       <div>
-                        <p className="font-semibold text-card-foreground">{project.owner?.username}</p>
+                        <p className="font-semibold text-card-foreground">
+                          {project.owner?.username}
+                        </p>
                         <p className="text-xs text-muted-foreground">{project.owner?.email}</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-muted-foreground">{t.projects.detail.memberCount}</CardTitle></CardHeader>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      {t.projects.detail.memberCount}
+                    </CardTitle>
+                  </CardHeader>
                   <CardContent>
                     <div className="flex items-center gap-2">
                       <span className="text-2xl">👥</span>
-                      <p className="text-3xl font-bold text-card-foreground">{project._count?.members || 0}</p>
+                      <p className="text-3xl font-bold text-card-foreground">
+                        {project._count?.members || 0}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardHeader className="pb-3"><CardTitle className="text-sm font-medium text-muted-foreground">{t.projects.detail.createdAt}</CardTitle></CardHeader>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      {t.projects.detail.createdAt}
+                    </CardTitle>
+                  </CardHeader>
                   <CardContent>
                     <div className="flex items-center gap-2">
                       <span className="text-2xl">📅</span>
                       <p className="font-semibold text-card-foreground">
-                        {new Date(project.createdAt).toLocaleDateString('zh-CN', {year: 'numeric', month: 'long', day: 'numeric'})}
+                        {new Date(project.createdAt).toLocaleDateString('zh-CN', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
                       </p>
                     </div>
                   </CardContent>
@@ -192,11 +226,18 @@ export default function ProjectDetailPage() {
               </div>
             </div>
             <div>
-              <ProjectMembersPanel projectId={project.id} members={project.members || []} canManageMembers={canManageMembers} onMembersChange={fetchProject} />
+              <ProjectMembersPanel
+                projectId={project.id}
+                members={project.members || []}
+                canManageMembers={canManageMembers}
+                onMembersChange={fetchProject}
+              />
             </div>
             {isOwner && (
               <div className="border-t border-border pt-6">
-                <h3 className="text-lg font-semibold text-card-foreground mb-4">{t.projects.detail.projectActions}</h3>
+                <h3 className="text-lg font-semibold text-card-foreground mb-4">
+                  {t.projects.detail.projectActions}
+                </h3>
                 <div className="flex gap-4 flex-wrap">
                   {/* Phase 3: Repository状态和初始化按钮 */}
                   {hasRepository === false && (
@@ -206,20 +247,41 @@ export default function ProjectDetailPage() {
                       disabled={initializingRepo}
                       className="bg-blue-600 hover:bg-blue-700"
                     >
-                      {initializingRepo ? t.projects.detail.initializing : t.projects.detail.initRepository}
+                      {initializingRepo
+                        ? t.projects.detail.initializing
+                        : t.projects.detail.initRepository}
                     </Button>
                   )}
                   {hasRepository === true && (
-                    <Badge variant="default" className="px-4 py-2 text-sm">{t.projects.detail.repositoryReady}</Badge>
+                    <Badge variant="default" className="px-4 py-2 text-sm">
+                      {t.projects.detail.repositoryReady}
+                    </Badge>
                   )}
 
-                  <Button variant="outline" onClick={() => alert(t.projects.detail.projectSettingsComingSoon)}>{t.projects.detail.projectSettings}</Button>
-                  <Button variant="outline" onClick={() => router.push(`/projects/${project.id}/files`)}>{t.projects.detail.browseFiles}</Button>
-                  <Button variant="outline" onClick={() => router.push(`/projects/${project.id}/editor`)}>{t.projects.detail.codeEditor}</Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => alert(t.projects.detail.projectSettingsComingSoon)}
+                  >
+                    {t.projects.detail.projectSettings}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push(`/projects/${project.id}/files`)}
+                  >
+                    {t.projects.detail.browseFiles}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push(`/projects/${project.id}/editor`)}
+                  >
+                    {t.projects.detail.codeEditor}
+                  </Button>
                   {hasRepository === true && defaultBranchId && (
                     <Button
                       variant="outline"
-                      onClick={() => router.push(`/projects/${project.id}/history?branchId=${defaultBranchId}`)}
+                      onClick={() =>
+                        router.push(`/projects/${project.id}/history?branchId=${defaultBranchId}`)
+                      }
                       className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30"
                     >
                       {t.projects.detail.versionHistory}

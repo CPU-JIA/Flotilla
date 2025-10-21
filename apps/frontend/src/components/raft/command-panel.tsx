@@ -25,7 +25,7 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react'
 
 interface CommandResult {
@@ -112,8 +112,7 @@ export function RaftCommandPanel() {
         timestamp: Date.now(),
       }
 
-      setHistory(prev => [historyItem, ...prev.slice(0, 9)]) // 保留最近10条
-
+      setHistory((prev) => [historyItem, ...prev.slice(0, 9)]) // 保留最近10条
     } catch (err) {
       const errorResult: CommandResult = {
         success: false,
@@ -159,11 +158,15 @@ export function RaftCommandPanel() {
         name: gitCommitForm.authorName,
         email: gitCommitForm.authorEmail,
       },
-      files: gitCommitForm.filePath ? [{
-        path: gitCommitForm.filePath,
-        content: gitCommitForm.fileContent,
-        mimeType: 'text/plain',
-      }] : [],
+      files: gitCommitForm.filePath
+        ? [
+            {
+              path: gitCommitForm.filePath,
+              content: gitCommitForm.fileContent,
+              mimeType: 'text/plain',
+            },
+          ]
+        : [],
     }
 
     await executeCommand('git/commit', commitData, 'GIT_COMMIT')
@@ -196,10 +199,14 @@ export function RaftCommandPanel() {
 
     try {
       const payload = JSON.parse(customCommand.payload)
-      await executeCommand('command', {
-        type: customCommand.type,
-        payload,
-      }, customCommand.type)
+      await executeCommand(
+        'command',
+        {
+          type: customCommand.type,
+          payload,
+        },
+        customCommand.type
+      )
     } catch {
       setResult({
         success: false,
@@ -218,9 +225,7 @@ export function RaftCommandPanel() {
             <Send className="w-5 h-5" />
             分布式命令执行
           </CardTitle>
-          <CardDescription>
-            通过Raft共识算法执行分布式操作，确保集群一致性
-          </CardDescription>
+          <CardDescription>通过Raft共识算法执行分布式操作，确保集群一致性</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="project" className="w-full">
@@ -239,7 +244,7 @@ export function RaftCommandPanel() {
                   <Input
                     id="project-id"
                     value={projectForm.id}
-                    onChange={(e) => setProjectForm(prev => ({ ...prev, id: e.target.value }))}
+                    onChange={(e) => setProjectForm((prev) => ({ ...prev, id: e.target.value }))}
                     placeholder="unique-project-id"
                   />
                 </div>
@@ -248,7 +253,7 @@ export function RaftCommandPanel() {
                   <Input
                     id="project-name"
                     value={projectForm.name}
-                    onChange={(e) => setProjectForm(prev => ({ ...prev, name: e.target.value }))}
+                    onChange={(e) => setProjectForm((prev) => ({ ...prev, name: e.target.value }))}
                     placeholder="My Awesome Project"
                   />
                 </div>
@@ -257,7 +262,9 @@ export function RaftCommandPanel() {
                   <Input
                     id="project-owner"
                     value={projectForm.ownerId}
-                    onChange={(e) => setProjectForm(prev => ({ ...prev, ownerId: e.target.value }))}
+                    onChange={(e) =>
+                      setProjectForm((prev) => ({ ...prev, ownerId: e.target.value }))
+                    }
                     placeholder="user-id"
                   />
                 </div>
@@ -266,17 +273,19 @@ export function RaftCommandPanel() {
                   <Input
                     id="project-desc"
                     value={projectForm.description}
-                    onChange={(e) => setProjectForm(prev => ({ ...prev, description: e.target.value }))}
+                    onChange={(e) =>
+                      setProjectForm((prev) => ({ ...prev, description: e.target.value }))
+                    }
                     placeholder="Project description"
                   />
                 </div>
               </div>
-              <Button
-                onClick={handleCreateProject}
-                disabled={loading}
-                className="w-full"
-              >
-                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FolderPlus className="w-4 h-4 mr-2" />}
+              <Button onClick={handleCreateProject} disabled={loading} className="w-full">
+                {loading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <FolderPlus className="w-4 h-4 mr-2" />
+                )}
                 通过Raft共识创建项目
               </Button>
             </TabsContent>
@@ -289,7 +298,9 @@ export function RaftCommandPanel() {
                   <Input
                     id="repo-id"
                     value={gitCommitForm.repositoryId}
-                    onChange={(e) => setGitCommitForm(prev => ({ ...prev, repositoryId: e.target.value }))}
+                    onChange={(e) =>
+                      setGitCommitForm((prev) => ({ ...prev, repositoryId: e.target.value }))
+                    }
                     placeholder="repository-id"
                   />
                 </div>
@@ -298,7 +309,9 @@ export function RaftCommandPanel() {
                   <Input
                     id="branch-name"
                     value={gitCommitForm.branchName}
-                    onChange={(e) => setGitCommitForm(prev => ({ ...prev, branchName: e.target.value }))}
+                    onChange={(e) =>
+                      setGitCommitForm((prev) => ({ ...prev, branchName: e.target.value }))
+                    }
                     placeholder="main"
                   />
                 </div>
@@ -307,7 +320,9 @@ export function RaftCommandPanel() {
                   <Input
                     id="author-name"
                     value={gitCommitForm.authorName}
-                    onChange={(e) => setGitCommitForm(prev => ({ ...prev, authorName: e.target.value }))}
+                    onChange={(e) =>
+                      setGitCommitForm((prev) => ({ ...prev, authorName: e.target.value }))
+                    }
                     placeholder="John Doe"
                   />
                 </div>
@@ -316,7 +331,9 @@ export function RaftCommandPanel() {
                   <Input
                     id="author-email"
                     value={gitCommitForm.authorEmail}
-                    onChange={(e) => setGitCommitForm(prev => ({ ...prev, authorEmail: e.target.value }))}
+                    onChange={(e) =>
+                      setGitCommitForm((prev) => ({ ...prev, authorEmail: e.target.value }))
+                    }
                     placeholder="john@example.com"
                   />
                 </div>
@@ -325,7 +342,9 @@ export function RaftCommandPanel() {
                   <Input
                     id="file-path"
                     value={gitCommitForm.filePath}
-                    onChange={(e) => setGitCommitForm(prev => ({ ...prev, filePath: e.target.value }))}
+                    onChange={(e) =>
+                      setGitCommitForm((prev) => ({ ...prev, filePath: e.target.value }))
+                    }
                     placeholder="src/main.ts"
                   />
                 </div>
@@ -335,7 +354,9 @@ export function RaftCommandPanel() {
                 <Input
                   id="commit-message"
                   value={gitCommitForm.message}
-                  onChange={(e) => setGitCommitForm(prev => ({ ...prev, message: e.target.value }))}
+                  onChange={(e) =>
+                    setGitCommitForm((prev) => ({ ...prev, message: e.target.value }))
+                  }
                   placeholder="Add new feature"
                 />
               </div>
@@ -344,17 +365,19 @@ export function RaftCommandPanel() {
                 <Textarea
                   id="file-content"
                   value={gitCommitForm.fileContent}
-                  onChange={(e) => setGitCommitForm(prev => ({ ...prev, fileContent: e.target.value }))}
+                  onChange={(e) =>
+                    setGitCommitForm((prev) => ({ ...prev, fileContent: e.target.value }))
+                  }
                   placeholder="console.log('Hello, World!')"
                   rows={4}
                 />
               </div>
-              <Button
-                onClick={handleGitCommit}
-                disabled={loading}
-                className="w-full"
-              >
-                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <GitCommit className="w-4 h-4 mr-2" />}
+              <Button onClick={handleGitCommit} disabled={loading} className="w-full">
+                {loading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <GitCommit className="w-4 h-4 mr-2" />
+                )}
                 通过Raft共识执行Git提交
               </Button>
             </TabsContent>
@@ -367,7 +390,9 @@ export function RaftCommandPanel() {
                   <Input
                     id="branch-repo-id"
                     value={gitBranchForm.repositoryId}
-                    onChange={(e) => setGitBranchForm(prev => ({ ...prev, repositoryId: e.target.value }))}
+                    onChange={(e) =>
+                      setGitBranchForm((prev) => ({ ...prev, repositoryId: e.target.value }))
+                    }
                     placeholder="repository-id"
                   />
                 </div>
@@ -376,7 +401,9 @@ export function RaftCommandPanel() {
                   <Input
                     id="new-branch-name"
                     value={gitBranchForm.branchName}
-                    onChange={(e) => setGitBranchForm(prev => ({ ...prev, branchName: e.target.value }))}
+                    onChange={(e) =>
+                      setGitBranchForm((prev) => ({ ...prev, branchName: e.target.value }))
+                    }
                     placeholder="feature-new"
                   />
                 </div>
@@ -385,17 +412,19 @@ export function RaftCommandPanel() {
                   <Input
                     id="from-branch"
                     value={gitBranchForm.fromBranch}
-                    onChange={(e) => setGitBranchForm(prev => ({ ...prev, fromBranch: e.target.value }))}
+                    onChange={(e) =>
+                      setGitBranchForm((prev) => ({ ...prev, fromBranch: e.target.value }))
+                    }
                     placeholder="main"
                   />
                 </div>
               </div>
-              <Button
-                onClick={handleGitCreateBranch}
-                disabled={loading}
-                className="w-full"
-              >
-                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <GitBranch className="w-4 h-4 mr-2" />}
+              <Button onClick={handleGitCreateBranch} disabled={loading} className="w-full">
+                {loading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <GitBranch className="w-4 h-4 mr-2" />
+                )}
                 通过Raft共识创建Git分支
               </Button>
             </TabsContent>
@@ -407,7 +436,7 @@ export function RaftCommandPanel() {
                 <Input
                   id="command-type"
                   value={customCommand.type}
-                  onChange={(e) => setCustomCommand(prev => ({ ...prev, type: e.target.value }))}
+                  onChange={(e) => setCustomCommand((prev) => ({ ...prev, type: e.target.value }))}
                   placeholder="CREATE_PROJECT, GIT_COMMIT, etc."
                 />
               </div>
@@ -416,7 +445,9 @@ export function RaftCommandPanel() {
                 <Textarea
                   id="command-payload"
                   value={customCommand.payload}
-                  onChange={(e) => setCustomCommand(prev => ({ ...prev, payload: e.target.value }))}
+                  onChange={(e) =>
+                    setCustomCommand((prev) => ({ ...prev, payload: e.target.value }))
+                  }
                   placeholder='{"key": "value"}'
                   rows={6}
                 />
@@ -427,7 +458,11 @@ export function RaftCommandPanel() {
                 className="w-full"
                 variant="outline"
               >
-                {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
+                {loading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4 mr-2" />
+                )}
                 执行自定义命令
               </Button>
             </TabsContent>
@@ -452,9 +487,7 @@ export function RaftCommandPanel() {
             {result.success ? (
               <Alert>
                 <CheckCircle className="h-4 w-4" />
-                <AlertDescription>
-                  命令执行成功！数据已通过Raft共识复制到集群。
-                </AlertDescription>
+                <AlertDescription>命令执行成功！数据已通过Raft共识复制到集群。</AlertDescription>
               </Alert>
             ) : (
               <Alert variant="destructive">
@@ -492,7 +525,10 @@ export function RaftCommandPanel() {
           <CardContent>
             <div className="space-y-3">
               {history.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div className="flex items-center gap-3">
                     {item.result.success ? (
                       <CheckCircle className="w-4 h-4 text-green-500" />

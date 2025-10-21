@@ -49,7 +49,7 @@ test.describe('团队CRUD功能测试', () => {
     await expect(page).toHaveURL('/organizations')
 
     // 2. 获取第一个组织或创建新组织
-    const hasOrganizations = await page.locator('.grid a').count() > 0
+    const hasOrganizations = (await page.locator('.grid a').count()) > 0
 
     let orgSlug: string
 
@@ -107,7 +107,9 @@ test.describe('团队CRUD功能测试', () => {
 
     if (isDetailsPage) {
       // 如果跳转到详情页，验证页面内容
-      await expect(page.getByRole('heading', { name: teamName, exact: true })).toBeVisible({ timeout: 5000 })
+      await expect(page.getByRole('heading', { name: teamName, exact: true })).toBeVisible({
+        timeout: 5000,
+      })
     } else {
       // 如果停留在组织页，验证团队卡片出现
       await expect(page.getByText(teamName)).toBeVisible({ timeout: 5000 })
@@ -119,8 +121,7 @@ test.describe('团队CRUD功能测试', () => {
     await page.goto('/organizations', { waitUntil: 'networkidle' })
 
     // 2. 获取第一个组织
-    const hasOrganizations = await page.locator('.grid a').count() > 0
-    let orgSlug: string
+    const hasOrganizations = (await page.locator('.grid a').count()) > 0
 
     if (!hasOrganizations) {
       test.skip()
@@ -129,7 +130,7 @@ test.describe('团队CRUD功能测试', () => {
 
     const firstOrgCard = page.locator('.grid a').first()
     const href = await firstOrgCard.getAttribute('href')
-    orgSlug = href?.split('/').pop() || ''
+    const orgSlug = href?.split('/').pop() || ''
 
     // 3. 进入组织详情页
     await page.goto(`/organizations/${orgSlug}`, { waitUntil: 'networkidle' })
@@ -139,7 +140,11 @@ test.describe('团队CRUD功能测试', () => {
     await page.waitForTimeout(1000)
 
     // 5. 检查是否有团队，如果没有则创建一个
-    const hasTeams = await page.locator('.grid a').filter({ hasText: /团队|Team/i }).count() > 0
+    const hasTeams =
+      (await page
+        .locator('.grid a')
+        .filter({ hasText: /团队|Team/i })
+        .count()) > 0
 
     let teamSlug: string
 
@@ -155,7 +160,10 @@ test.describe('团队CRUD功能测试', () => {
       await page.waitForTimeout(2000)
     } else {
       // 获取第一个团队的slug（从href中提取）
-      const firstTeamCard = page.locator('.grid a').filter({ hasText: /团队|Team/i }).first()
+      const firstTeamCard = page
+        .locator('.grid a')
+        .filter({ hasText: /团队|Team/i })
+        .first()
       const teamHref = await firstTeamCard.getAttribute('href')
       teamSlug = teamHref?.split('/').pop() || ''
     }
@@ -175,11 +183,15 @@ test.describe('团队CRUD功能测试', () => {
     // 9. 测试Tab切换
     // 点击Members Tab
     await page.getByRole('tab', { name: /成员|Members/i }).click()
-    await expect(page.getByRole('heading', { name: /成员|Members/i })).toBeVisible({ timeout: 3000 })
+    await expect(page.getByRole('heading', { name: /成员|Members/i })).toBeVisible({
+      timeout: 3000,
+    })
 
     // 点击Permissions Tab
     await page.getByRole('tab', { name: /权限|Permissions/i }).click()
-    await expect(page.getByRole('heading', { level: 2, name: /项目权限|Project Permissions/i })).toBeVisible({ timeout: 3000 })
+    await expect(
+      page.getByRole('heading', { level: 2, name: /项目权限|Project Permissions/i })
+    ).toBeVisible({ timeout: 3000 })
 
     // 点击Settings Tab（需要MAINTAINER权限）
     const settingsTab = page.getByRole('tab', { name: /设置|Settings/i })
@@ -190,7 +202,9 @@ test.describe('团队CRUD功能测试', () => {
       //  Settings Tab被禁用，但这不是错误，跳过
     } else {
       await settingsTab.click()
-      await expect(page.locator('text=基本信息').or(page.locator('text=Basic Information'))).toBeVisible({ timeout: 3000 })
+      await expect(
+        page.locator('text=基本信息').or(page.locator('text=Basic Information'))
+      ).toBeVisible({ timeout: 3000 })
     }
   })
 
@@ -199,7 +213,7 @@ test.describe('团队CRUD功能测试', () => {
     await page.goto('/organizations', { waitUntil: 'networkidle' })
 
     // 2. 获取第一个组织
-    const hasOrganizations = await page.locator('.grid a').count() > 0
+    const hasOrganizations = (await page.locator('.grid a').count()) > 0
     if (!hasOrganizations) {
       test.skip()
       return
@@ -215,7 +229,11 @@ test.describe('团队CRUD功能测试', () => {
     await page.waitForTimeout(1000)
 
     // 4. 确保有团队存在
-    const hasTeams = await page.locator('.grid a').filter({ hasText: /团队|Team/i }).count() > 0
+    const hasTeams =
+      (await page
+        .locator('.grid a')
+        .filter({ hasText: /团队|Team/i })
+        .count()) > 0
 
     let teamSlug: string
 
@@ -230,7 +248,10 @@ test.describe('团队CRUD功能测试', () => {
       await page.locator('[role="dialog"] button[type="submit"]').click()
       await page.waitForTimeout(2000)
     } else {
-      const firstTeamCard = page.locator('.grid a').filter({ hasText: /团队|Team/i }).first()
+      const firstTeamCard = page
+        .locator('.grid a')
+        .filter({ hasText: /团队|Team/i })
+        .first()
       const teamHref = await firstTeamCard.getAttribute('href')
       teamSlug = teamHref?.split('/').pop() || ''
     }
@@ -257,7 +278,10 @@ test.describe('团队CRUD功能测试', () => {
     await emailInput.fill('test-member@example.com')
 
     // 9. 选择角色（MEMBER）
-    const roleSelect = page.locator('select').filter({ has: page.locator('option', { hasText: /成员|Member/i }) }).first()
+    const roleSelect = page
+      .locator('select')
+      .filter({ has: page.locator('option', { hasText: /成员|Member/i }) })
+      .first()
     if (await roleSelect.isVisible()) {
       await roleSelect.selectOption('MEMBER')
     }
@@ -271,8 +295,15 @@ test.describe('团队CRUD功能测试', () => {
 
     // 12. 验证成员是否添加成功（检查邮箱是否出现在列表中）
     // 注意：如果该邮箱不是组织成员，后端会返回错误，这是预期行为
-    const memberAdded = await page.locator('text=test-member@example.com').isVisible().catch(() => false)
-    const errorShown = await page.locator('text=不是组织成员').or(page.locator('text=not a member of')).isVisible().catch(() => false)
+    const memberAdded = await page
+      .locator('text=test-member@example.com')
+      .isVisible()
+      .catch(() => false)
+    const errorShown = await page
+      .locator('text=不是组织成员')
+      .or(page.locator('text=not a member of'))
+      .isVisible()
+      .catch(() => false)
 
     if (memberAdded) {
       console.log('✅ 成员添加成功')
@@ -286,7 +317,7 @@ test.describe('团队CRUD功能测试', () => {
     await page.goto('/organizations', { waitUntil: 'networkidle' })
 
     // 2. 获取第一个组织
-    const hasOrganizations = await page.locator('.grid a').count() > 0
+    const hasOrganizations = (await page.locator('.grid a').count()) > 0
     if (!hasOrganizations) {
       test.skip()
       return
@@ -302,7 +333,11 @@ test.describe('团队CRUD功能测试', () => {
     await page.waitForTimeout(1000)
 
     // 4. 确保有团队存在
-    const hasTeams = await page.locator('.grid a').filter({ hasText: /团队|Team/i }).count() > 0
+    const hasTeams =
+      (await page
+        .locator('.grid a')
+        .filter({ hasText: /团队|Team/i })
+        .count()) > 0
 
     let teamSlug: string
 
@@ -317,7 +352,10 @@ test.describe('团队CRUD功能测试', () => {
       await page.locator('[role="dialog"] button[type="submit"]').click()
       await page.waitForTimeout(2000)
     } else {
-      const firstTeamCard = page.locator('.grid a').filter({ hasText: /团队|Team/i }).first()
+      const firstTeamCard = page
+        .locator('.grid a')
+        .filter({ hasText: /团队|Team/i })
+        .first()
       const teamHref = await firstTeamCard.getAttribute('href')
       teamSlug = teamHref?.split('/').pop() || ''
     }
@@ -339,7 +377,9 @@ test.describe('团队CRUD功能测试', () => {
     await page.waitForTimeout(1000)
 
     // 7. 验证Settings页面加载
-    await expect(page.locator('text=基本信息').or(page.locator('text=Basic Information'))).toBeVisible({ timeout: 3000 })
+    await expect(
+      page.locator('text=基本信息').or(page.locator('text=Basic Information'))
+    ).toBeVisible({ timeout: 3000 })
 
     // 8. 修改团队名称
     const nameInput = page.getByLabel(/团队名称|Team Name/i).first()
@@ -370,7 +410,7 @@ test.describe('团队CRUD功能测试', () => {
     await page.goto('/organizations', { waitUntil: 'networkidle' })
 
     // 2. 获取第一个组织
-    const hasOrganizations = await page.locator('.grid a').count() > 0
+    const hasOrganizations = (await page.locator('.grid a').count()) > 0
     if (!hasOrganizations) {
       test.skip()
       return
@@ -397,7 +437,11 @@ test.describe('团队CRUD功能测试', () => {
     await slugInput.fill('Invalid-SLUG@123')
 
     // 7. 验证slug被自动转换或显示错误提示
-    const hasWarning = await page.locator('text=格式不正确').or(page.locator('text=Invalid format')).isVisible().catch(() => false)
+    const hasWarning = await page
+      .locator('text=格式不正确')
+      .or(page.locator('text=Invalid format'))
+      .isVisible()
+      .catch(() => false)
 
     if (hasWarning) {
       console.log('✅ Slug格式验证工作正常 - 显示错误提示')
@@ -408,7 +452,9 @@ test.describe('团队CRUD功能测试', () => {
     await slugInput.fill('valid-team-slug-123')
 
     // 9. 验证没有错误提示
-    await expect(page.locator('text=格式不正确').or(page.locator('text=Invalid format'))).not.toBeVisible()
+    await expect(
+      page.locator('text=格式不正确').or(page.locator('text=Invalid format'))
+    ).not.toBeVisible()
   })
 
   test('应该支持项目权限分配', async ({ page }) => {
@@ -416,7 +462,7 @@ test.describe('团队CRUD功能测试', () => {
     await page.goto('/organizations', { waitUntil: 'networkidle' })
 
     // 2. 获取第一个组织
-    const hasOrganizations = await page.locator('.grid a').count() > 0
+    const hasOrganizations = (await page.locator('.grid a').count()) > 0
     if (!hasOrganizations) {
       test.skip()
       return
@@ -432,7 +478,11 @@ test.describe('团队CRUD功能测试', () => {
     await page.waitForTimeout(1000)
 
     // 4. 确保有团队存在
-    const hasTeams = await page.locator('.grid a').filter({ hasText: /团队|Team/i }).count() > 0
+    const hasTeams =
+      (await page
+        .locator('.grid a')
+        .filter({ hasText: /团队|Team/i })
+        .count()) > 0
 
     let teamSlug: string
 
@@ -447,7 +497,10 @@ test.describe('团队CRUD功能测试', () => {
       await page.locator('[role="dialog"] button[type="submit"]').click()
       await page.waitForTimeout(2000)
     } else {
-      const firstTeamCard = page.locator('.grid a').filter({ hasText: /团队|Team/i }).first()
+      const firstTeamCard = page
+        .locator('.grid a')
+        .filter({ hasText: /团队|Team/i })
+        .first()
       const teamHref = await firstTeamCard.getAttribute('href')
       teamSlug = teamHref?.split('/').pop() || ''
     }
@@ -460,7 +513,9 @@ test.describe('团队CRUD功能测试', () => {
     await page.waitForTimeout(1000)
 
     // 7. 验证权限管理页面加载
-    await expect(page.getByRole('heading', { level: 2, name: /项目权限|Project Permissions/i })).toBeVisible({ timeout: 3000 })
+    await expect(
+      page.getByRole('heading', { level: 2, name: /项目权限|Project Permissions/i })
+    ).toBeVisible({ timeout: 3000 })
 
     // 8. 检查是否有分配权限的权限
     const assignSection = page.locator('text=分配权限').or(page.locator('text=Assign Permission'))
@@ -479,7 +534,10 @@ test.describe('团队CRUD功能测试', () => {
       await projectIdInput.fill('test-project-123')
 
       // 10. 选择权限级别
-      const permissionSelect = page.locator('select').filter({ has: page.locator('option', { hasText: /读写|Write/i }) }).first()
+      const permissionSelect = page
+        .locator('select')
+        .filter({ has: page.locator('option', { hasText: /读写|Write/i }) })
+        .first()
       if (await permissionSelect.isVisible()) {
         await permissionSelect.selectOption('WRITE')
       }
@@ -492,8 +550,15 @@ test.describe('团队CRUD功能测试', () => {
       await page.waitForTimeout(2000)
 
       // 13. 验证权限是否添加（可能会因为项目ID不存在而失败，这是预期的）
-      const permissionAdded = await page.locator('text=test-project-123').isVisible().catch(() => false)
-      const errorShown = await page.locator('text=项目不存在').or(page.locator('text=Project not found')).isVisible().catch(() => false)
+      const permissionAdded = await page
+        .locator('text=test-project-123')
+        .isVisible()
+        .catch(() => false)
+      const errorShown = await page
+        .locator('text=项目不存在')
+        .or(page.locator('text=Project not found'))
+        .isVisible()
+        .catch(() => false)
 
       if (permissionAdded) {
         console.log('✅ 权限分配成功')

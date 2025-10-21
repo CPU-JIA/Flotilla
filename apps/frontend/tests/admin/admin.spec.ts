@@ -92,7 +92,9 @@ test.describe('管理面板功能测试', () => {
       await page.waitForTimeout(2000)
 
       // 查找搜索框
-      const searchInput = page.locator('input[type="search"], input[placeholder*="搜索"], input[placeholder*="Search"]').first()
+      const searchInput = page
+        .locator('input[type="search"], input[placeholder*="搜索"], input[placeholder*="Search"]')
+        .first()
       const searchExists = await searchInput.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (searchExists) {
@@ -163,7 +165,9 @@ test.describe('管理面板功能测试', () => {
       await page.waitForTimeout(2000)
 
       // 查找集群状态显示
-      const clusterStatus = page.locator('text=/集群状态|Cluster Status|节点|Node|Leader|Follower/i').first()
+      const clusterStatus = page
+        .locator('text=/集群状态|Cluster Status|节点|Node|Leader|Follower/i')
+        .first()
       const statusExists = await clusterStatus.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (statusExists) {
@@ -194,7 +198,7 @@ test.describe('管理面板功能测试', () => {
     }
   })
 
-  test('非管理员用户不应该能访问管理面板', async ({ page, context }) => {
+  test('非管理员用户不应该能访问管理面板', async ({ page }) => {
     // 登出当前用户
     await page.getByRole('button', { name: /退出登录|Logout/i }).click()
     await expect(page).toHaveURL(/\/auth\/login/, { timeout: 5000 })
@@ -226,7 +230,9 @@ test.describe('管理面板功能测试', () => {
       await page.waitForTimeout(2000)
 
       // 查找统计卡片或数字
-      const stats = page.locator('[data-testid="stat-card"], .stat-card, [class*="statistic"]').first()
+      const stats = page
+        .locator('[data-testid="stat-card"], .stat-card, [class*="statistic"]')
+        .first()
       const statsExists = await stats.isVisible({ timeout: 3000 }).catch(() => false)
 
       if (statsExists) {

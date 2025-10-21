@@ -51,7 +51,9 @@ test.describe('组织CRUD功能测试', () => {
     await expect(page.locator('text=我的组织')).toBeVisible({ timeout: 5000 })
 
     // 3. 点击"创建新组织"按钮（使用.first()选择头部按钮，避免与空状态按钮冲突）
-    const createButton = page.getByRole('button', { name: /创建新组织|Create New Organization/i }).first()
+    const createButton = page
+      .getByRole('button', { name: /创建新组织|Create New Organization/i })
+      .first()
     await expect(createButton).toBeVisible()
     await createButton.click()
 
@@ -96,13 +98,16 @@ test.describe('组织CRUD功能测试', () => {
     await expect(page.locator('text=我的组织')).toBeVisible({ timeout: 5000 })
 
     // 3. 检查是否有组织存在，如果没有则创建一个
-    const hasOrganizations = await page.locator('[role="link"]').count() > 0
+    const hasOrganizations = (await page.locator('[role="link"]').count()) > 0
 
     let orgSlug: string
 
     if (!hasOrganizations) {
       // 创建一个测试组织
-      await page.getByRole('button', { name: /创建新组织/i }).first().click()
+      await page
+        .getByRole('button', { name: /创建新组织/i })
+        .first()
+        .click()
       await page.locator('[role="dialog"]').waitFor({ state: 'visible' })
 
       orgSlug = generateUniqueOrgSlug()
@@ -132,7 +137,9 @@ test.describe('组织CRUD功能测试', () => {
     // 7. 测试Tab切换
     // 点击Members Tab
     await page.getByRole('tab', { name: /成员|Members/i }).click()
-    await expect(page.getByRole('heading', { name: /成员|Members/i })).toBeVisible({ timeout: 3000 })
+    await expect(page.getByRole('heading', { name: /成员|Members/i })).toBeVisible({
+      timeout: 3000,
+    })
 
     // 点击Teams Tab
     await page.getByRole('tab', { name: /团队|Teams/i }).click()
@@ -147,7 +154,9 @@ test.describe('组织CRUD功能测试', () => {
       // Settings Tab被禁用，但这不是错误，跳过
     } else {
       await settingsTab.click()
-      await expect(page.locator('text=基本信息').or(page.locator('text=Basic Information'))).toBeVisible({ timeout: 3000 })
+      await expect(
+        page.locator('text=基本信息').or(page.locator('text=Basic Information'))
+      ).toBeVisible({ timeout: 3000 })
     }
   })
 
@@ -156,13 +165,16 @@ test.describe('组织CRUD功能测试', () => {
     await page.goto('/organizations', { waitUntil: 'networkidle' })
 
     // 2. 确保有组织存在（使用第一个组织或创建新组织）
-    const hasOrganizations = await page.locator('.grid a').count() > 0
+    const hasOrganizations = (await page.locator('.grid a').count()) > 0
 
     let orgSlug: string
 
     if (!hasOrganizations) {
       // 创建测试组织
-      await page.getByRole('button', { name: /创建新组织/i }).first().click()
+      await page
+        .getByRole('button', { name: /创建新组织/i })
+        .first()
+        .click()
       await page.locator('[role="dialog"]').waitFor({ state: 'visible' })
 
       orgSlug = generateUniqueOrgSlug()
@@ -194,7 +206,9 @@ test.describe('组织CRUD功能测试', () => {
     await page.waitForTimeout(1000)
 
     // 5. 验证Settings页面加载
-    await expect(page.locator('text=基本信息').or(page.locator('text=Basic Information'))).toBeVisible({ timeout: 3000 })
+    await expect(
+      page.locator('text=基本信息').or(page.locator('text=Basic Information'))
+    ).toBeVisible({ timeout: 3000 })
 
     // 6. 修改组织名称
     const nameInput = page.getByLabel(/组织名称|Organization Name/i).first()
@@ -218,7 +232,9 @@ test.describe('组织CRUD功能测试', () => {
 
     // 10. 验证名称已更新（刷新页面后检查）
     await page.reload({ waitUntil: 'networkidle' })
-    await expect(page.getByRole('heading', { name: newName, exact: true })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { name: newName, exact: true })).toBeVisible({
+      timeout: 5000,
+    })
   })
 
   test('应该验证组织slug格式', async ({ page }) => {
@@ -226,7 +242,10 @@ test.describe('组织CRUD功能测试', () => {
     await page.goto('/organizations', { waitUntil: 'networkidle' })
 
     // 2. 打开创建Dialog
-    await page.getByRole('button', { name: /创建新组织/i }).first().click()
+    await page
+      .getByRole('button', { name: /创建新组织/i })
+      .first()
+      .click()
     await expect(page.locator('[role="dialog"]')).toBeVisible()
 
     // 3. 填写组织名称
@@ -238,7 +257,11 @@ test.describe('组织CRUD功能测试', () => {
 
     // 5. 验证slug被自动转换或显示错误提示
     // 方式1: 检查是否有格式不正确的提示
-    const hasWarning = await page.locator('text=格式不正确').or(page.locator('text=Invalid format')).isVisible().catch(() => false)
+    const hasWarning = await page
+      .locator('text=格式不正确')
+      .or(page.locator('text=Invalid format'))
+      .isVisible()
+      .catch(() => false)
 
     if (hasWarning) {
       console.log('✅ Slug格式验证工作正常 - 显示错误提示')
@@ -249,10 +272,12 @@ test.describe('组织CRUD功能测试', () => {
     await slugInput.fill('valid-slug-123')
 
     // 7. 验证没有错误提示
-    await expect(page.locator('text=格式不正确').or(page.locator('text=Invalid format'))).not.toBeVisible()
+    await expect(
+      page.locator('text=格式不正确').or(page.locator('text=Invalid format'))
+    ).not.toBeVisible()
   })
 
-  test('应该显示空状态提示（当没有组织时）', async ({ page, context }) => {
+  test('应该显示空状态提示（当没有组织时）', async ({ page }) => {
     // 注意：这个测试假设能够清空所有组织
     // 在实际环境中可能需要使用独立的测试数据库
 
@@ -260,12 +285,18 @@ test.describe('组织CRUD功能测试', () => {
     await page.goto('/organizations', { waitUntil: 'networkidle' })
 
     // 2. 检查是否显示组织列表或空状态
-    const hasOrganizations = await page.locator('.grid a').count() > 0
+    const hasOrganizations = (await page.locator('.grid a').count()) > 0
 
     if (!hasOrganizations) {
       // 3. 验证空状态提示
-      await expect(page.locator('text=暂无组织').or(page.locator('text=No Organizations'))).toBeVisible()
-      await expect(page.locator('text=创建您的第一个组织').or(page.locator('text=Create your first organization'))).toBeVisible()
+      await expect(
+        page.locator('text=暂无组织').or(page.locator('text=No Organizations'))
+      ).toBeVisible()
+      await expect(
+        page
+          .locator('text=创建您的第一个组织')
+          .or(page.locator('text=Create your first organization'))
+      ).toBeVisible()
     } else {
       console.log('ℹ️  当前账号已有组织，跳过空状态验证')
     }
@@ -280,7 +311,10 @@ test.describe('组织CRUD功能测试', () => {
 
     if (await searchInput.isVisible()) {
       // 3. 创建一个测试组织以便搜索
-      await page.getByRole('button', { name: /创建新组织/i }).first().click()
+      await page
+        .getByRole('button', { name: /创建新组织/i })
+        .first()
+        .click()
       await page.locator('[role="dialog"]').waitFor({ state: 'visible' })
 
       const uniqueName = `可搜索组织-${Date.now()}`

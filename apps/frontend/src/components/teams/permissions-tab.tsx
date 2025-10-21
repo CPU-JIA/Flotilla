@@ -6,11 +6,17 @@
  * ECP-C1: 防御性编程 - 权限级别验证
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { useLanguage } from '@/contexts/language-context'
@@ -39,7 +45,7 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
   const [newPermission, setNewPermission] = useState<PermissionLevel>('READ')
   const [addError, setAddError] = useState('')
 
-  const fetchPermissions = async () => {
+  const fetchPermissions = useCallback(async () => {
     setLoading(true)
     try {
       const data = await api.teams.getPermissions(organizationSlug, teamSlug)
@@ -50,11 +56,11 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
     } finally {
       setLoading(false)
     }
-  }
+  }, [organizationSlug, teamSlug, t.error])
 
   useEffect(() => {
     fetchPermissions()
-  }, [organizationSlug, teamSlug])
+  }, [fetchPermissions])
 
   const handleAssignPermission = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -109,9 +115,10 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
   }
 
   const handleRevokePermission = async (projectId: string, projectName: string) => {
-    const confirmMessage = t.loading === t.loading
-      ? `确定要撤销项目 "${projectName}" 的访问权限吗？`
-      : `Revoke access to project "${projectName}"?`
+    const confirmMessage =
+      t.loading === t.loading
+        ? `确定要撤销项目 "${projectName}" 的访问权限吗？`
+        : `Revoke access to project "${projectName}"?`
     if (!confirm(confirmMessage)) return
 
     setRevoking(projectId)
@@ -134,7 +141,10 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
     const permissionConfig = {
       READ: { color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200', icon: '👁️' },
       WRITE: { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', icon: '✏️' },
-      ADMIN: { color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200', icon: '🔑' }
+      ADMIN: {
+        color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+        icon: '🔑',
+      },
     }
     const config = permissionConfig[permission]
     return (
@@ -153,7 +163,9 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
             {t.teams.permissions}
           </h2>
           <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
-            {t.loading === t.loading ? `共 ${permissions.length} 个项目权限` : `${permissions.length} project permissions`}
+            {t.loading === t.loading
+              ? `共 ${permissions.length} 个项目权限`
+              : `${permissions.length} project permissions`}
           </p>
         </div>
         {canManage && !showAddForm && (
@@ -172,7 +184,11 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
                 <Label>{t.loading === t.loading ? '项目ID' : 'Project ID'} *</Label>
                 <Input
                   type="text"
-                  placeholder={t.loading === t.loading ? '请输入项目ID（如：123e4567-e89b-12d3-a456-426614174000）' : 'Enter project ID (e.g., 123e4567-e89b-12d3-a456-426614174000)'}
+                  placeholder={
+                    t.loading === t.loading
+                      ? '请输入项目ID（如：123e4567-e89b-12d3-a456-426614174000）'
+                      : 'Enter project ID (e.g., 123e4567-e89b-12d3-a456-426614174000)'
+                  }
                   value={newProjectId}
                   onChange={(e) => {
                     setNewProjectId(e.target.value)
@@ -190,19 +206,26 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
 
               <div>
                 <Label>{t.loading === t.loading ? '权限级别' : 'Permission Level'} *</Label>
-                <Select value={newPermission} onValueChange={(v) => setNewPermission(v as PermissionLevel)} disabled={assigning}>
+                <Select
+                  value={newPermission}
+                  onValueChange={(v) => setNewPermission(v as PermissionLevel)}
+                  disabled={assigning}
+                >
                   <SelectTrigger className="mt-2">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="READ">
-                      👁️ {t.teams.permissionLevels.READ} - {t.loading === t.loading ? '只读访问' : 'Read-only access'}
+                      👁️ {t.teams.permissionLevels.READ} -{' '}
+                      {t.loading === t.loading ? '只读访问' : 'Read-only access'}
                     </SelectItem>
                     <SelectItem value="WRITE">
-                      ✏️ {t.teams.permissionLevels.WRITE} - {t.loading === t.loading ? '读写访问' : 'Read and write access'}
+                      ✏️ {t.teams.permissionLevels.WRITE} -{' '}
+                      {t.loading === t.loading ? '读写访问' : 'Read and write access'}
                     </SelectItem>
                     <SelectItem value="ADMIN">
-                      🔑 {t.teams.permissionLevels.ADMIN} - {t.loading === t.loading ? '完全控制' : 'Full control'}
+                      🔑 {t.teams.permissionLevels.ADMIN} -{' '}
+                      {t.loading === t.loading ? '完全控制' : 'Full control'}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -216,7 +239,11 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
 
               <div className="flex gap-3">
                 <Button type="submit" disabled={assigning || !newProjectId.trim()}>
-                  {assigning ? (t.loading === t.loading ? '分配中...' : 'Assigning...') : t.teams.assignPermission}
+                  {assigning
+                    ? t.loading === t.loading
+                      ? '分配中...'
+                      : 'Assigning...'
+                    : t.teams.assignPermission}
                 </Button>
                 <Button
                   type="button"
@@ -250,12 +277,12 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
               {t.loading === t.loading ? '暂无项目权限' : 'No project permissions'}
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {t.loading === t.loading ? '为团队分配项目访问权限' : 'Assign project access permissions to the team'}
+              {t.loading === t.loading
+                ? '为团队分配项目访问权限'
+                : 'Assign project access permissions to the team'}
             </p>
             {canManage && !showAddForm && (
-              <Button onClick={() => setShowAddForm(true)}>
-                {t.teams.assignPermission}
-              </Button>
+              <Button onClick={() => setShowAddForm(true)}>{t.teams.assignPermission}</Button>
             )}
           </CardContent>
         </Card>
@@ -297,7 +324,9 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
                       <div className="flex items-center gap-3">
                         <Select
                           value={perm.permission}
-                          onValueChange={(value) => handleUpdatePermission(perm.projectId, value as PermissionLevel)}
+                          onValueChange={(value) =>
+                            handleUpdatePermission(perm.projectId, value as PermissionLevel)
+                          }
                           disabled={updating === perm.projectId}
                         >
                           <SelectTrigger className="w-36">
@@ -305,8 +334,12 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="READ">👁️ {t.teams.permissionLevels.READ}</SelectItem>
-                            <SelectItem value="WRITE">✏️ {t.teams.permissionLevels.WRITE}</SelectItem>
-                            <SelectItem value="ADMIN">🔑 {t.teams.permissionLevels.ADMIN}</SelectItem>
+                            <SelectItem value="WRITE">
+                              ✏️ {t.teams.permissionLevels.WRITE}
+                            </SelectItem>
+                            <SelectItem value="ADMIN">
+                              🔑 {t.teams.permissionLevels.ADMIN}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                         <Button
@@ -317,9 +350,10 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
                           disabled={revoking === perm.projectId}
                         >
                           {revoking === perm.projectId
-                            ? (t.loading === t.loading ? '撤销中...' : 'Revoking...')
-                            : t.teams.revokePermission
-                          }
+                            ? t.loading === t.loading
+                              ? '撤销中...'
+                              : 'Revoking...'
+                            : t.teams.revokePermission}
                         </Button>
                       </div>
                     )}
