@@ -1,36 +1,64 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ExternalLink, Github, Star } from 'lucide-react'
+import { ExternalLink, Github } from 'lucide-react'
+import Image from 'next/image'
 
 export default function ShowcasePage() {
   const projects = [
     {
       name: 'Flotilla',
-      description: 'The platform itself - distributed code hosting with Raft consensus algorithm',
+      description: 'Full-stack distributed code hosting platform with production-ready Raft consensus algorithm, organization/team management, and real-time collaboration.',
       image: '/logo.svg',
       github: 'https://github.com/CPU-JIA/Cloud-Dev-Platform',
-      demo: 'http://localhost:3000',
-      tags: ['Raft', 'NestJS', 'Next.js', 'TypeScript'],
-      stats: { stars: 128, forks: 24 },
+      demo: process.env.NEXT_PUBLIC_APP_URL || 'https://flotilla.dev',
+      tags: ['Raft', 'NestJS', 'Next.js', 'TypeScript', 'PostgreSQL'],
+      stats: { type: 'Core Platform' },
     },
     {
-      name: 'Raft Monitoring Dashboard',
-      description: 'Real-time visualization of Raft cluster state with WebSocket updates',
-      image: '/logo.svg',
-      github: 'https://github.com/CPU-JIA/Cloud-Dev-Platform',
-      demo: 'http://localhost:3000/monitoring',
-      tags: ['React Flow', 'WebSocket', 'Recharts'],
-      stats: { stars: 45, forks: 8 },
+      name: 'Raft Consensus Engine',
+      description: 'Production-grade Raft consensus implementation with 150ms automatic failover, leader election, log replication, and persistent storage. WebSocket-based inter-node communication.',
+      image: '/images/raft-cluster-3nodes.png',
+      github: 'https://github.com/CPU-JIA/Cloud-Dev-Platform/tree/main/apps/backend/src/raft',
+      demo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://flotilla.dev'}/raft`,
+      tags: ['Raft', 'WebSocket', 'Distributed Systems'],
+      stats: { type: 'Core Algorithm' },
     },
     {
-      name: 'Distributed File Storage',
-      description: 'S3-compatible object storage with MinIO backend and automatic replication',
+      name: 'Organization & Team System',
+      description: 'Enterprise-grade hierarchical permission system with organizations, teams, and project-level access control. Supports OWNER/ADMIN/MEMBER roles.',
       image: '/logo.svg',
-      github: 'https://github.com/CPU-JIA/Cloud-Dev-Platform',
-      demo: 'http://localhost:3000/files',
-      tags: ['MinIO', 'S3', 'Prisma'],
-      stats: { stars: 32, forks: 6 },
+      github: 'https://github.com/CPU-JIA/Cloud-Dev-Platform/tree/main/apps/backend/src/organizations',
+      demo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://flotilla.dev'}/organizations`,
+      tags: ['RBAC', 'Prisma', 'Authorization'],
+      stats: { type: 'Permission System' },
+    },
+    {
+      name: 'Issue Tracking System',
+      description: 'Complete issue management with labels, milestones, assignees, and comments. Markdown support with syntax highlighting. Real-time updates via WebSocket.',
+      image: '/logo.svg',
+      github: 'https://github.com/CPU-JIA/Cloud-Dev-Platform/tree/main/apps/backend/src/issues',
+      demo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://flotilla.dev'}/projects`,
+      tags: ['Issues', 'Markdown', 'Real-time'],
+      stats: { type: 'Collaboration Tool' },
+    },
+    {
+      name: 'File Storage System',
+      description: 'S3-compatible distributed object storage powered by MinIO. Automatic file versioning, metadata tracking, and access control integration.',
+      image: '/logo.svg',
+      github: 'https://github.com/CPU-JIA/Cloud-Dev-Platform/tree/main/apps/backend/src/files',
+      demo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://flotilla.dev'}/files`,
+      tags: ['MinIO', 'S3', 'Object Storage'],
+      stats: { type: 'Storage Layer' },
+    },
+    {
+      name: 'Monitoring Dashboard',
+      description: 'Real-time system metrics and Raft cluster visualization with React Flow topology graphs, performance charts via Recharts, and WebSocket live updates.',
+      image: '/images/architecture-viz.png',
+      github: 'https://github.com/CPU-JIA/Cloud-Dev-Platform/tree/main/apps/frontend/src/app/raft',
+      demo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://flotilla.dev'}/monitoring`,
+      tags: ['React Flow', 'Recharts', 'WebSocket'],
+      stats: { type: 'Observability' },
     },
   ]
 
@@ -59,9 +87,11 @@ export default function ShowcasePage() {
             >
               {/* Image */}
               <div className="aspect-video bg-secondary/30 flex items-center justify-center border-b border-border/40">
-                <img
+                <Image
                   src={project.image}
                   alt={project.name}
+                  width={96}
+                  height={96}
                   className="w-24 h-24 object-contain opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all"
                 />
               </div>
@@ -91,17 +121,8 @@ export default function ShowcasePage() {
 
                 {/* Stats & Links */}
                 <div className="flex items-center justify-between pt-4 border-t border-border/40">
-                  <div className="flex items-center gap-4 text-sm text-foreground/60">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4" />
-                      {project.stats.stars}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7z"/>
-                      </svg>
-                      {project.stats.forks}
-                    </div>
+                  <div className="text-sm text-foreground/60">
+                    <span className="font-medium">{project.stats.type}</span>
                   </div>
 
                   <div className="flex gap-2">

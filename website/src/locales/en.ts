@@ -3,6 +3,7 @@ export default {
     home: 'Home',
     docs: 'Docs',
     showcase: 'Showcase',
+    blog: 'Blog',
     about: 'About',
     faq: 'FAQ',
     login: 'Login',

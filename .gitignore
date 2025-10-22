@@ -70,3 +70,4 @@ raft-core-verify.ts
 raft-git-test.ts
 raft-advanced-test.ts
 raft-quick-test.ts
+test-results/

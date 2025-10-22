@@ -1,0 +1,556 @@
+---
+title: 'Building Enterprise-Grade Permission Systems'
+description: 'How we designed the hierarchical organization and team permission system in Flotilla.'
+date: '2025-10-15'
+author: 'Architecture Team'
+tags: ['architecture', 'security', 'rbac']
+coverImage: '/logo.svg'
+---
+
+# Building Enterprise-Grade Permission Systems
+
+One of Flotilla's core features is its hierarchical organization and team permission system. In this article, we'll explore the architectural decisions behind this enterprise-grade RBAC (Role-Based Access Control) implementation.
+
+## The Challenge
+
+Modern code hosting platforms need to support multiple organizational structures:
+
+- **Solo Developers**: Simple personal workspaces
+- **Small Teams**: Lightweight collaboration without bureaucracy
+- **Enterprises**: Complex hierarchies with multiple teams and projects
+- **Open Source**: Public/private hybrid access models
+
+The challenge is designing a system that scales from 1 to 10,000+ users without becoming overly complex for small teams.
+
+## Architectural Principles
+
+Our design follows these core principles:
+
+### 1. Hierarchical Structure
+
+```
+User
+ └── OrganizationMember (role: OWNER | ADMIN | MEMBER)
+      └── Organization
+           └── Team
+                └── TeamMember (role: MAINTAINER | MEMBER)
+                     └── ProjectPermission (access: READ | WRITE | ADMIN)
+```
+
+This hierarchy provides clear ownership and delegation paths.
+
+### 2. Separation of Concerns
+
+- **Organizations**: High-level grouping and billing entity
+- **Teams**: Logical grouping of collaborators
+- **Projects**: Actual code repositories
+- **Permissions**: Fine-grained access control
+
+### 3. Default-Secure
+
+All operations follow the principle of least privilege:
+
+```typescript
+// Deny by default
+if (!hasPermission(user, resource, action)) {
+  throw new ForbiddenException('Insufficient permissions')
+}
+```
+
+## Database Schema
+
+Our Prisma schema models the permission hierarchy:
+
+```prisma
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  isPersonal  Boolean  @default(false)
+
+  members     OrganizationMember[]
+  teams       Team[]
+  projects    Project[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  id             String           @id @default(cuid())
+  organizationId String
+  userId         String
+  role           OrganizationRole @default(MEMBER)
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@unique([organizationId, userId])
+  @@map("organization_members")
+}
+
+enum OrganizationRole {
+  OWNER   // Full control, can delete organization
+  ADMIN   // Can manage members and teams
+  MEMBER  // Read-only access to organization
+}
+
+model Team {
+  id             String   @id @default(cuid())
+  name           String
+  slug           String
+  description    String?
+  organizationId String
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  members        TeamMember[]
+  permissions    ProjectPermission[]
+
+  @@unique([organizationId, slug])
+  @@map("teams")
+}
+
+model TeamMember {
+  id     String   @id @default(cuid())
+  teamId String
+  userId String
+  role   TeamRole @default(MEMBER)
+
+  team   Team @relation(fields: [teamId], references: [id])
+  user   User @relation(fields: [userId], references: [id])
+
+  @@unique([teamId, userId])
+  @@map("team_members")
+}
+
+enum TeamRole {
+  MAINTAINER  // Can manage team members and assign permissions
+  MEMBER      // Can access assigned projects
+}
+
+model ProjectPermission {
+  id        String            @id @default(cuid())
+  teamId    String
+  projectId String
+  access    ProjectAccessType @default(READ)
+
+  team      Team    @relation(fields: [teamId], references: [id])
+  project   Project @relation(fields: [projectId], references: [id])
+
+  @@unique([teamId, projectId])
+  @@map("project_permissions")
+}
+
+enum ProjectAccessType {
+  READ   // Can view code and issues
+  WRITE  // Can push code and modify issues
+  ADMIN  // Can modify project settings
+}
+```
+
+## Personal Organizations
+
+Every user automatically gets a **personal organization** upon registration:
+
+```typescript
+@Injectable()
+export class AuthService {
+  async register(dto: RegisterDto): Promise<{ user: User; tokens: Tokens }> {
+    // Create user
+    const user = await this.prisma.user.create({
+      data: {
+        email: dto.email,
+        username: dto.username,
+        password: await hash(dto.password, 10),
+      },
+    })
+
+    // Auto-create personal organization
+    const personalOrg = await this.prisma.organization.create({
+      data: {
+        name: `${user.username}'s Organization`,
+        slug: `user-${user.username}`,
+        isPersonal: true,
+        members: {
+          create: {
+            userId: user.id,
+            role: OrganizationRole.OWNER,
+          },
+        },
+      },
+    })
+
+    const tokens = await this.generateTokens(user.id, user.email)
+    return { user, tokens }
+  }
+}
+```
+
+This pattern ensures:
+- **Zero Configuration**: New users can start immediately
+- **Consistent API**: Personal and team workflows use the same endpoints
+- **Easy Migration**: Personal projects can be transferred to team organizations
+
+## Permission Checking
+
+We implement permission checks using NestJS guards and decorators:
+
+```typescript
+// Custom decorator
+export const RequireOrgRole = (...roles: OrganizationRole[]) =>
+  SetMetadata('orgRoles', roles)
+
+// Guard implementation
+@Injectable()
+export class OrganizationRoleGuard implements CanActivate {
+  constructor(
+    private reflector: Reflector,
+    private prisma: PrismaService
+  ) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const requiredRoles = this.reflector.get<OrganizationRole[]>(
+      'orgRoles',
+      context.getHandler()
+    )
+
+    if (!requiredRoles) {
+      return true
+    }
+
+    const request = context.switchToHttp().getRequest()
+    const user = request.user
+    const orgSlug = request.params.slug
+
+    const member = await this.prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: orgSlug,
+          userId: user.sub,
+        },
+      },
+    })
+
+    if (!member) {
+      return false
+    }
+
+    return requiredRoles.includes(member.role)
+  }
+}
+```
+
+### Usage in Controllers
+
+```typescript
+@Controller('organizations/:slug')
+@UseGuards(JwtAuthGuard, OrganizationRoleGuard)
+export class OrganizationsController {
+  @Get()
+  @Public()
+  async getOrganization(@Param('slug') slug: string) {
+    // Public endpoint - anyone can view
+  }
+
+  @Post('members')
+  @RequireOrgRole(OrganizationRole.OWNER, OrganizationRole.ADMIN)
+  async addMember(
+    @Param('slug') slug: string,
+    @Body() dto: AddMemberDto
+  ) {
+    // Only OWNER and ADMIN can add members
+  }
+
+  @Delete()
+  @RequireOrgRole(OrganizationRole.OWNER)
+  async deleteOrganization(@Param('slug') slug: string) {
+    // Only OWNER can delete organization
+  }
+}
+```
+
+## Team-Based Access Control
+
+Teams provide fine-grained project access:
+
+```typescript
+@Injectable()
+export class TeamsService {
+  async assignProjectPermission(
+    teamId: string,
+    projectId: string,
+    access: ProjectAccessType,
+    userId: string
+  ): Promise<ProjectPermission> {
+    // 1. Verify user is team MAINTAINER
+    const teamMember = await this.prisma.teamMember.findUnique({
+      where: {
+        teamId_userId: { teamId, userId },
+      },
+    })
+
+    if (!teamMember || teamMember.role !== TeamRole.MAINTAINER) {
+      throw new ForbiddenException('Only team maintainers can assign permissions')
+    }
+
+    // 2. Verify project belongs to same organization as team
+    const team = await this.prisma.team.findUnique({
+      where: { id: teamId },
+      include: { organization: true },
+    })
+
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+    })
+
+    if (project.organizationId !== team.organizationId) {
+      throw new BadRequestException('Project must belong to same organization')
+    }
+
+    // 3. Create or update permission
+    return this.prisma.projectPermission.upsert({
+      where: {
+        teamId_projectId: { teamId, projectId },
+      },
+      create: { teamId, projectId, access },
+      update: { access },
+    })
+  }
+}
+```
+
+## Security Considerations
+
+### 1. Prevent Privilege Escalation
+
+Users cannot grant themselves higher permissions:
+
+```typescript
+async updateMemberRole(
+  orgId: string,
+  targetUserId: string,
+  newRole: OrganizationRole,
+  currentUserId: string
+) {
+  // Cannot modify your own role
+  if (targetUserId === currentUserId) {
+    throw new BadRequestException('Cannot modify your own role')
+  }
+
+  // Only OWNER can create new OWNER
+  if (newRole === OrganizationRole.OWNER) {
+    const currentMember = await this.getMember(orgId, currentUserId)
+    if (currentMember.role !== OrganizationRole.OWNER) {
+      throw new ForbiddenException('Only OWNER can assign OWNER role')
+    }
+  }
+
+  // Update role
+  await this.prisma.organizationMember.update({
+    where: {
+      organizationId_userId: {
+        organizationId: orgId,
+        userId: targetUserId,
+      },
+    },
+    data: { role: newRole },
+  })
+}
+```
+
+### 2. Prevent Orphaned Organizations
+
+Organizations must have at least one OWNER:
+
+```typescript
+async removeMember(orgId: string, userId: string) {
+  const member = await this.prisma.organizationMember.findUnique({
+    where: {
+      organizationId_userId: { organizationId: orgId, userId },
+    },
+  })
+
+  if (member.role === OrganizationRole.OWNER) {
+    const ownerCount = await this.prisma.organizationMember.count({
+      where: {
+        organizationId: orgId,
+        role: OrganizationRole.OWNER,
+      },
+    })
+
+    if (ownerCount <= 1) {
+      throw new BadRequestException(
+        'Cannot remove last owner. Transfer ownership first.'
+      )
+    }
+  }
+
+  await this.prisma.organizationMember.delete({
+    where: {
+      organizationId_userId: { organizationId: orgId, userId },
+    },
+  })
+}
+```
+
+### 3. Audit Logging
+
+All permission changes are logged for compliance:
+
+```typescript
+async logPermissionChange(
+  action: string,
+  resource: string,
+  userId: string,
+  metadata: Record<string, any>
+) {
+  await this.prisma.auditLog.create({
+    data: {
+      action,
+      resource,
+      userId,
+      metadata,
+      timestamp: new Date(),
+    },
+  })
+}
+```
+
+## Frontend Integration
+
+The frontend reflects the permission hierarchy in the UI:
+
+```typescript
+// Type-safe permission checking
+interface Organization {
+  id: string
+  name: string
+  slug: string
+  myRole: OrganizationRole | null  // Current user's role
+}
+
+function OrganizationSettings({ org }: { org: Organization }) {
+  const canManageMembers = org.myRole === 'OWNER' || org.myRole === 'ADMIN'
+  const canDelete = org.myRole === 'OWNER'
+
+  return (
+    <Tabs defaultValue="overview">
+      <TabsList>
+        <TabsTrigger value="overview">Overview</TabsTrigger>
+        <TabsTrigger value="teams">Teams</TabsTrigger>
+        {canManageMembers && (
+          <TabsTrigger value="members">Members</TabsTrigger>
+        )}
+        {canDelete && (
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+        )}
+      </TabsList>
+    </Tabs>
+  )
+}
+```
+
+## Performance Optimization
+
+Permission checks can become bottlenecks. We optimize with:
+
+### 1. Eager Loading
+
+```typescript
+// Bad: N+1 query problem
+const projects = await prisma.project.findMany()
+for (const project of projects) {
+  const permission = await checkPermission(userId, project.id)
+}
+
+// Good: Single query with joins
+const projects = await prisma.project.findMany({
+  include: {
+    permissions: {
+      where: {
+        team: {
+          members: {
+            some: { userId },
+          },
+        },
+      },
+    },
+  },
+})
+```
+
+### 2. Permission Caching
+
+```typescript
+@Injectable()
+export class PermissionCache {
+  private cache = new Map<string, boolean>()
+  private TTL = 60_000 // 1 minute
+
+  async checkPermission(
+    userId: string,
+    resourceId: string,
+    action: string
+  ): Promise<boolean> {
+    const key = `${userId}:${resourceId}:${action}`
+
+    if (this.cache.has(key)) {
+      return this.cache.get(key)!
+    }
+
+    const result = await this.computePermission(userId, resourceId, action)
+    this.cache.set(key, result)
+
+    setTimeout(() => this.cache.delete(key), this.TTL)
+
+    return result
+  }
+}
+```
+
+### 3. Database Indexes
+
+```prisma
+@@index([organizationId, userId])
+@@index([teamId, userId])
+@@index([projectId, teamId])
+```
+
+## Migration Strategy
+
+We implemented a migration script to transition existing projects to the new organization structure:
+
+```bash
+cd apps/backend
+pnpm migrate:to-organizations
+```
+
+This script:
+1. Creates personal organizations for all existing users
+2. Transfers project ownership to personal organizations
+3. Preserves all existing data and relationships
+4. Generates migration report for verification
+
+## Lessons Learned
+
+After implementing this system across 50+ E2E tests, we learned:
+
+1. **Start Simple**: Personal organizations reduced onboarding friction
+2. **Type Safety**: Prisma's type generation caught many permission bugs early
+3. **Test Coverage**: Permission logic requires exhaustive testing (edge cases!)
+4. **Clear Errors**: Descriptive error messages help users understand access denials
+5. **Audit Everything**: Permission changes must be traceable for compliance
+
+## Conclusion
+
+Building an enterprise-grade permission system requires careful architecture, thorough testing, and constant vigilance against security vulnerabilities. By following RBAC principles and leveraging TypeScript's type safety, we've created a system that scales from solo developers to large teams.
+
+---
+
+**Related Resources:**
+- [Architecture Documentation](/docs/architecture)
+- [API Reference](/docs/api)
+- [Testing Guide](/docs/testing)
+- [GitHub Repository](https://github.com/CPU-JIA/Cloud-Dev-Platform)

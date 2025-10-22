@@ -30,6 +30,7 @@ export function Header() {
     { href: '/', label: t('nav.home') },
     { href: '/docs', label: t('nav.docs') },
     { href: '/showcase', label: t('nav.showcase') },
+    { href: '/blog', label: t('nav.blog') },
     { href: '/about', label: t('nav.about') },
     { href: '/faq', label: t('nav.faq') },
   ]
@@ -54,9 +55,9 @@ export function Header() {
             <Image
               src="/images/logo-transparent.png"
               alt="Flotilla Logo"
-              width={120}
-              height={40}
-              className="h-10 w-auto"
+              width={160}
+              height={54}
+              className="h-12 md:h-14 w-auto"
               priority
             />
           </Link>

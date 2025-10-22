@@ -1,0 +1,130 @@
+---
+title: 'Introducing Flotilla: Building Consensus, One Commit at a Time'
+description: 'Learn why we built Flotilla, a distributed code hosting platform with Raft consensus algorithm at its core.'
+date: '2025-10-20'
+author: 'Flotilla Team'
+tags: ['announcement', 'raft', 'distributed-systems']
+coverImage: '/logo.svg'
+---
+
+# Introducing Flotilla
+
+We're excited to announce **Flotilla**, a production-ready distributed code hosting platform built with the Raft consensus algorithm at its core.
+
+## Why We Built Flotilla
+
+Modern software development relies heavily on distributed collaboration, but most code hosting platforms treat distribution as a technical afterthought. We believe that **distributed teams should be as reliable as distributed systems**.
+
+### The Problem
+
+Traditional code hosting platforms face several challenges:
+
+- **Single Point of Failure**: Centralized architecture means downtime affects everyone
+- **Trust Without Verification**: Consensus is assumed, not algorithmically guaranteed
+- **Scaling Bottlenecks**: Vertical scaling limits growth potential
+- **Opaque Internals**: Black-box systems that don't expose their coordination mechanisms
+
+### Our Solution: Raft Consensus
+
+Flotilla implements a simplified Raft consensus algorithm to ensure:
+
+```typescript
+interface RaftNode {
+  nodeId: string
+  state: 'follower' | 'candidate' | 'leader'
+  currentTerm: number
+  votedFor: string | null
+  log: LogEntry[]
+  commitIndex: number
+  lastApplied: number
+}
+```
+
+**Key Features:**
+
+- **150ms Automatic Failover**: When a leader node fails, the cluster elects a new leader in under 150 milliseconds
+- **Strong Consistency**: All nodes agree on the state of the repository through log replication
+- **Fault Tolerance**: The system remains operational as long as a majority of nodes are healthy
+- **Transparent Coordination**: You can visualize the consensus process in real-time
+
+## What Makes Flotilla Different?
+
+### 1. Academic Rigor Meets Production Reality
+
+Flotilla isn't just a side project—it's a carefully architected system following structured software engineering lifecycle:
+
+- Requirements Analysis
+- Architecture Design
+- Test-Driven Development
+- Comprehensive Documentation
+
+### 2. Full-Stack TypeScript
+
+Both backend (NestJS 11) and frontend (Next.js 15) are written in TypeScript 5.7, ensuring end-to-end type safety.
+
+### 3. Enterprise-Grade Features
+
+- **Organization & Team Management**: Hierarchical RBAC with OWNER/ADMIN/MEMBER roles
+- **Issue Tracking System**: Complete issue management with labels, milestones, and markdown support
+- **Real-time Collaboration**: WebSocket-based live updates
+- **S3-Compatible Storage**: MinIO integration for distributed file storage
+
+### 4. Self-Hosted & Open Source
+
+Flotilla is MIT-licensed and designed for self-hosting:
+
+```bash
+# Clone and run in under 5 minutes
+git clone https://github.com/CPU-JIA/Cloud-Dev-Platform.git
+cd Cloud-Dev-Platform
+docker-compose up -d
+pnpm install
+pnpm dev
+```
+
+## The Road Ahead
+
+We have an ambitious 24-month roadmap planned for 2025-2027:
+
+**Phase 1 (Q4 2024 - Q2 2025): Foundation**
+- ✅ Basic infrastructure (Auth, Projects, Files)
+- ✅ Raft consensus implementation
+- ✅ Organization & Team system
+- 🔄 Issue tracking system (In Progress)
+- 📅 Git protocol layer (Planned)
+- 📅 Pull Request & Code Review (Planned)
+
+**Phase 2 (Q3-Q4 2025): Growth**
+- CI/CD Pipeline integration
+- Advanced collaboration features
+- Performance optimization at scale
+
+**Phase 3 (Q1-Q2 2026): Differentiation**
+- AI-powered code suggestions
+- Advanced analytics and insights
+- Multi-region deployment
+
+**Phase 4 (Q3-Q4 2026 - 2027): Innovation**
+- Distributed execution environments
+- Blockchain-based audit trails
+- Plugin marketplace
+
+## Join Us
+
+Flotilla is more than code hosting—it's a commitment to building reliable distributed systems that teams can trust.
+
+**Get Started:**
+- 📚 [Documentation](/docs/getting-started)
+- 🔧 [GitHub Repository](https://github.com/CPU-JIA/Cloud-Dev-Platform)
+- 🗺️ [Roadmap](/roadmap)
+- 📖 [Brand Story](/brand)
+
+**Contribute:**
+- Star us on GitHub
+- Report issues and submit PRs
+- Join our community discussions
+- Share your experience
+
+---
+
+*We don't just host code. We build consensus.*

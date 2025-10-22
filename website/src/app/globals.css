@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   /* Background & Foreground */
@@ -121,3 +122,92 @@ html {
 *:focus-visible {
   @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
 }
+
+/* Prose (Blog content) customization */
+.prose {
+  @apply max-w-none;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  @apply font-bold tracking-tight scroll-mt-20;
+}
+
+.prose h1 {
+  @apply text-4xl mb-8;
+}
+
+.prose h2 {
+  @apply text-3xl mt-12 mb-6;
+}
+
+.prose h3 {
+  @apply text-2xl mt-10 mb-4;
+}
+
+.prose p {
+  @apply leading-relaxed my-6;
+}
+
+.prose a {
+  @apply text-primary hover:text-primary/80 no-underline font-medium transition-colors;
+}
+
+.prose a:hover {
+  @apply underline;
+}
+
+.prose code {
+  @apply bg-secondary/50 px-1.5 py-0.5 rounded text-sm font-mono before:content-none after:content-none;
+}
+
+.prose pre {
+  @apply bg-card border border-border/40 rounded-lg p-4 overflow-x-auto my-6;
+}
+
+.prose pre code {
+  @apply bg-transparent p-0;
+}
+
+.prose blockquote {
+  @apply border-l-4 border-primary/50 pl-6 italic my-6 text-foreground/80;
+}
+
+.prose ul,
+.prose ol {
+  @apply my-6 space-y-2;
+}
+
+.prose li {
+  @apply leading-relaxed;
+}
+
+.prose table {
+  @apply w-full my-6 border-collapse;
+}
+
+.prose th {
+  @apply bg-secondary/50 border border-border/40 px-4 py-2 text-left font-semibold;
+}
+
+.prose td {
+  @apply border border-border/40 px-4 py-2;
+}
+
+.prose img {
+  @apply rounded-lg my-6;
+}
+
+.prose hr {
+  @apply my-12 border-border/40;
+}
+
+/* Syntax highlighting adjustments */
+.prose .hljs {
+  @apply bg-transparent;
+}
+

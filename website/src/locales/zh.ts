@@ -3,6 +3,7 @@ export default {
     home: '首页',
     docs: '文档',
     showcase: '演示',
+    blog: '博客',
     about: '关于',
     faq: '常见问题',
     login: '登录',

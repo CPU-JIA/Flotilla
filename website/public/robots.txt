@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Sitemaps
-Sitemap: https://clouddev.com/sitemap.xml
+Sitemap: https://flotilla.dev/sitemap.xml
 
 # Disallow private pages
 Disallow: /api/
@@ -15,3 +15,6 @@ Allow: /docs
 Allow: /showcase
 Allow: /about
 Allow: /faq
+Allow: /blog
+Allow: /roadmap
+Allow: /changelog

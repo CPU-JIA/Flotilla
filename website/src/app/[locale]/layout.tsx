@@ -7,6 +7,14 @@ import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { generateMetadata as generateSEO } from '@/lib/seo'
+import { Analytics } from '@vercel/analytics/react'
+import { WebVitals } from '@/components/analytics/web-vitals'
+import { Toaster } from 'sonner'
+import {
+  generateOrganizationSchema,
+  generateWebSiteSchema,
+  renderJsonLd,
+} from '@/lib/structured-data'
 import type { Metadata, Viewport } from 'next'
 
 export const metadata: Metadata = generateSEO({
@@ -50,8 +58,27 @@ export default async function LocaleLayout({
 
   const messages = await getMessages()
 
+  // Base URL for structured data
+  const baseUrl = process.env.NEXT_PUBLIC_WEBSITE_URL || 'https://flotilla.dev'
+
+  // Generate global structured data
+  const organizationSchema = generateOrganizationSchema(baseUrl)
+  const websiteSchema = generateWebSiteSchema(baseUrl)
+
   return (
     <html lang={locale} suppressHydrationWarning>
+      <head>
+        {/* Organization Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={renderJsonLd(organizationSchema)}
+        />
+        {/* WebSite Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={renderJsonLd(websiteSchema)}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -65,8 +92,11 @@ export default async function LocaleLayout({
             <Header />
             <main className="pt-16 min-h-screen">{children}</main>
             <Footer />
+            <Toaster richColors position="top-right" />
           </NextIntlClientProvider>
         </ThemeProvider>
+        <Analytics />
+        <WebVitals />
       </body>
     </html>
   )
