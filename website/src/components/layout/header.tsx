@@ -55,9 +55,9 @@ export function Header() {
             <Image
               src="/images/logo-transparent.png"
               alt="Flotilla Logo"
-              width={160}
-              height={54}
-              className="h-12 md:h-14 w-auto"
+              width={220}
+              height={74}
+              className="h-16 md:h-20 w-auto"
               priority
             />
           </Link>
