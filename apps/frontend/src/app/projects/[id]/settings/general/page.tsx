@@ -14,7 +14,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import {
   Card,
   CardContent,
@@ -149,24 +148,26 @@ export default function GeneralSettingsPage() {
           {/* Visibility */}
           <div className="space-y-2">
             <Label>{t.projects.settings.visibility}</Label>
-            <RadioGroup
-              value={visibility}
-              onValueChange={(value) => setVisibility(value as 'PUBLIC' | 'PRIVATE')}
-              disabled={!canEdit || saving}
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="PUBLIC" id="public" />
-                <Label htmlFor="public" className="font-normal cursor-pointer">
-                  🌍 {t.projects.settings.visibilityPublic}
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="PRIVATE" id="private" />
-                <Label htmlFor="private" className="font-normal cursor-pointer">
-                  🔒 {t.projects.settings.visibilityPrivate}
-                </Label>
-              </div>
-            </RadioGroup>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant={visibility === 'PUBLIC' ? 'default' : 'outline'}
+                onClick={() => setVisibility('PUBLIC')}
+                disabled={!canEdit || saving}
+                className="flex-1"
+              >
+                🌍 {t.projects.settings.visibilityPublic}
+              </Button>
+              <Button
+                type="button"
+                variant={visibility === 'PRIVATE' ? 'default' : 'outline'}
+                onClick={() => setVisibility('PRIVATE')}
+                disabled={!canEdit || saving}
+                className="flex-1"
+              >
+                🔒 {t.projects.settings.visibilityPrivate}
+              </Button>
+            </div>
           </div>
 
           {/* Default Branch */}

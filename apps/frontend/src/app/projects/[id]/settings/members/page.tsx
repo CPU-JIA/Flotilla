@@ -19,14 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+// Table component removed - using native HTML table instead
 import {
   Select,
   SelectContent,
@@ -167,85 +160,99 @@ export default function MembersManagementPage() {
             {canManage && <AddMemberDialog projectId={projectId} onSuccess={fetchMembers} />}
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t.projects.settings.memberName}</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>{t.projects.settings.memberRole}</TableHead>
-                <TableHead>{t.projects.settings.memberJoinedAt}</TableHead>
-                {canManage && <TableHead className="text-right">{t.projects.settings.memberActions}</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {members.map((member) => {
-                const isCurrentUser = member.user.id === user?.id
-                const isMemberOwner = member.user.id === ownerId
-                return (
-                  <TableRow key={member.id}>
-                    <TableCell className="font-medium">
-                      {member.user.username}
-                      {isCurrentUser && (
-                        <Badge variant="outline" className="ml-2">
-                          You
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{member.user.email}</TableCell>
-                    <TableCell>
-                      {canManage && !isMemberOwner ? (
-                        <Select
-                          value={member.role}
-                          onValueChange={(newRole) => handleChangeRole(member.user.id, newRole)}
-                        >
-                          <SelectTrigger className="w-[140px]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="VIEWER">
-                              👁️ {t.projects.settings.roleViewer}
-                            </SelectItem>
-                            <SelectItem value="MEMBER">
-                              👤 {t.projects.settings.roleMember}
-                            </SelectItem>
-                            <SelectItem value="MAINTAINER">
-                              🔧 {t.projects.settings.roleMaintainer}
-                            </SelectItem>
-                            <SelectItem value="OWNER">
-                              👑 {t.projects.settings.roleOwner}
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        getRoleBadge(member.role)
-                      )}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(member.joinedAt).toLocaleDateString('zh-CN', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </TableCell>
-                    {canManage && (
-                      <TableCell className="text-right">
-                        {!isMemberOwner && !isCurrentUser && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveMember(member.user.id, member.user.username)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                          >
-                            🗑️ {t.projects.settings.removeMember}
-                          </Button>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left py-3 px-4 font-medium text-sm text-muted-foreground">
+                    {t.projects.settings.memberName}
+                  </th>
+                  <th className="text-left py-3 px-4 font-medium text-sm text-muted-foreground">
+                    Email
+                  </th>
+                  <th className="text-left py-3 px-4 font-medium text-sm text-muted-foreground">
+                    {t.projects.settings.memberRole}
+                  </th>
+                  <th className="text-left py-3 px-4 font-medium text-sm text-muted-foreground">
+                    {t.projects.settings.memberJoinedAt}
+                  </th>
+                  {canManage && (
+                    <th className="text-right py-3 px-4 font-medium text-sm text-muted-foreground">
+                      {t.projects.settings.memberActions}
+                    </th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {members.map((member) => {
+                  const isCurrentUser = member.user.id === user?.id
+                  const isMemberOwner = member.user.id === ownerId
+                  return (
+                    <tr key={member.id} className="border-b border-border hover:bg-muted/50">
+                      <td className="py-3 px-4 font-medium">
+                        {member.user.username}
+                        {isCurrentUser && (
+                          <Badge variant="outline" className="ml-2">
+                            You
+                          </Badge>
                         )}
-                      </TableCell>
-                    )}
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground">{member.user.email}</td>
+                      <td className="py-3 px-4">
+                        {canManage && !isMemberOwner ? (
+                          <Select
+                            value={member.role}
+                            onValueChange={(newRole) => handleChangeRole(member.user.id, newRole)}
+                          >
+                            <SelectTrigger className="w-[140px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="VIEWER">
+                                👁️ {t.projects.settings.roleViewer}
+                              </SelectItem>
+                              <SelectItem value="MEMBER">
+                                👤 {t.projects.settings.roleMember}
+                              </SelectItem>
+                              <SelectItem value="MAINTAINER">
+                                🔧 {t.projects.settings.roleMaintainer}
+                              </SelectItem>
+                              <SelectItem value="OWNER">
+                                👑 {t.projects.settings.roleOwner}
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          getRoleBadge(member.role)
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {new Date(member.joinedAt).toLocaleDateString('zh-CN', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </td>
+                      {canManage && (
+                        <td className="py-3 px-4 text-right">
+                          {!isMemberOwner && !isCurrentUser && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveMember(member.user.id, member.user.username)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            >
+                              🗑️ {t.projects.settings.removeMember}
+                            </Button>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </CardContent>
     </Card>
