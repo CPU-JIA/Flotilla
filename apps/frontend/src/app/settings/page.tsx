@@ -16,13 +16,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { AvatarUpload } from '@/components/ui/avatar-upload'
 import { apiRequest } from '@/lib/api'
 
 interface ProfileFormData {
   username: string
   email: string
   bio: string
-  avatar: string
 }
 
 interface PasswordFormData {
@@ -41,9 +41,9 @@ export default function SettingsPage() {
     username: '',
     email: '',
     bio: '',
-    avatar: '',
   })
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [profileError, setProfileError] = useState('')
   const [profileSuccess, setProfileSuccess] = useState('')
 
@@ -67,10 +67,41 @@ export default function SettingsPage() {
         username: user.username || '',
         email: user.email || '',
         bio: user.bio || '',
-        avatar: user.avatar || '',
       })
     }
   }, [isAuthenticated, isLoading, router, user])
+
+  /**
+   * 处理头像上传
+   * ECP-C1: 防御性编程 - 文件验证
+   */
+  const handleAvatarUpload = async (file: File): Promise<void> => {
+    setIsUploadingAvatar(true)
+    setProfileError('')
+    setProfileSuccess('')
+
+    try {
+      const formData = new FormData()
+      formData.append('avatar', file)
+
+      const response = await apiRequest<{ avatarUrl: string }>('/users/profile/avatar', {
+        method: 'PUT',
+        body: formData,
+      })
+
+      setProfileSuccess(t.settings.avatarUploadSuccess)
+      // 刷新用户信息以获取新的头像URL
+      await refreshUser()
+
+      // 3秒后清除成功提示
+      setTimeout(() => setProfileSuccess(''), 3000)
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : t.settings.avatarUploadError
+      setProfileError(errorMessage)
+    } finally {
+      setIsUploadingAvatar(false)
+    }
+  }
 
   /**
    * 更新个人资料
@@ -96,7 +127,6 @@ export default function SettingsPage() {
         body: JSON.stringify({
           username: profileData.username,
           bio: profileData.bio,
-          avatar: profileData.avatar,
         }),
       })
 
@@ -254,21 +284,20 @@ export default function SettingsPage() {
               </p>
             </div>
 
-            {/* 头像URL（暂时使用文本输入，未来可改为上传） */}
+            {/* 头像上传 */}
             <div>
-              <Label htmlFor="avatar" className="text-sm font-medium text-foreground">
-                {t.settings.avatar}
-              </Label>
-              <Input
-                id="avatar"
-                type="url"
-                value={profileData.avatar}
-                onChange={(e) => setProfileData({ ...profileData, avatar: e.target.value })}
-                className="mt-2"
-                placeholder={t.settings.avatarPlaceholder}
-                maxLength={500}
-              />
-              <p className="mt-1 text-xs text-muted-foreground">{t.settings.avatarHelper}</p>
+              <Label className="text-sm font-medium text-foreground">{t.settings.avatar}</Label>
+              <div className="mt-4">
+                <AvatarUpload
+                  currentAvatarUrl={user?.avatar || ''}
+                  userIdentifier={user?.email || user?.username || ''}
+                  username={user?.username || ''}
+                  onUpload={handleAvatarUpload}
+                  isUploading={isUploadingAvatar}
+                  uploadButtonText={t.settings.avatarUpload}
+                  removeButtonText={t.settings.avatarRemove}
+                />
+              </div>
             </div>
 
             {/* 错误/成功提示 */}

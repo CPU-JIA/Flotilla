@@ -13,6 +13,8 @@
     "test:report": "playwright show-report"
   },
   "dependencies": {
+    "@dicebear/collection": "^9.2.4",
+    "@dicebear/core": "^9.2.4",
     "@hookform/resolvers": "^5.2.2",
     "@mantine/charts": "7.15.0",
     "@mantine/core": "7.15.0",

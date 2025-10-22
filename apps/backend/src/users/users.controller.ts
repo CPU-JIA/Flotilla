@@ -7,10 +7,14 @@ import {
   Param,
   Query,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
   HttpCode,
   HttpStatus,
   Logger,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService, UserListResponse } from './users.service';
 import { UpdateUserDto, ChangePasswordDto, QueryUsersDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -67,6 +71,47 @@ export class UsersController {
       changePasswordDto,
       currentUser,
     );
+  }
+
+  /**
+   * 上传头像
+   * ECP-C1: 防御性编程 - 文件类型和大小验证
+   */
+  @Put('profile/avatar')
+  @UseInterceptors(FileInterceptor('avatar'))
+  async uploadAvatar(
+    @UploadedFile() file: Express.Multer.File,
+    @CurrentUser() currentUser: User,
+  ): Promise<{ avatarUrl: string }> {
+    if (!file) {
+      throw new BadRequestException('No avatar file uploaded');
+    }
+
+    // 验证文件类型
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+    ];
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      throw new BadRequestException(
+        'Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed',
+      );
+    }
+
+    // 验证文件大小（5MB）
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      throw new BadRequestException('File size exceeds 5MB limit');
+    }
+
+    this.logger.log(
+      `📷 Uploading avatar for ${currentUser.username}: ${file.originalname} (${file.size} bytes)`,
+    );
+
+    return this.usersService.uploadAvatar(currentUser.id, file);
   }
 
   /**

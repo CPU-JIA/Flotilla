@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { MinioService } from '../minio/minio.service';
 import { UpdateUserDto, ChangePasswordDto, QueryUsersDto } from './dto';
 import type { User } from '@prisma/client';
 import { UserRole } from '@prisma/client';
@@ -23,7 +24,10 @@ export interface UserListResponse {
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private minioService: MinioService,
+  ) {}
 
   /**
    * 获取用户列表（分页、搜索、过滤）
@@ -208,6 +212,56 @@ export class UsersService {
     this.logger.log(`🔒 Password changed for user ${id}`);
 
     return { message: '密码修改成功' };
+  }
+
+  /**
+   * 上传用户头像到MinIO
+   * ECP-A1: 单一职责 - 专注于头像上传逻辑
+   * ECP-C2: 系统化错误处理
+   */
+  async uploadAvatar(
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<{ avatarUrl: string }> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    // 生成唯一文件名：avatars/{userId}/{timestamp}-{originalname}
+    const timestamp = Date.now();
+    const fileExtension = file.originalname.split('.').pop();
+    const objectName = `avatars/${userId}/${timestamp}.${fileExtension}`;
+
+    try {
+      // 上传到MinIO
+      await this.minioService.uploadFile(
+        objectName,
+        file.buffer,
+        file.size,
+        { 'Content-Type': file.mimetype },
+      );
+
+      // 生成可访问的URL
+      const bucketName = 'cloud-dev-platform';
+      const avatarUrl = `http://localhost:9000/${bucketName}/${objectName}`;
+
+      // 更新用户avatar字段
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { avatar: avatarUrl },
+      });
+
+      this.logger.log(`📷 Avatar uploaded for user ${userId}: ${avatarUrl}`);
+
+      return { avatarUrl };
+    } catch (error) {
+      this.logger.error(
+        `❌ Failed to upload avatar for user ${userId}:`,
+        error,
+      );
+      throw new BadRequestException('头像上传失败');
+    }
   }
 
   /**
