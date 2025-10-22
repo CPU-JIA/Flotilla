@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test'
  *
  * 测试前置条件:
  * 1. 后端服务已启动（PostgreSQL + NestJS）
- * 2. 已创建测试用户：username: TEST_USERS.testuser.username, password: TEST_USERS.testuser.password
+ * 2. 已创建测试用户：username: TEST_USERS.jia.username, password: TEST_USERS.jia.password
  * 3. 用户已有至少一个组织（OWNER或ADMIN角色）
  * 4. 数据库已执行迁移脚本
  *
@@ -19,8 +19,8 @@ import { test, expect } from '@playwright/test'
 test.describe('团队CRUD功能测试', () => {
   // 使用已存在的测试用户
   const testUser = {
-    username: TEST_USERS.testuser.username,
-    password: TEST_USERS.testuser.password,
+    username: TEST_USERS.jia.username,
+    password: TEST_USERS.jia.password,
   }
 
   // 生成唯一的团队名称（避免测试数据污染）

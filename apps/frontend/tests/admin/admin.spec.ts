@@ -8,8 +8,8 @@ import { TEST_USERS } from '../fixtures'
  */
 
 test.describe('管理面板功能测试', () => {
-  // Use admin user created by globalSetup (SUPER_ADMIN role)
-  const adminUser = TEST_USERS.admin
+  // Use jia user created by globalSetup (SUPER_ADMIN role)
+  const adminUser = TEST_USERS.jia
 
   // 在每个测试前先登录
   test.beforeEach(async ({ page }) => {

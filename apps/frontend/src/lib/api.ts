@@ -35,6 +35,16 @@ import type {
   AssignProjectPermissionRequest,
   UpdateProjectPermissionRequest,
 } from '@/types/team'
+import type {
+  Issue,
+  IssuesResponse,
+  CreateIssueDto,
+  UpdateIssueDto,
+  IssueQueryParams,
+  Label,
+  Milestone,
+  IssueComment,
+} from '@/types/issue'
 
 // Commit interface for type safety
 interface Commit {
@@ -351,7 +361,19 @@ export const api = {
         method: 'DELETE',
       }),
 
-    addMember: (projectId: string, data: { userId: string; role: 'OWNER' | 'MEMBER' | 'VIEWER' }) =>
+    getMembers: (projectId: string) =>
+      apiRequest<Array<{
+        id: string
+        role: string
+        joinedAt: string
+        user: {
+          id: string
+          username: string
+          email: string
+        }
+      }>>(`/projects/${projectId}/members`),
+
+    addMember: (projectId: string, data: { userId: string; role: 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER' }) =>
       apiRequest<{ message: string }>(`/projects/${projectId}/members`, {
         method: 'POST',
         body: JSON.stringify(data),
@@ -362,10 +384,20 @@ export const api = {
         method: 'DELETE',
       }),
 
-    updateMemberRole: (projectId: string, userId: string, role: 'OWNER' | 'MEMBER' | 'VIEWER') =>
+    updateMemberRole: (projectId: string, userId: string, role: 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER') =>
       apiRequest<{ message: string }>(`/projects/${projectId}/members/${userId}/role`, {
         method: 'PUT',
         body: JSON.stringify({ role }),
+      }),
+
+    archive: (id: string) =>
+      apiRequest<Project>(`/projects/${id}/archive`, {
+        method: 'POST',
+      }),
+
+    unarchive: (id: string) =>
+      apiRequest<Project>(`/projects/${id}/unarchive`, {
+        method: 'POST',
       }),
   },
 
@@ -790,5 +822,161 @@ export const api = {
           method: 'DELETE',
         }
       ),
+  },
+
+  // ============================================
+  // Issues API
+  // ============================================
+  issues: {
+    // 获取Issue列表
+    list: (projectId: string, params?: IssueQueryParams) => {
+      const searchParams = new URLSearchParams()
+      if (params?.page) searchParams.append('page', params.page.toString())
+      if (params?.limit) searchParams.append('limit', params.limit.toString())
+      if (params?.state) searchParams.append('state', params.state)
+      if (params?.assignee) searchParams.append('assignee', params.assignee)
+      if (params?.labels) searchParams.append('labels', params.labels)
+      if (params?.milestone) searchParams.append('milestone', params.milestone)
+      if (params?.search) searchParams.append('search', params.search)
+
+      const query = searchParams.toString()
+      return apiRequest<IssuesResponse>(
+        `/projects/${projectId}/issues${query ? `?${query}` : ''}`
+      )
+    },
+
+    // 获取单个Issue
+    get: (projectId: string, number: number) =>
+      apiRequest<Issue>(`/projects/${projectId}/issues/${number}`),
+
+    // 创建Issue
+    create: (projectId: string, data: CreateIssueDto) =>
+      apiRequest<Issue>(`/projects/${projectId}/issues`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    // 更新Issue
+    update: (projectId: string, number: number, data: UpdateIssueDto) =>
+      apiRequest<Issue>(`/projects/${projectId}/issues/${number}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    // 关闭Issue
+    close: (projectId: string, number: number) =>
+      apiRequest<Issue>(`/projects/${projectId}/issues/${number}/close`, {
+        method: 'POST',
+      }),
+
+    // 重新打开Issue
+    reopen: (projectId: string, number: number) =>
+      apiRequest<Issue>(`/projects/${projectId}/issues/${number}/reopen`, {
+        method: 'POST',
+      }),
+
+    // 删除Issue
+    delete: (projectId: string, number: number) =>
+      apiRequest<{ message: string }>(`/projects/${projectId}/issues/${number}`, {
+        method: 'DELETE',
+      }),
+  },
+
+  // ============================================
+  // Labels API
+  // ============================================
+  labels: {
+    // 获取标签列表
+    list: (projectId: string) =>
+      apiRequest<Label[]>(`/projects/${projectId}/labels`),
+
+    // 获取单个标签
+    get: (projectId: string, id: string) =>
+      apiRequest<Label>(`/projects/${projectId}/labels/${id}`),
+
+    // 创建标签
+    create: (projectId: string, data: { name: string; color: string; description?: string }) =>
+      apiRequest<Label>(`/projects/${projectId}/labels`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    // 更新标签
+    update: (projectId: string, id: string, data: Partial<{ name: string; color: string; description?: string }>) =>
+      apiRequest<Label>(`/projects/${projectId}/labels/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    // 删除标签
+    delete: (projectId: string, id: string) =>
+      apiRequest<{ message: string }>(`/projects/${projectId}/labels/${id}`, {
+        method: 'DELETE',
+      }),
+  },
+
+  // ============================================
+  // Milestones API
+  // ============================================
+  milestones: {
+    // 获取里程碑列表
+    list: (projectId: string, state?: 'OPEN' | 'CLOSED') => {
+      const query = state ? `?state=${state}` : ''
+      return apiRequest<Milestone[]>(`/projects/${projectId}/milestones${query}`)
+    },
+
+    // 获取单个里程碑
+    get: (projectId: string, id: string) =>
+      apiRequest<Milestone>(`/projects/${projectId}/milestones/${id}`),
+
+    // 创建里程碑
+    create: (projectId: string, data: { title: string; description?: string; dueDate?: string }) =>
+      apiRequest<Milestone>(`/projects/${projectId}/milestones`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    // 更新里程碑
+    update: (projectId: string, id: string, data: Partial<{ title: string; description?: string; dueDate?: string; state?: 'OPEN' | 'CLOSED' }>) =>
+      apiRequest<Milestone>(`/projects/${projectId}/milestones/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    // 删除里程碑
+    delete: (projectId: string, id: string) =>
+      apiRequest<{ message: string }>(`/projects/${projectId}/milestones/${id}`, {
+        method: 'DELETE',
+      }),
+  },
+
+  /**
+   * Issue Comments 相关 API
+   * ECP-A1: SOLID原则 - 评论功能独立封装
+   */
+  comments: {
+    // 获取Issue的所有评论
+    list: (projectId: string, issueNumber: number) =>
+      apiRequest<IssueComment[]>(`/projects/${projectId}/issues/${issueNumber}/comments`),
+
+    // 添加评论
+    create: (projectId: string, issueNumber: number, data: { body: string }) =>
+      apiRequest<IssueComment>(`/projects/${projectId}/issues/${issueNumber}/comments`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    // 更新评论
+    update: (projectId: string, issueNumber: number, commentId: string, data: { body: string }) =>
+      apiRequest<IssueComment>(`/projects/${projectId}/issues/${issueNumber}/comments/${commentId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    // 删除评论
+    delete: (projectId: string, issueNumber: number, commentId: string) =>
+      apiRequest<{ message: string }>(`/projects/${projectId}/issues/${issueNumber}/comments/${commentId}`, {
+        method: 'DELETE',
+      }),
   },
 }

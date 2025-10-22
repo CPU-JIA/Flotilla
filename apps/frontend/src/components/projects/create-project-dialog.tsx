@@ -59,16 +59,24 @@ export function CreateProjectDialog({ onSuccess, trigger }: CreateProjectDialogP
   /**
    * 检查用户项目数量限制
    * ECP-C1: 防御性编程 - 用户限制检查
+   * 优化：SUPER_ADMIN跳过检查，避免不必要的API调用和按钮延迟
    */
   useEffect(() => {
     if (open && user) {
+      // SUPER_ADMIN无项目限制，跳过检查
+      if (user.role === 'SUPER_ADMIN') {
+        setIsCheckingLimit(false)
+        setProjectCount(0)
+        return
+      }
+
       setIsCheckingLimit(true)
       api.projects
         .getAll({ page: 1, pageSize: 1 })
         .then((response) => {
           setProjectCount(response.total)
-          // 检查是否达到限制（超级管理员无限制）
-          if (user.role !== 'SUPER_ADMIN' && response.total >= MAX_PROJECTS_USER) {
+          // 检查是否达到限制
+          if (response.total >= MAX_PROJECTS_USER) {
             setError(
               `普通用户最多创建${MAX_PROJECTS_USER}个项目。当前已有${response.total}个项目。`
             )
@@ -132,16 +140,15 @@ export function CreateProjectDialog({ onSuccess, trigger }: CreateProjectDialogP
         description: trimmedDescription || undefined,
       })
 
-      setOpen(false)
+      // 立即跳转（在关闭对话框前），确保路由跳转不被打断
+      router.push(`/projects/${project.id}`)
+
+      // 清理状态并关闭对话框
       setFormData({ name: '', description: '', visibility: 'PRIVATE' })
+      setOpen(false)
 
-      // 先执行回调刷新列表
+      // 执行回调（如果需要刷新列表）
       onSuccess?.()
-
-      // 延迟跳转以确保用户看到成功反馈
-      setTimeout(() => {
-        router.push(`/projects/${project.id}`)
-      }, 500)
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message || '创建项目失败')

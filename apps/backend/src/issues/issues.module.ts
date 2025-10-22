@@ -5,12 +5,14 @@ import { LabelsService } from './labels.service';
 import { LabelsController } from './labels.controller';
 import { MilestonesService } from './milestones.service';
 import { MilestonesController } from './milestones.controller';
+import { CommentsService } from './comments.service';
+import { CommentsController } from './comments.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [IssuesController, LabelsController, MilestonesController],
-  providers: [IssuesService, LabelsService, MilestonesService],
-  exports: [IssuesService, LabelsService, MilestonesService],
+  controllers: [IssuesController, LabelsController, MilestonesController, CommentsController],
+  providers: [IssuesService, LabelsService, MilestonesService, CommentsService],
+  exports: [IssuesService, LabelsService, MilestonesService, CommentsService],
 })
 export class IssuesModule {}

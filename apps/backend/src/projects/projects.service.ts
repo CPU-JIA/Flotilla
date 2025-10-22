@@ -432,4 +432,106 @@ export class ProjectsService {
 
     return updatedMember;
   }
+
+  /**
+   * 获取项目成员列表
+   * ECP-A1: 单一职责原则
+   */
+  async getMembers(projectId: string, currentUser: User): Promise<(ProjectMember & {
+    user: { id: string; username: string; email: string };
+  })[]> {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!project) {
+      throw new NotFoundException(`项目 ID ${projectId} 不存在`);
+    }
+
+    // 权限检查已由ProjectRoleGuard处理
+
+    const members = await this.prisma.projectMember.findMany({
+      where: { projectId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        joinedAt: 'asc',
+      },
+    });
+
+    this.logger.log(`👥 Retrieved ${members.length} members for project ${projectId}`);
+
+    return members;
+  }
+
+  /**
+   * 归档项目
+   * ECP-C1: 防御性编程 - 仅OWNER可归档
+   */
+  async archive(id: string, currentUser: User): Promise<Project> {
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+    });
+
+    if (!project) {
+      throw new NotFoundException(`项目 ID ${id} 不存在`);
+    }
+
+    // 权限检查已由ProjectRoleGuard处理
+
+    if (project.isArchived) {
+      throw new BadRequestException('项目已经归档');
+    }
+
+    const archivedProject = await this.prisma.project.update({
+      where: { id },
+      data: {
+        isArchived: true,
+        archivedAt: new Date(),
+      },
+    });
+
+    this.logger.warn(`📦 Project ${id} archived by ${currentUser.username}`);
+
+    return archivedProject;
+  }
+
+  /**
+   * 取消归档项目
+   * ECP-C1: 防御性编程 - 仅OWNER可取消归档
+   */
+  async unarchive(id: string, currentUser: User): Promise<Project> {
+    const project = await this.prisma.project.findUnique({
+      where: { id },
+    });
+
+    if (!project) {
+      throw new NotFoundException(`项目 ID ${id} 不存在`);
+    }
+
+    // 权限检查已由ProjectRoleGuard处理
+
+    if (!project.isArchived) {
+      throw new BadRequestException('项目未归档');
+    }
+
+    const unarchivedProject = await this.prisma.project.update({
+      where: { id },
+      data: {
+        isArchived: false,
+        archivedAt: null,
+      },
+    });
+
+    this.logger.log(`📦 Project ${id} unarchived by ${currentUser.username}`);
+
+    return unarchivedProject;
+  }
 }

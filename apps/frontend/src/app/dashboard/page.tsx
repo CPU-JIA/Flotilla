@@ -79,7 +79,7 @@ export default function DashboardPage() {
         </div>
 
         {/* 功能导航 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Link href="/projects">
             <div className="p-6 bg-gradient-to-br from-blue-50 dark:from-blue-950 to-white dark:to-card rounded-xl border border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-lg transition-all cursor-pointer group">
               <div className="text-4xl mb-3">📁</div>
@@ -92,22 +92,6 @@ export default function DashboardPage() {
                 className="w-full mt-4 group-hover:bg-blue-50 dark:group-hover:bg-blue-950"
               >
                 {t.dashboard.viewMyProjects}
-              </Button>
-            </div>
-          </Link>
-
-          <Link href="/projects">
-            <div className="p-6 bg-gradient-to-br from-green-50 dark:from-green-950 to-white dark:to-card rounded-xl border border-gray-200 dark:border-gray-800 hover:border-green-300 dark:hover:border-green-700 hover:shadow-lg transition-all cursor-pointer group">
-              <div className="text-4xl mb-3">📝</div>
-              <h3 className="text-lg font-bold text-card-foreground mb-1">
-                {t.dashboard.codeRepository}
-              </h3>
-              <p className="text-sm text-muted-foreground">{t.dashboard.codeRepositoryDesc}</p>
-              <Button
-                variant="outline"
-                className="w-full mt-4 group-hover:bg-green-50 dark:group-hover:bg-green-950"
-              >
-                {t.dashboard.openCodeEditor}
               </Button>
             </div>
           </Link>

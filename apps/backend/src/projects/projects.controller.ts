@@ -162,4 +162,50 @@ export class ProjectsController {
       currentUser,
     );
   }
+
+  /**
+   * 获取项目成员列表
+   */
+  @Get(':id/members')
+  @UseGuards(ProjectRoleGuard)
+  @RequireProjectRole('VIEWER')
+  async getMembers(
+    @Param('id') projectId: string,
+    @CurrentUser() currentUser: User,
+  ): Promise<(ProjectMember & {
+    user: { id: string; username: string; email: string };
+  })[]> {
+    this.logger.log(`👥 Fetching members for project: ${projectId}`);
+    return this.projectsService.getMembers(projectId, currentUser);
+  }
+
+  /**
+   * 归档项目
+   */
+  @Post(':id/archive')
+  @UseGuards(ProjectRoleGuard)
+  @RequireProjectRole('OWNER')
+  @HttpCode(HttpStatus.OK)
+  async archive(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: User,
+  ): Promise<Project> {
+    this.logger.warn(`📦 Archiving project: ${id}`);
+    return this.projectsService.archive(id, currentUser);
+  }
+
+  /**
+   * 取消归档项目
+   */
+  @Post(':id/unarchive')
+  @UseGuards(ProjectRoleGuard)
+  @RequireProjectRole('OWNER')
+  @HttpCode(HttpStatus.OK)
+  async unarchive(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: User,
+  ): Promise<Project> {
+    this.logger.log(`📦 Unarchiving project: ${id}`);
+    return this.projectsService.unarchive(id, currentUser);
+  }
 }

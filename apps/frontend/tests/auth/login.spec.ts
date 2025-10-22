@@ -8,7 +8,7 @@ import { TEST_USERS } from '../fixtures'
 
 test.describe('用户登录功能测试', () => {
   // Use testuser created by globalSetup (username: testuser, password: Password123)
-  const testUser = TEST_USERS.testuser
+  const testUser = TEST_USERS.jia
 
   test.beforeEach(async ({ page }) => {
     // 访问登录页面

@@ -260,21 +260,21 @@ export default function ProjectDetailPage() {
 
                   <Button
                     variant="outline"
-                    onClick={() => alert(t.projects.detail.projectSettingsComingSoon)}
+                    onClick={() => router.push(`/projects/${project.id}/settings`)}
                   >
-                    {t.projects.detail.projectSettings}
+                    ⚙️ {t.projects.detail.projectSettings}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => router.push(`/projects/${project.id}/files`)}
                   >
-                    {t.projects.detail.browseFiles}
+                    📁 {t.projects.detail.browseFiles}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => router.push(`/projects/${project.id}/editor`)}
                   >
-                    {t.projects.detail.codeEditor}
+                    💻 {t.projects.detail.codeEditor}
                   </Button>
                   {hasRepository === true && defaultBranchId && (
                     <Button
@@ -284,9 +284,29 @@ export default function ProjectDetailPage() {
                       }
                       className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30"
                     >
-                      {t.projects.detail.versionHistory}
+                      📜 {t.projects.detail.versionHistory}
                     </Button>
                   )}
+                  {/* Phase 1.2: Issue tracking navigation */}
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push(`/projects/${project.id}/issues`)}
+                    className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/30"
+                  >
+                    🐛 Issues
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push(`/projects/${project.id}/labels`)}
+                  >
+                    🏷️ Labels
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push(`/projects/${project.id}/milestones`)}
+                  >
+                    🎯 Milestones
+                  </Button>
                 </div>
               </div>
             )}

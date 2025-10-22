@@ -4,13 +4,22 @@
  * ⚠️ IMPORTANT: These credentials MUST match the users created in global-setup.ts
  *
  * Test Users Strategy:
- * 1. admin (SUPER_ADMIN) - First user, auto-promoted via Bootstrap Admin
- * 2. testuser (USER) - Regular test user for standard operations
- * 3. normaluser (USER) - Secondary user for permission/isolation testing
+ * - jia (SUPER_ADMIN) - Primary test user for all E2E tests (no project limits)
+ * - admin (SUPER_ADMIN) - Backup admin user
+ * - testuser (USER) - Regular test user (legacy, prefer using jia)
+ * - normaluser (USER) - Secondary user for permission/isolation testing
  */
 
 export const TEST_USERS = {
-  // SUPER_ADMIN user (first user, auto-promoted)
+  // Primary SUPER_ADMIN user for all E2E tests
+  jia: {
+    username: 'jia',
+    email: 'jia@example.com',
+    password: 'Jia123456',
+    expectedRole: 'SUPER_ADMIN',
+  },
+
+  // Backup SUPER_ADMIN user
   admin: {
     username: 'admin',
     email: 'admin@example.com',
@@ -18,7 +27,7 @@ export const TEST_USERS = {
     expectedRole: 'SUPER_ADMIN',
   },
 
-  // Regular USER (primary test user)
+  // Regular USER (legacy)
   testuser: {
     username: 'testuser',
     email: 'test@example.com',

@@ -153,7 +153,7 @@ test.describe('用户注册功能测试', () => {
 
   test('应该拒绝重复的用户名注册', async ({ page }) => {
     // 使用已存在的用户名（testuser from globalSetup）
-    await page.getByLabel('用户名').fill(TEST_USERS.testuser.username)
+    await page.getByLabel('用户名').fill(TEST_USERS.jia.username)
     await page.getByLabel('邮箱').fill(`testuser_new_${timestamp}@example.com`)
     await page.getByLabel('密码', { exact: true }).fill(testUser.password)
     await page.getByLabel('确认密码').fill(testUser.password)
@@ -169,7 +169,7 @@ test.describe('用户注册功能测试', () => {
   test('应该拒绝重复的邮箱注册', async ({ page }) => {
     // 使用已存在的邮箱（testuser from globalSetup）
     await page.getByLabel('用户名').fill(`uniqueuser${timestamp}`)
-    await page.getByLabel('邮箱').fill(TEST_USERS.testuser.email)
+    await page.getByLabel('邮箱').fill(TEST_USERS.jia.email)
     await page.getByLabel('密码', { exact: true }).fill(testUser.password)
     await page.getByLabel('确认密码').fill(testUser.password)
 

@@ -3,9 +3,10 @@
  * 在所有测试执行前创建测试用户
  *
  * 测试用户策略:
- * 1. admin (SUPER_ADMIN) - 首个用户，自动提升
- * 2. testuser (USER) - 普通测试用户
- * 3. normaluser (USER) - 用于权限对比测试
+ * 1. jia (SUPER_ADMIN) - 主要测试用户，首个用户自动提升
+ * 2. admin (SUPER_ADMIN) - 备用管理员
+ * 3. testuser (USER) - 普通测试用户
+ * 4. normaluser (USER) - 用于权限对比测试
  */
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
@@ -13,10 +14,16 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/a
 // 测试用户配置
 const TEST_USERS = [
   {
+    username: 'jia',
+    email: 'jia@example.com',
+    password: 'Jia123456',
+    expectedRole: 'SUPER_ADMIN', // 第一个用户会自动提升
+  },
+  {
     username: 'admin',
     email: 'admin@example.com',
     password: 'Admin123',
-    expectedRole: 'SUPER_ADMIN', // 第一个用户会自动提升
+    expectedRole: 'SUPER_ADMIN',
   },
   {
     username: 'testuser',
@@ -128,7 +135,7 @@ async function globalSetup() {
     // 1. 等待后端服务启动
     await waitForBackend()
 
-    // 2. 按顺序创建测试用户 (admin必须第一个创建以触发Bootstrap Admin)
+    // 2. 按顺序创建测试用户 (jia必须第一个创建以触发Bootstrap Admin)
     console.log('\n👤 Creating test users...\n')
 
     for (const user of TEST_USERS) {

@@ -9,8 +9,8 @@ import { test, expect } from '@playwright/test'
 
 test.describe('个人设置功能测试', () => {
   const testUser = {
-    username: TEST_USERS.testuser.username,
-    password: TEST_USERS.testuser.password,
+    username: TEST_USERS.jia.username,
+    password: TEST_USERS.jia.password,
   }
 
   // 在每个测试前先登录
