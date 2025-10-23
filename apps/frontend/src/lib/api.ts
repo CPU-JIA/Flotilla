@@ -184,10 +184,17 @@ export async function apiRequest<T = unknown>(
   requireAuth: boolean = true
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
+  const headers: Record<string, string> = {}
+
+  // ECP-C1: 防御性编程 - FormData上传需要浏览器自动设置Content-Type
+  // 只有在 body 不是 FormData 时才手动设置 Content-Type
+  // FormData 需要浏览器自动生成 multipart/form-data 和 boundary 参数
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json'
   }
+
+  // 合并用户传入的 headers
+  Object.assign(headers, options.headers as Record<string, string>)
 
   // 添加认证令牌
   if (requireAuth) {
