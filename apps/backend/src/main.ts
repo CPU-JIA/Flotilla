@@ -18,8 +18,15 @@ async function bootstrap() {
 
   // ECP-C1: 防御性编程 - 增加请求体大小限制以支持文件上传
   // 支持最大 10MB 的请求体（为 5MB 头像上传留有余地）
-  app.use(require('body-parser').json({ limit: '10mb' }));
-  app.use(require('body-parser').urlencoded({ limit: '10mb', extended: true }));
+  const bodyParser = require('body-parser');
+
+  // Git HTTP Protocol 路由需要 raw body
+  app.use('/api/repo/:projectId/git-upload-pack', bodyParser.raw({ type: '*/*', limit: '50mb' }));
+  app.use('/api/repo/:projectId/git-receive-pack', bodyParser.raw({ type: '*/*', limit: '50mb' }));
+
+  // 其他路由使用 JSON parser
+  app.use(bodyParser.json({ limit: '10mb' }));
+  app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
   // 启用全局验证管道
   app.useGlobalPipes(

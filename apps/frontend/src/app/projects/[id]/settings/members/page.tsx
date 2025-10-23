@@ -75,7 +75,7 @@ export default function MembersManagementPage() {
   }, [fetchMembers])
 
   // 更改成员角色
-  const handleChangeRole = async (memberId: string, newRole: string) => {
+  const handleChangeRole = async (memberId: string, newRole: 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER') => {
     if (!projectId) return
 
     if (!confirm(t.projects.settings.changeRole + '?')) return
@@ -202,7 +202,7 @@ export default function MembersManagementPage() {
                         {canManage && !isMemberOwner ? (
                           <Select
                             value={member.role}
-                            onValueChange={(newRole) => handleChangeRole(member.user.id, newRole)}
+                            onValueChange={(newRole) => handleChangeRole(member.user.id, newRole as 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER')}
                           >
                             <SelectTrigger className="w-[140px]">
                               <SelectValue />

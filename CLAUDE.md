@@ -6,10 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Flotilla** - A cloud-based code hosting and collaboration platform with distributed consensus algorithm (simplified Raft).
 
-**Status**: 🚧 Phase 1 - Foundation (Issue System Development)
+**Status**: 🚧 Phase 1 - Foundation (Git Protocol & PR System Development)
 **Version**: v1.0.0-MVP
-**Last Updated**: 2025-10-21
-**Current Sprint**: Sprint 1 - Issue Tracking System
+**Last Updated**: 2025-10-23
+**Current Sprint**: Sprint 1 Complete ✅ | Sprint 2-3 - Git Protocol & Pull Request System
 **Roadmap**: See [ROADMAP_2025.md](./docs/ROADMAP_2025.md) for 24-month strategic plan
 
 ## Prerequisites
@@ -204,6 +204,17 @@ apps/backend/src/
 ├── repositories/      # Git repository management
 ├── files/             # File upload/download (MinIO integration)
 ├── admin/             # Admin panel endpoints
+├── issues/            # Issue tracking system (CRUD, Labels, Milestones, Comments)
+│   ├── dto/           # DTOs for issues, labels, milestones, comments
+│   ├── issues.controller.ts    # Issue endpoints
+│   ├── issues.service.ts       # Issue business logic
+│   ├── labels.controller.ts    # Label endpoints
+│   ├── labels.service.ts       # Label management
+│   ├── milestones.controller.ts # Milestone endpoints
+│   ├── milestones.service.ts   # Milestone management
+│   ├── comments.controller.ts  # Comment endpoints
+│   ├── comments.service.ts     # Comment management
+│   └── issues.module.ts        # Issue module configuration
 ├── raft/              # Core Raft consensus algorithm implementation
 ├── raft-cluster/      # Raft cluster management and WebSocket gateway
 ├── monitoring/        # System monitoring and performance metrics
@@ -230,6 +241,13 @@ apps/frontend/src/
 ├── app/               # Next.js App Router pages
 │   ├── (auth)/        # Auth-related pages (login, register)
 │   ├── projects/      # Project pages with dynamic routes
+│   │   └── [id]/
+│   │       ├── issues/          # Issue tracking pages
+│   │       │   ├── page.tsx     # Issue list view
+│   │       │   ├── new/page.tsx # Create new issue
+│   │       │   └── [number]/page.tsx  # Issue detail view
+│   │       ├── files/           # File browser
+│   │       └── page.tsx         # Project dashboard
 │   ├── organizations/ # Organization management pages
 │   │   └── [slug]/    # Org detail with teams tab
 │   │       └── teams/[teamSlug]/  # Team detail pages
@@ -394,6 +412,53 @@ pnpm prisma db seed
 3. File metadata saved to PostgreSQL with MinIO object path
 4. Frontend can download via `GET /api/files/:id/download`
 
+### Issue Tracking System Architecture
+
+**Status**: ✅ **IMPLEMENTED** (Sprint 1 - Completed 2025-10-23)
+
+The platform implements a complete Issue tracking system with Labels, Milestones, and Comments:
+
+**Issue Workflow**:
+```
+User creates Issue → Assign Labels/Milestone → Add Comments → Track Events → Close/Reopen
+```
+
+**Key Features**:
+- **Issue Number**: Auto-increment per project (not global ID)
+- **Issue State**: OPEN/CLOSED with timestamp tracking
+- **Assignees**: Support multiple users assigned to single issue (stored as `assigneeIds: String[]`)
+- **Labels**: Color-coded labels with hex color codes (#RRGGBB)
+- **Milestones**: Track progress with due dates and open/closed states
+- **Comments**: Full comment thread with author tracking
+- **Events**: Timeline of all issue activities (opened, closed, labeled, assigned, etc.)
+
+**Database Models** (see `apps/backend/prisma/schema.prisma`):
+- `Issue` model: Core issue with title, body (Markdown), state, author, assignees, labels, milestone
+- `Label` model: Reusable labels per project
+- `Milestone` model: Project milestones with due dates
+- `IssueComment` model: Comment threads on issues
+- `IssueEvent` model: Activity timeline with JSON metadata
+
+**API Endpoints** (`apps/backend/src/issues/`):
+- `POST /api/issues` - Create issue
+- `GET /api/issues/:projectId` - List issues with filtering
+- `GET /api/issues/:id` - Get issue details
+- `PATCH /api/issues/:id` - Update issue
+- `DELETE /api/issues/:id` - Delete issue
+- `POST /api/issues/:id/comments` - Add comment
+- Similar endpoints for labels and milestones
+
+**Frontend Pages** (`apps/frontend/src/app/projects/[id]/issues/`):
+- `/projects/:id/issues` - Issue list with filters (state, labels, assignees)
+- `/projects/:id/issues/new` - Create new issue form
+- `/projects/:id/issues/:number` - Issue detail with comments and events
+
+**Implementation Patterns**:
+- Uses Prisma arrays for many-to-many relationships (`assigneeIds`, `labelIds`)
+- Markdown support for issue body with sanitization
+- Auto-increment issue numbers using Prisma `@@unique([projectId, number])`
+- Optimized indexes on `projectId`, `state`, `authorId`, `milestoneId`
+
 ### Organization & Team Architecture
 
 **Status**: ✅ **IMPLEMENTED** (Added in v1.0.0-MVP)
@@ -478,32 +543,58 @@ Comprehensive documentation is available in the `/docs` directory:
 
 ## Phase 1 Development Guide (Current)
 
-### Current Focus: Issue Tracking System
+### ✅ Sprint 1 Complete: Issue Tracking System (Completed 2025-10-23)
 
-**Sprint 1 Goals** (Week 1-2):
-- Design and implement complete Issue tracking system
-- Support Issue CRUD, Labels, Milestones, Assignees
-- Implement Issue templates and search functionality
-- Full test coverage (Unit + E2E)
+**Implemented Features**:
+- ✅ Issue CRUD operations (Create, Read, Update, Delete)
+- ✅ Labels system (Color-coded labels with descriptions)
+- ✅ Milestones management (Due dates, open/closed states)
+- ✅ Issue Comments with author tracking
+- ✅ Issue Events timeline (opened, closed, labeled, etc.)
+- ✅ Backend API with full Swagger documentation (`/api/issues/*`)
+- ✅ Frontend pages: Issue list, Issue detail, Create issue
+- ✅ Database schema with optimized indexes
+
+**Implementation Location**:
+- Backend: `apps/backend/src/issues/` (controllers, services, DTOs)
+- Frontend: `apps/frontend/src/app/projects/[id]/issues/`
+- Database: See `schema.prisma` models (Issue, Label, Milestone, IssueComment, IssueEvent)
+
+### 🎯 Current Focus: Git Protocol Layer & Pull Request System (Sprint 2-3)
+
+**Next Sprint Goals** (based on [ROADMAP_2025.md](./docs/ROADMAP_2025.md) Phase 1.1 & 1.3):
+
+**Priority 1: Git Protocol Implementation**
+- Implement Git HTTP Smart Protocol
+- Support git clone/push/pull operations
+- Git Pack/Unpack implementation
+- Git object storage integration
+
+**Priority 2: Pull Request & Code Review**
+- PR CRUD operations (Create, Review, Merge)
+- Code Review workflow (Approve, Request Changes, Comment)
+- Line-level comments on diffs
+- Merge strategies (Merge Commit, Squash, Rebase)
+- PR approval rules and checks
+
+**Priority 3: Notification System**
+- In-app notifications (WebSocket real-time push)
+- Email notifications (PR review requests, Issue mentions)
+- Notification preferences management
 
 **Development Workflow**:
-1. **Design First**: Create data model in Prisma schema
+1. **Design First**: Review `/docs` for architecture decisions
 2. **TDD Approach**: Write failing tests before implementation
 3. **API Contract**: Document all endpoints with Swagger decorators
 4. **ECP Compliance**: Follow SOLID, DRY, KISS principles
 5. **Test Coverage**: Maintain ≥70% unit test coverage
 
-**Upcoming Sprints**:
-- Sprint 2: Notification System (In-app + Email)
-- Sprint 3-4: Git Protocol Layer (Technical research + Implementation)
-- Sprint 5-6: Pull Request & Code Review System
-
 **Key Implementation Guidelines**:
-- All Issue operations must go through Prisma ORM
+- Git operations must go through Prisma + MinIO (not direct filesystem)
 - Use NestJS validation pipes for DTO validation
-- Implement pagination for Issue lists (default: 20 items/page)
-- Support Markdown in Issue body with sanitization
-- Auto-increment Issue number per project (not global ID)
+- Implement pagination for PR/Issue lists (default: 20 items/page)
+- Support Markdown in PR/Issue body with sanitization
+- Auto-increment PR number per project (same pattern as Issues)
 
 For complete roadmap, see [ROADMAP_2025.md](./docs/ROADMAP_2025.md).
 

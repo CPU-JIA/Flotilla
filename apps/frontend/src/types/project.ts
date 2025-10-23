@@ -9,6 +9,8 @@ export interface Project {
   description?: string
   visibility: 'PUBLIC' | 'PRIVATE'
   ownerId: string
+  defaultBranch?: string
+  isArchived?: boolean
   createdAt: string
   updatedAt: string
   owner?: {
@@ -28,7 +30,7 @@ export interface ProjectMember {
   id: string
   userId: string
   projectId: string
-  role: 'OWNER' | 'MEMBER' | 'VIEWER'
+  role: 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER'
   joinedAt: string
   user?: {
     id: string
@@ -108,11 +110,11 @@ export interface UpdateProjectRequest {
 
 export interface AddMemberRequest {
   userId: string
-  role: 'OWNER' | 'MEMBER' | 'VIEWER'
+  role: 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER'
 }
 
 export interface UpdateMemberRoleRequest {
-  role: 'OWNER' | 'MEMBER' | 'VIEWER'
+  role: 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER'
 }
 
 export interface ProjectsResponse {
