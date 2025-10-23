@@ -12,7 +12,14 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: true,
+  });
+
+  // ECP-C1: 防御性编程 - 增加请求体大小限制以支持文件上传
+  // 支持最大 10MB 的请求体（为 5MB 头像上传留有余地）
+  app.use(require('body-parser').json({ limit: '10mb' }));
+  app.use(require('body-parser').urlencoded({ limit: '10mb', extended: true }));
 
   // 启用全局验证管道
   app.useGlobalPipes(

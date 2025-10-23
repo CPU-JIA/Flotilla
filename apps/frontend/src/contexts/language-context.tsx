@@ -387,8 +387,16 @@ export interface Translations {
     bioPlaceholder: string
     bioCharCount: string
     avatar: string
-    avatarPlaceholder: string
+    avatarUpload: string
+    avatarUploading: string
+    avatarRemove: string
+    avatarDefault: string
+    avatarCustom: string
     avatarHelper: string
+    avatarUploadSuccess: string
+    avatarUploadError: string
+    avatarInvalidType: string
+    avatarTooLarge: string
     saving: string
     saveChanges: string
     profileUpdateSuccess: string

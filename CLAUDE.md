@@ -287,6 +287,56 @@ Located at `apps/backend/prisma/schema.prisma`. Main models:
 2. Run `pnpm prisma migrate dev --name <description>`
 3. Prisma Client auto-regenerates
 
+### Database Index Optimization Best Practices
+
+**Last Optimization**: 2025-10-23 (Removed 11 redundant indexes across 10 tables)
+
+**PostgreSQL B-tree Index Prefix Rule:**
+- A composite UNIQUE constraint `@@unique([A, B])` creates an implicit B-tree index
+- This index can serve queries on the prefix column: `WHERE A = ?`, `WHERE A IN (...)`, `GROUP BY A`
+- Therefore, a separate `@@index([A])` is **redundant** and should be removed
+
+**Optimization Principles:**
+
+1. **Composite UNIQUE Constraints Over Single-Column Indexes**
+   - ✅ Prefer: `@@unique([organizationId, userId])` + `@@index([userId])`
+   - ❌ Avoid: `@@unique([organizationId, userId])` + `@@index([organizationId])` + `@@index([userId])`
+   - Reason: The UNIQUE constraint already indexes `organizationId` as the prefix
+
+2. **Index Coverage Analysis**
+   - Before adding `@@index([column])`, check if `column` is the **first** column in any UNIQUE constraint
+   - Use PostgreSQL system tables to verify index usage:
+     ```sql
+     SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'organization_members';
+     ```
+
+3. **Verified Query Patterns** (working without redundant indexes):
+   - Equality filters: `WHERE organizationId = $1`
+   - IN queries: `WHERE organizationId IN ($1, $2, ...)`
+   - GROUP BY aggregations: `GROUP BY organizationId`
+   - EXISTS subqueries: `EXISTS(SELECT ... WHERE organizationId = ...)`
+   - Composite conditions: `WHERE userId = $1 AND organizationId = $2`
+
+4. **Migration Workflow**
+   - Edit `schema.prisma` to remove redundant indexes
+   - Run `pnpm prisma migrate dev --name remove_redundant_indexes`
+   - Test thoroughly in development environment
+   - Verify query performance via Prisma query logs (`prisma:query`)
+   - Monitor backend logs for slow queries (>1000ms threshold)
+   - Apply to production only after validation
+
+5. **Performance Benefits**
+   - **Write Performance**: Reduced index maintenance on INSERT/UPDATE/DELETE
+   - **Storage Efficiency**: Less disk space for index pages
+   - **Query Planner**: Fewer index options to consider during optimization
+   - **Cache Efficiency**: More effective use of PostgreSQL shared buffers
+
+**Tables Optimized (2025-10-23):**
+- `organization_members`, `projects`, `teams`, `team_members`, `team_project_permissions`
+- `branches`, `files`, `issues`, `labels`, `milestones`
+
+**Verification**: All optimized tables tested via Playwright E2E tests + backend query log analysis. No functional regression or performance degradation detected.
+
 ### Authentication Flow
 
 1. User registers/logs in via `/api/auth/register` or `/api/auth/login`

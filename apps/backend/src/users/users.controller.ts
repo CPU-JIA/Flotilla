@@ -78,7 +78,13 @@ export class UsersController {
    * ECP-C1: 防御性编程 - 文件类型和大小验证
    */
   @Put('profile/avatar')
-  @UseInterceptors(FileInterceptor('avatar'))
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB
+      },
+    }),
+  )
   async uploadAvatar(
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() currentUser: User,

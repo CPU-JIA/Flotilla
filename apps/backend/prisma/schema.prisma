@@ -141,7 +141,6 @@ model OrganizationMember {
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, userId])
-  @@index([organizationId])
   @@index([userId])
   @@index([role])
   @@map("organization_members")
@@ -167,7 +166,6 @@ model Team {
   projectPermissions TeamProjectPermission[]
 
   @@unique([organizationId, slug])
-  @@index([organizationId])
   @@index([slug])
   @@map("teams")
 }
@@ -185,7 +183,6 @@ model TeamMember {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId])
-  @@index([teamId])
   @@index([userId])
   @@index([role])
   @@map("team_members")
@@ -204,7 +201,6 @@ model TeamProjectPermission {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, projectId])
-  @@index([teamId])
   @@index([projectId])
   @@map("team_project_permissions")
 }
@@ -242,8 +238,6 @@ model Project {
 
   @@unique([ownerId, name])
   @@unique([organizationId, name])
-  @@index([ownerId])
-  @@index([organizationId])
   @@index([visibility])
   @@map("projects")
 }
@@ -305,7 +299,6 @@ model Branch {
   files      File[]
 
   @@unique([repositoryId, name])
-  @@index([repositoryId])
   @@index([commitId])
   @@map("branches")
 }
@@ -355,7 +348,6 @@ model File {
   commit     Commit?    @relation(fields: [commitId], references: [id], onDelete: SetNull)
 
   @@unique([repositoryId, branchId, path])
-  @@index([repositoryId])
   @@index([branchId])
   @@index([commitId])
   @@index([path])
@@ -456,7 +448,6 @@ model Issue {
   events    IssueEvent[]
 
   @@unique([projectId, number])
-  @@index([projectId])
   @@index([authorId])
   @@index([state])
   @@index([milestoneId])
@@ -478,7 +469,6 @@ model Label {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, name])
-  @@index([projectId])
   @@map("labels")
 }
 
@@ -499,7 +489,6 @@ model Milestone {
   issues  Issue[]
 
   @@unique([projectId, title])
-  @@index([projectId])
   @@index([state])
   @@index([dueDate])
   @@map("milestones")
