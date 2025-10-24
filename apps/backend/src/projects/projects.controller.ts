@@ -29,13 +29,17 @@ import { ProjectRoleGuard } from './guards/project-role.guard';
 import { RequireProjectRole } from './decorators/require-project-role.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { User, Project, ProjectMember } from '@prisma/client';
+import { GitService } from '../git/git.service';
 
 @Controller('projects')
 @UseGuards(JwtAuthGuard)
 export class ProjectsController {
   private readonly logger = new Logger(ProjectsController.name);
 
-  constructor(private readonly projectsService: ProjectsService) {}
+  constructor(
+    private readonly projectsService: ProjectsService,
+    private readonly gitService: GitService,
+  ) {}
 
   /**
    * 创建项目
@@ -207,5 +211,28 @@ export class ProjectsController {
   ): Promise<Project> {
     this.logger.log(`📦 Unarchiving project: ${id}`);
     return this.projectsService.unarchive(id, currentUser);
+  }
+
+  /**
+   * 获取项目所有分支
+   */
+  @Get(':id/branches')
+  @UseGuards(ProjectRoleGuard)
+  @RequireProjectRole('VIEWER')
+  async listBranches(
+    @Param('id') id: string,
+  ): Promise<
+    Array<{
+      name: string;
+      commit: {
+        oid: string;
+        message: string;
+        author: string;
+        date: string;
+      };
+    }>
+  > {
+    this.logger.log(`🌿 Listing branches for project: ${id}`);
+    return this.gitService.listBranches(id);
   }
 }

@@ -3,18 +3,26 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { GitService } from '../git/git.service';
 import { CreatePullRequestDto } from './dto/create-pull-request.dto';
 import { UpdatePullRequestDto } from './dto/update-pull-request.dto';
-import { MergePullRequestDto } from './dto/merge-pull-request.dto';
+import { MergePullRequestDto, MergeStrategy } from './dto/merge-pull-request.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { PullRequest, PRState, Prisma } from '@prisma/client';
 
 @Injectable()
 export class PullRequestsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(PullRequestsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly gitService: GitService,
+  ) {}
 
   /**
    * 获取项目中下一个PR编号
@@ -382,13 +390,21 @@ export class PullRequestsService {
   }
 
   /**
-   * 合并PR（基础实现，只支持 merge commit）
+   * 合并PR（支持3种策略：merge, squash, rebase）
    */
   async merge(id: string, userId: string, dto: MergePullRequestDto) {
     const pr = await this.prisma.pullRequest.findUnique({
       where: { id },
       include: {
         project: true,
+        author: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            avatar: true,
+          },
+        },
       },
     });
 
@@ -400,17 +416,84 @@ export class PullRequestsService {
       throw new BadRequestException('PR is not open');
     }
 
-    // TODO: 实际的Git合并逻辑需要调用GitService
-    // 现在先更新数据库状态
-    const mergeCommitHash = `merge-${Date.now()}`; // 临时实现
+    // Get merger info
+    const merger = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        username: true,
+        email: true,
+      },
+    });
 
+    if (!merger) {
+      throw new NotFoundException('Merger user not found');
+    }
+
+    const author = {
+      name: merger.username,
+      email: merger.email,
+    };
+
+    const strategy = dto.strategy || MergeStrategy.MERGE;
+    const commitMessage =
+      dto.commitMessage ||
+      `Merge pull request #${pr.number}: ${pr.title}\n\nMerged by: ${merger.username}`;
+
+    let mergeCommitOid: string;
+
+    try {
+      // Execute merge based on strategy
+      switch (strategy) {
+        case MergeStrategy.MERGE:
+          mergeCommitOid = await this.gitService.mergeCommit(
+            pr.projectId,
+            pr.sourceBranch,
+            pr.targetBranch,
+            commitMessage,
+            author,
+          );
+          break;
+
+        case MergeStrategy.SQUASH:
+          const squashMessage =
+            dto.commitMessage ||
+            `${pr.title}\n\n${pr.body || ''}\n\nSquashed commits from #${pr.number}`;
+          mergeCommitOid = await this.gitService.squashMerge(
+            pr.projectId,
+            pr.sourceBranch,
+            pr.targetBranch,
+            squashMessage,
+            author,
+          );
+          break;
+
+        case MergeStrategy.REBASE:
+          mergeCommitOid = await this.gitService.rebaseMerge(
+            pr.projectId,
+            pr.sourceBranch,
+            pr.targetBranch,
+            author,
+          );
+          break;
+
+        default:
+          throw new BadRequestException(`Invalid merge strategy: ${strategy}`);
+      }
+    } catch (error) {
+      this.logger.error(`Merge failed for PR ${id}:`, error);
+      throw new InternalServerErrorException(
+        `Merge failed: ${error.message}`,
+      );
+    }
+
+    // Update database with merge result
     const merged = await this.prisma.pullRequest.update({
       where: { id },
       data: {
         state: PRState.MERGED,
         mergedAt: new Date(),
         mergedBy: userId,
-        mergeCommit: mergeCommitHash,
+        mergeCommit: mergeCommitOid,
       },
       include: {
         author: {
@@ -430,7 +513,7 @@ export class PullRequestsService {
       },
     });
 
-    // 创建 merged 事件
+    // Create merged event
     await this.prisma.pREvent.create({
       data: {
         pullRequestId: id,
@@ -439,9 +522,14 @@ export class PullRequestsService {
         metadata: {
           strategy: dto.strategy,
           commitMessage: dto.commitMessage,
+          mergeCommit: mergeCommitOid,
         },
       },
     });
+
+    this.logger.log(
+      `PR #${pr.number} merged successfully using ${strategy} strategy`,
+    );
 
     return merged;
   }

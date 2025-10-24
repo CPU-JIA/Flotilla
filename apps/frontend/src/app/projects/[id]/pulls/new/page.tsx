@@ -32,13 +32,21 @@ export default function NewPullRequestPage() {
 
   const fetchBranches = async () => {
     try {
-      // TODO: Implement branch API endpoint
-      // For now, use mock data
-      setBranches([
-        { id: '1', name: 'main' },
-        { id: '2', name: 'develop' },
-        { id: '3', name: 'feature/new-feature' },
-      ])
+      const data = await apiRequest<Array<{
+        name: string
+        commit: {
+          oid: string
+          message: string
+          author: string
+          date: string
+        }
+      }>>(`/projects/${projectId}/branches`)
+
+      // Convert to Branch interface format
+      setBranches(data.map(branch => ({
+        id: branch.commit.oid,
+        name: branch.name,
+      })))
     } catch (error) {
       console.error('Failed to fetch branches:', error)
     }
