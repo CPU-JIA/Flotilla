@@ -307,6 +307,14 @@ export default function ProjectDetailPage() {
                   >
                     🎯 Milestones
                   </Button>
+                  {/* Phase 1.3: Pull Request navigation */}
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push(`/projects/${project.id}/pulls`)}
+                    className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                  >
+                    🔀 Pull Requests
+                  </Button>
                 </div>
               </div>
             )}

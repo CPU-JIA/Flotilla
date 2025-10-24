@@ -22,7 +22,7 @@ import { CreatePullRequestDto } from './dto/create-pull-request.dto';
 import { UpdatePullRequestDto } from './dto/update-pull-request.dto';
 import { MergePullRequestDto } from './dto/merge-pull-request.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
-import { CreateCommentDto } from './dto/create-comment.dto';
+import { PullRequestCreateCommentDto } from './dto/create-comment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { PRState } from '@prisma/client';
@@ -189,7 +189,7 @@ export class PullRequestsController {
   addComment(
     @Param('id') id: string,
     @CurrentUser('id') userId: string,
-    @Body() createCommentDto: CreateCommentDto,
+    @Body() createCommentDto: PullRequestCreateCommentDto,
   ) {
     return this.pullRequestsService.addComment(id, userId, createCommentDto);
   }

@@ -66,13 +66,21 @@ export default function PullRequestDetailPage() {
 
   const fetchDiff = async () => {
     try {
+      console.log('[fetchDiff] Starting - projectId:', projectId, 'prNumber:', prNumber)
       const prData = await apiRequest<PullRequest>(
         `/pull-requests/project/${projectId}/number/${prNumber}`
       )
+      console.log('[fetchDiff] Got PR data:', prData?.id, prData?.sourceBranch, prData?.targetBranch)
       const diffData = await apiRequest<GitDiff>(`/pull-requests/${prData.id}/diff`)
+      console.log('[fetchDiff] Got diff data - files:', diffData?.files?.length)
       setDiff(diffData)
     } catch (err) {
-      console.error('Failed to fetch diff:', err)
+      console.error('[fetchDiff] FAILED:', err)
+      console.error('[fetchDiff] Error details:', {
+        message: (err as Error).message,
+        name: (err as Error).name,
+        stack: (err as Error).stack
+      })
     }
   }
 
@@ -243,7 +251,7 @@ export default function PullRequestDetailPage() {
             <h1 className="text-3xl font-bold">
               {pr.title} <span className="text-gray-500">#{pr.number}</span>
             </h1>
-            <span className={`px-3 py-1 rounded text-sm font-medium ${getStateStyle(pr.state)}`}>
+            <span data-slot="badge" className={`px-3 py-1 rounded text-sm font-medium ${getStateStyle(pr.state)}`}>
               {getStateText(pr.state)}
             </span>
           </div>
@@ -252,6 +260,11 @@ export default function PullRequestDetailPage() {
               .replace('{author}', pr.author.username)
               .replace('{date}', new Date(pr.createdAt).toLocaleDateString())}
           </div>
+          {pr.state === PRState.MERGED && pr.mergedAt && pr.mergedBy && (
+            <div className="text-purple-600 dark:text-purple-400 mt-1 font-medium">
+              {pr.mergedBy} merged this pull request on {new Date(pr.mergedAt).toLocaleDateString()}
+            </div>
+          )}
         </div>
 
         {/* Actions */}
@@ -468,8 +481,8 @@ export default function PullRequestDetailPage() {
       {/* Merge Dialog */}
       {showMergeDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4">
-            <h3 className="text-xl font-bold mb-4">{t.pullRequests.detail.mergePR}</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4" role="dialog" aria-labelledby="merge-dialog-title">
+            <h3 id="merge-dialog-title" className="text-xl font-bold mb-4">{t.pullRequests.detail.mergePR}</h3>
 
             <div className="space-y-4">
               <div>

@@ -59,6 +59,12 @@ enum ReviewState {
   COMMENTED // 仅评论
 }
 
+enum MergeStrategy {
+  MERGE // 标准merge commit (保留完整历史)
+  SQUASH // Squash merge (压缩成单个commit)
+  REBASE // Rebase merge (线性历史)
+}
+
 enum OrgRole {
   OWNER // 组织所有者（最高权限）
   ADMIN // 组织管理员（可管理成员和设置）
@@ -567,9 +573,10 @@ model PullRequest {
   authorId     String
 
   // 合并相关
-  mergedAt   DateTime?
-  mergedBy   String?
-  mergeCommit String? @db.VarChar(64) // 合并后生成的 commit hash
+  mergedAt      DateTime?
+  mergedBy      String?
+  mergeCommit   String?        @db.VarChar(64) // 合并后生成的 commit hash
+  mergeStrategy MergeStrategy? // 使用的合并策略
 
   closedAt  DateTime?
   createdAt DateTime  @default(now())

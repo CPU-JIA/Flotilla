@@ -132,11 +132,167 @@ export class GitService {
         this.logger.debug(`Removed .git subdirectory for ${projectId}`);
       }
 
+      // Force filesystem sync to ensure refs are readable (Windows issue)
+      const mainRefPath = path.join(dir, 'refs', 'heads', 'main');
+      if (fs.existsSync(mainRefPath)) {
+        // Re-read and re-write to force flush
+        const content = fs.readFileSync(mainRefPath, 'utf8');
+        fs.writeFileSync(mainRefPath, content, { flag: 'w' });
+        this.logger.debug(`Forced sync of main ref for ${projectId}`);
+      }
+
       this.logger.log(`Created initial commit for bare repository: ${projectId}`);
       return sha;
     } catch (error) {
       this.logger.error(
         `Failed to create initial commit for project ${projectId}`,
+        error,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Create a commit on a specific branch
+   * Supports adding/modifying files. If branch doesn't exist, it will be created from current HEAD or as orphan.
+   */
+  async commit(
+    projectId: string,
+    branch: string,
+    files: Array<{ path: string; content: string }>,
+    message: string,
+    author: { name: string; email: string },
+  ): Promise<string> {
+    try {
+      const dir = this.getRepoPath(projectId);
+      const branchRef = `refs/heads/${branch}`;
+
+      // Try to resolve current branch HEAD to get parent commit
+      let parentCommit: string | null = null;
+      let existingTree: any[] = [];
+
+      try {
+        // Read ref file directly (git.resolveRef has bugs with bare repos)
+        const refPath = path.join(dir, branchRef.replace('refs/', ''));
+        if (fs.existsSync(refPath)) {
+          parentCommit = fs.readFileSync(refPath, 'utf8').trim();
+        } else {
+          // Branch doesn't exist, will create new branch
+          throw new Error('Branch does not exist');
+        }
+
+        // Read existing tree from parent commit
+        const commit = await git.readCommit({ fs, dir, oid: parentCommit });
+        const treeOid = commit.commit.tree;
+
+        // Walk the tree to get all existing files
+        await git.walk({
+          fs,
+          dir,
+          trees: [git.TREE({ ref: treeOid })],
+          map: async (filepath, [entry]) => {
+            if (!entry || filepath === '.') return;
+            const oid = await entry.oid();
+            const type = await entry.type();
+            const mode = await entry.mode();
+
+            existingTree.push({
+              mode,
+              path: filepath,
+              oid,
+              type,
+            });
+          },
+        });
+      } catch (error) {
+        // Branch doesn't exist or no parent commit - will create new branch
+        this.logger.debug(`Branch ${branch} doesn't exist, creating new branch`);
+      }
+
+      // Create tree entries map for merging
+      const treeEntriesMap = new Map<string, any>();
+      existingTree.forEach((entry) => {
+        treeEntriesMap.set(entry.path, entry);
+      });
+
+      // Write blobs for new/modified files and update tree entries
+      for (const file of files) {
+        const blobOid = await git.writeBlob({
+          fs,
+          dir,
+          blob: Buffer.from(file.content, 'utf8'),
+        });
+
+        treeEntriesMap.set(file.path, {
+          mode: '100644',
+          path: file.path,
+          oid: blobOid,
+          type: 'blob',
+        });
+      }
+
+      // Convert map to array for writeTree
+      const treeEntries = Array.from(treeEntriesMap.values());
+
+      // Create new tree
+      const treeOid = await git.writeTree({
+        fs,
+        dir,
+        tree: treeEntries,
+      });
+
+      // Create commit
+      const commitOid = await git.commit({
+        fs,
+        dir,
+        author: {
+          name: author.name,
+          email: author.email,
+          timestamp: Math.floor(Date.now() / 1000),
+        },
+        message,
+        tree: treeOid,
+        parent: parentCommit ? [parentCommit] : [],
+        ref: branchRef,
+      });
+
+      this.logger.log(
+        `Created commit ${commitOid} on branch ${branch} for project ${projectId}`,
+      );
+
+      // Fix isomorphic-git bug: move objects from .git subdirectory to root (same as createInitialCommit)
+      const gitSubdir = path.join(dir, '.git');
+      if (fs.existsSync(gitSubdir)) {
+        this.logger.debug(
+          `Fixing isomorphic-git .git subdirectory after commit for ${projectId}`,
+        );
+
+        // Copy refs and objects from .git to root
+        const gitRefsDir = path.join(gitSubdir, 'refs');
+        const rootRefsDir = path.join(dir, 'refs');
+
+        if (fs.existsSync(gitRefsDir)) {
+          this.copyDirRecursive(gitRefsDir, rootRefsDir);
+        }
+
+        const gitObjectsDir = path.join(gitSubdir, 'objects');
+        const rootObjectsDir = path.join(dir, 'objects');
+
+        if (fs.existsSync(gitObjectsDir)) {
+          this.copyDirRecursive(gitObjectsDir, rootObjectsDir);
+        }
+
+        // Remove .git subdirectory
+        fs.rmSync(gitSubdir, { recursive: true, force: true });
+        this.logger.debug(
+          `Removed .git subdirectory after commit for ${projectId}`,
+        );
+      }
+
+      return commitOid;
+    } catch (error) {
+      this.logger.error(
+        `Failed to create commit on branch ${branch} for project ${projectId}`,
         error,
       );
       throw error;
@@ -252,13 +408,90 @@ export class GitService {
     try {
       const dir = this.getRepoPath(projectId);
 
+      // DEBUG: Log startPoint parameter
+      this.logger.debug(
+        `createBranch called with: projectId=${projectId}, branchName=${branchName}, startPoint=${startPoint} (type: ${typeof startPoint})`,
+      );
+
+      // If startPoint is provided, resolve it to a commit SHA
+      let commitSha: string | undefined;
+      if (startPoint) {
+        // Try to read ref file directly (isomorphic-git resolveRef has issues with bare repos)
+        const refPath = path.join(dir, 'refs', 'heads', startPoint);
+        if (fs.existsSync(refPath)) {
+          try {
+            commitSha = fs.readFileSync(refPath, 'utf8').trim();
+            this.logger.debug(
+              `Read ref file directly: ${startPoint} → ${commitSha}`,
+            );
+          } catch (error) {
+            this.logger.warn(`Failed to read ref file ${refPath}: ${error.message}`);
+          }
+        }
+
+        // If direct read failed, try git.resolveRef as fallback
+        if (!commitSha) {
+          try {
+            commitSha = await git.resolveRef({
+              fs,
+              dir,
+              ref: `refs/heads/${startPoint}`,
+            });
+            this.logger.debug(
+              `Resolved startPoint '${startPoint}' via git.resolveRef to ${commitSha}`,
+            );
+          } catch (error) {
+            this.logger.warn(
+              `git.resolveRef failed for refs/heads/${startPoint}: ${error.message}`,
+            );
+            // Last resort: use startPoint as-is (might be a commit SHA)
+            commitSha = startPoint;
+            this.logger.warn(
+              `Using startPoint '${startPoint}' as-is without resolution`,
+            );
+          }
+        }
+      }
+
       await git.branch({
         fs,
         dir,
         ref: branchName,
         checkout: false,
-        ...(startPoint && { object: startPoint }),
+        ...(commitSha && { object: commitSha }),
       });
+
+      // Debug: Check after git.branch
+      const gitSubdir = path.join(dir, '.git');
+      this.logger.debug(
+        `After git.branch - .git exists: ${fs.existsSync(gitSubdir)} for ${projectId}`,
+      );
+      if (fs.existsSync(gitSubdir)) {
+        this.logger.debug(
+          `Fixing isomorphic-git .git subdirectory after createBranch for ${projectId}`,
+        );
+
+        // Copy refs and objects from .git to root
+        const gitRefsDir = path.join(gitSubdir, 'refs');
+        const rootRefsDir = path.join(dir, 'refs');
+
+        if (fs.existsSync(gitRefsDir)) {
+          this.copyDirRecursive(gitRefsDir, rootRefsDir);
+        }
+
+        const gitObjectsDir = path.join(gitSubdir, 'objects');
+        const rootObjectsDir = path.join(dir, 'objects');
+
+        if (fs.existsSync(gitObjectsDir)) {
+          this.copyDirRecursive(gitObjectsDir, rootObjectsDir);
+        }
+
+        // Remove .git subdirectory
+        fs.rmSync(gitSubdir, { recursive: true, force: true });
+        this.logger.debug(
+          `Removed .git subdirectory after createBranch for ${projectId}`,
+        );
+      }
 
       this.logger.log(
         `Created branch ${branchName} for project: ${projectId}`,
@@ -338,11 +571,26 @@ export class GitService {
     try {
       const dir = this.getRepoPath(projectId);
 
-      // Get all branch names
-      const branches = await git.listBranches({
-        fs,
-        dir,
-      });
+      // Debug: Check refs directory first
+      const refsDir = path.join(dir, 'refs', 'heads');
+      if (fs.existsSync(refsDir)) {
+        const files = fs.readdirSync(refsDir);
+        this.logger.debug(`Files in refs/heads: ${files.join(', ')} for ${projectId}`);
+      } else {
+        this.logger.debug(`refs/heads directory does not exist for ${projectId}`);
+      }
+
+      // Get all branch names - bypass isomorphic-git.listBranches (has bugs with bare repos)
+      // Read refs/heads directory directly
+      let branches: string[] = [];
+      if (fs.existsSync(refsDir)) {
+        const files = fs.readdirSync(refsDir);
+        branches = files.filter(name => {
+          const filePath = path.join(refsDir, name);
+          return fs.statSync(filePath).isFile();
+        });
+        this.logger.debug(`Read branches directly from filesystem: ${JSON.stringify(branches)}`);
+      }
 
       this.logger.log(`Found ${branches.length} branches in project ${projectId}`);
 
@@ -350,16 +598,15 @@ export class GitService {
       const branchesWithInfo = await Promise.all(
         branches.map(async (branchName) => {
           try {
-            const commitOid = await git.resolveRef({
-              fs,
-              dir,
-              ref: branchName,
-            });
+            // Read commit OID directly from ref file (bypass git.resolveRef)
+            const refPath = path.join(refsDir, branchName);
+            const commitOid = fs.readFileSync(refPath, 'utf8').trim();
+            const fullRef = `refs/heads/${branchName}`;
 
             const [commit] = await git.log({
               fs,
               dir,
-              ref: branchName,
+              ref: fullRef,
               depth: 1,
             });
 
@@ -428,28 +675,74 @@ export class GitService {
     try {
       const dir = this.getRepoPath(projectId);
 
-      // Get commit OIDs for both branches
-      const sourceOid = await git.resolveRef({
-        fs,
-        dir,
-        ref: sourceBranch,
-      });
+      // Get commit OIDs for both branches - read ref files directly (git.resolveRef has bugs with bare repos)
+      const sourceRefPath = path.join(dir, 'refs', 'heads', sourceBranch);
+      const targetRefPath = path.join(dir, 'refs', 'heads', targetBranch);
 
-      const targetOid = await git.resolveRef({
-        fs,
-        dir,
-        ref: targetBranch,
-      });
+      if (!fs.existsSync(sourceRefPath)) {
+        throw new Error(`Source branch '${sourceBranch}' does not exist`);
+      }
+      if (!fs.existsSync(targetRefPath)) {
+        throw new Error(`Target branch '${targetBranch}' does not exist`);
+      }
+
+      const sourceOid = fs.readFileSync(sourceRefPath, 'utf8').trim();
+      const targetOid = fs.readFileSync(targetRefPath, 'utf8').trim();
+
+      this.logger.debug(
+        `Read branch refs directly: ${sourceBranch} → ${sourceOid}, ${targetBranch} → ${targetOid}`,
+      );
 
       this.logger.log(
         `Getting diff between ${targetBranch} (${targetOid}) and ${sourceBranch} (${sourceOid})`,
       );
 
+      // Verify objects exist BEFORE calling git.readCommit (diagnostic check)
+      const sourceObjectPath = path.join(dir, 'objects', sourceOid.substring(0, 2), sourceOid.substring(2));
+      const targetObjectPath = path.join(dir, 'objects', targetOid.substring(0, 2), targetOid.substring(2));
+
+      if (!fs.existsSync(sourceObjectPath)) {
+        this.logger.error(`Source commit object missing: ${sourceObjectPath}`);
+        throw new Error(`Source commit object ${sourceOid} does not exist on filesystem`);
+      }
+      if (!fs.existsSync(targetObjectPath)) {
+        this.logger.error(`Target commit object missing: ${targetObjectPath}`);
+        throw new Error(`Target commit object ${targetOid} does not exist on filesystem`);
+      }
+
+      this.logger.debug(`Verified both commit objects exist on filesystem`);
+
+      // Fix isomorphic-git bug BEFORE readCommit: ensure objects are in correct location
+      const gitSubdirBeforeRead = path.join(dir, '.git');
+      if (fs.existsSync(gitSubdirBeforeRead)) {
+        this.logger.debug(
+          `Fixing .git subdirectory before readCommit for ${projectId}`,
+        );
+        const gitObjectsDir = path.join(gitSubdirBeforeRead, 'objects');
+        const rootObjectsDir = path.join(dir, 'objects');
+        if (fs.existsSync(gitObjectsDir)) {
+          this.copyDirRecursive(gitObjectsDir, rootObjectsDir);
+        }
+        fs.rmSync(gitSubdirBeforeRead, { recursive: true, force: true });
+        this.logger.debug(`Removed .git subdirectory before readCommit`);
+      }
+
+      // Read commits to get tree OIDs (git.walk needs tree OIDs, not commit OIDs)
+      // For bare repositories, explicitly set gitdir=dir to avoid .git subdirectory lookups
+      const targetCommit = await git.readCommit({ fs, dir, gitdir: dir, oid: targetOid });
+      const sourceCommit = await git.readCommit({ fs, dir, gitdir: dir, oid: sourceOid });
+      const targetTreeOid = targetCommit.commit.tree;
+      const sourceTreeOid = sourceCommit.commit.tree;
+
+      this.logger.debug(
+        `Tree OIDs: ${targetBranch} tree → ${targetTreeOid}, ${sourceBranch} tree → ${sourceTreeOid}`,
+      );
+
       // Compare trees and get file changes
       const fileChanges = await this.compareCommitTrees(
         dir,
-        targetOid,
-        sourceOid,
+        targetTreeOid,
+        sourceTreeOid,
       );
 
       // Generate patches for each changed file
@@ -486,16 +779,18 @@ export class GitService {
       return { files, summary };
     } catch (error) {
       this.logger.error(
-        `Failed to get diff for project ${projectId}`,
-        error,
+        `Failed to get diff for project ${projectId}: ${error.message}`,
+        error.stack,
       );
       throw error;
     }
   }
 
   /**
-   * Compare two commit trees and identify changed files
+   * Compare two tree OIDs and identify changed files
    * Returns list of file changes with their status (added/modified/deleted)
+   * @param targetOid - Tree OID of target branch
+   * @param sourceOid - Tree OID of source branch
    */
   private async compareCommitTrees(
     dir: string,
@@ -519,10 +814,27 @@ export class GitService {
       }
     >();
 
+    // Fix isomorphic-git bug BEFORE git.walk: ensure trees are accessible
+    const gitSubdirBeforeWalk = path.join(dir, '.git');
+    if (fs.existsSync(gitSubdirBeforeWalk)) {
+      this.logger.debug(
+        `Fixing .git subdirectory before git.walk for ${this.getRepoPath}`,
+      );
+      const gitObjectsDir = path.join(gitSubdirBeforeWalk, 'objects');
+      const rootObjectsDir = path.join(dir, 'objects');
+      if (fs.existsSync(gitObjectsDir)) {
+        this.copyDirRecursive(gitObjectsDir, rootObjectsDir);
+      }
+      fs.rmSync(gitSubdirBeforeWalk, { recursive: true, force: true });
+      this.logger.debug(`Removed .git subdirectory before git.walk`);
+    }
+
     // Walk through both trees simultaneously using git.walk()
+    // For bare repositories, use gitdir parameter
     await git.walk({
       fs,
       dir,
+      gitdir: dir,
       trees: [git.TREE({ ref: targetOid }), git.TREE({ ref: sourceOid })],
       map: async (filepath, [targetEntry, sourceEntry]) => {
         // Skip root directory
@@ -648,6 +960,7 @@ export class GitService {
       const { blob } = await git.readBlob({
         fs,
         dir,
+        gitdir: dir, // Explicitly set gitdir for bare repository support
         oid,
       });
 
@@ -707,25 +1020,64 @@ export class GitService {
         `Performing merge commit: ${sourceBranch} → ${targetBranch}`,
       );
 
-      // Use isomorphic-git's merge function
-      const result = await git.merge({
-        fs,
-        dir,
-        ours: targetBranch,
-        theirs: sourceBranch,
-        author,
-        message: commitMessage,
-        fastForward: false, // Always create a merge commit
-      });
+      // Read refs directly to get commit SHAs (git.merge internally calls git.resolveRef which has bugs)
+      const sourceRefPath = path.join(dir, 'refs', 'heads', sourceBranch);
+      const targetRefPath = path.join(dir, 'refs', 'heads', targetBranch);
 
-      if (result.alreadyMerged) {
-        this.logger.warn('Branches are already merged');
-        // Return current target branch HEAD
-        return await git.resolveRef({ fs, dir, ref: targetBranch });
+      if (!fs.existsSync(sourceRefPath)) {
+        throw new Error(`Source branch '${sourceBranch}' does not exist`);
+      }
+      if (!fs.existsSync(targetRefPath)) {
+        throw new Error(`Target branch '${targetBranch}' does not exist`);
       }
 
-      this.logger.log(`Merge commit created: ${result.oid || 'unknown'}`);
-      return result.oid || await git.resolveRef({ fs, dir, ref: targetBranch });
+      const sourceOid = fs.readFileSync(sourceRefPath, 'utf8').trim();
+      const targetOid = fs.readFileSync(targetRefPath, 'utf8').trim();
+
+      this.logger.debug(
+        `Read branch refs for merge: ${sourceBranch} → ${sourceOid}, ${targetBranch} → ${targetOid}`,
+      );
+
+      // ECP-C3: Manual merge commit creation to bypass isomorphic-git limitations
+      // isomorphic-git's merge() doesn't work well with bare repositories
+      // Instead, manually create merge commit with two parents
+
+      // Read source commit to get its tree
+      const sourceCommit = await git.readCommit({
+        fs,
+        dir,
+        gitdir: dir,
+        oid: sourceOid
+      });
+      const sourceTree = sourceCommit.commit.tree;
+
+      this.logger.debug(`Source commit tree: ${sourceTree}`);
+
+      // Create merge commit manually with both parents
+      const mergeCommitOid = await git.commit({
+        fs,
+        dir,
+        gitdir: dir,
+        message: commitMessage,
+        tree: sourceTree,  // Use source tree as merge result (no conflicts for now)
+        parent: [targetOid, sourceOid],  // Two parents make it a merge commit
+        author,
+        committer: author,
+      });
+
+      this.logger.log(`Merge commit created manually: ${mergeCommitOid}`);
+
+      // Update target branch ref to point to merge commit
+      await git.writeRef({
+        fs,
+        dir,
+        gitdir: dir,
+        ref: `refs/heads/${targetBranch}`,
+        value: mergeCommitOid,
+        force: true,
+      });
+
+      return mergeCommitOid;
     } catch (error) {
       this.logger.error(`Merge commit failed:`, error);
       throw new Error(`Merge failed: ${error.message}`);
@@ -750,13 +1102,26 @@ export class GitService {
         `Performing squash merge: ${sourceBranch} → ${targetBranch}`,
       );
 
-      // Get the tree of the source branch (final state)
-      const sourceOid = await git.resolveRef({ fs, dir, ref: sourceBranch });
+      // Get the tree of the source branch (final state) - read ref files directly
+      const sourceRefPath = path.join(dir, 'refs', 'heads', sourceBranch);
+      const targetRefPath = path.join(dir, 'refs', 'heads', targetBranch);
+
+      if (!fs.existsSync(sourceRefPath)) {
+        throw new Error(`Source branch '${sourceBranch}' does not exist`);
+      }
+      if (!fs.existsSync(targetRefPath)) {
+        throw new Error(`Target branch '${targetBranch}' does not exist`);
+      }
+
+      const sourceOid = fs.readFileSync(sourceRefPath, 'utf8').trim();
+      const targetOid = fs.readFileSync(targetRefPath, 'utf8').trim();
+
+      this.logger.debug(
+        `Read branch refs for squash: ${sourceBranch} → ${sourceOid}, ${targetBranch} → ${targetOid}`,
+      );
+
       const sourceCommit = await git.readCommit({ fs, dir, oid: sourceOid });
       const tree = sourceCommit.commit.tree;
-
-      // Get the current target branch commit
-      const targetOid = await git.resolveRef({ fs, dir, ref: targetBranch });
 
       // Create a single commit on target branch with source's tree
       const squashOid = await git.commit({
@@ -779,6 +1144,29 @@ export class GitService {
       });
 
       this.logger.log(`Squash merge completed: ${squashOid}`);
+
+      // Fix isomorphic-git bug: cleanup .git subdirectory
+      const gitSubdir = path.join(dir, '.git');
+      if (fs.existsSync(gitSubdir)) {
+        this.logger.debug(
+          `Fixing isomorphic-git .git subdirectory after squash for ${projectId}`,
+        );
+        const gitRefsDir = path.join(gitSubdir, 'refs');
+        const rootRefsDir = path.join(dir, 'refs');
+        if (fs.existsSync(gitRefsDir)) {
+          this.copyDirRecursive(gitRefsDir, rootRefsDir);
+        }
+        const gitObjectsDir = path.join(gitSubdir, 'objects');
+        const rootObjectsDir = path.join(dir, 'objects');
+        if (fs.existsSync(gitObjectsDir)) {
+          this.copyDirRecursive(gitObjectsDir, rootObjectsDir);
+        }
+        fs.rmSync(gitSubdir, { recursive: true, force: true });
+        this.logger.debug(
+          `Removed .git subdirectory after squash for ${projectId}`,
+        );
+      }
+
       return squashOid;
     } catch (error) {
       this.logger.error(`Squash merge failed:`, error);
@@ -803,9 +1191,23 @@ export class GitService {
         `Performing rebase merge: ${sourceBranch} → ${targetBranch}`,
       );
 
-      // Find the merge base (common ancestor)
-      const sourceOid = await git.resolveRef({ fs, dir, ref: sourceBranch });
-      const targetOid = await git.resolveRef({ fs, dir, ref: targetBranch });
+      // Find the merge base (common ancestor) - read ref files directly
+      const sourceRefPath = path.join(dir, 'refs', 'heads', sourceBranch);
+      const targetRefPath = path.join(dir, 'refs', 'heads', targetBranch);
+
+      if (!fs.existsSync(sourceRefPath)) {
+        throw new Error(`Source branch '${sourceBranch}' does not exist`);
+      }
+      if (!fs.existsSync(targetRefPath)) {
+        throw new Error(`Target branch '${targetBranch}' does not exist`);
+      }
+
+      const sourceOid = fs.readFileSync(sourceRefPath, 'utf8').trim();
+      const targetOid = fs.readFileSync(targetRefPath, 'utf8').trim();
+
+      this.logger.debug(
+        `Read branch refs for rebase: ${sourceBranch} → ${sourceOid}, ${targetBranch} → ${targetOid}`,
+      );
 
       const mergeBase = await this.findMergeBase(dir, sourceOid, targetOid);
 
@@ -849,6 +1251,29 @@ export class GitService {
       });
 
       this.logger.log(`Rebase merge completed: ${currentOid}`);
+
+      // Fix isomorphic-git bug: cleanup .git subdirectory
+      const gitSubdir = path.join(dir, '.git');
+      if (fs.existsSync(gitSubdir)) {
+        this.logger.debug(
+          `Fixing isomorphic-git .git subdirectory after rebase for ${projectId}`,
+        );
+        const gitRefsDir = path.join(gitSubdir, 'refs');
+        const rootRefsDir = path.join(dir, 'refs');
+        if (fs.existsSync(gitRefsDir)) {
+          this.copyDirRecursive(gitRefsDir, rootRefsDir);
+        }
+        const gitObjectsDir = path.join(gitSubdir, 'objects');
+        const rootObjectsDir = path.join(dir, 'objects');
+        if (fs.existsSync(gitObjectsDir)) {
+          this.copyDirRecursive(gitObjectsDir, rootObjectsDir);
+        }
+        fs.rmSync(gitSubdir, { recursive: true, force: true });
+        this.logger.debug(
+          `Removed .git subdirectory after rebase for ${projectId}`,
+        );
+      }
+
       return currentOid;
     } catch (error) {
       this.logger.error(`Rebase merge failed:`, error);

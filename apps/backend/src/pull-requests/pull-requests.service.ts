@@ -12,7 +12,7 @@ import { CreatePullRequestDto } from './dto/create-pull-request.dto';
 import { UpdatePullRequestDto } from './dto/update-pull-request.dto';
 import { MergePullRequestDto, MergeStrategy } from './dto/merge-pull-request.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
-import { CreateCommentDto } from './dto/create-comment.dto';
+import { PullRequestCreateCommentDto } from './dto/create-comment.dto';
 import { PullRequest, PRState, Prisma } from '@prisma/client';
 
 @Injectable()
@@ -586,7 +586,7 @@ export class PullRequestsService {
   /**
    * 添加Comment
    */
-  async addComment(prId: string, authorId: string, dto: CreateCommentDto) {
+  async addComment(prId: string, authorId: string, dto: PullRequestCreateCommentDto) {
     const pr = await this.prisma.pullRequest.findUnique({
       where: { id: prId },
     });

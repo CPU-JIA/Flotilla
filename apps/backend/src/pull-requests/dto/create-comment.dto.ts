@@ -1,7 +1,7 @@
 import { IsString, IsNotEmpty, IsOptional, IsInt, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateCommentDto {
+export class PullRequestCreateCommentDto {
   @ApiProperty({
     description: '评论内容（支持Markdown）',
     example: '这里的逻辑可以简化一下。',
