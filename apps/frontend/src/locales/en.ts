@@ -781,6 +781,153 @@ export const en: Translations = {
     },
   },
 
+  // Pull Requests
+  pullRequests: {
+    title: 'Pull Requests',
+    createNew: 'New Pull Request',
+    noPRs: 'No Pull Requests',
+    totalPRs: '{count} pull requests total',
+    searchPlaceholder: 'Search pull requests...',
+    backToPRs: '← Back to Pull Requests',
+
+    // PR List
+    list: {
+      title: 'Pull Requests',
+      openPRs: 'Open',
+      closedPRs: 'Closed',
+      mergedPRs: 'Merged',
+      allPRs: 'All',
+      number: '#',
+      titleColumn: 'Title',
+      state: 'State',
+      author: 'Author',
+      sourceBranch: 'Source Branch',
+      targetBranch: 'Target Branch',
+      reviews: 'Reviews',
+      comments: 'Comments',
+      noPRsFound: 'No pull requests found',
+      noPRsDesc: 'Create your first pull request!',
+      loading: 'Loading...',
+    },
+
+    // Create PR
+    create: {
+      title: 'New Pull Request',
+      titleLabel: 'Title',
+      titlePlaceholder: 'Brief description of the PR',
+      titleRequired: 'Title is required',
+      bodyLabel: 'Description',
+      bodyPlaceholder: 'Detailed description of changes (supports Markdown)',
+      bodyHelper: 'You can use Markdown formatting',
+      sourceBranchLabel: 'Source Branch',
+      sourceBranchPlaceholder: 'Select source branch...',
+      sourceBranchRequired: 'Source branch is required',
+      targetBranchLabel: 'Target Branch',
+      targetBranchPlaceholder: 'Select target branch...',
+      targetBranchRequired: 'Target branch is required',
+      creating: 'Creating...',
+      createButton: 'Create Pull Request',
+      cancelButton: 'Cancel',
+      createSuccess: 'Pull request created successfully',
+      createFailed: 'Failed to create pull request, please try again',
+      sameBranchError: 'Source and target branches cannot be the same',
+    },
+
+    // PR Detail
+    detail: {
+      loading: 'Loading...',
+      notFound: 'Pull request not found',
+      goBack: 'Go Back',
+      openedBy: 'Opened by {author} on {date}',
+      mergedBy: 'Merged by {merger} on {date}',
+      closedAt: 'Closed on {date}',
+      noDescription: 'No description provided',
+      closePR: 'Close PR',
+      mergePR: 'Merge PR',
+      deletePR: 'Delete PR',
+      editPR: 'Edit',
+      confirmDelete: 'Are you sure you want to delete this pull request?',
+      confirmMerge: 'Are you sure you want to merge this pull request?',
+      closeSuccess: 'PR closed',
+      closeFailed: 'Failed to close',
+      mergeSuccess: 'PR merged',
+      mergeFailed: 'Failed to merge',
+      deleteSuccess: 'PR deleted',
+      deleteFailed: 'Failed to delete',
+      metadata: 'Metadata',
+      branches: 'Branches',
+      source: 'Source',
+      target: 'Target',
+      mergeCommit: 'Merge Commit',
+    },
+
+    // PR State
+    state: {
+      open: 'Open',
+      merged: 'Merged',
+      closed: 'Closed',
+    },
+
+    // Reviews
+    reviews: {
+      title: 'Reviews',
+      addReview: 'Add Review',
+      approveLabel: 'Approve',
+      changesRequestedLabel: 'Request Changes',
+      commentLabel: 'Comment',
+      reviewCommentPlaceholder: 'Leave a review (supports Markdown)',
+      submitting: 'Submitting...',
+      submitButton: 'Submit Review',
+      cancelButton: 'Cancel',
+      noReviews: 'No reviews',
+      approved: 'Approved',
+      changesRequested: 'Changes Requested',
+      commented: 'Commented',
+      reviewedAt: 'Reviewed on {date}',
+      createSuccess: 'Review submitted',
+      createFailed: 'Failed to submit review',
+    },
+
+    // Comments
+    comments: {
+      title: 'Comments',
+      addComment: 'Add Comment',
+      commentPlaceholder: 'Leave a comment (supports Markdown)',
+      lineComment: 'Line Comment',
+      fileLabel: 'File',
+      lineLabel: 'Line',
+      submitting: 'Submitting...',
+      submitButton: 'Comment',
+      cancelButton: 'Cancel',
+      noComments: 'No comments',
+      createSuccess: 'Comment added',
+      createFailed: 'Failed to add comment',
+    },
+
+    // Diff View
+    diff: {
+      title: 'Files Changed',
+      loading: 'Loading diff...',
+      filesChanged: '{count} files changed',
+      additions: '+{count}',
+      deletions: '-{count}',
+      noChanges: 'No changes',
+      expandDiff: 'Expand diff',
+      collapseDiff: 'Collapse diff',
+    },
+
+    // Merge Strategy
+    mergeStrategy: {
+      title: 'Merge Strategy',
+      merge: 'Merge Commit',
+      squash: 'Squash',
+      rebase: 'Rebase',
+      mergeDesc: 'Preserve all commit history',
+      squashDesc: 'Combine into a single commit',
+      rebaseDesc: 'Rebase onto target branch',
+    },
+  },
+
   // Form validation
   validation: {
     emailRequired: 'Please enter email address',

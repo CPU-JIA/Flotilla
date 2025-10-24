@@ -759,6 +759,137 @@ export interface Translations {
     }
   }
 
+  // Pull Requests
+  pullRequests: {
+    title: string
+    createNew: string
+    noPRs: string
+    totalPRs: string
+    searchPlaceholder: string
+    backToPRs: string
+    list: {
+      title: string
+      openPRs: string
+      closedPRs: string
+      mergedPRs: string
+      allPRs: string
+      number: string
+      titleColumn: string
+      state: string
+      author: string
+      sourceBranch: string
+      targetBranch: string
+      reviews: string
+      comments: string
+      noPRsFound: string
+      noPRsDesc: string
+      loading: string
+    }
+    create: {
+      title: string
+      titleLabel: string
+      titlePlaceholder: string
+      titleRequired: string
+      bodyLabel: string
+      bodyPlaceholder: string
+      bodyHelper: string
+      sourceBranchLabel: string
+      sourceBranchPlaceholder: string
+      sourceBranchRequired: string
+      targetBranchLabel: string
+      targetBranchPlaceholder: string
+      targetBranchRequired: string
+      creating: string
+      createButton: string
+      cancelButton: string
+      createSuccess: string
+      createFailed: string
+      sameBranchError: string
+    }
+    detail: {
+      loading: string
+      notFound: string
+      goBack: string
+      openedBy: string
+      mergedBy: string
+      closedAt: string
+      noDescription: string
+      closePR: string
+      mergePR: string
+      deletePR: string
+      editPR: string
+      confirmDelete: string
+      confirmMerge: string
+      closeSuccess: string
+      closeFailed: string
+      mergeSuccess: string
+      mergeFailed: string
+      deleteSuccess: string
+      deleteFailed: string
+      metadata: string
+      branches: string
+      source: string
+      target: string
+      mergeCommit: string
+    }
+    state: {
+      open: string
+      merged: string
+      closed: string
+    }
+    reviews: {
+      title: string
+      addReview: string
+      approveLabel: string
+      changesRequestedLabel: string
+      commentLabel: string
+      reviewCommentPlaceholder: string
+      submitting: string
+      submitButton: string
+      cancelButton: string
+      noReviews: string
+      approved: string
+      changesRequested: string
+      commented: string
+      reviewedAt: string
+      createSuccess: string
+      createFailed: string
+    }
+    comments: {
+      title: string
+      addComment: string
+      commentPlaceholder: string
+      lineComment: string
+      fileLabel: string
+      lineLabel: string
+      submitting: string
+      submitButton: string
+      cancelButton: string
+      noComments: string
+      createSuccess: string
+      createFailed: string
+    }
+    diff: {
+      title: string
+      loading: string
+      filesChanged: string
+      additions: string
+      deletions: string
+      noChanges: string
+      expandDiff: string
+      collapseDiff: string
+    }
+    mergeStrategy: {
+      title: string
+      merge: string
+      squash: string
+      rebase: string
+      mergeDesc: string
+      squashDesc: string
+      rebaseDesc: string
+    }
+  }
+
   // 表单验证
   validation: {
     emailRequired: string

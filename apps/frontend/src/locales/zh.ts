@@ -780,6 +780,153 @@ export const zh: Translations = {
     },
   },
 
+  // Pull Requests
+  pullRequests: {
+    title: 'Pull Requests',
+    createNew: '新建 Pull Request',
+    noPRs: '暂无 Pull Request',
+    totalPRs: '共 {count} 个 PR',
+    searchPlaceholder: '搜索 Pull Request...',
+    backToPRs: '← 返回 PR 列表',
+
+    // PR列表
+    list: {
+      title: 'Pull Requests',
+      openPRs: 'Open',
+      closedPRs: 'Closed',
+      mergedPRs: 'Merged',
+      allPRs: '全部',
+      number: '#',
+      titleColumn: '标题',
+      state: '状态',
+      author: '作者',
+      sourceBranch: '源分支',
+      targetBranch: '目标分支',
+      reviews: '审查',
+      comments: '评论数',
+      noPRsFound: '未找到 Pull Request',
+      noPRsDesc: '创建您的第一个 Pull Request！',
+      loading: '加载中...',
+    },
+
+    // 创建PR
+    create: {
+      title: '新建 Pull Request',
+      titleLabel: '标题',
+      titlePlaceholder: 'PR 的简要描述',
+      titleRequired: '标题为必填项',
+      bodyLabel: '描述',
+      bodyPlaceholder: '详细描述变更内容（支持 Markdown）',
+      bodyHelper: '您可以使用 Markdown 格式',
+      sourceBranchLabel: '源分支',
+      sourceBranchPlaceholder: '选择源分支...',
+      sourceBranchRequired: '源分支为必填项',
+      targetBranchLabel: '目标分支',
+      targetBranchPlaceholder: '选择目标分支...',
+      targetBranchRequired: '目标分支为必填项',
+      creating: '创建中...',
+      createButton: '创建 Pull Request',
+      cancelButton: '取消',
+      createSuccess: 'Pull Request 创建成功',
+      createFailed: '创建 Pull Request 失败，请稍后重试',
+      sameBranchError: '源分支和目标分支不能相同',
+    },
+
+    // PR详情
+    detail: {
+      loading: '加载中...',
+      notFound: 'Pull Request 未找到',
+      goBack: '返回',
+      openedBy: '由 {author} 在 {date} 创建',
+      mergedBy: '由 {merger} 在 {date} 合并',
+      closedAt: '关闭于 {date}',
+      noDescription: '暂无描述',
+      closePR: '关闭 PR',
+      mergePR: '合并 PR',
+      deletePR: '删除 PR',
+      editPR: '编辑',
+      confirmDelete: '确定要删除此 Pull Request 吗？',
+      confirmMerge: '确定要合并此 Pull Request 吗？',
+      closeSuccess: 'PR 已关闭',
+      closeFailed: '关闭失败',
+      mergeSuccess: 'PR 已合并',
+      mergeFailed: '合并失败',
+      deleteSuccess: 'PR 已删除',
+      deleteFailed: '删除失败',
+      metadata: '元数据',
+      branches: '分支',
+      source: '源',
+      target: '目标',
+      mergeCommit: '合并提交',
+    },
+
+    // PR状态
+    state: {
+      open: 'Open',
+      merged: 'Merged',
+      closed: 'Closed',
+    },
+
+    // 审查
+    reviews: {
+      title: '审查',
+      addReview: '添加审查',
+      approveLabel: '批准',
+      changesRequestedLabel: '请求修改',
+      commentLabel: '仅评论',
+      reviewCommentPlaceholder: '留下审查意见（支持 Markdown）',
+      submitting: '提交中...',
+      submitButton: '提交审查',
+      cancelButton: '取消',
+      noReviews: '暂无审查',
+      approved: '已批准',
+      changesRequested: '请求修改',
+      commented: '已评论',
+      reviewedAt: '审查于 {date}',
+      createSuccess: '审查已提交',
+      createFailed: '提交审查失败',
+    },
+
+    // 评论
+    comments: {
+      title: '评论',
+      addComment: '添加评论',
+      commentPlaceholder: '留下评论（支持 Markdown）',
+      lineComment: '行内评论',
+      fileLabel: '文件',
+      lineLabel: '行号',
+      submitting: '提交中...',
+      submitButton: '评论',
+      cancelButton: '取消',
+      noComments: '暂无评论',
+      createSuccess: '评论已添加',
+      createFailed: '添加评论失败',
+    },
+
+    // Diff 视图
+    diff: {
+      title: '文件变更',
+      loading: '加载 diff 中...',
+      filesChanged: '{count} 个文件变更',
+      additions: '+{count}',
+      deletions: '-{count}',
+      noChanges: '无变更',
+      expandDiff: '展开 diff',
+      collapseDiff: '折叠 diff',
+    },
+
+    // 合并策略
+    mergeStrategy: {
+      title: '合并策略',
+      merge: 'Merge Commit',
+      squash: 'Squash',
+      rebase: 'Rebase',
+      mergeDesc: '保留所有提交历史',
+      squashDesc: '合并为单个提交',
+      rebaseDesc: '变基到目标分支',
+    },
+  },
+
   // 表单验证
   validation: {
     emailRequired: '请输入邮箱地址',

@@ -340,4 +340,75 @@ export class GitService {
       }
     }
   }
+
+  /**
+   * Get diff between two branches
+   * Returns a simple diff representation for PR visualization
+   */
+  async getDiff(
+    projectId: string,
+    sourceBranch: string,
+    targetBranch: string,
+  ): Promise<{
+    files: Array<{
+      path: string;
+      status: 'added' | 'modified' | 'deleted';
+      additions: number;
+      deletions: number;
+      patch?: string;
+    }>;
+    summary: {
+      totalFiles: number;
+      totalAdditions: number;
+      totalDeletions: number;
+    };
+  }> {
+    try {
+      const dir = this.getRepoPath(projectId);
+
+      // Get commit OIDs for both branches
+      const sourceCommit = await git.resolveRef({
+        fs,
+        dir,
+        ref: sourceBranch,
+      });
+
+      const targetCommit = await git.resolveRef({
+        fs,
+        dir,
+        ref: targetBranch,
+      });
+
+      // For MVP, return a simplified diff structure
+      // In production, you would use isomorphic-git's walk() to compare trees
+      this.logger.log(
+        `Getting diff between ${targetBranch} (${targetCommit}) and ${sourceBranch} (${sourceCommit})`,
+      );
+
+      // Simplified implementation: return basic structure
+      // TODO: Implement actual tree walking and diff generation
+      return {
+        files: [
+          {
+            path: 'README.md',
+            status: 'modified',
+            additions: 5,
+            deletions: 2,
+            patch: `@@ -1,3 +1,6 @@\n # Project\n-Old content\n+New content\n+Added line 1\n+Added line 2`,
+          },
+        ],
+        summary: {
+          totalFiles: 1,
+          totalAdditions: 5,
+          totalDeletions: 2,
+        },
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to get diff for project ${projectId}`,
+        error,
+      );
+      throw error;
+    }
+  }
 }

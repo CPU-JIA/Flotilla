@@ -47,6 +47,18 @@ enum MilestoneState {
   CLOSED // 已完成
 }
 
+enum PRState {
+  OPEN // 开放状态
+  MERGED // 已合并
+  CLOSED // 已关闭
+}
+
+enum ReviewState {
+  APPROVED // 批准
+  CHANGES_REQUESTED // 请求修改
+  COMMENTED // 仅评论
+}
+
 enum OrgRole {
   OWNER // 组织所有者（最高权限）
   ADMIN // 组织管理员（可管理成员和设置）
@@ -85,6 +97,11 @@ model User {
   authoredIssues      Issue[]              @relation("IssueAuthor")
   issueComments       IssueComment[]       @relation("IssueCommentAuthor")
   issueEvents         IssueEvent[]         @relation("IssueEventActor")
+  authoredPRs         PullRequest[]        @relation("PRAuthor")
+  mergedPRs           PullRequest[]        @relation("PRMerger")
+  prReviews           PRReview[]
+  prComments          PRComment[]
+  prEvents            PREvent[]
 
   @@index([email])
   @@index([username])
@@ -235,6 +252,7 @@ model Project {
   issues          Issue[]
   labels          Label[]
   milestones      Milestone[]
+  pullRequests    PullRequest[]
 
   @@unique([ownerId, name])
   @@unique([organizationId, name])
@@ -531,4 +549,106 @@ model IssueEvent {
   @@index([event])
   @@index([createdAt])
   @@map("issue_events")
+}
+
+// ============================================
+// Pull Request 系统模块
+// ============================================
+
+model PullRequest {
+  id           String  @id @default(cuid())
+  projectId    String
+  number       Int // 项目内唯一编号（自增）
+  title        String  @db.VarChar(500)
+  body         String? @db.Text
+  sourceBranch String  @db.VarChar(100)
+  targetBranch String  @db.VarChar(100)
+  state        PRState @default(OPEN)
+  authorId     String
+
+  // 合并相关
+  mergedAt   DateTime?
+  mergedBy   String?
+  mergeCommit String? @db.VarChar(64) // 合并后生成的 commit hash
+
+  closedAt  DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // 关系
+  project  Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author   User       @relation("PRAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  merger   User?      @relation("PRMerger", fields: [mergedBy], references: [id], onDelete: SetNull)
+  reviews  PRReview[]
+  comments PRComment[]
+  events   PREvent[]
+
+  @@unique([projectId, number])
+  @@index([projectId])
+  @@index([authorId])
+  @@index([state])
+  @@index([createdAt])
+  @@map("pull_requests")
+}
+
+model PRReview {
+  id            String      @id @default(cuid())
+  pullRequestId String
+  reviewerId    String
+  state         ReviewState
+  body          String?     @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  reviewer    User        @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@index([pullRequestId])
+  @@index([reviewerId])
+  @@index([state])
+  @@map("pr_reviews")
+}
+
+model PRComment {
+  id            String  @id @default(cuid())
+  pullRequestId String
+  authorId      String
+  body          String  @db.Text
+  filePath      String? @db.VarChar(500) // For line-level comments
+  lineNumber    Int? // For line-level comments
+  commitHash    String? @db.VarChar(64) // 锁定到特定 commit，防止 diff 变化后行号错位
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([pullRequestId])
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("pr_comments")
+}
+
+model PREvent {
+  id            String   @id @default(cuid())
+  pullRequestId String
+  actorId       String
+  event         String   @db.VarChar(50) // 事件类型：opened, closed, merged, reviewed, etc.
+  metadata      Json? // 事件相关元数据
+
+  createdAt DateTime @default(now())
+
+  // 关系
+  pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  actor       User        @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([pullRequestId])
+  @@index([actorId])
+  @@index([event])
+  @@index([createdAt])
+  @@map("pr_events")
 }
