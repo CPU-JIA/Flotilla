@@ -17,6 +17,8 @@ export const zh: Translations = {
   delete: '删除',
   edit: '编辑',
   back: '返回',
+  yes: '是',
+  no: '否',
 
   // 导航
   nav: {
@@ -178,6 +180,20 @@ export const zh: Translations = {
       addSuccess: '成员已添加',
       addFailed: '添加失败',
       cancel: '取消',
+      // Pull Request Approval Settings
+      pullRequests: 'Pull Request',
+      prApproval: {
+        title: 'PR 审批规则',
+        description: '配置 Pull Request 的合并验证规则',
+        requireApprovals: '需要批准数',
+        requireApprovalsDesc: '合并前需要的最少批准数（0-10）',
+        requireApprovalsValidation: '需要批准数必须在 0-10 之间',
+        allowSelfMerge: '允许自合并',
+        allowSelfMergeDesc: '允许 PR 作者合并自己的 Pull Request',
+        requireReviewFromOwner: '需要所有者批准',
+        requireReviewFromOwnerDesc: '至少一个批准必须来自项目所有者',
+        policySummary: '当前策略',
+      },
     },
     // 文件管理页
     files: {

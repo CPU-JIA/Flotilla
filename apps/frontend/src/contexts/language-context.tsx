@@ -23,6 +23,8 @@ export interface Translations {
   delete: string
   edit: string
   back: string
+  yes: string
+  no: string
 
   // 导航
   nav: {
@@ -177,6 +179,19 @@ export interface Translations {
       addSuccess: string
       addFailed: string
       cancel: string
+      pullRequests: string
+      prApproval: {
+        title: string
+        description: string
+        requireApprovals: string
+        requireApprovalsDesc: string
+        requireApprovalsValidation: string
+        allowSelfMerge: string
+        allowSelfMergeDesc: string
+        requireReviewFromOwner: string
+        requireReviewFromOwnerDesc: string
+        policySummary: string
+      }
     }
     files: {
       title: string

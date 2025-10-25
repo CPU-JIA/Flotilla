@@ -17,6 +17,8 @@ export const en: Translations = {
   delete: 'Delete',
   edit: 'Edit',
   back: 'Back',
+  yes: 'Yes',
+  no: 'No',
 
   // Navigation
   nav: {
@@ -178,6 +180,20 @@ export const en: Translations = {
       addSuccess: 'Member added successfully',
       addFailed: 'Failed to add member',
       cancel: 'Cancel',
+      // Pull Request Approval Settings
+      pullRequests: 'Pull Requests',
+      prApproval: {
+        title: 'PR Approval Rules',
+        description: 'Configure merge validation rules for pull requests',
+        requireApprovals: 'Required Approvals',
+        requireApprovalsDesc: 'Minimum number of approvals required before merging (0-10)',
+        requireApprovalsValidation: 'Required approvals must be between 0-10',
+        allowSelfMerge: 'Allow Self-Merge',
+        allowSelfMergeDesc: 'Allow PR authors to merge their own pull requests',
+        requireReviewFromOwner: 'Require Owner Approval',
+        requireReviewFromOwnerDesc: 'At least one approval must come from the project owner',
+        policySummary: 'Current Policy',
+      },
     },
     // Files Management Page
     files: {

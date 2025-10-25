@@ -80,6 +80,12 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
       icon: '⚙️',
     },
     {
+      id: 'pull-requests',
+      label: t.projects.settings.pullRequests || 'Pull Requests',
+      href: `/projects/${projectId}/settings/pull-requests`,
+      icon: '🔀',
+    },
+    {
       id: 'members',
       label: t.projects.settings.members,
       href: `/projects/${projectId}/settings/members`,

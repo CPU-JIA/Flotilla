@@ -4,7 +4,7 @@
  * ECP-C1: 防御性编程 - 错误处理和令牌管理
  */
 
-import type { Project, ProjectsResponse, Branch } from '@/types/project'
+import type { Project, ProjectsResponse, Branch, UpdateProjectRequest } from '@/types/project'
 import type { User, AuthResponse, RefreshTokenResponse } from '@/types/auth'
 import type {
   AdminUsersResponse,
@@ -354,10 +354,7 @@ export const api = {
         body: JSON.stringify(data),
       }),
 
-    update: (
-      id: string,
-      data: { name?: string; description?: string; visibility?: 'PUBLIC' | 'PRIVATE' }
-    ) =>
+    update: (id: string, data: UpdateProjectRequest) =>
       apiRequest<Project>(`/projects/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),

@@ -16,8 +16,10 @@ import {
   MergeStrategy,
   MergeStatus,
   ReviewSummary,
+  DiffResponseDto,
 } from '@/types/pull-request'
 import { ReviewSummaryCard } from '@/components/pull-requests/review-summary-card'
+import { DiffFileView } from '@/components/pull-requests/diff-file-view'
 
 export default function PullRequestDetailPage() {
   const params = useParams()
@@ -26,7 +28,7 @@ export default function PullRequestDetailPage() {
   const prNumber = parseInt(params.number as string, 10)
 
   const [pr, setPr] = useState<PullRequest | null>(null)
-  const [diff, setDiff] = useState<GitDiff | null>(null)
+  const [diffData, setDiffData] = useState<DiffResponseDto | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -79,9 +81,9 @@ export default function PullRequestDetailPage() {
         `/pull-requests/project/${projectId}/number/${prNumber}`
       )
       console.log('[fetchDiff] Got PR data:', prData?.id, prData?.sourceBranch, prData?.targetBranch)
-      const diffData = await apiRequest<GitDiff>(`/pull-requests/${prData.id}/diff`)
-      console.log('[fetchDiff] Got diff data - files:', diffData?.files?.length)
-      setDiff(diffData)
+      const data = await apiRequest<DiffResponseDto>(`/pull-requests/${prData.id}/diff`)
+      console.log('[fetchDiff] Got diff data - files:', data?.files?.length, 'comments:', data?.comments?.length)
+      setDiffData(data)
     } catch (err) {
       console.error('[fetchDiff] FAILED:', err)
       console.error('[fetchDiff] Error details:', {
@@ -436,35 +438,27 @@ export default function PullRequestDetailPage() {
       )}
 
       {/* Diff */}
-      {diff && (
+      {diffData && (
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-6">
           <h2 className="text-xl font-bold mb-4">{t.pullRequests.diff.title}</h2>
           <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            {t.pullRequests.diff.filesChanged.replace('{count}', String(diff.summary.totalFiles))}
+            {t.pullRequests.diff.filesChanged.replace('{count}', String(diffData.summary.totalFiles))}
             {' · '}
             <span className="text-green-600">
-              {t.pullRequests.diff.additions.replace('{count}', String(diff.summary.totalAdditions))}
+              {t.pullRequests.diff.additions.replace('{count}', String(diffData.summary.totalAdditions))}
             </span>
             {' '}
             <span className="text-red-600">
-              {t.pullRequests.diff.deletions.replace('{count}', String(diff.summary.totalDeletions))}
+              {t.pullRequests.diff.deletions.replace('{count}', String(diffData.summary.totalDeletions))}
             </span>
           </div>
           <div className="space-y-4">
-            {diff.files.map((file, idx) => (
-              <div key={idx} className="border border-gray-300 dark:border-gray-600 rounded">
-                <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 font-mono text-sm">
-                  {file.path}
-                  <span className="ml-2 text-gray-600">
-                    ({file.status})
-                  </span>
-                </div>
-                {file.patch && (
-                  <pre className="p-4 text-sm overflow-x-auto bg-white dark:bg-gray-900">
-                    <code>{file.patch}</code>
-                  </pre>
-                )}
-              </div>
+            {diffData.files.map((file) => (
+              <DiffFileView
+                key={file.path}
+                file={file}
+                comments={diffData.comments}
+              />
             ))}
           </div>
         </div>

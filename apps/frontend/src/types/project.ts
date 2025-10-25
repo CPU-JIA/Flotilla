@@ -13,6 +13,10 @@ export interface Project {
   isArchived?: boolean
   createdAt: string
   updatedAt: string
+  // PR approval policy fields
+  requireApprovals: number
+  allowSelfMerge: boolean
+  requireReviewFromOwner: boolean
   owner?: {
     id: string
     username: string
@@ -106,6 +110,9 @@ export interface UpdateProjectRequest {
   name?: string
   description?: string
   visibility?: 'PUBLIC' | 'PRIVATE'
+  requireApprovals?: number
+  allowSelfMerge?: boolean
+  requireReviewFromOwner?: boolean
 }
 
 export interface AddMemberRequest {
