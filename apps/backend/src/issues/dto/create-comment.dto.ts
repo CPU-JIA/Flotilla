@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, MaxLength } from 'class-validator';
 
-export class CreateCommentDto {
+export class IssueCreateCommentDto {
   @ApiProperty({ description: '评论内容(Markdown格式)', example: 'This is a comment with **bold** text' })
   @IsString()
   @IsNotEmpty()

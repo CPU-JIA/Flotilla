@@ -75,6 +75,13 @@ async function initGitRepo(
       authorEmail: 'test@example.com',
     },
   })
+
+  if (!response.ok()) {
+    const errorBody = await response.text()
+    console.error(`[initGitRepo] FAILED: ${response.status()} ${response.statusText()}`)
+    console.error(`[initGitRepo] Response body: ${errorBody}`)
+  }
+
   expect(response.ok()).toBeTruthy()
 }
 
@@ -137,25 +144,14 @@ test.describe('Pull Request E2E Workflow', () => {
     // 1. API Login to get token for Git operations
     accessToken = await loginViaAPI(request, testUser.username, testUser.password)
 
-    // 2. Create test project via API (Git repo auto-initialized by backend)
+    // 2. Create test project via API
+    // Note: Backend automatically creates Repository and initializes Git with main branch!
+    // See apps/backend/src/projects/projects.service.ts:89-103
     const timestamp = Date.now()
     const projectName = `PR Test Project ${timestamp}`
     projectId = await createProjectViaAPI(request, accessToken, projectName)
 
-    // 3. Create feature branch
-    await createBranch(request, accessToken, projectId, 'feature-branch', 'main')
-
-    // 4. Create commit on feature branch
-    await createCommit(
-      request,
-      accessToken,
-      projectId,
-      'feature-branch',
-      [{ path: 'feature.txt', content: 'This is a new feature\nAdded functionality' }],
-      'Add new feature',
-    )
-
-    // 5. UI Login for page interactions
+    // 3. UI Login for page interactions
     await page.goto('/auth/login')
     await page.getByLabel(/用户名|Username/i).fill(testUser.username)
     await page.getByLabel(/密码|Password/i).fill(testUser.password)
@@ -181,7 +177,18 @@ test.describe('Pull Request E2E Workflow', () => {
     })
   })
 
-  test('should create a new pull request', async ({ page }) => {
+  test('should create a new pull request', async ({ page, request }) => {
+    // Create feature branch and commit for this test
+    await createBranch(request, accessToken, projectId, 'feature-create-pr', 'main')
+    await createCommit(
+      request,
+      accessToken,
+      projectId,
+      'feature-create-pr',
+      [{ path: 'feature.txt', content: 'This is a new feature\nAdded functionality' }],
+      'Add new feature',
+    )
+
     await page.goto(`/projects/${projectId}/pulls/new`)
 
     // Wait for page to load
@@ -231,6 +238,17 @@ test.describe('Pull Request E2E Workflow', () => {
   })
 
   test('should display PR details with diff', async ({ page, request }) => {
+    // Create feature branch and commit for this test
+    await createBranch(request, accessToken, projectId, 'feature-diff-test', 'main')
+    await createCommit(
+      request,
+      accessToken,
+      projectId,
+      'feature-diff-test',
+      [{ path: 'feature.txt', content: 'This is a new feature\nAdded functionality' }],
+      'Add new feature',
+    )
+
     // First create a PR via API for testing
     const createPRResponse = await request.post('http://localhost:4000/api/pull-requests', {
       headers: {
@@ -241,7 +259,7 @@ test.describe('Pull Request E2E Workflow', () => {
         projectId,
         title: 'Test PR for Display',
         body: 'This PR demonstrates diff display',
-        sourceBranch: 'feature-branch',
+        sourceBranch: 'feature-diff-test',
         targetBranch: 'main',
       },
     })
@@ -263,7 +281,7 @@ test.describe('Pull Request E2E Workflow', () => {
     })
 
     // Verify source and target branches displayed
-    await expect(page.locator('text=feature-branch')).toBeVisible()
+    await expect(page.locator('text=feature-diff-test')).toBeVisible()
     await expect(page.locator('text=main')).toBeVisible()
 
     // Verify diff content displayed (should show feature.txt changes)
@@ -280,6 +298,17 @@ test.describe('Pull Request E2E Workflow', () => {
   })
 
   test('should merge PR with merge commit strategy', async ({ page, request }) => {
+    // Create feature branch and commit for this test
+    await createBranch(request, accessToken, projectId, 'feature-merge-commit', 'main')
+    await createCommit(
+      request,
+      accessToken,
+      projectId,
+      'feature-merge-commit',
+      [{ path: 'merge-commit.txt', content: 'Merge commit test' }],
+      'Add merge commit test file',
+    )
+
     // Create a PR via API
     const createPRResponse = await request.post('http://localhost:4000/api/pull-requests', {
       headers: {
@@ -290,7 +319,7 @@ test.describe('Pull Request E2E Workflow', () => {
         projectId,
         title: 'Test PR for Merge',
         body: 'This PR will be merged',
-        sourceBranch: 'feature-branch',
+        sourceBranch: 'feature-merge-commit',
         targetBranch: 'main',
       },
     })
@@ -313,12 +342,9 @@ test.describe('Pull Request E2E Workflow', () => {
     // Wait for merge dialog to appear
     await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 3000 })
 
-    // Select "Merge Commit" strategy (may be default)
-    // Look for radio button or dropdown - adjust selector as needed
-    const mergeCommitOption = page.locator('text=Merge Commit').or(page.locator('text=Merge commit'))
-    if (await mergeCommitOption.isVisible()) {
-      await mergeCommitOption.click()
-    }
+    // Select "Merge Commit" strategy from dropdown
+    const strategySelect = page.locator('select').filter({ hasText: /Merge.*Squash.*Rebase/i })
+    await strategySelect.selectOption('merge')
 
     // Confirm merge - look for "合并 PR" or "Merge PR" button in dialog (use .last() to get dialog button)
     await page.getByRole('button', { name: /^Merge.*PR$|^合并.*PR$/i }).last().click()
@@ -339,5 +365,135 @@ test.describe('Pull Request E2E Workflow', () => {
     // Verify "Merge" button is no longer visible or disabled
     const mergeButtonAfter = page.getByRole('button', { name: /Merge.*Pull Request|合并/i })
     await expect(mergeButtonAfter).not.toBeVisible()
+  })
+
+  test('should merge PR with squash strategy', async ({ page, request }) => {
+    // Create feature branch and commit for this test
+    await createBranch(request, accessToken, projectId, 'feature-squash', 'main')
+    await createCommit(
+      request,
+      accessToken,
+      projectId,
+      'feature-squash',
+      [{ path: 'squash.txt', content: 'Squash merge test' }],
+      'Add squash test file',
+    )
+
+    // Create a PR via API
+    const createPRResponse = await request.post('http://localhost:4000/api/pull-requests', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      data: {
+        projectId,
+        title: 'Test PR for Squash Merge',
+        body: 'This PR will be squash merged',
+        sourceBranch: 'feature-squash',
+        targetBranch: 'main',
+      },
+    })
+    expect(createPRResponse.ok()).toBeTruthy()
+    const prData = await createPRResponse.json()
+    const prNumber = prData.number
+
+    // Navigate to PR detail page
+    await page.goto(`/projects/${projectId}/pulls/${prNumber}`)
+
+    // Wait for page to load
+    await page.waitForLoadState('networkidle', { timeout: 10000 })
+
+    // Click "Merge Pull Request" button
+    const mergeButton = page.getByRole('button', { name: /Merge.*Pull Request|合并/i })
+    await expect(mergeButton).toBeVisible({ timeout: 5000 })
+    await mergeButton.click()
+
+    // Wait for merge dialog to appear
+    await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 3000 })
+
+    // Select "Squash" strategy from dropdown
+    const strategySelect = page.locator('select').filter({ hasText: /Merge.*Squash.*Rebase/i })
+    await strategySelect.selectOption('squash')  // Lowercase to match MergeStrategy enum value
+
+    // Confirm merge
+    await page.getByRole('button', { name: /^Merge.*PR$|^合并.*PR$/i }).last().click()
+
+    // Wait for merge to complete
+    await page.waitForTimeout(2000)
+
+    // Verify MERGED badge appears
+    await expect(page.locator('[data-slot="badge"]').filter({ hasText: /^Merged$/i })).toBeVisible({
+      timeout: 10000,
+    })
+
+    // Verify merge completed
+    await expect(page.locator('text=merged this pull request').or(page.locator('text=已合并'))).toBeVisible({
+      timeout: 5000,
+    })
+  })
+
+  test('should merge PR with rebase strategy', async ({ page, request }) => {
+    // Create feature branch and commit for this test
+    await createBranch(request, accessToken, projectId, 'feature-rebase', 'main')
+    await createCommit(
+      request,
+      accessToken,
+      projectId,
+      'feature-rebase',
+      [{ path: 'rebase.txt', content: 'Rebase merge test' }],
+      'Add rebase test file',
+    )
+
+    // Create a PR via API
+    const createPRResponse = await request.post('http://localhost:4000/api/pull-requests', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      data: {
+        projectId,
+        title: 'Test PR for Rebase Merge',
+        body: 'This PR will be rebased',
+        sourceBranch: 'feature-rebase',
+        targetBranch: 'main',
+      },
+    })
+    expect(createPRResponse.ok()).toBeTruthy()
+    const prData = await createPRResponse.json()
+    const prNumber = prData.number
+
+    // Navigate to PR detail page
+    await page.goto(`/projects/${projectId}/pulls/${prNumber}`)
+
+    // Wait for page to load
+    await page.waitForLoadState('networkidle', { timeout: 10000 })
+
+    // Click "Merge Pull Request" button
+    const mergeButton = page.getByRole('button', { name: /Merge.*Pull Request|合并/i })
+    await expect(mergeButton).toBeVisible({ timeout: 5000 })
+    await mergeButton.click()
+
+    // Wait for merge dialog to appear
+    await expect(page.locator('[role="dialog"]')).toBeVisible({ timeout: 3000 })
+
+    // Select "Rebase" strategy from dropdown
+    const strategySelect = page.locator('select').filter({ hasText: /Merge.*Squash.*Rebase/i })
+    await strategySelect.selectOption('rebase')  // Lowercase to match MergeStrategy enum value
+
+    // Confirm merge
+    await page.getByRole('button', { name: /^Merge.*PR$|^合并.*PR$/i }).last().click()
+
+    // Wait for merge to complete
+    await page.waitForTimeout(2000)
+
+    // Verify MERGED badge appears
+    await expect(page.locator('[data-slot="badge"]').filter({ hasText: /^Merged$/i })).toBeVisible({
+      timeout: 10000,
+    })
+
+    // Verify merge completed
+    await expect(page.locator('text=merged this pull request').or(page.locator('text=已合并'))).toBeVisible({
+      timeout: 5000,
+    })
   })
 })

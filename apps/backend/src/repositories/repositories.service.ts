@@ -5,10 +5,13 @@ import {
   ConflictException,
   BadRequestException,
   Logger,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
-import { CreateBranchDto, CreateCommitDto } from './dto';
+import { GitService } from '../git/git.service';
+import { CreateBranchDto, RepositoryCreateCommitDto } from './dto';
 import type { User, Repository, Branch, Commit, File } from '@prisma/client';
 import { MemberRole, UserRole } from '@prisma/client';
 
@@ -19,6 +22,8 @@ export class RepositoriesService {
   constructor(
     private prisma: PrismaService,
     private minioService: MinioService,
+    @Inject(forwardRef(() => GitService))
+    private gitService: GitService,
   ) {}
 
   /**
@@ -56,6 +61,19 @@ export class RepositoriesService {
         repositoryId: repository.id,
       },
     });
+
+    // 初始化物理Git仓库 (Phase 3.1: Auto-initialize Git on project creation)
+    try {
+      await this.gitService.init(projectId, 'main');
+      await this.gitService.createInitialCommit(projectId, {
+        name: 'System',
+        email: 'system@flotilla.local',
+      });
+      this.logger.log(`✅ Physical Git repository initialized for project ${projectId}`);
+    } catch (error) {
+      this.logger.error(`❌ Failed to initialize Git for project ${projectId}:`, error);
+      // 不抛出异常，允许项目创建成功但Git未初始化（可以后续手动初始化）
+    }
 
     this.logger.log(`📂 Repository created for project ${projectId}`);
     return repository;
@@ -259,7 +277,7 @@ export class RepositoriesService {
    */
   async createCommit(
     projectId: string,
-    createCommitDto: CreateCommitDto,
+    createCommitDto: RepositoryCreateCommitDto,
     currentUser: User,
   ): Promise<Commit> {
     await this.checkProjectPermission(projectId, currentUser, true);

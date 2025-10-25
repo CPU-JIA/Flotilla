@@ -26,7 +26,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { CommentsService } from './comments.service';
-import { CreateCommentDto } from './dto/create-comment.dto';
+import { IssueCreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -87,7 +87,7 @@ export class CommentsController {
     @Param('projectId') projectId: string,
     @Param('number', ParseIntPipe) issueNumber: number,
     @CurrentUser('id') userId: string,
-    @Body() createCommentDto: CreateCommentDto,
+    @Body() createCommentDto: IssueCreateCommentDto,
   ) {
     // Get issue by project and number
     const issue = await this.commentsService['prisma'].issue.findUnique({

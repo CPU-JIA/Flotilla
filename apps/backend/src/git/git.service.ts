@@ -83,6 +83,7 @@ export class GitService {
       const treeOid = await git.writeTree({
         fs,
         dir,
+        gitdir: dir, // Required for bare repository
         tree: [
           {
             mode: '100644',
@@ -97,6 +98,7 @@ export class GitService {
       const sha = await git.commit({
         fs,
         dir,
+        gitdir: dir, // Required for bare repository
         author: {
           name: author.name,
           email: author.email,
@@ -173,16 +175,25 @@ export class GitService {
 
       try {
         // Read ref file directly (git.resolveRef has bugs with bare repos)
-        const refPath = path.join(dir, branchRef.replace('refs/', ''));
+        const refPath = path.join(dir, branchRef);
         if (fs.existsSync(refPath)) {
           parentCommit = fs.readFileSync(refPath, 'utf8').trim();
+          this.logger.debug(
+            `Read parent commit from ${branchRef}: ${parentCommit}`,
+          );
         } else {
           // Branch doesn't exist, will create new branch
+          this.logger.debug(`Branch ${branchRef} does not exist at ${refPath}`);
           throw new Error('Branch does not exist');
         }
 
         // Read existing tree from parent commit
-        const commit = await git.readCommit({ fs, dir, oid: parentCommit });
+        const commit = await git.readCommit({
+          fs,
+          dir,
+          gitdir: dir,
+          oid: parentCommit,
+        });
         const treeOid = commit.commit.tree;
 
         // Walk the tree to get all existing files
@@ -238,6 +249,7 @@ export class GitService {
       const treeOid = await git.writeTree({
         fs,
         dir,
+        gitdir: dir, // Required for bare repository
         tree: treeEntries,
       });
 
@@ -245,6 +257,7 @@ export class GitService {
       const commitOid = await git.commit({
         fs,
         dir,
+        gitdir: dir, // Required for bare repository
         author: {
           name: author.name,
           email: author.email,
@@ -435,6 +448,7 @@ export class GitService {
             commitSha = await git.resolveRef({
               fs,
               dir,
+              gitdir: dir, // Required for bare repository
               ref: `refs/heads/${startPoint}`,
             });
             this.logger.debug(
@@ -456,6 +470,7 @@ export class GitService {
       await git.branch({
         fs,
         dir,
+        gitdir: dir, // Required for bare repository
         ref: branchName,
         checkout: false,
         ...(commitSha && { object: commitSha }),
@@ -1120,13 +1135,14 @@ export class GitService {
         `Read branch refs for squash: ${sourceBranch} → ${sourceOid}, ${targetBranch} → ${targetOid}`,
       );
 
-      const sourceCommit = await git.readCommit({ fs, dir, oid: sourceOid });
+      const sourceCommit = await git.readCommit({ fs, dir, gitdir: dir, oid: sourceOid });
       const tree = sourceCommit.commit.tree;
 
       // Create a single commit on target branch with source's tree
       const squashOid = await git.commit({
         fs,
         dir,
+        gitdir: dir, // Required for bare repository
         message: commitMessage,
         tree: tree, // Use source branch's tree directly
         parent: [targetOid], // Single parent (target branch HEAD)
@@ -1138,6 +1154,7 @@ export class GitService {
       await git.writeRef({
         fs,
         dir,
+        gitdir: dir, // Required for bare repository
         ref: `refs/heads/${targetBranch}`,
         value: squashOid,
         force: true,
@@ -1233,6 +1250,7 @@ export class GitService {
         currentOid = await git.commit({
           fs,
           dir,
+          gitdir: dir, // Required for bare repository
           message,
           tree,
           parent: [currentOid],
@@ -1245,6 +1263,7 @@ export class GitService {
       await git.writeRef({
         fs,
         dir,
+        gitdir: dir, // Required for bare repository
         ref: `refs/heads/${targetBranch}`,
         value: currentOid,
         force: true,
@@ -1296,22 +1315,39 @@ export class GitService {
 
       // Collect all ancestors of oid1
       let current = oid1;
+      this.logger.debug(`findMergeBase: Collecting ancestors of oid1=${oid1}`);
       while (current) {
         commits1.add(current);
-        const commit = await git.readCommit({ fs, dir, oid: current });
+        this.logger.debug(`  Added commit: ${current}`);
+        const commit = await git.readCommit({ fs, dir, gitdir: dir, oid: current });
         current = commit.commit.parent[0]; // Follow first parent only
+        if (current) {
+          this.logger.debug(`  Parent: ${current}`);
+        } else {
+          this.logger.debug(`  No parent (reached initial commit)`);
+        }
       }
+      this.logger.debug(`Collected ${commits1.size} commits from oid1`);
 
       // Walk back from oid2 until we find a commit in commits1
       current = oid2;
+      this.logger.debug(`findMergeBase: Walking back from oid2=${oid2}`);
       while (current) {
+        this.logger.debug(`  Checking commit: ${current}`);
         if (commits1.has(current)) {
+          this.logger.debug(`  ✅ Found common ancestor: ${current}`);
           return current; // Found merge base
         }
-        const commit = await git.readCommit({ fs, dir, oid: current });
+        const commit = await git.readCommit({ fs, dir, gitdir: dir, oid: current });
         current = commit.commit.parent[0];
+        if (current) {
+          this.logger.debug(`  Parent: ${current}`);
+        } else {
+          this.logger.debug(`  No parent (reached initial commit without finding common ancestor)`);
+        }
       }
 
+      this.logger.warn(`No common ancestor found between ${oid1} and ${oid2}`);
       return null; // No common ancestor
     } catch (error) {
       this.logger.warn('Failed to find merge base:', error);
@@ -1343,7 +1379,7 @@ export class GitService {
     let current = headOid;
 
     while (current && current !== baseOid) {
-      const commitObj = await git.readCommit({ fs, dir, oid: current });
+      const commitObj = await git.readCommit({ fs, dir, gitdir: dir, oid: current });
       commits.unshift(commitObj); // Add to beginning to maintain order
       current = commitObj.commit.parent[0];
     }

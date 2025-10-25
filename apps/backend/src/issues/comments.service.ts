@@ -10,7 +10,7 @@
 
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateCommentDto } from './dto/create-comment.dto';
+import { IssueCreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 
 @Injectable()
@@ -46,7 +46,7 @@ export class CommentsService {
    * @param createCommentDto - Comment data
    * @returns Created comment with author information
    */
-  async create(issueId: string, authorId: string, createCommentDto: CreateCommentDto) {
+  async create(issueId: string, authorId: string, createCommentDto: IssueCreateCommentDto) {
     // ECP-C1: Verify issue exists
     const issue = await this.prisma.issue.findUnique({
       where: { id: issueId },

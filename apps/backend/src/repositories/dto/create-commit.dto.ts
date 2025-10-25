@@ -1,6 +1,6 @@
 import { IsString, MinLength, MaxLength } from 'class-validator';
 
-export class CreateCommitDto {
+export class RepositoryCreateCommitDto {
   @IsString()
   @MinLength(1, { message: '提交信息不能为空' })
   @MaxLength(500, { message: '提交信息最多500个字符' })

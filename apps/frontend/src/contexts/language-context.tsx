@@ -763,28 +763,32 @@ export interface Translations {
   pullRequests: {
     title: string
     createNew: string
-    noPRs: string
-    totalPRs: string
+    noPullRequests: string
+    totalPullRequests: string
     searchPlaceholder: string
+    backToPullRequests: string
     backToPRs: string
+
     list: {
       title: string
-      openPRs: string
-      closedPRs: string
-      mergedPRs: string
-      allPRs: string
+      openPullRequests: string
+      closedPullRequests: string
+      mergedPullRequests: string
+      allPullRequests: string
       number: string
       titleColumn: string
       state: string
       author: string
       sourceBranch: string
       targetBranch: string
-      reviews: string
-      comments: string
-      noPRsFound: string
-      noPRsDesc: string
+      noPullRequestsFound: string
+      noPullRequestsDesc: string
       loading: string
+      previousPage: string
+      nextPage: string
+      pageInfo: string
     }
+
     create: {
       title: string
       titleLabel: string
@@ -795,10 +799,9 @@ export interface Translations {
       bodyHelper: string
       sourceBranchLabel: string
       sourceBranchPlaceholder: string
-      sourceBranchRequired: string
       targetBranchLabel: string
       targetBranchPlaceholder: string
-      targetBranchRequired: string
+      noBranches: string
       creating: string
       createButton: string
       cancelButton: string
@@ -806,6 +809,7 @@ export interface Translations {
       createFailed: string
       sameBranchError: string
     }
+
     detail: {
       loading: string
       notFound: string
@@ -814,79 +818,115 @@ export interface Translations {
       mergedBy: string
       closedAt: string
       noDescription: string
-      closePR: string
+      mergePullRequest: string
       mergePR: string
+      closePullRequest: string
+      closePR: string
+      reopenPullRequest: string
+      deletePullRequest: string
       deletePR: string
+      editPullRequest: string
       editPR: string
       confirmDelete: string
-      confirmMerge: string
       closeSuccess: string
       closeFailed: string
-      mergeSuccess: string
-      mergeFailed: string
+      reopenSuccess: string
+      reopenFailed: string
       deleteSuccess: string
       deleteFailed: string
+      mergeSuccess: string
+      mergeFailed: string
       metadata: string
       branches: string
-      source: string
-      target: string
-      mergeCommit: string
+      commits: string
+      filesChanged: string
+      additions: string
+      deletions: string
+      conversation: string
+      changesTab: string
+      commitsTab: string
+      mergedThisPullRequest: string
     }
+
     state: {
       open: string
-      merged: string
       closed: string
+      merged: string
     }
-    reviews: {
+
+    mergeStrategy: {
       title: string
-      addReview: string
-      approveLabel: string
-      changesRequestedLabel: string
-      commentLabel: string
-      reviewCommentPlaceholder: string
-      submitting: string
-      submitButton: string
-      cancelButton: string
-      noReviews: string
-      approved: string
-      changesRequested: string
-      commented: string
-      reviewedAt: string
-      createSuccess: string
-      createFailed: string
+      merge: string
+      mergeDesc: string
+      squash: string
+      squashDesc: string
+      rebase: string
+      rebaseDesc: string
     }
+
+    merge: {
+      title: string
+      selectStrategy: string
+      mergeCommit: string
+      mergeCommitDesc: string
+      squash: string
+      squashDesc: string
+      rebase: string
+      rebaseDesc: string
+      commitMessageLabel: string
+      commitMessagePlaceholder: string
+      confirmButton: string
+      cancelButton: string
+      merging: string
+    }
+
+    diff: {
+      title: string
+      loading: string
+      noChanges: string
+      filesChanged: string
+      additions: string
+      deletions: string
+      binaryFile: string
+      fileAdded: string
+      fileModified: string
+      fileDeleted: string
+      expandAll: string
+      collapseAll: string
+    }
+
     comments: {
       title: string
       addComment: string
       commentPlaceholder: string
-      lineComment: string
-      fileLabel: string
-      lineLabel: string
+      submitComment: string
       submitting: string
       submitButton: string
-      cancelButton: string
+      editComment: string
+      deleteComment: string
       noComments: string
       createSuccess: string
       createFailed: string
     }
-    diff: {
+
+    reviews: {
       title: string
-      loading: string
-      filesChanged: string
-      additions: string
-      deletions: string
-      noChanges: string
-      expandDiff: string
-      collapseDiff: string
-    }
-    mergeStrategy: {
-      title: string
-      merge: string
-      squash: string
-      rebase: string
-      mergeDesc: string
-      squashDesc: string
-      rebaseDesc: string
+      addReview: string
+      approve: string
+      approveLabel: string
+      requestChanges: string
+      changesRequestedLabel: string
+      comment: string
+      commentLabel: string
+      reviewCommentPlaceholder: string
+      reviewPlaceholder: string
+      submitReview: string
+      submitting: string
+      submitButton: string
+      cancelButton: string
+      noReviews: string
+      createSuccess: string
+      createFailed: string
     }
   }
 

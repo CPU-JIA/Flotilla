@@ -17,7 +17,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { RepositoriesService } from './repositories.service';
-import { CreateBranchDto, CreateCommitDto } from './dto';
+import { CreateBranchDto, RepositoryCreateCommitDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { User } from '@prisma/client';
@@ -159,7 +159,7 @@ export class RepositoriesController {
   @HttpCode(HttpStatus.CREATED)
   async createCommit(
     @Param('projectId') projectId: string,
-    @Body() createCommitDto: CreateCommitDto,
+    @Body() createCommitDto: RepositoryCreateCommitDto,
     @CurrentUser() currentUser: User,
   ) {
     this.logger.log(`📝 Creating commit in project: ${projectId}`);

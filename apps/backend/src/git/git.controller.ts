@@ -28,6 +28,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 import { InitRepositoryDto } from './dto/init-repository.dto';
 import { GitCreateBranchDto } from './dto/create-branch.dto';
+import { GitCreateCommitDto } from './dto/create-commit.dto';
 
 @ApiTags('git')
 @Controller('git')
@@ -137,6 +138,37 @@ export class GitController {
     return {
       success: true,
       branch: dto.name,
+    };
+  }
+
+  @Post(':projectId/commit')
+  @ApiOperation({ summary: 'Create a new commit' })
+  @ApiResponse({ status: 201, description: 'Commit created' })
+  async createCommit(
+    @Param('projectId') projectId: string,
+    @Body() dto: GitCreateCommitDto,
+    @CurrentUser() user: any,
+  ) {
+    await this.verifyProjectAccess(projectId, user.id);
+
+    // Use DTO author info if provided, otherwise use current user
+    const author = {
+      name: dto.authorName || user.username,
+      email: dto.authorEmail || user.email,
+    };
+
+    const commitSha = await this.gitService.commit(
+      projectId,
+      dto.branch,
+      dto.files,
+      dto.message,
+      author,
+    );
+
+    return {
+      success: true,
+      commitSha,
+      branch: dto.branch,
     };
   }
 
