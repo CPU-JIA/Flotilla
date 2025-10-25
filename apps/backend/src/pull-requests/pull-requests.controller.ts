@@ -23,6 +23,9 @@ import { UpdatePullRequestDto } from './dto/update-pull-request.dto';
 import { MergePullRequestDto } from './dto/merge-pull-request.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { PullRequestCreateCommentDto } from './dto/create-comment.dto';
+import { MergeStatusResponseDto } from './dto/merge-status-response.dto';
+import { ReviewSummaryResponseDto } from './dto/review-summary-response.dto';
+import { DiffResponseDto } from './dto/diff-response.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { PRState } from '@prisma/client';
@@ -206,19 +209,43 @@ export class PullRequestsController {
   }
 
   @Get(':id/diff')
-  @ApiOperation({ summary: '获取PR的Git Diff' })
+  @ApiOperation({ summary: '获取PR的Git Diff及行内评论' })
   @ApiParam({ name: 'id', description: 'PR ID' })
   @ApiResponse({
     status: 200,
-    description: '返回Diff信息',
+    description: '返回Diff信息和行内评论',
+    type: DiffResponseDto,
   })
   @ApiResponse({ status: 404, description: 'PR不存在' })
-  async getDiff(@Param('id') id: string) {
-    const pr = await this.pullRequestsService.findOne(id);
-    return this.gitService.getDiff(
-      pr.projectId,
-      pr.sourceBranch,
-      pr.targetBranch,
-    );
+  getDiff(@Param('id') id: string) {
+    return this.pullRequestsService.getDiff(id);
+  }
+
+  @Get(':id/review-summary')
+  @ApiOperation({ summary: '获取PR的Review摘要' })
+  @ApiParam({ name: 'id', description: 'PR ID' })
+  @ApiResponse({
+    status: 200,
+    description: '返回Review聚合摘要（每个reviewer的最新状态）',
+    type: ReviewSummaryResponseDto,
+  })
+  getReviewSummary(@Param('id') id: string) {
+    return this.pullRequestsService.getReviewSummary(id);
+  }
+
+  @Get(':id/merge-status')
+  @ApiOperation({ summary: '检查PR是否可以合并' })
+  @ApiParam({ name: 'id', description: 'PR ID' })
+  @ApiResponse({
+    status: 200,
+    description: '返回合并状态及原因',
+    type: MergeStatusResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'PR不存在' })
+  getMergeStatus(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.pullRequestsService.canMergePR(id, userId);
   }
 }

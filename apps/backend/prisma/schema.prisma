@@ -245,6 +245,11 @@ model Project {
   isArchived     Boolean   @default(false)
   archivedAt     DateTime?
 
+  // PR Approval Settings
+  requireApprovals       Int     @default(1)
+  allowSelfMerge         Boolean @default(true)
+  requireReviewFromOwner Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

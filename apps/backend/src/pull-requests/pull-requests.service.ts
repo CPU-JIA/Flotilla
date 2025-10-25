@@ -657,4 +657,189 @@ export class PullRequestsService {
       },
     });
   }
+
+  /**
+   * Get review summary with latest review state per reviewer
+   * 获取Review摘要（每个reviewer的最新review状态）
+   */
+  async getReviewSummary(prId: string) {
+    // Fetch all reviews ordered by createdAt desc
+    const reviews = await this.prisma.pRReview.findMany({
+      where: { pullRequestId: prId },
+      include: {
+        reviewer: {
+          select: {
+            id: true,
+            username: true,
+            avatar: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Get latest review per reviewer using Map
+    const latestReviewsMap = new Map<string, typeof reviews[0]>();
+    for (const review of reviews) {
+      if (!latestReviewsMap.has(review.reviewerId)) {
+        latestReviewsMap.set(review.reviewerId, review);
+      }
+    }
+
+    const latestReviews = Array.from(latestReviewsMap.values());
+
+    // Aggregate by state
+    const summary = {
+      approved: latestReviews.filter((r) => r.state === 'APPROVED').length,
+      changesRequested: latestReviews.filter(
+        (r) => r.state === 'CHANGES_REQUESTED',
+      ).length,
+      commented: latestReviews.filter((r) => r.state === 'COMMENTED').length,
+      totalReviewers: latestReviews.length,
+      reviewers: latestReviews.map((r) => ({
+        id: r.reviewer.id,
+        username: r.reviewer.username,
+        avatar: r.reviewer.avatar,
+        state: r.state,
+        createdAt: r.createdAt,
+      })),
+    };
+
+    return summary;
+  }
+
+  /**
+   * Check if PR can be merged based on approval rules
+   * 检查PR是否可以合并（基于approval规则）
+   */
+  async canMergePR(prId: string, userId: string) {
+    const pr = await this.prisma.pullRequest.findUnique({
+      where: { id: prId },
+      include: {
+        project: {
+          select: {
+            id: true,
+            requireApprovals: true,
+            allowSelfMerge: true,
+            requireReviewFromOwner: true,
+            ownerId: true,
+          },
+        },
+      },
+    });
+
+    if (!pr) {
+      throw new NotFoundException(`Pull request ${prId} not found`);
+    }
+
+    // Get review summary
+    const reviewSummary = await this.getReviewSummary(prId);
+
+    // Rule 1: No active "changes requested" reviews
+    if (reviewSummary.changesRequested > 0) {
+      return {
+        allowed: false,
+        reason: 'Cannot merge: active change requests',
+        approvalCount: reviewSummary.approved,
+        requiredApprovals: pr.project.requireApprovals,
+        hasChangeRequests: true,
+      };
+    }
+
+    // Rule 2: Minimum approval count
+    if (reviewSummary.approved < pr.project.requireApprovals) {
+      return {
+        allowed: false,
+        reason: `Need ${pr.project.requireApprovals - reviewSummary.approved} more approval(s)`,
+        approvalCount: reviewSummary.approved,
+        requiredApprovals: pr.project.requireApprovals,
+        hasChangeRequests: false,
+      };
+    }
+
+    // Rule 3: Self-merge policy
+    if (!pr.project.allowSelfMerge && pr.authorId === userId) {
+      return {
+        allowed: false,
+        reason: 'Cannot merge your own PR (project policy)',
+        approvalCount: reviewSummary.approved,
+        requiredApprovals: pr.project.requireApprovals,
+        hasChangeRequests: false,
+      };
+    }
+
+    // Rule 4: Owner approval requirement
+    if (pr.project.requireReviewFromOwner) {
+      const ownerReview = reviewSummary.reviewers.find(
+        (r) => r.id === pr.project.ownerId && r.state === 'APPROVED',
+      );
+      if (!ownerReview) {
+        return {
+          allowed: false,
+          reason: 'Project owner approval required',
+          approvalCount: reviewSummary.approved,
+          requiredApprovals: pr.project.requireApprovals,
+          hasChangeRequests: false,
+        };
+      }
+    }
+
+    // All rules passed
+    return {
+      allowed: true,
+      approvalCount: reviewSummary.approved,
+      requiredApprovals: pr.project.requireApprovals,
+      hasChangeRequests: false,
+    };
+  }
+
+  /**
+   * Get diff for PR with line-level comments
+   * 获取PR的diff和行内评论
+   */
+  async getDiff(prId: string) {
+    const pr = await this.prisma.pullRequest.findUnique({
+      where: { id: prId },
+      select: {
+        projectId: true,
+        sourceBranch: true,
+        targetBranch: true,
+      },
+    });
+
+    if (!pr) {
+      throw new NotFoundException(`Pull request ${prId} not found`);
+    }
+
+    // Get diff from GitService
+    const diff = await this.gitService.getDiff(
+      pr.projectId,
+      pr.sourceBranch,
+      pr.targetBranch,
+    );
+
+    // Get line-level comments
+    const comments = await this.prisma.pRComment.findMany({
+      where: {
+        pullRequestId: prId,
+        filePath: { not: null }, // Only line comments
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            avatar: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return {
+      files: diff.files,
+      summary: diff.summary,
+      comments,
+    };
+  }
 }

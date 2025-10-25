@@ -9,6 +9,65 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### PR Review Enhancement (2025-10-25)
+
+#### Added
+- **PR Approval Validation System**
+  - Added `requireApprovals` field to Project model (default: 1, minimum approvals needed)
+  - Added `allowSelfMerge` field to Project model (default: true, allow PR author to merge own PR)
+  - Added `requireReviewFromOwner` field to Project model (default: false, require project owner approval)
+
+- **Review Aggregation API**
+  - New endpoint: `GET /api/pull-requests/:id/review-summary`
+  - Returns aggregated review summary with latest state per reviewer
+  - Response includes: `approved`, `changesRequested`, `commented`, `totalReviewers`, `reviewers[]`
+  - Implements Map-based aggregation to get latest review per reviewer
+
+- **Merge Status Validation API**
+  - New endpoint: `GET /api/pull-requests/:id/merge-status`
+  - Validates 4 approval rules:
+    1. No active "changes requested" reviews
+    2. Minimum approval count satisfied
+    3. Self-merge policy enforcement
+    4. Owner approval requirement (if configured)
+  - Returns: `allowed`, `reason`, `approvalCount`, `requiredApprovals`, `hasChangeRequests`
+
+- **Enhanced Diff API**
+  - New endpoint: `GET /api/pull-requests/:id/diff`
+  - Returns Git diff with file changes and line-level comments
+  - Response includes: `files[]`, `summary`, `comments[]`
+  - Filters comments to only include line-level comments (filePath not null)
+  - Integrates with `GitService.getDiff()` for diff generation
+
+#### Changed
+- **Database Schema**
+  - Updated `Project` model with 3 new approval policy fields
+  - Migration: `prisma migrate dev --name add_pr_approval_fields`
+
+- **PullRequestsService** (`apps/backend/src/pull-requests/pull-requests.service.ts`)
+  - Added `getReviewSummary(prId: string)` method (lines 665-709)
+  - Added `canMergePR(prId: string, userId: string)` method (lines 715-794)
+  - Added `getDiff(prId: string)` method (lines 800-844)
+
+- **PullRequestsController** (`apps/backend/src/pull-requests/pull-requests.controller.ts`)
+  - Added 3 new GET endpoints with Swagger documentation
+  - All endpoints protected with `JwtAuthGuard`
+  - Response DTOs: `ReviewSummaryResponseDto`, `MergeStatusResponseDto`, `DiffResponseDto`
+
+#### Testing
+- **Unit Tests**: 10 new test cases added to `pull-requests.service.spec.ts` (lines 753-1077)
+  - `getReviewSummary()`: 2 tests (aggregation logic, state counting)
+  - `canMergePR()`: 6 tests (change requests, approvals, self-merge, owner approval, success, not found)
+  - `getDiff()`: 2 tests (success with comments, not found)
+- **Test Coverage**: 82.57% for `pull-requests.service.ts` (Stmts: 82.57%, Branch: 74.35%, Funcs: 80.95%, Lines: 82.3%)
+- **Test Results**: 37/37 tests passing ✅
+
+#### Documentation
+- **Swagger API Docs**: All 3 endpoints documented at `http://localhost:4000/api/docs`
+- **DTO Schemas**: Complete ApiProperty decorators with Chinese descriptions and examples
+
+---
+
 ### Major UI/UX Upgrade (2025-10-21)
 
 #### Added
