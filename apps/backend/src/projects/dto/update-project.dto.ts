@@ -4,6 +4,10 @@ import {
   MinLength,
   MaxLength,
   IsEnum,
+  IsInt,
+  Min,
+  Max,
+  IsBoolean,
 } from 'class-validator';
 import { ProjectVisibility } from '@prisma/client';
 
@@ -22,4 +26,19 @@ export class UpdateProjectDto {
   @IsOptional()
   @IsEnum(ProjectVisibility, { message: '无效的项目可见性' })
   visibility?: ProjectVisibility;
+
+  // PR Approval Rules (Phase 2 - PR Review Enhancement)
+  @IsOptional()
+  @IsInt({ message: '需要批准数必须是整数' })
+  @Min(0, { message: '需要批准数不能小于0' })
+  @Max(10, { message: '需要批准数不能大于10' })
+  requireApprovals?: number;
+
+  @IsOptional()
+  @IsBoolean({ message: '允许自合并必须是布尔值' })
+  allowSelfMerge?: boolean;
+
+  @IsOptional()
+  @IsBoolean({ message: '需要所有者审查必须是布尔值' })
+  requireReviewFromOwner?: boolean;
 }
