@@ -10,19 +10,167 @@ import * as git from 'isomorphic-git';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import { createTwoFilesPatch } from 'diff';
 import { PrismaService } from '../prisma/prisma.service';
+
+const execFileAsync = promisify(execFile);
 
 @Injectable()
 export class GitService {
   private readonly logger = new Logger(GitService.name);
+  /**
+   * Git repository storage path
+   *
+   * Priority:
+   * 1. GIT_STORAGE_PATH environment variable (production)
+   * 2. {cwd}/repos (development default - apps/backend/repos/)
+   *
+   * ECP-C3: Data persistence - avoid temporary directories that may be cleared
+   *
+   * Note: Changed from os.tmpdir() to ensure repository data persistence
+   * Temporary directories risk data loss on system cleanup/restart
+   */
   private readonly gitStorageBasePath =
-    process.env.GIT_STORAGE_PATH || path.join(os.tmpdir(), 'flotilla-git');
+    process.env.GIT_STORAGE_PATH || path.join(process.cwd(), 'repos');
 
   constructor(private readonly prisma: PrismaService) {}
 
   private getRepoPath(projectId: string): string {
     return path.join(this.gitStorageBasePath, projectId);
+  }
+
+  /**
+   * Verify git config using system git command
+   *
+   * Why not isomorphic-git.getConfig?
+   * - Discovered bug: isomorphic-git.getConfig() returns undefined on Windows
+   *   even when config exists in file
+   * - System git is 100% reliable across all platforms
+   *
+   * ECP-C1: Defensive programming - use most reliable verification method
+   *
+   * @param dir - Repository directory path
+   * @param configKey - Config key (e.g., 'http.receivepack')
+   * @param expectedValue - Expected value (e.g., 'true')
+   * @returns true if config matches expected value, false otherwise
+   */
+  private async verifyConfigViaSystemGit(
+    dir: string,
+    configKey: string,
+    expectedValue: string,
+  ): Promise<boolean> {
+    try {
+      const configFilePath = path.join(dir, 'config');
+      const { stdout } = await execFileAsync('git', [
+        'config',
+        '--file',
+        configFilePath,
+        '--get',
+        configKey,
+      ]);
+      return stdout.trim() === expectedValue;
+    } catch (error) {
+      // Config key not found or error reading
+      return false;
+    }
+  }
+
+  /**
+   * Ensure http.receivepack is set to true for Git HTTP Smart Protocol
+   *
+   * ECP-C1: Defensive programming with fallback mechanism
+   * ECP-C2: Systematic error handling with detailed logging
+   * ECP-D1: Testability through clear success/failure states
+   *
+   * Strategy:
+   * 1. Try isomorphic-git setConfig (primary method)
+   * 2. Verify config was written successfully
+   * 3. If verification fails, fallback to system git config command
+   * 4. Re-verify after fallback
+   * 5. Throw detailed error if both methods fail
+   *
+   * @param dir - Absolute path to the bare Git repository
+   * @throws Error if config cannot be set via either method
+   */
+  private async ensureHttpReceivePackConfig(dir: string): Promise<void> {
+    const configKey = 'http.receivepack';
+    const configValue = 'true';
+
+    try {
+      // Step 1: Try isomorphic-git setConfig
+      this.logger.debug(`Attempting to set ${configKey} via isomorphic-git for ${dir}`);
+      await git.setConfig({
+        fs,
+        dir,
+        path: configKey,
+        value: configValue,
+      });
+
+      // Step 2: Verify config was written (primary validation)
+      // Use system git for verification (isomorphic-git.getConfig fails on Windows)
+      const verified = await this.verifyConfigViaSystemGit(dir, configKey, configValue);
+
+      if (verified) {
+        this.logger.log(`✓ Successfully set ${configKey}=${configValue} via isomorphic-git`);
+        return; // Success - config verified
+      }
+
+      // Step 3: Verification failed - log warning and try fallback
+      this.logger.warn(
+        `isomorphic-git setConfig failed to persist ${configKey}. ` +
+        `Verification via system git returned false. ` +
+        `Attempting fallback to system git config...`
+      );
+
+    } catch (primaryError) {
+      this.logger.warn(
+        `isomorphic-git setConfig threw error: ${primaryError.message}. ` +
+        `Attempting fallback to system git config...`
+      );
+    }
+
+    // Step 4: Fallback to system git config command
+    try {
+      this.logger.debug(`Executing system git config --file "${path.join(dir, 'config')}" ${configKey} ${configValue}`);
+
+      const configFilePath = path.join(dir, 'config');
+      await execFileAsync('git', [
+        'config',
+        '--file', configFilePath,
+        configKey,
+        configValue
+      ]);
+
+      // Step 5: Re-verify after fallback
+      const verified = await this.verifyConfigViaSystemGit(dir, configKey, configValue);
+
+      if (verified) {
+        this.logger.log(`✓ Successfully set ${configKey}=${configValue} via system git (fallback)`);
+        return; // Success - fallback worked
+      }
+
+      // Fallback executed but verification still failed
+      throw new Error(
+        `System git config executed successfully but verification failed.`
+      );
+
+    } catch (fallbackError) {
+      // Step 6: Both methods failed - throw comprehensive error
+      const errorMessage =
+        `Failed to set Git config ${configKey}=${configValue} for repository at ${dir}\n` +
+        `Both isomorphic-git and system git config methods failed.\n\n` +
+        `Fallback error: ${fallbackError.message}\n\n` +
+        `Troubleshooting:\n` +
+        `1. Verify 'git' command is installed and in PATH\n` +
+        `2. Check repository permissions at: ${dir}\n` +
+        `3. Manually run: git config --file "${path.join(dir, 'config')}" ${configKey} ${configValue}\n` +
+        `4. Verify config file is writable: ${path.join(dir, 'config')}`;
+
+      this.logger.error(errorMessage);
+      throw new Error(errorMessage);
+    }
   }
 
   /**
@@ -43,12 +191,8 @@ export class GitService {
       });
 
       // Enable HTTP push (receive-pack) for Git HTTP Smart Protocol
-      await git.setConfig({
-        fs,
-        dir,
-        path: 'http.receivepack',
-        value: 'true',
-      });
+      // Uses ensureHttpReceivePackConfig with fallback mechanism (ECP-C1, ECP-C2)
+      await this.ensureHttpReceivePackConfig(dir);
 
       this.logger.log(`Initialized bare repository for project: ${projectId}`);
     } catch (error) {

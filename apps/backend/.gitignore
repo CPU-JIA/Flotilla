@@ -3,3 +3,7 @@ node_modules
 .env
 
 /generated/prisma
+
+# Git repository storage (configured in GitService)
+# Do not commit repository data - repositories are user-generated content
+repos/
