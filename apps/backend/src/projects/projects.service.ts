@@ -87,8 +87,9 @@ export class ProjectsService {
     );
 
     // Phase 3.1: 自动创建Repository和默认分支
+    // Pass currentUser to ensure Git commit uses real user information (not "System")
     try {
-      await this.repositoriesService.createRepository(project.id);
+      await this.repositoriesService.createRepository(project.id, currentUser);
       this.logger.log(
         `✅ Repository with main branch auto-created for project ${project.id}`,
       );
@@ -98,6 +99,7 @@ export class ProjectsService {
         error,
       );
       // 如果Repository创建失败，删除项目并抛出异常
+      // RepositoriesService已清理了Repository和Branch记录，这里只需清理Project
       await this.prisma.project.delete({ where: { id: project.id } });
       throw new BadRequestException('创建项目仓库失败，请重试');
     }

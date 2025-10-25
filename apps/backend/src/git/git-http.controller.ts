@@ -28,24 +28,27 @@ import {
 import { HttpSmartService } from './protocols/http-smart.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Public } from '../auth/decorators/public.decorator';
+import { getGitStoragePath, getRepoPath } from '../config/git.config';
 import * as path from 'path';
-import * as os from 'os';
 
 @ApiTags('git-http')
 @Controller('repo')
 @Public()
 export class GitHttpController {
-  private readonly gitStorageBasePath =
-    process.env.GIT_STORAGE_PATH || path.join(os.tmpdir(), 'flotilla-git');
+  /**
+   * Git repository storage path
+   *
+   * ECP-B1: DRY - Uses centralized configuration from git.config.ts
+   * ECP-D3: No magic strings - Configuration shared across services
+   *
+   * @see git.config.ts for path resolution logic
+   */
+  private readonly gitStorageBasePath = getGitStoragePath();
 
   constructor(
     private readonly httpSmartService: HttpSmartService,
     private readonly prisma: PrismaService,
   ) {}
-
-  private getRepoPath(projectId: string): string {
-    return path.join(this.gitStorageBasePath, projectId);
-  }
 
   @Get(':projectId/info/refs')
   @ApiExcludeEndpoint() // Exclude from Swagger (binary protocol)
@@ -81,7 +84,7 @@ export class GitHttpController {
       throw new NotFoundException('Repository not initialized');
     }
 
-    const repoPath = this.getRepoPath(projectId);
+    const repoPath = getRepoPath(projectId);
 
     const response = await this.httpSmartService.handleInfoRefs(
       projectId,
@@ -119,7 +122,7 @@ export class GitHttpController {
       throw new NotFoundException('Project not found');
     }
 
-    const repoPath = this.getRepoPath(projectId);
+    const repoPath = getRepoPath(projectId);
 
     // Get raw body (bodyParser.raw sets it to req.body as Buffer)
     const requestBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from([]);
@@ -161,7 +164,7 @@ export class GitHttpController {
       throw new NotFoundException('Project not found');
     }
 
-    const repoPath = this.getRepoPath(projectId);
+    const repoPath = getRepoPath(projectId);
 
     // Get raw body (bodyParser.raw sets it to req.body as Buffer)
     const requestBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from([]);

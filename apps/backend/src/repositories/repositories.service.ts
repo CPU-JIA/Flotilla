@@ -63,16 +63,38 @@ export class RepositoriesService {
     });
 
     // 初始化物理Git仓库 (Phase 3.1: Auto-initialize Git on project creation)
+    // ECP-C2: Systematic error handling - Let errors propagate instead of silent failure
+    // ECP-C1: Defensive programming - Fail fast if Git initialization fails
+
+    // Use real user information instead of hardcoded "System"
+    const authorName = currentUser?.username || 'System';
+    const authorEmail = currentUser?.email || 'system@flotilla.local';
+
     try {
       await this.gitService.init(projectId, 'main');
       await this.gitService.createInitialCommit(projectId, {
-        name: 'System',
-        email: 'system@flotilla.local',
+        name: authorName,
+        email: authorEmail,
       });
-      this.logger.log(`✅ Physical Git repository initialized for project ${projectId}`);
+      this.logger.log(
+        `✅ Physical Git repository initialized for project ${projectId} by ${authorName}`,
+      );
     } catch (error) {
-      this.logger.error(`❌ Failed to initialize Git for project ${projectId}:`, error);
-      // 不抛出异常，允许项目创建成功但Git未初始化（可以后续手动初始化）
+      this.logger.error(
+        `❌ Failed to initialize Git for project ${projectId}:`,
+        error,
+      );
+
+      // Clean up database records on Git initialization failure
+      // This ensures consistency between database and filesystem
+      await this.prisma.branch.deleteMany({ where: { repositoryId: repository.id } });
+      await this.prisma.repository.delete({ where: { id: repository.id } });
+
+      // Re-throw error to propagate to ProjectsService for final cleanup
+      throw new Error(
+        `Git repository initialization failed: ${error.message}. ` +
+        `Database records have been cleaned up. Please retry project creation.`
+      );
     }
 
     this.logger.log(`📂 Repository created for project ${projectId}`);

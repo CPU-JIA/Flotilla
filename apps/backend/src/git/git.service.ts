@@ -14,6 +14,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { createTwoFilesPatch } from 'diff';
 import { PrismaService } from '../prisma/prisma.service';
+import { getGitStoragePath, getRepoPath } from '../config/git.config';
 
 const execFileAsync = promisify(execFile);
 
@@ -23,23 +24,14 @@ export class GitService {
   /**
    * Git repository storage path
    *
-   * Priority:
-   * 1. GIT_STORAGE_PATH environment variable (production)
-   * 2. {cwd}/repos (development default - apps/backend/repos/)
+   * ECP-B1: DRY - Uses centralized configuration from git.config.ts
+   * ECP-D3: No magic strings - Configuration shared across services
    *
-   * ECP-C3: Data persistence - avoid temporary directories that may be cleared
-   *
-   * Note: Changed from os.tmpdir() to ensure repository data persistence
-   * Temporary directories risk data loss on system cleanup/restart
+   * @see git.config.ts for path resolution logic
    */
-  private readonly gitStorageBasePath =
-    process.env.GIT_STORAGE_PATH || path.join(process.cwd(), 'repos');
+  private readonly gitStorageBasePath = getGitStoragePath();
 
   constructor(private readonly prisma: PrismaService) {}
-
-  private getRepoPath(projectId: string): string {
-    return path.join(this.gitStorageBasePath, projectId);
-  }
 
   /**
    * Verify git config using system git command
@@ -181,7 +173,7 @@ export class GitService {
     defaultBranch = 'main',
   ): Promise<void> {
     try {
-      const dir = this.getRepoPath(projectId);
+      const dir = getRepoPath(projectId);
 
       await git.init({
         fs,
@@ -213,7 +205,7 @@ export class GitService {
     author: { name: string; email: string },
   ): Promise<string> {
     try {
-      const dir = this.getRepoPath(projectId);
+      const dir = getRepoPath(projectId);
 
       // Create README.md blob
       const readmeContent = `# ${projectId}\n\nInitial commit\n`;
@@ -310,7 +302,7 @@ export class GitService {
     author: { name: string; email: string },
   ): Promise<string> {
     try {
-      const dir = this.getRepoPath(projectId);
+      const dir = getRepoPath(projectId);
       const branchRef = `refs/heads/${branch}`;
 
       // Try to resolve current branch HEAD to get parent commit
@@ -464,7 +456,7 @@ export class GitService {
     options?: { depth?: number; ref?: string },
   ): Promise<any[]> {
     try {
-      const dir = this.getRepoPath(projectId);
+      const dir = getRepoPath(projectId);
 
       const commits = await git.log({
         fs,
@@ -489,7 +481,7 @@ export class GitService {
     ref = 'HEAD',
   ): Promise<Buffer> {
     try {
-      const dir = this.getRepoPath(projectId);
+      const dir = getRepoPath(projectId);
 
       const { blob } = await git.readBlob({
         fs,
@@ -513,7 +505,7 @@ export class GitService {
    */
   async listFiles(projectId: string, ref = 'HEAD'): Promise<string[]> {
     try {
-      const dir = this.getRepoPath(projectId);
+      const dir = getRepoPath(projectId);
 
       const files = await git.listFiles({
         fs,
@@ -536,7 +528,7 @@ export class GitService {
    */
   async currentBranch(projectId: string): Promise<string> {
     try {
-      const dir = this.getRepoPath(projectId);
+      const dir = getRepoPath(projectId);
 
       const branch = await git.currentBranch({
         fs,
@@ -563,7 +555,7 @@ export class GitService {
     startPoint?: string,
   ): Promise<void> {
     try {
-      const dir = this.getRepoPath(projectId);
+      const dir = getRepoPath(projectId);
 
       // DEBUG: Log startPoint parameter
       this.logger.debug(
@@ -669,7 +661,7 @@ export class GitService {
    */
   async deleteBranch(projectId: string, branchName: string): Promise<void> {
     try {
-      const dir = this.getRepoPath(projectId);
+      const dir = getRepoPath(projectId);
 
       await git.deleteBranch({
         fs,
@@ -728,7 +720,7 @@ export class GitService {
     }>
   > {
     try {
-      const dir = this.getRepoPath(projectId);
+      const dir = getRepoPath(projectId);
 
       // Debug: Check refs directory first
       const refsDir = path.join(dir, 'refs', 'heads');
@@ -832,7 +824,7 @@ export class GitService {
     };
   }> {
     try {
-      const dir = this.getRepoPath(projectId);
+      const dir = getRepoPath(projectId);
 
       // Get commit OIDs for both branches - read ref files directly (git.resolveRef has bugs with bare repos)
       const sourceRefPath = path.join(dir, 'refs', 'heads', sourceBranch);
@@ -977,7 +969,7 @@ export class GitService {
     const gitSubdirBeforeWalk = path.join(dir, '.git');
     if (fs.existsSync(gitSubdirBeforeWalk)) {
       this.logger.debug(
-        `Fixing .git subdirectory before git.walk for ${this.getRepoPath}`,
+        `Fixing .git subdirectory before git.walk`,
       );
       const gitObjectsDir = path.join(gitSubdirBeforeWalk, 'objects');
       const rootObjectsDir = path.join(dir, 'objects');
@@ -1173,7 +1165,7 @@ export class GitService {
     author: { name: string; email: string },
   ): Promise<string> {
     try {
-      const dir = this.getRepoPath(projectId);
+      const dir = getRepoPath(projectId);
 
       this.logger.log(
         `Performing merge commit: ${sourceBranch} → ${targetBranch}`,
@@ -1255,7 +1247,7 @@ export class GitService {
     author: { name: string; email: string },
   ): Promise<string> {
     try {
-      const dir = this.getRepoPath(projectId);
+      const dir = getRepoPath(projectId);
 
       this.logger.log(
         `Performing squash merge: ${sourceBranch} → ${targetBranch}`,
@@ -1346,7 +1338,7 @@ export class GitService {
     author: { name: string; email: string },
   ): Promise<string> {
     try {
-      const dir = this.getRepoPath(projectId);
+      const dir = getRepoPath(projectId);
 
       this.logger.log(
         `Performing rebase merge: ${sourceBranch} → ${targetBranch}`,
