@@ -852,6 +852,7 @@ export const zh: Translations = {
       editPullRequest: '编辑',
       editPR: '编辑',
       confirmDelete: '确定要删除此 Pull Request 吗？',
+      confirmMerge: '确定要合并此 Pull Request 吗？',
       closeSuccess: 'Pull Request 已关闭',
       closeFailed: '关闭失败',
       reopenSuccess: 'Pull Request 已重新打开',
@@ -895,7 +896,6 @@ export const zh: Translations = {
       selectStrategy: '选择合并策略',
       mergeCommit: 'Merge Commit',
       mergeCommitDesc: '保留完整的提交历史，创建一个合并提交',
-      merge: 'Merge Commit',
       mergeDesc: '保留完整的提交历史',
       squash: 'Squash',
       squashDesc: '将所有提交压缩为单个提交',
@@ -958,6 +958,32 @@ export const zh: Translations = {
       noReviews: '暂无审查',
       createSuccess: '审查已提交',
       createFailed: '提交审查失败',
+    },
+
+    // Review Summary
+    reviewSummary: {
+      title: 'Review 摘要',
+      approved: '已批准',
+      changesRequested: '需要修改',
+      commented: '已评论',
+      reviewers: '审查者',
+      refresh: '刷新',
+      loading: '加载 Review 摘要...',
+      error: '加载 Review 摘要失败',
+      noReviewers: '暂无审查',
+    },
+
+    // Merge Status
+    mergeStatus: {
+      canMerge: '可以合并',
+      cannotMerge: '无法合并',
+      mergeBlocked: '合并被阻止',
+      checking: '检查中...',
+      // Blocking reasons
+      activeChangeRequests: '存在未解决的修改请求',
+      insufficientApprovals: '需要 {count} 个批准',
+      cannotMergeOwnPR: '不能合并自己的 PR（项目策略）',
+      ownerApprovalRequired: '需要项目所有者的批准',
     },
   },
 

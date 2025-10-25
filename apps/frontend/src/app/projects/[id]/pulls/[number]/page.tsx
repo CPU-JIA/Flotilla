@@ -14,7 +14,10 @@ import {
   CreateCommentDto,
   MergePullRequestDto,
   MergeStrategy,
+  MergeStatus,
+  ReviewSummary,
 } from '@/types/pull-request'
+import { ReviewSummaryCard } from '@/components/pull-requests/review-summary-card'
 
 export default function PullRequestDetailPage() {
   const params = useParams()
@@ -41,6 +44,11 @@ export default function PullRequestDetailPage() {
   const [showMergeDialog, setShowMergeDialog] = useState(false)
   const [mergeStrategy, setMergeStrategy] = useState<MergeStrategy>(MergeStrategy.MERGE)
   const [merging, setMerging] = useState(false)
+
+  // PR Review Enhancement states
+  const [mergeStatus, setMergeStatus] = useState<MergeStatus | null>(null)
+  const [loadingMergeStatus, setLoadingMergeStatus] = useState(false)
+  const [reviewSummary, setReviewSummary] = useState<ReviewSummary | null>(null)
 
   useEffect(() => {
     fetchPR()
@@ -83,6 +91,37 @@ export default function PullRequestDetailPage() {
       })
     }
   }
+
+  const fetchMergeStatus = async () => {
+    if (!pr) return
+
+    try {
+      setLoadingMergeStatus(true)
+      const data = await apiRequest<MergeStatus>(
+        `/pull-requests/${pr.id}/merge-status`
+      )
+      setMergeStatus(data)
+    } catch (err) {
+      console.error('Failed to fetch merge status:', err)
+    } finally {
+      setLoadingMergeStatus(false)
+    }
+  }
+
+  const handleReviewSummaryRefresh = () => {
+    // This callback is called when ReviewSummaryCard refreshes
+    // We should also refresh merge status
+    if (pr && pr.state === PRState.OPEN) {
+      fetchMergeStatus()
+    }
+  }
+
+  // Fetch merge status when PR state is OPEN
+  useEffect(() => {
+    if (pr && pr.state === PRState.OPEN) {
+      fetchMergeStatus()
+    }
+  }, [pr, reviewSummary])
 
   const handleSubmitReview = async () => {
     if (!pr) return
@@ -276,12 +315,63 @@ export default function PullRequestDetailPage() {
             >
               {t.pullRequests.reviews.addReview}
             </button>
-            <button
-              onClick={() => setShowMergeDialog(true)}
-              className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-            >
-              {t.pullRequests.detail.mergePR}
-            </button>
+
+            {/* Enhanced Merge Button with Validation */}
+            {loadingMergeStatus ? (
+              <button
+                disabled
+                className="px-4 py-2 bg-gray-400 text-white rounded cursor-not-allowed"
+              >
+                {t.pullRequests.mergeStatus?.checking || 'Checking...'}
+              </button>
+            ) : mergeStatus ? (
+              mergeStatus.allowed ? (
+                <button
+                  onClick={() => setShowMergeDialog(true)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center gap-2"
+                >
+                  <span>✓</span>
+                  <span>{t.pullRequests.detail.mergePR}</span>
+                  <span className="text-xs opacity-80">
+                    ({mergeStatus.approvalCount}/{mergeStatus.requiredApprovals})
+                  </span>
+                </button>
+              ) : (
+                <div className="relative group">
+                  <button
+                    disabled
+                    className="px-4 py-2 bg-gray-400 text-white rounded cursor-not-allowed flex items-center gap-2"
+                  >
+                    <span>✗</span>
+                    <span>{t.pullRequests.mergeStatus?.cannotMerge || 'Cannot Merge'}</span>
+                  </button>
+
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block w-80 p-3 bg-gray-900 text-white text-sm rounded shadow-lg z-10">
+                    <div className="font-semibold mb-1">
+                      {t.pullRequests.mergeStatus?.mergeBlocked || 'Merge Blocked'}
+                    </div>
+                    <div className="mb-2">{mergeStatus.reason}</div>
+
+                    {/* Progress Info */}
+                    <div className="text-xs border-t border-gray-700 pt-2">
+                      <div>
+                        {t.pullRequests.detail.commits || 'Approvals'}: {mergeStatus.approvalCount}/{mergeStatus.requiredApprovals}
+                      </div>
+                      {mergeStatus.hasChangeRequests && (
+                        <div className="text-red-300 mt-1">
+                          ⚠ {t.pullRequests.mergeStatus?.activeChangeRequests || 'Active change requests'}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
+                  </div>
+                </div>
+              )
+            ) : null}
+
             <button
               onClick={handleClose}
               className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -314,6 +404,14 @@ export default function PullRequestDetailPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Review Summary Card */}
+      {pr.state === PRState.OPEN && (
+        <ReviewSummaryCard
+          prId={pr.id}
+          onRefresh={handleReviewSummaryRefresh}
+        />
       )}
 
       {/* Reviews */}

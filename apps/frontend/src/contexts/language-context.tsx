@@ -828,6 +828,7 @@ export interface Translations {
       editPullRequest: string
       editPR: string
       confirmDelete: string
+      confirmMerge: string
       closeSuccess: string
       closeFailed: string
       reopenSuccess: string
@@ -869,6 +870,7 @@ export interface Translations {
       selectStrategy: string
       mergeCommit: string
       mergeCommitDesc: string
+      mergeDesc: string
       squash: string
       squashDesc: string
       rebase: string
@@ -927,6 +929,29 @@ export interface Translations {
       noReviews: string
       createSuccess: string
       createFailed: string
+    }
+
+    reviewSummary: {
+      title: string
+      approved: string
+      changesRequested: string
+      commented: string
+      reviewers: string
+      refresh: string
+      loading: string
+      error: string
+      noReviewers: string
+    }
+
+    mergeStatus: {
+      canMerge: string
+      cannotMerge: string
+      mergeBlocked: string
+      checking: string
+      activeChangeRequests: string
+      insufficientApprovals: string
+      cannotMergeOwnPR: string
+      ownerApprovalRequired: string
     }
   }
 

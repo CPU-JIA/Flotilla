@@ -853,6 +853,7 @@ export const en: Translations = {
       editPullRequest: 'Edit',
       editPR: 'Edit',
       confirmDelete: 'Are you sure you want to delete this Pull Request?',
+      confirmMerge: 'Are you sure you want to merge this Pull Request?',
       closeSuccess: 'Pull Request closed',
       closeFailed: 'Failed to close',
       reopenSuccess: 'Pull Request reopened',
@@ -896,6 +897,7 @@ export const en: Translations = {
       selectStrategy: 'Select merge strategy',
       mergeCommit: 'Merge Commit',
       mergeCommitDesc: 'Preserve complete commit history with a merge commit',
+      mergeDesc: 'Preserve complete commit history',
       squash: 'Squash',
       squashDesc: 'Squash all commits into a single commit',
       rebase: 'Rebase',
@@ -957,6 +959,32 @@ export const en: Translations = {
       noReviews: 'No reviews yet',
       createSuccess: 'Review submitted',
       createFailed: 'Failed to submit review',
+    },
+
+    // Review Summary
+    reviewSummary: {
+      title: 'Review Summary',
+      approved: 'Approved',
+      changesRequested: 'Changes Requested',
+      commented: 'Commented',
+      reviewers: 'Reviewers',
+      refresh: 'Refresh',
+      loading: 'Loading review summary...',
+      error: 'Failed to load review summary',
+      noReviewers: 'No reviews yet',
+    },
+
+    // Merge Status
+    mergeStatus: {
+      canMerge: 'Can Merge',
+      cannotMerge: 'Cannot Merge',
+      mergeBlocked: 'Merge Blocked',
+      checking: 'Checking...',
+      // Blocking reasons
+      activeChangeRequests: 'Active change requests',
+      insufficientApprovals: 'Need {count} more approval(s)',
+      cannotMergeOwnPR: 'Cannot merge your own PR (project policy)',
+      ownerApprovalRequired: 'Project owner approval required',
     },
   },
 

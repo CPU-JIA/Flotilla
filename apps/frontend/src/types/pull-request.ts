@@ -148,3 +148,80 @@ export interface CreateCommentDto {
   lineNumber?: number
   commitHash?: string
 }
+
+// PR Review Enhancement Types
+// Response from GET /api/pull-requests/:id/review-summary
+export interface ReviewSummary {
+  /** Number of APPROVED reviews (latest per reviewer) */
+  approved: number
+  /** Number of CHANGES_REQUESTED reviews (latest per reviewer) */
+  changesRequested: number
+  /** Number of COMMENTED reviews (latest per reviewer) */
+  commented: number
+  /** Total number of unique reviewers */
+  totalReviewers: number
+  /** List of reviewers with their latest review state */
+  reviewers: ReviewerSummary[]
+}
+
+export interface ReviewerSummary {
+  /** Reviewer user ID */
+  id: string
+  /** Reviewer username */
+  username: string
+  /** Reviewer avatar URL */
+  avatar: string | null
+  /** Latest review state */
+  state: ReviewState
+  /** Latest review creation timestamp */
+  createdAt: Date
+}
+
+// Response from GET /api/pull-requests/:id/merge-status
+export interface MergeStatus {
+  /** Whether merge is allowed */
+  allowed: boolean
+  /** Reason for blocking (if allowed = false) */
+  reason?: string
+  /** Current number of approvals */
+  approvalCount: number
+  /** Required number of approvals */
+  requiredApprovals: number
+  /** Whether there are active change requests */
+  hasChangeRequests: boolean
+}
+
+// Extended diff response with comments
+export interface DiffResponseDto {
+  files: FileDiff[]
+  summary: DiffSummary
+  comments: PRCommentWithAuthor[]
+}
+
+export interface FileDiff {
+  path: string
+  status: 'added' | 'modified' | 'deleted'
+  additions: number
+  deletions: number
+  patch?: string
+}
+
+export interface DiffSummary {
+  totalFiles: number
+  totalAdditions: number
+  totalDeletions: number
+}
+
+export interface PRCommentWithAuthor {
+  id: string
+  body: string
+  filePath?: string | null
+  lineNumber?: number | null
+  commitHash?: string | null
+  createdAt: Date
+  author: {
+    id: string
+    username: string
+    avatar: string | null
+  }
+}
