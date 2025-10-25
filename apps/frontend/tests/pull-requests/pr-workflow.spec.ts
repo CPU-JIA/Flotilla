@@ -49,6 +49,8 @@ async function createProjectViaAPI(
       name,
       description: 'Test project for PR E2E tests',
       visibility: 'PUBLIC',
+      requireApprovals: 0, // Allow merge without approvals for testing
+      allowSelfMerge: true, // Allow author to merge their own PR
     },
   })
   expect(response.ok()).toBeTruthy()

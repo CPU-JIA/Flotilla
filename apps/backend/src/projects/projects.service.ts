@@ -79,6 +79,16 @@ export class ProjectsService {
         description: createDto.description,
         visibility: createDto.visibility || ProjectVisibility.PRIVATE,
         ownerId: currentUser.id,
+        // PR approval settings
+        ...(createDto.requireApprovals !== undefined && {
+          requireApprovals: createDto.requireApprovals,
+        }),
+        ...(createDto.allowSelfMerge !== undefined && {
+          allowSelfMerge: createDto.allowSelfMerge,
+        }),
+        ...(createDto.requireReviewFromOwner !== undefined && {
+          requireReviewFromOwner: createDto.requireReviewFromOwner,
+        }),
       },
     });
 

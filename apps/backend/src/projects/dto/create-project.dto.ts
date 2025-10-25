@@ -4,6 +4,9 @@ import {
   MinLength,
   MaxLength,
   IsEnum,
+  IsInt,
+  IsBoolean,
+  Min,
 } from 'class-validator';
 import { ProjectVisibility } from '@prisma/client';
 
@@ -21,4 +24,17 @@ export class CreateProjectDto {
   @IsOptional()
   @IsEnum(ProjectVisibility, { message: '无效的项目可见性' })
   visibility?: ProjectVisibility = ProjectVisibility.PRIVATE;
+
+  @IsOptional()
+  @IsInt({ message: 'requireApprovals必须是整数' })
+  @Min(0, { message: 'requireApprovals不能小于0' })
+  requireApprovals?: number;
+
+  @IsOptional()
+  @IsBoolean({ message: 'allowSelfMerge必须是布尔值' })
+  allowSelfMerge?: boolean;
+
+  @IsOptional()
+  @IsBoolean({ message: 'requireReviewFromOwner必须是布尔值' })
+  requireReviewFromOwner?: boolean;
 }
