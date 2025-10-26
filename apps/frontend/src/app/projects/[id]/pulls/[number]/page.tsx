@@ -175,6 +175,35 @@ export default function PullRequestDetailPage() {
     }
   }
 
+  const handleAddLineComment = async (
+    filePath: string,
+    lineNumber: number,
+    body: string,
+    commitHash?: string
+  ) => {
+    if (!pr) return
+
+    try {
+      const dto: CreateCommentDto = {
+        body: body.trim(),
+        filePath,
+        lineNumber,
+        commitHash,
+      }
+
+      await apiRequest(`/pull-requests/${pr.id}/comments`, {
+        method: 'POST',
+        body: JSON.stringify(dto),
+      })
+
+      // Refresh diff data to show new comment immediately
+      await fetchDiff()
+    } catch (err) {
+      console.error('Failed to add line comment:', err)
+      throw err // Re-throw so DiffFileView can handle error
+    }
+  }
+
   const handleMerge = async () => {
     if (!pr) return
 
@@ -458,6 +487,9 @@ export default function PullRequestDetailPage() {
                 key={file.path}
                 file={file}
                 comments={diffData.comments}
+                pullRequestId={pr.id}
+                commitHash={pr.sourceBranch}
+                onAddComment={handleAddLineComment}
               />
             ))}
           </div>
