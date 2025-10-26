@@ -8,9 +8,10 @@ import { MilestonesController } from './milestones.controller';
 import { CommentsService } from './comments.service';
 import { CommentsController } from './comments.controller';
 import { PrismaModule } from '../prisma/prisma.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, NotificationsModule],
   controllers: [IssuesController, LabelsController, MilestonesController, CommentsController],
   providers: [IssuesService, LabelsService, MilestonesService, CommentsService],
   exports: [IssuesService, LabelsService, MilestonesService, CommentsService],

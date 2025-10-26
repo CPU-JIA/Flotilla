@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { GitService } from '../git/git.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreatePullRequestDto } from './dto/create-pull-request.dto';
 import { UpdatePullRequestDto } from './dto/update-pull-request.dto';
 import { MergePullRequestDto, MergeStrategy } from './dto/merge-pull-request.dto';
@@ -22,6 +23,7 @@ export class PullRequestsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly gitService: GitService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   /**
@@ -102,6 +104,32 @@ export class PullRequestsService {
             event: 'opened',
           },
         });
+
+        // 🔔 发送PR创建通知给项目owner（如果不是作者本人）
+        try {
+          if (project.ownerId !== authorId) {
+            await this.notificationsService.create({
+              userId: project.ownerId,
+              type: 'PR_CREATED',
+              title: `[PR #${pullRequest.number}] ${pullRequest.title}`,
+              body: `${pullRequest.author.username} 创建了一个新的 Pull Request`,
+              link: `/projects/${pullRequest.projectId}/pull-requests/${pullRequest.number}`,
+              metadata: {
+                prId: pullRequest.id,
+                projectId: pullRequest.projectId,
+                authorId: pullRequest.authorId,
+              },
+            });
+            this.logger.log(
+              `📨 Sent PR_CREATED notification for PR #${pullRequest.number} to owner ${project.ownerId}`,
+            );
+          }
+        } catch (error) {
+          // 通知失败不影响PR创建
+          this.logger.warn(
+            `⚠️ Failed to send PR_CREATED notification: ${error.message}`,
+          );
+        }
 
         return pullRequest;
       } catch (error) {
@@ -359,6 +387,14 @@ export class PullRequestsService {
   async close(id: string, userId: string) {
     const pr = await this.prisma.pullRequest.findUnique({
       where: { id },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
     });
 
     if (!pr) {
@@ -385,6 +421,35 @@ export class PullRequestsService {
         event: 'closed',
       },
     });
+
+    // 🔔 发送PR关闭通知给作者（如果不是作者自己关闭）
+    try {
+      if (pr.authorId !== userId) {
+        const closer = await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: { username: true },
+        });
+
+        await this.notificationsService.create({
+          userId: pr.authorId,
+          type: 'PR_CLOSED',
+          title: `[PR #${pr.number}] Pull Request 已关闭`,
+          body: `${closer?.username || '管理员'} 关闭了您的 Pull Request`,
+          link: `/projects/${pr.projectId}/pull-requests/${pr.number}`,
+          metadata: {
+            prId: pr.id,
+            closerId: userId,
+          },
+        });
+        this.logger.log(
+          `📨 Sent PR_CLOSED notification for PR #${pr.number} to author ${pr.authorId}`,
+        );
+      }
+    } catch (error) {
+      this.logger.warn(
+        `⚠️ Failed to send PR_CLOSED notification: ${error.message}`,
+      );
+    }
 
     return updated;
   }
@@ -531,6 +596,32 @@ export class PullRequestsService {
       `PR #${pr.number} merged successfully using ${strategy} strategy`,
     );
 
+    // 🔔 发送PR合并通知给作者（如果不是作者自己合并）
+    try {
+      if (pr.authorId !== userId) {
+        await this.notificationsService.create({
+          userId: pr.authorId,
+          type: 'PR_MERGED',
+          title: `[PR #${pr.number}] Pull Request 已合并`,
+          body: `${merged.merger?.username || '管理员'} 使用 ${strategy} 策略合并了您的 Pull Request`,
+          link: `/projects/${pr.projectId}/pull-requests/${pr.number}`,
+          metadata: {
+            prId: pr.id,
+            mergerId: userId,
+            mergeStrategy: strategy,
+            mergeCommit: mergeCommitOid,
+          },
+        });
+        this.logger.log(
+          `📨 Sent PR_MERGED notification for PR #${pr.number} to author ${pr.authorId}`,
+        );
+      }
+    } catch (error) {
+      this.logger.warn(
+        `⚠️ Failed to send PR_MERGED notification: ${error.message}`,
+      );
+    }
+
     return merged;
   }
 
@@ -540,6 +631,14 @@ export class PullRequestsService {
   async addReview(prId: string, reviewerId: string, dto: CreateReviewDto) {
     const pr = await this.prisma.pullRequest.findUnique({
       where: { id: prId },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
     });
 
     if (!pr) {
@@ -580,6 +679,39 @@ export class PullRequestsService {
       },
     });
 
+    // 🔔 发送Review通知给PR作者（如果不是自己Review自己的PR）
+    try {
+      if (pr.authorId !== reviewerId) {
+        const reviewStateText =
+          dto.state === 'APPROVED'
+            ? '批准了'
+            : dto.state === 'CHANGES_REQUESTED'
+              ? '请求修改'
+              : '评论了';
+
+        await this.notificationsService.create({
+          userId: pr.authorId,
+          type: 'PR_REVIEWED',
+          title: `[PR #${pr.number}] ${review.reviewer.username} ${reviewStateText}您的 Pull Request`,
+          body: dto.body || `${review.reviewer.username} ${reviewStateText}了您的 PR`,
+          link: `/projects/${pr.projectId}/pull-requests/${pr.number}`,
+          metadata: {
+            prId: pr.id,
+            reviewId: review.id,
+            reviewState: dto.state,
+            reviewerId,
+          },
+        });
+        this.logger.log(
+          `📨 Sent PR_REVIEWED notification for PR #${pr.number} to author ${pr.authorId}`,
+        );
+      }
+    } catch (error) {
+      this.logger.warn(
+        `⚠️ Failed to send PR_REVIEWED notification: ${error.message}`,
+      );
+    }
+
     return review;
   }
 
@@ -589,13 +721,21 @@ export class PullRequestsService {
   async addComment(prId: string, authorId: string, dto: PullRequestCreateCommentDto) {
     const pr = await this.prisma.pullRequest.findUnique({
       where: { id: prId },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
     });
 
     if (!pr) {
       throw new NotFoundException(`Pull request ${prId} not found`);
     }
 
-    return this.prisma.pRComment.create({
+    const comment = await this.prisma.pRComment.create({
       data: {
         pullRequestId: prId,
         authorId,
@@ -614,6 +754,34 @@ export class PullRequestsService {
         },
       },
     });
+
+    // 🔔 发送Comment通知给PR作者（如果不是自己评论自己的PR）
+    try {
+      if (pr.authorId !== authorId) {
+        await this.notificationsService.create({
+          userId: pr.authorId,
+          type: 'PR_COMMENTED',
+          title: `[PR #${pr.number}] ${comment.author.username} 评论了您的 Pull Request`,
+          body: dto.body?.substring(0, 100) || '新评论',
+          link: `/projects/${pr.projectId}/pull-requests/${pr.number}#comment-${comment.id}`,
+          metadata: {
+            prId: pr.id,
+            commentId: comment.id,
+            filePath: dto.filePath,
+            lineNumber: dto.lineNumber,
+          },
+        });
+        this.logger.log(
+          `📨 Sent PR_COMMENTED notification for PR #${pr.number} to author ${pr.authorId}`,
+        );
+      }
+    } catch (error) {
+      this.logger.warn(
+        `⚠️ Failed to send PR_COMMENTED notification: ${error.message}`,
+      );
+    }
+
+    return comment;
   }
 
   /**

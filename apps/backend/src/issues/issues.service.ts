@@ -3,8 +3,10 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { QueryIssueDto } from './dto/query-issue.dto';
@@ -12,7 +14,12 @@ import { Issue, Prisma } from '@prisma/client';
 
 @Injectable()
 export class IssuesService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(IssuesService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
+  ) {}
 
   /**
    * 获取项目中下一个Issue编号
@@ -41,7 +48,7 @@ export class IssuesService {
       try {
         const number = await this.getNextIssueNumber(projectId);
 
-        return await this.prisma.issue.create({
+        const issue = await this.prisma.issue.create({
           data: {
             projectId,
             authorId,
@@ -64,6 +71,39 @@ export class IssuesService {
             milestone: true,
           },
         });
+
+        // 🔔 发送Issue分配通知给所有assignees（排除作者自己）
+        try {
+          if (dto.assigneeIds && dto.assigneeIds.length > 0) {
+            const notifications = dto.assigneeIds
+              .filter((assigneeId) => assigneeId !== authorId)
+              .map((assigneeId) => ({
+                userId: assigneeId,
+                type: 'ISSUE_ASSIGNED' as const,
+                title: `[Issue #${issue.number}] 分配给您`,
+                body: issue.title,
+                link: `/projects/${projectId}/issues/${issue.number}`,
+                metadata: {
+                  issueId: issue.id,
+                  projectId,
+                  assignerId: authorId,
+                },
+              }));
+
+            if (notifications.length > 0) {
+              await this.notificationsService.createBatch(notifications);
+              this.logger.log(
+                `📨 Sent ISSUE_ASSIGNED notifications for Issue #${issue.number} to ${notifications.length} assignees`,
+              );
+            }
+          }
+        } catch (error) {
+          this.logger.warn(
+            `⚠️ Failed to send ISSUE_ASSIGNED notification: ${error.message}`,
+          );
+        }
+
+        return issue;
       } catch (error) {
         // P2002: Unique constraint violation
         if (error.code === 'P2002' && retries < maxRetries - 1) {

@@ -3,9 +3,10 @@ import { PullRequestsService } from './pull-requests.service';
 import { PullRequestsController } from './pull-requests.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { GitModule } from '../git/git.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, GitModule],
+  imports: [PrismaModule, GitModule, NotificationsModule],
   controllers: [PullRequestsController],
   providers: [PullRequestsService],
   exports: [PullRequestsService],
