@@ -192,6 +192,55 @@ export interface Translations {
         requireReviewFromOwnerDesc: string
         policySummary: string
       }
+      branchProtection: string
+      branchProtectionRules: {
+        title: string
+        description: string
+        noBranchRules: string
+        noBranchRulesDesc: string
+        createRule: string
+        editRule: string
+        deleteRule: string
+        branchPattern: string
+        requirePullRequest: string
+        requiredApprovals: string
+        actions: string
+        createRuleTitle: string
+        editRuleTitle: string
+        branchPatternLabel: string
+        branchPatternPlaceholder: string
+        branchPatternHelper: string
+        requirePullRequestLabel: string
+        requirePullRequestDesc: string
+        requiredApprovalsLabel: string
+        requiredApprovalsDesc: string
+        dismissStaleReviewsLabel: string
+        dismissStaleReviewsDesc: string
+        requireCodeOwnerReviewLabel: string
+        requireCodeOwnerReviewDesc: string
+        allowForcePushesLabel: string
+        allowForcePushesDesc: string
+        allowDeletionsLabel: string
+        allowDeletionsDesc: string
+        requireStatusChecksLabel: string
+        requireStatusChecksDesc: string
+        requiredStatusChecksLabel: string
+        requiredStatusChecksPlaceholder: string
+        creating: string
+        updating: string
+        createButton: string
+        updateButton: string
+        createSuccess: string
+        updateSuccess: string
+        createFailed: string
+        updateFailed: string
+        deleteSuccess: string
+        deleteFailed: string
+        confirmDelete: string
+        deleting: string
+        protected: string
+        unprotected: string
+      }
     }
     files: {
       title: string

@@ -86,6 +86,12 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
       icon: '🔀',
     },
     {
+      id: 'branch-protection',
+      label: t.projects.settings.branchProtection || 'Branch Protection',
+      href: `/projects/${projectId}/settings/branch-protection`,
+      icon: '🛡️',
+    },
+    {
       id: 'members',
       label: t.projects.settings.members,
       href: `/projects/${projectId}/settings/members`,

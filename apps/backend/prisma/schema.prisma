@@ -263,9 +263,10 @@ model Project {
   projectFiles    ProjectFile[]
   teamPermissions TeamProjectPermission[]
   issues          Issue[]
-  labels          Label[]
-  milestones      Milestone[]
-  pullRequests    PullRequest[]
+  labels                Label[]
+  milestones            Milestone[]
+  pullRequests          PullRequest[]
+  branchProtectionRules BranchProtectionRule[]
 
   @@unique([ownerId, name])
   @@unique([organizationId, name])
@@ -754,4 +755,55 @@ model NotificationPreference {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notification_preferences")
+}
+
+// ============================================
+// 分支保护规则模块
+// ============================================
+
+/**
+ * 分支保护规则表
+ *
+ * 为项目的特定分支配置保护策略，防止未经审核的代码合并
+ *
+ * MVP功能：
+ * - 要求PR审核才能合并
+ * - 设置最少审核人数
+ * - 禁止直接推送到保护分支
+ *
+ * 后续扩展：
+ * - 分支模式匹配（通配符支持）
+ * - CI/CD状态检查集成
+ * - Code Owner审查要求
+ */
+model BranchProtectionRule {
+  id        String  @id @default(cuid())
+  projectId String
+
+  // 保护的分支名称（MVP: 精确匹配，如 "main", "develop"）
+  branchPattern String @db.VarChar(100)
+
+  // 核心保护规则
+  requirePullRequest       Boolean @default(true)  // 必须通过PR修改（不能直接push）
+  requiredApprovingReviews Int     @default(1)     // 最少批准审核数量
+  dismissStaleReviews      Boolean @default(false) // 新提交后作废旧审查
+  requireCodeOwnerReview   Boolean @default(false) // 要求Code Owner审查
+
+  // 高级保护选项
+  allowForcePushes Boolean @default(false) // 允许强制推送（危险操作）
+  allowDeletions   Boolean @default(false) // 允许删除保护分支
+
+  // 状态检查（CI/CD集成，Phase 2功能，暂时保留字段）
+  requireStatusChecks  Boolean  @default(false) // 要求状态检查通过
+  requiredStatusChecks String[] // 必须通过的检查项 ["ci", "tests", "build"]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, branchPattern]) // 每个项目的每个分支只能有一条保护规则
+  @@index([projectId])
+  @@map("branch_protection_rules")
 }

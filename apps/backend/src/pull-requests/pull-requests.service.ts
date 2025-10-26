@@ -9,6 +9,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { GitService } from '../git/git.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { BranchProtectionService } from '../branch-protection/branch-protection.service';
 import { CreatePullRequestDto } from './dto/create-pull-request.dto';
 import { UpdatePullRequestDto } from './dto/update-pull-request.dto';
 import { MergePullRequestDto, MergeStrategy } from './dto/merge-pull-request.dto';
@@ -24,6 +25,7 @@ export class PullRequestsService {
     private readonly prisma: PrismaService,
     private readonly gitService: GitService,
     private readonly notificationsService: NotificationsService,
+    private readonly branchProtectionService: BranchProtectionService,
   ) {}
 
   /**
@@ -479,6 +481,34 @@ export class PullRequestsService {
 
     if (pr.state !== PRState.OPEN) {
       throw new BadRequestException('PR is not open');
+    }
+
+    // 🛡️ 检查分支保护规则
+    const protectionRule = await this.branchProtectionService.findByBranch(
+      pr.projectId,
+      pr.targetBranch,
+    );
+
+    if (protectionRule && protectionRule.requirePullRequest) {
+      // 统计APPROVED状态的审核数量
+      const approvedReviews = await this.prisma.pRReview.count({
+        where: {
+          pullRequestId: id,
+          state: 'APPROVED',
+        },
+      });
+
+      const required = protectionRule.requiredApprovingReviews;
+
+      if (approvedReviews < required) {
+        throw new ForbiddenException(
+          `分支 "${pr.targetBranch}" 受保护，需要至少 ${required} 个批准审查，当前只有 ${approvedReviews} 个`,
+        );
+      }
+
+      this.logger.log(
+        `✅ Branch protection check passed: ${approvedReviews}/${required} approvals for PR #${pr.number}`,
+      );
     }
 
     // Get merger info

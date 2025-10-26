@@ -403,6 +403,61 @@ export const api = {
       apiRequest<Project>(`/projects/${id}/unarchive`, {
         method: 'POST',
       }),
+
+    // Branch Protection Rules
+    getBranchProtectionRules: (projectId: string) =>
+      apiRequest<Array<{
+        id: string
+        projectId: string
+        branchPattern: string
+        requirePullRequest: boolean
+        requiredApprovingReviews: number
+        dismissStaleReviews: boolean
+        requireCodeOwnerReview: boolean
+        allowForcePushes: boolean
+        allowDeletions: boolean
+        requireStatusChecks: boolean
+        requiredStatusChecks: string[]
+        createdAt: string
+        updatedAt: string
+      }>>(`/projects/${projectId}/branch-protection`),
+
+    createBranchProtectionRule: (projectId: string, data: {
+      branchPattern: string
+      requirePullRequest?: boolean
+      requiredApprovingReviews?: number
+      dismissStaleReviews?: boolean
+      requireCodeOwnerReview?: boolean
+      allowForcePushes?: boolean
+      allowDeletions?: boolean
+      requireStatusChecks?: boolean
+      requiredStatusChecks?: string[]
+    }) =>
+      apiRequest<{ id: string }>(`/projects/${projectId}/branch-protection`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    updateBranchProtectionRule: (ruleId: string, data: {
+      branchPattern?: string
+      requirePullRequest?: boolean
+      requiredApprovingReviews?: number
+      dismissStaleReviews?: boolean
+      requireCodeOwnerReview?: boolean
+      allowForcePushes?: boolean
+      allowDeletions?: boolean
+      requireStatusChecks?: boolean
+      requiredStatusChecks?: string[]
+    }) =>
+      apiRequest<{ id: string }>(`/branch-protection/${ruleId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    deleteBranchProtectionRule: (ruleId: string) =>
+      apiRequest<{ message: string }>(`/branch-protection/${ruleId}`, {
+        method: 'DELETE',
+      }),
   },
 
   /**
