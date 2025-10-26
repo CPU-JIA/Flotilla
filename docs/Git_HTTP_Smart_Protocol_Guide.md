@@ -378,6 +378,225 @@ git log --oneline --all
 
 ---
 
+## 分支保护集成 (Branch Protection)
+
+**实现状态**: ✅ Fully Implemented (2025-10-26)
+
+### 概述
+
+Flotilla通过Git pre-receive hook实现了Git push层面的分支保护，在代码推送到服务器时实时验证分支保护规则，确保企业级代码安全。
+
+### 工作原理
+
+```
+用户执行 git push
+    ↓
+Git客户端发送pack data
+    ↓
+Git服务器接收数据
+    ↓
+执行 pre-receive hook (BEFORE accepting refs)
+    ↓
+Hook查询Branch Protection API
+    ↓
+验证规则:
+  - requirePullRequest (禁止直接push)
+  - allowForcePushes (禁止force push)
+  - allowDeletions (禁止删除分支)
+    ↓
+  [PASS] ✅ 接受push
+  [FAIL] ❌ 拒绝push,返回错误信息
+```
+
+### 支持的保护规则
+
+| 规则 | 说明 | Hook行为 |
+|------|------|----------|
+| `requirePullRequest` | 要求通过Pull Request更新 | ❌ 阻止所有直接push |
+| `allowForcePushes` | 是否允许强制推送 | ❌ 阻止force push |
+| `allowDeletions` | 是否允许删除分支 | ❌ 阻止branch deletion |
+| `requiredApprovingReviews` | 所需审批数量 | ⚠️ PR层面验证 |
+
+### Hook安装
+
+Pre-receive hook在仓库初始化时自动安装:
+
+```typescript
+// apps/backend/src/git/git.service.ts
+async init(projectId: string, defaultBranch = 'main'): Promise<void> {
+  // ...
+  await this.installPreReceiveHook(dir, projectId);
+}
+```
+
+**Hook位置**: `apps/backend/repos/{PROJECT_ID}/hooks/pre-receive`
+
+### API集成
+
+Hook通过公开API端点获取分支保护规则:
+
+```bash
+# API endpoint (无需认证)
+GET /api/projects/:projectId/branch-protection
+
+# 响应示例
+[
+  {
+    "branchPattern": "main",
+    "requirePullRequest": true,
+    "allowForcePushes": false,
+    "allowDeletions": false
+  }
+]
+```
+
+**为什么GET端点公开?**
+- Pre-receive hook在Git服务器上下文运行,无法提供用户JWT token
+- 分支保护规则是公开策略,不包含敏感信息
+- 仅GET端点公开,POST/PATCH/DELETE仍需认证
+
+### 错误消息示例
+
+#### 1. Direct Push被阻止
+
+```bash
+$ git push origin main
+remote: [BRANCH PROTECTION] Direct push to 'main' is not allowed
+remote: [BRANCH PROTECTION] This branch is protected and requires pull requests
+remote: [BRANCH PROTECTION]
+remote: [BRANCH PROTECTION] To update this branch:
+remote: [BRANCH PROTECTION]   1. Create a feature branch: git checkout -b feature/my-changes
+remote: [BRANCH PROTECTION]   2. Push your changes: git push origin feature/my-changes
+remote: [BRANCH PROTECTION]   3. Create a Pull Request through the web interface
+remote: [BRANCH PROTECTION]   4. Wait for approval and merge via PR
+To http://localhost:4000/api/repo/cmh761u400002xbekzqfn3g9t
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs
+```
+
+#### 2. Force Push被阻止
+
+```bash
+$ git push origin main --force
+remote: [BRANCH PROTECTION] Detected force push to: main
+remote: [BRANCH PROTECTION] Force push to 'main' is not allowed
+remote: [BRANCH PROTECTION] Branch protection rule prevents force push operations
+remote: [BRANCH PROTECTION]
+remote: [BRANCH PROTECTION] To force push, either:
+remote: [BRANCH PROTECTION]   1. Update branch protection rules to allow force pushes
+remote: [BRANCH PROTECTION]   2. Use a regular (fast-forward) push
+To http://localhost:4000/api/repo/cmh761u400002xbekzqfn3g9t
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs
+```
+
+#### 3. Branch Deletion被阻止
+
+```bash
+$ git push origin :main
+remote: [BRANCH PROTECTION] Checking branch deletion permission for: main
+remote: [BRANCH PROTECTION] Branch 'main' is protected against deletion
+remote: [BRANCH PROTECTION] To delete this branch, update branch protection rules first
+To http://localhost:4000/api/repo/cmh761u400002xbekzqfn3g9t
+ ! [remote rejected] main (pre-receive hook declined)
+error: failed to push some refs
+```
+
+### 配置分支保护
+
+```bash
+# 1. 创建分支保护规则
+curl -X POST http://localhost:4000/api/projects/$PROJECT_ID/branch-protection \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "branchPattern": "main",
+    "requirePullRequest": true,
+    "allowForcePushes": false,
+    "allowDeletions": false
+  }'
+
+# 2. 测试direct push (应该被阻止)
+git push origin main
+
+# 3. 正确的工作流程
+git checkout -b feature/my-feature
+git push origin feature/my-feature
+# 然后通过Web界面创建PR
+```
+
+### E2E测试验证
+
+所有分支保护场景已通过E2E测试:
+
+```bash
+# 测试脚本位于项目根目录
+test-data/
+├── test-user.json                  # 测试用户凭证
+├── branch-protection.json          # 分支保护规则
+├── push-test-output.txt            # Direct push测试结果
+├── force-push-test-output.txt      # Force push测试结果
+└── branch-delete-test-output.txt   # Branch deletion测试结果
+```
+
+**测试结果**:
+- ✅ Direct push to protected branch - BLOCKED
+- ✅ Force push to protected branch - BLOCKED
+- ✅ Branch deletion - BLOCKED
+
+### Fail-Open策略
+
+如果无法获取分支保护规则(API不可达),hook采用fail-open策略:
+
+```bash
+remote: [BRANCH PROTECTION] Cannot fetch branch protection rules (HTTP 500), allowing push
+```
+
+**原因**: 确保向后兼容性,避免因API故障导致所有Git操作中断。
+
+**安全考虑**: 生产环境应监控hook失败率,并配置API高可用。
+
+### 故障排查
+
+#### Hook未执行
+
+1. 检查hook文件是否存在:
+```bash
+ls -la apps/backend/repos/$PROJECT_ID/hooks/pre-receive
+```
+
+2. 检查hook权限(Unix/Linux):
+```bash
+chmod +x apps/backend/repos/$PROJECT_ID/hooks/pre-receive
+```
+
+3. 检查backend日志:
+```bash
+# 搜索hook安装日志
+grep "pre-receive" apps/backend/logs/*.log
+```
+
+#### API返回401
+
+确保branch protection API endpoint是公开的:
+
+```typescript
+// apps/backend/src/branch-protection/branch-protection.controller.ts
+@Get('projects/:projectId/branch-protection')
+@Public() // 必须有此装饰器
+findAll(@Param('projectId') projectId: string) {
+  return this.branchProtectionService.findAll(projectId);
+}
+```
+
+#### 跨平台兼容性
+
+- **Windows**: Git Bash自动处理hook执行(bash脚本通过`#!/bin/bash`)
+- **Unix/Linux/macOS**: 需要执行权限(chmod +x)
+- **Docker**: 确保容器内安装了git和curl
+
+---
+
 ## 相关文档
 
 - [Git HTTP Transfer Protocols](https://git-scm.com/docs/http-protocol)
@@ -388,25 +607,36 @@ git log --oneline --all
 
 ## 更新日志
 
+### 2025-10-26 - Branch Protection Integration ✅
+- ✅ 实现Git pre-receive hook自动安装
+- ✅ 集成Branch Protection API查询
+- ✅ 支持requirePullRequest验证(阻止直接push)
+- ✅ 支持allowForcePushes验证(阻止force push)
+- ✅ 支持allowDeletions验证(阻止branch deletion)
+- ✅ 提供详细的用户友好错误消息
+- ✅ E2E测试全部通过
+- 🔧 修复hook路径解析bug (dist/src/git → dist/git)
+- 🔧 修复API认证问题 (添加@Public装饰器)
+
 ### 2025-10-26 - Initial Implementation
 - ✅ 实现完整的Git HTTP Smart Protocol
 - ✅ 支持clone/fetch/push操作
 - ✅ 使用系统git http-backend
 - ✅ 100%功能验证通过
 
-### Phase 2 (计划)
-- 🔲 添加HTTP Basic Authentication
-- 🔲 实现Personal Access Token
-- 🔲 Git push层面的分支保护
-- 🔲 SSH Protocol支持
+### Phase 2 (已完成)
+- ✅ Git push层面的分支保护 (2025-10-26)
+- 🔲 HTTP Basic Authentication
+- 🔲 Personal Access Token
 
 ### Phase 3 (计划)
+- 🔲 SSH Protocol支持
 - 🔲 Git LFS支持
 - 🔲 分布式仓库replica
 - 🔲 性能监控和优化
 
 ---
 
-**最后更新**: 2025-10-26
+**最后更新**: 2025-10-26 (Branch Protection Integration)
 **验证状态**: ✅ Fully Functional
 **维护者**: Flotilla Platform Team
