@@ -109,7 +109,7 @@ export function DiffFileView({ file, comments, pullRequestId, commitHash, onAddC
 
               const canComment = lineNumber !== null && !isDeletion && !isHunkHeader
               const hasComments = lineNumber && commentsByLine[lineNumber]
-              const isCommentFormActive = activeLineNumber === lineNumber
+              const isCommentFormActive = activeLineNumber !== null && activeLineNumber === lineNumber
 
               return (
                 <div key={idx}>

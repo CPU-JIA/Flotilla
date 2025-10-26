@@ -227,14 +227,14 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
 
     // Verify line-level comment is displayed in blue section
     await expect(
-      page.locator('.bg-blue-50,.bg-blue-900\\/20').filter({ hasText: 'This is a comment on line 2' }),
+      page.locator('.bg-blue-50,.bg-blue-900\\/20').filter({ hasText: 'This is a comment on line 2' }).first(),
     ).toBeVisible({ timeout: 5000 })
 
     // Verify comment metadata (line number indicator)
-    await expect(page.locator('text=2 comment(s) on line').or(page.locator('text=line 2'))).toBeVisible()
+    await expect(page.locator('text=2 comment(s) on line').or(page.locator('text=line 2')).first()).toBeVisible()
 
     // Verify author username appears
-    await expect(page.locator(`text=${testUser.username}`)).toBeVisible()
+    await expect(page.locator(`text=${testUser.username}`).first()).toBeVisible()
   })
 
   test('should show Add comment button on hover for commentable lines', async ({ page, request }) => {
@@ -274,7 +274,7 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
     await addedLine.hover()
 
     // Verify "Add comment" button appears on hover
-    await expect(page.getByRole('button', { name: /💬 Add comment/i })).toBeVisible({ timeout: 3000 })
+    await expect(page.getByRole('button', { name: /💬 Add comment/i }).first()).toBeVisible({ timeout: 3000 })
   })
 
   test('should add line-level comment via inline form', async ({ page, request }) => {
@@ -314,13 +314,13 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
     await page.waitForTimeout(500) // Brief wait for hover effect
 
     // Click "Add comment" button
-    const addCommentButton = page.getByRole('button', { name: /💬 Add comment/i })
+    const addCommentButton = page.getByRole('button', { name: /💬 Add comment/i }).first()
     await expect(addCommentButton).toBeVisible({ timeout: 3000 })
     await addCommentButton.click()
 
     // Verify inline comment form appears (yellow background)
     await expect(
-      page.locator('.bg-yellow-50,.bg-yellow-900\\/20').filter({ hasText: 'Adding comment on line' }),
+      page.locator('.bg-yellow-50,.bg-yellow-900\\/20').filter({ hasText: 'Adding comment on line' }).first(),
     ).toBeVisible({ timeout: 3000 })
 
     // Fill in comment body in textarea
@@ -328,7 +328,7 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
     await commentTextarea.fill('This is my inline comment on Line 2')
 
     // Submit comment
-    const submitButton = page.getByRole('button', { name: /^Add comment$/i })
+    const submitButton = page.getByRole('button', { name: /^Add comment$/i }).first()
     await expect(submitButton).toBeEnabled({ timeout: 2000 })
     await submitButton.click()
 
@@ -337,16 +337,16 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
 
     // Verify inline form is closed (no longer visible)
     await expect(
-      page.locator('.bg-yellow-50,.bg-yellow-900\\/20').filter({ hasText: 'Adding comment on line' }),
+      page.locator('.bg-yellow-50,.bg-yellow-900\\/20').filter({ hasText: 'Adding comment on line' }).first(),
     ).not.toBeVisible()
 
     // Verify comment appears in blue comment section
     await expect(
-      page.locator('.bg-blue-50,.bg-blue-900\\/20').filter({ hasText: 'This is my inline comment on Line 2' }),
+      page.locator('.bg-blue-50,.bg-blue-900\\/20').filter({ hasText: 'This is my inline comment on Line 2' }).first(),
     ).toBeVisible({ timeout: 5000 })
 
     // Verify comment count indicator
-    await expect(page.locator('text=1 comment(s) on line').or(page.locator('text=comment(s) on line 2'))).toBeVisible()
+    await expect(page.locator('text=1 comment(s) on line').or(page.locator('text=comment(s) on line 2')).first()).toBeVisible()
   })
 
   test('should allow canceling inline comment form', async ({ page, request }) => {
@@ -384,12 +384,12 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
     // Hover and click "Add comment"
     await targetLine.hover()
     await page.waitForTimeout(500)
-    const addCommentButton = page.getByRole('button', { name: /💬 Add comment/i })
+    const addCommentButton = page.getByRole('button', { name: /💬 Add comment/i }).first()
     await addCommentButton.click()
 
     // Verify form appears
     await expect(
-      page.locator('.bg-yellow-50,.bg-yellow-900\\/20').filter({ hasText: 'Adding comment on line' }),
+      page.locator('.bg-yellow-50,.bg-yellow-900\\/20').filter({ hasText: 'Adding comment on line' }).first(),
     ).toBeVisible({ timeout: 3000 })
 
     // Fill in some text
@@ -397,12 +397,12 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
     await commentTextarea.fill('This text should be discarded')
 
     // Click Cancel button
-    const cancelButton = page.getByRole('button', { name: /^Cancel$/i })
+    const cancelButton = page.getByRole('button', { name: /^Cancel$/i }).first()
     await cancelButton.click()
 
     // Verify form is closed
     await expect(
-      page.locator('.bg-yellow-50,.bg-yellow-900\\/20').filter({ hasText: 'Adding comment on line' }),
+      page.locator('.bg-yellow-50,.bg-yellow-900\\/20').filter({ hasText: 'Adding comment on line' }).first(),
     ).not.toBeVisible()
 
     // Verify no comment was added
