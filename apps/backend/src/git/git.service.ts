@@ -183,7 +183,8 @@ export class GitService {
   private async installPreReceiveHook(dir: string, projectId: string): Promise<void> {
     try {
       const hooksDir = path.join(dir, 'hooks');
-      const hookSource = path.join(__dirname, 'hooks', 'pre-receive.sh');
+      // __dirname at runtime is dist/src/git/, need to go up to dist/ and then to git/hooks/
+      const hookSource = path.join(__dirname, '..', '..', 'git', 'hooks', 'pre-receive.sh');
       const hookTarget = path.join(hooksDir, 'pre-receive');
 
       // ECP-C1: Verify hook source exists before attempting installation

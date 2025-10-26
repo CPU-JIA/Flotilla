@@ -24,6 +24,7 @@ import {
 } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 
 /**
  * 分支保护规则Controller
@@ -63,6 +64,7 @@ export class BranchProtectionController {
   }
 
   @Get('projects/:projectId/branch-protection')
+  @Public() // Allow unauthenticated access for pre-receive hooks
   @ApiOperation({ summary: '获取项目的所有分支保护规则' })
   @ApiParam({ name: 'projectId', description: '项目ID' })
   @ApiResponse({
