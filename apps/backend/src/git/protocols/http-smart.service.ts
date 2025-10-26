@@ -45,6 +45,11 @@ export class HttpSmartService {
         REQUEST_METHOD: options.requestBody ? 'POST' : 'GET',
         CONTENT_TYPE: options.contentType || 'application/x-git-upload-pack-request',
         CONTENT_LENGTH: options.requestBody ? String(options.requestBody.length) : '0',
+        // Add environment variables for pre-receive hook
+        // Hook uses PROJECT_ID to query branch protection API
+        PROJECT_ID: options.projectId,
+        // API_BASE_URL can be overridden via process.env for production deployments
+        API_BASE_URL: process.env.API_BASE_URL || 'http://localhost:4000/api',
       };
 
       const gitProcess = spawn('git', ['http-backend'], {

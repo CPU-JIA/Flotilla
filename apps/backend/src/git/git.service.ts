@@ -166,6 +166,74 @@ export class GitService {
   }
 
   /**
+   * Install pre-receive hook for branch protection validation
+   *
+   * ECP-C1: Defensive programming - validates branch protection rules at Git push time
+   * ECP-C2: Systematic error handling - logs warnings but doesn't block repo initialization
+   * ECP-D1: Testability - isolated hook installation logic
+   *
+   * The hook script calls the branch protection API to validate:
+   * - Branch deletion permissions (allowDeletions)
+   * - Force push permissions (allowForcePushes)
+   * - Direct push restrictions (requirePullRequest)
+   *
+   * @param dir - Absolute path to the bare Git repository
+   * @param projectId - Project ID (passed to hook via environment variable)
+   */
+  private async installPreReceiveHook(dir: string, projectId: string): Promise<void> {
+    try {
+      const hooksDir = path.join(dir, 'hooks');
+      const hookSource = path.join(__dirname, 'hooks', 'pre-receive.sh');
+      const hookTarget = path.join(hooksDir, 'pre-receive');
+
+      // ECP-C1: Verify hook source exists before attempting installation
+      if (!fs.existsSync(hookSource)) {
+        this.logger.warn(
+          `Pre-receive hook source not found: ${hookSource}. ` +
+          `Skipping hook installation. Branch protection will only apply at PR merge time.`
+        );
+        return;
+      }
+
+      // Ensure hooks directory exists
+      if (!fs.existsSync(hooksDir)) {
+        fs.mkdirSync(hooksDir, { recursive: true });
+        this.logger.debug(`Created hooks directory: ${hooksDir}`);
+      }
+
+      // Copy hook script
+      fs.copyFileSync(hookSource, hookTarget);
+      this.logger.debug(`Copied hook script: ${hookSource} → ${hookTarget}`);
+
+      // Make executable (Unix/Linux/macOS only)
+      if (process.platform !== 'win32') {
+        fs.chmodSync(hookTarget, 0o755);
+        this.logger.debug(`Set executable permissions on hook: ${hookTarget}`);
+      } else {
+        // Windows: Git Bash will handle execution automatically
+        this.logger.debug(
+          `Windows platform detected. Git Bash will handle hook execution automatically.`
+        );
+      }
+
+      this.logger.log(
+        `✓ Successfully installed pre-receive hook for project: ${projectId}. ` +
+        `Branch protection will be enforced at Git push time.`
+      );
+    } catch (error) {
+      // ECP-C2: Graceful degradation - log warning but don't throw
+      // Hook installation failure shouldn't prevent repository initialization
+      // Branch protection will still work at PR merge level
+      this.logger.warn(
+        `Failed to install pre-receive hook for project ${projectId}: ${error.message}. ` +
+        `Branch protection will only apply at PR merge time. ` +
+        `Troubleshooting: Check file permissions and ensure hooks/ directory is writable.`
+      );
+      // Don't throw - allow repository to be created even if hook installation fails
+    }
+  }
+
+  /**
    * Initialize a new Git repository
    */
   async init(
@@ -185,6 +253,10 @@ export class GitService {
       // Enable HTTP push (receive-pack) for Git HTTP Smart Protocol
       // Uses ensureHttpReceivePackConfig with fallback mechanism (ECP-C1, ECP-C2)
       await this.ensureHttpReceivePackConfig(dir);
+
+      // Install pre-receive hook for branch protection validation
+      // ECP-C1: Defensive programming - hook validation at Git push time
+      await this.installPreReceiveHook(dir, projectId);
 
       this.logger.log(`Initialized bare repository for project: ${projectId}`);
     } catch (error) {
