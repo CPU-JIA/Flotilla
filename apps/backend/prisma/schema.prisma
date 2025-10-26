@@ -94,20 +94,22 @@ model User {
   updatedAt DateTime @updatedAt
 
   // 关系
-  ownedProjects       Project[]            @relation("ProjectOwner")
-  projectMembers      ProjectMember[]
-  commits             Commit[]
-  uploadedFiles       ProjectFile[]
-  organizationMembers OrganizationMember[]
-  teamMembers         TeamMember[]
-  authoredIssues      Issue[]              @relation("IssueAuthor")
-  issueComments       IssueComment[]       @relation("IssueCommentAuthor")
-  issueEvents         IssueEvent[]         @relation("IssueEventActor")
-  authoredPRs         PullRequest[]        @relation("PRAuthor")
-  mergedPRs           PullRequest[]        @relation("PRMerger")
-  prReviews           PRReview[]
-  prComments          PRComment[]
-  prEvents            PREvent[]
+  ownedProjects          Project[]               @relation("ProjectOwner")
+  projectMembers         ProjectMember[]
+  commits                Commit[]
+  uploadedFiles          ProjectFile[]
+  organizationMembers    OrganizationMember[]
+  teamMembers            TeamMember[]
+  authoredIssues         Issue[]                 @relation("IssueAuthor")
+  issueComments          IssueComment[]          @relation("IssueCommentAuthor")
+  issueEvents            IssueEvent[]            @relation("IssueEventActor")
+  authoredPRs            PullRequest[]           @relation("PRAuthor")
+  mergedPRs              PullRequest[]           @relation("PRMerger")
+  prReviews              PRReview[]
+  prComments             PRComment[]
+  prEvents               PREvent[]
+  notifications          Notification[] // 用户接收的通知
+  notificationPreference NotificationPreference? // 用户通知偏好设置（1:1关系）
 
   @@index([email])
   @@index([username])
@@ -663,4 +665,93 @@ model PREvent {
   @@index([event])
   @@index([createdAt])
   @@map("pr_events")
+}
+
+// ============================================
+// 通知系统模块
+// ============================================
+
+/**
+ * 通知类型枚举
+ *
+ * 支持的通知场景：
+ * - Pull Request相关：创建、合并、关闭、审查、评论
+ * - Issue相关：提及、分配、评论
+ */
+enum NotificationType {
+  PR_CREATED       // PR被创建
+  PR_MERGED        // PR被合并
+  PR_CLOSED        // PR被关闭
+  PR_REVIEWED      // PR被审查
+  PR_COMMENTED     // PR被评论
+  ISSUE_MENTIONED  // 在Issue中被提及
+  ISSUE_ASSIGNED   // 被分配到Issue
+  ISSUE_COMMENTED  // Issue被评论
+}
+
+/**
+ * 通知表
+ *
+ * 存储所有用户通知记录
+ *
+ * ECP-C3: Performance Awareness - 添加索引优化查询
+ * - userId: 按用户查询未读通知
+ * - read: 快速过滤已读/未读
+ * - createdAt: 时间排序
+ */
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           // 通知接收者
+  type      NotificationType // 通知类型
+  title     String           @db.VarChar(200) // 通知标题
+  body      String?          @db.Text // 通知内容（支持Markdown）
+  read      Boolean          @default(false) // 是否已读
+  link      String?          @db.VarChar(500) // 相关资源链接（如PR详情页）
+  metadata  Json? // 额外元数据（PR ID、Issue ID、评论内容等）
+
+  createdAt DateTime @default(now())
+
+  // 关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+  @@index([userId, read]) // 复合索引：查询特定用户的未读通知
+  @@map("notifications")
+}
+
+/**
+ * 通知偏好设置表
+ *
+ * 用户可自定义接收哪些类型的通知
+ *
+ * ECP-A1: SOLID - 单一职责原则
+ * - 每个用户一条配置记录（1:1关系）
+ */
+model NotificationPreference {
+  id     String @id @default(cuid())
+  userId String @unique // 用户ID（唯一）
+
+  // PR通知开关
+  prCreated   Boolean @default(true) // PR创建通知
+  prMerged    Boolean @default(true) // PR合并通知
+  prReviewed  Boolean @default(true) // PR审查通知
+  prCommented Boolean @default(true) // PR评论通知
+
+  // Issue通知开关
+  issueMentioned Boolean @default(true) // Issue提及通知
+  issueAssigned  Boolean @default(true) // Issue分配通知
+  issueCommented Boolean @default(true) // Issue评论通知
+
+  // 邮件通知（暂未实现，预留字段）
+  emailNotifications Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
 }

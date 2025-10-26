@@ -18,6 +18,7 @@ import { MonitoringModule } from './monitoring/monitoring.module';
 import { IssuesModule } from './issues/issues.module';
 import { GitModule } from './git/git.module';
 import { PullRequestsModule } from './pull-requests/pull-requests.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { PerformanceMonitoringMiddleware } from './common/middleware/performance-monitoring.middleware';
 
 @Module({
@@ -42,6 +43,7 @@ import { PerformanceMonitoringMiddleware } from './common/middleware/performance
     IssuesModule,
     GitModule,
     PullRequestsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
