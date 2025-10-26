@@ -346,7 +346,7 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
     ).toBeVisible({ timeout: 5000 })
 
     // Verify comment count indicator
-    await expect(page.locator('text=1 comment(s) on line').or(page.locator('text=comment(s) on line 2')).first()).toBeVisible()
+    await expect(page.getByText(/1 comment.*on line/i).first()).toBeVisible()
   })
 
   test('should allow canceling inline comment form', async ({ page, request }) => {
