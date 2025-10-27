@@ -1056,6 +1056,107 @@ export const en: Translations = {
     },
   },
 
+  // Code Search
+  search: {
+    title: 'Code Search',
+    globalSearch: 'Global Search',
+    projectSearch: 'Project Search',
+    searchCode: 'Search Code',
+    searchPlaceholder: 'Search code, files, symbols...',
+    searchCodePlaceholder: 'Search code, files, symbols...',
+    searchInProject: 'Search in project',
+    loading: 'Searching...',
+    noResults: 'No results found',
+    noResultsDesc: 'Try adjusting your search query or filters',
+    resultsFound: '{count} results found',
+    processingTime: '({time}ms)',
+    loadMore: 'Load More ({count} remaining)',
+    loadingMore: 'Loading...',
+
+    // Empty states
+    emptyState: {
+      title: 'Start searching',
+      description: 'Enter a search query to find code, files, and symbols across all your projects. Use Cmd+K to focus the search bar.',
+      noQueryTitle: 'Start searching',
+      noQueryDesc: 'Enter a search query to find code',
+      noResultsTitle: 'No results found',
+      noResultsDesc: 'Try adjusting your search query or filters. Make sure the file is indexed and you have access to the project.',
+    },
+
+    // Filters
+    filters: {
+      title: 'Filters',
+      clear: 'Clear',
+      sortBy: 'Sort by',
+      languages: 'Languages',
+      extensions: 'File Extensions',
+      branches: 'Branches',
+      sort: {
+        relevance: 'Relevance',
+        date: 'Last Modified',
+        size: 'File Size',
+        lastModified: 'Last Modified',
+        fileSize: 'File Size',
+      },
+      extensionGroups: {
+        webFrontend: 'Web Frontend',
+        backend: 'Backend',
+        config: 'Config',
+        documentation: 'Documentation',
+        database: 'Database',
+        system: 'System',
+      },
+    },
+
+    // Result item
+    result: {
+      fileName: 'File Name',
+      filePath: 'File Path',
+      preview: 'Preview',
+      symbols: 'Symbols',
+      branch: 'Branch',
+      lastModified: 'Last Modified',
+      size: 'Size',
+      lines: 'lines',
+      moreSymbols: '+{count} more',
+      openFile: 'Open File',
+      viewInProject: 'View in Project',
+      today: 'Today',
+      yesterday: 'Yesterday',
+      daysAgo: '{count} days ago',
+      weeksAgo: '{count} weeks ago',
+    },
+
+    // Index status
+    index: {
+      status: 'Index Status',
+      indexing: 'Indexing...',
+      indexed: 'Indexed',
+      failed: 'Failed',
+      notIndexed: 'Not Indexed',
+      totalFiles: 'Total Files',
+      indexedFiles: 'Indexed Files',
+      failedFiles: 'Failed Files',
+      lastIndexed: 'Last Indexed',
+      reindex: 'Reindex',
+      reindexing: 'Reindexing...',
+      reindexSuccess: 'Reindex started',
+      reindexFailed: 'Reindex failed',
+      deleteIndex: 'Delete Index',
+      deleteSuccess: 'Index deleted',
+      deleteFailed: 'Delete failed',
+      confirmDelete: 'Are you sure you want to delete this project\'s index?',
+    },
+
+    // Errors
+    errors: {
+      searchFailed: 'Search failed',
+      networkError: 'Network error, please try again later',
+      accessDenied: 'Access denied to this project',
+      indexNotReady: 'Index not ready, please try again later',
+    },
+  },
+
   // Form validation
   validation: {
     emailRequired: 'Please enter email address',

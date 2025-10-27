@@ -1019,6 +1019,102 @@ export interface Translations {
     }
   }
 
+  // Code Search
+  search: {
+    title: string
+    globalSearch: string
+    projectSearch: string
+    searchCode: string
+    searchPlaceholder: string
+    searchCodePlaceholder: string
+    searchInProject: string
+    loading: string
+    noResults: string
+    noResultsDesc: string
+    resultsFound: string
+    processingTime: string
+    loadMore: string
+    loadingMore: string
+
+    emptyState: {
+      title: string
+      description: string
+      noQueryTitle: string
+      noQueryDesc: string
+      noResultsTitle: string
+      noResultsDesc: string
+    }
+
+    filters: {
+      title: string
+      clear: string
+      sortBy: string
+      languages: string
+      extensions: string
+      branches: string
+      sort: {
+        relevance: string
+        date: string
+        size: string
+        lastModified: string
+        fileSize: string
+      }
+      extensionGroups: {
+        webFrontend: string
+        backend: string
+        config: string
+        documentation: string
+        database: string
+        system: string
+      }
+    }
+
+    result: {
+      fileName: string
+      filePath: string
+      preview: string
+      symbols: string
+      branch: string
+      lastModified: string
+      size: string
+      lines: string
+      moreSymbols: string
+      openFile: string
+      viewInProject: string
+      today: string
+      yesterday: string
+      daysAgo: string
+      weeksAgo: string
+    }
+
+    index: {
+      status: string
+      indexing: string
+      indexed: string
+      failed: string
+      notIndexed: string
+      totalFiles: string
+      indexedFiles: string
+      failedFiles: string
+      lastIndexed: string
+      reindex: string
+      reindexing: string
+      reindexSuccess: string
+      reindexFailed: string
+      deleteIndex: string
+      deleteSuccess: string
+      deleteFailed: string
+      confirmDelete: string
+    }
+
+    errors: {
+      searchFailed: string
+      networkError: string
+      accessDenied: string
+      indexNotReady: string
+    }
+  }
+
   // 表单验证
   validation: {
     emailRequired: string

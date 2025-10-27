@@ -1055,6 +1055,107 @@ export const zh: Translations = {
     },
   },
 
+  // Code Search
+  search: {
+    title: '代码搜索',
+    globalSearch: '全局搜索',
+    projectSearch: '项目内搜索',
+    searchCode: '搜索代码',
+    searchPlaceholder: '搜索代码、文件、符号...',
+    searchCodePlaceholder: '搜索代码、文件、符号...',
+    searchInProject: '在项目中搜索',
+    loading: '搜索中...',
+    noResults: '未找到结果',
+    noResultsDesc: '尝试调整搜索关键词或过滤条件',
+    resultsFound: '找到 {count} 个结果',
+    processingTime: '({time}ms)',
+    loadMore: '加载更多 (剩余 {count} 个)',
+    loadingMore: '加载中...',
+
+    // 空状态
+    emptyState: {
+      title: '开始搜索',
+      description: '输入关键词搜索代码、文件和符号。使用 Cmd+K 快速聚焦搜索框。',
+      noQueryTitle: '开始搜索',
+      noQueryDesc: '输入搜索关键词开始查找代码',
+      noResultsTitle: '未找到结果',
+      noResultsDesc: '尝试调整搜索关键词或过滤条件。确保文件已被索引且您有访问权限。',
+    },
+
+    // 过滤器
+    filters: {
+      title: '过滤器',
+      clear: '清空',
+      sortBy: '排序方式',
+      languages: '编程语言',
+      extensions: '文件扩展名',
+      branches: '分支',
+      sort: {
+        relevance: '相关性',
+        date: '修改时间',
+        size: '文件大小',
+        lastModified: '最近修改',
+        fileSize: '文件大小',
+      },
+      extensionGroups: {
+        webFrontend: 'Web 前端',
+        backend: '后端',
+        config: '配置文件',
+        documentation: '文档',
+        database: '数据库',
+        system: '系统脚本',
+      },
+    },
+
+    // 搜索结果项
+    result: {
+      fileName: '文件名',
+      filePath: '文件路径',
+      preview: '预览',
+      symbols: '符号',
+      branch: '分支',
+      lastModified: '修改时间',
+      size: '大小',
+      lines: '行',
+      moreSymbols: '+{count} 个符号',
+      openFile: '打开文件',
+      viewInProject: '在项目中查看',
+      today: '今天',
+      yesterday: '昨天',
+      daysAgo: '{count} 天前',
+      weeksAgo: '{count} 周前',
+    },
+
+    // 索引状态
+    index: {
+      status: '索引状态',
+      indexing: '正在索引...',
+      indexed: '已索引',
+      failed: '索引失败',
+      notIndexed: '未索引',
+      totalFiles: '总文件数',
+      indexedFiles: '已索引文件',
+      failedFiles: '失败文件',
+      lastIndexed: '最后索引时间',
+      reindex: '重新索引',
+      reindexing: '重新索引中...',
+      reindexSuccess: '重新索引已开始',
+      reindexFailed: '重新索引失败',
+      deleteIndex: '删除索引',
+      deleteSuccess: '索引已删除',
+      deleteFailed: '删除索引失败',
+      confirmDelete: '确定要删除此项目的索引吗？',
+    },
+
+    // 错误信息
+    errors: {
+      searchFailed: '搜索失败',
+      networkError: '网络错误，请稍后重试',
+      accessDenied: '无权访问此项目',
+      indexNotReady: '索引尚未准备好，请稍后重试',
+    },
+  },
+
   // 表单验证
   validation: {
     emailRequired: '请输入邮箱地址',

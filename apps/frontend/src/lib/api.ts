@@ -45,6 +45,12 @@ import type {
   Milestone,
   IssueComment,
 } from '@/types/issue'
+import type {
+  SearchResult,
+  SearchQuery,
+  IndexStatus,
+  ReindexResponse,
+} from '@/types/search'
 
 // Commit interface for type safety
 interface Commit {
@@ -1035,6 +1041,72 @@ export const api = {
     // 删除评论
     delete: (projectId: string, issueNumber: number, commentId: string) =>
       apiRequest<{ message: string }>(`/projects/${projectId}/issues/${issueNumber}/comments/${commentId}`, {
+        method: 'DELETE',
+      }),
+  },
+
+  // ============================================
+  // Code Search API
+  // ============================================
+  search: {
+    /**
+     * 全局代码搜索
+     * GET /api/search?query=xxx&projectId=xxx&language=typescript&offset=0&limit=20
+     */
+    search: (params: SearchQuery) => {
+      const searchParams = new URLSearchParams()
+      searchParams.append('query', params.query)
+
+      if (params.projectId) {
+        searchParams.append('projectId', params.projectId)
+      }
+      if (params.language && params.language.length > 0) {
+        params.language.forEach(lang => searchParams.append('language', lang))
+      }
+      if (params.extension && params.extension.length > 0) {
+        params.extension.forEach(ext => searchParams.append('extension', ext))
+      }
+      if (params.branchName) {
+        searchParams.append('branchName', params.branchName)
+      }
+      if (params.repositoryId) {
+        searchParams.append('repositoryId', params.repositoryId)
+      }
+      if (params.offset !== undefined) {
+        searchParams.append('offset', params.offset.toString())
+      }
+      if (params.limit !== undefined) {
+        searchParams.append('limit', params.limit.toString())
+      }
+      if (params.sort) {
+        searchParams.append('sort', params.sort)
+      }
+
+      return apiRequest<SearchResult>(`/search?${searchParams.toString()}`)
+    },
+
+    /**
+     * 获取项目索引状态
+     * GET /api/search/status/:projectId
+     */
+    getIndexStatus: (projectId: string) =>
+      apiRequest<IndexStatus>(`/search/status/${projectId}`),
+
+    /**
+     * 触发项目重索引
+     * POST /api/search/reindex/:projectId
+     */
+    reindex: (projectId: string) =>
+      apiRequest<ReindexResponse>(`/search/reindex/${projectId}`, {
+        method: 'POST',
+      }),
+
+    /**
+     * 删除项目索引
+     * DELETE /api/search/indexes/:projectId
+     */
+    deleteIndex: (projectId: string) =>
+      apiRequest<{ message: string }>(`/search/indexes/${projectId}`, {
         method: 'DELETE',
       }),
   },
