@@ -256,8 +256,8 @@ describe('typescript-parser', () => {
     });
 
     it('should return empty array for unsupported languages', () => {
-      const content = 'def hello():\n  pass';
-      const symbols = extractSymbols(content, 'python', 'test.py');
+      const content = 'func hello() {\n  fmt.Println("Hello")\n}';
+      const symbols = extractSymbols(content, 'go', 'test.go');
 
       expect(symbols).toEqual([]);
     });

@@ -1,5 +1,7 @@
 import { parse } from '@typescript-eslint/typescript-estree';
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
+import { extractPythonSymbols } from './python-parser';
+import { extractJavaSymbols } from './java-parser';
 
 /**
  * TypeScript/JavaScript符号提取器
@@ -149,7 +151,8 @@ function traverseAst(node: any, symbols: Set<string>): void {
  * @param filePath - 文件路径
  * @returns 符号名称数组
  *
- * ECP-A3 (YAGNI): MVP只实现TypeScript/JavaScript解析
+ * ECP-A1 (单一职责): 作为符号提取的调度器
+ * ECP-B2 (KISS): 简单的switch分发，易于扩展
  */
 export function extractSymbols(
   content: string,
@@ -161,8 +164,14 @@ export function extractSymbols(
     case 'javascript':
       return extractTypeScriptSymbols(content, filePath);
 
+    case 'python':
+      return extractPythonSymbols(content, filePath);
+
+    case 'java':
+      return extractJavaSymbols(content, filePath);
+
     // 其他语言暂不支持，返回空数组
-    // Phase 2将添加Python/Java支持
+    // 未来可扩展: C++, Go, Rust等
     default:
       return [];
   }
