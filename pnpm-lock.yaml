@@ -68,6 +68,9 @@ importers:
       class-validator:
         specifier: ^0.14.2
         version: 0.14.2
+      diff:
+        specifier: ^8.0.2
+        version: 8.0.2
       file-type:
         specifier: ^21.0.0
         version: 21.0.0
@@ -120,9 +123,6 @@ importers:
       '@types/bcrypt':
         specifier: ^6.0.0
         version: 6.0.0
-      '@types/diff':
-        specifier: ^8.0.0
-        version: 8.0.0
       '@types/express':
         specifier: ^5.0.0
         version: 5.0.3
@@ -2579,10 +2579,6 @@ packages:
 
   '@types/debug@4.1.12':
     resolution: {integrity: sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==}
-
-  '@types/diff@8.0.0':
-    resolution: {integrity: sha512-o7jqJM04gfaYrdCecCVMbZhNdG6T1MHg/oQoRFdERLV+4d+V7FijhiEAbFu0Usww84Yijk9yH58U4Jk4HbtzZw==}
-    deprecated: This is a stub types definition. diff provides its own type definitions, so you do not need this installed.
 
   '@types/eslint-scope@3.7.7':
     resolution: {integrity: sha512-MzMFlSLBqNF2gcHWO0G1vP/YQyfvrxZ0bF+u7mzUdZ1/xK4A4sru+nraZz5i3iEIk1l1uyicaDVTB4QbbEkAYg==}
@@ -9392,10 +9388,6 @@ snapshots:
   '@types/debug@4.1.12':
     dependencies:
       '@types/ms': 2.1.0
-
-  '@types/diff@8.0.0':
-    dependencies:
-      diff: 4.0.2
 
   '@types/eslint-scope@3.7.7':
     dependencies:
