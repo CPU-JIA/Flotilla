@@ -20,6 +20,7 @@ import { GitModule } from './git/git.module';
 import { PullRequestsModule } from './pull-requests/pull-requests.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { BranchProtectionModule } from './branch-protection/branch-protection.module';
+import { SearchModule } from './search/search.module';
 import { PerformanceMonitoringMiddleware } from './common/middleware/performance-monitoring.middleware';
 
 @Module({
@@ -46,6 +47,7 @@ import { PerformanceMonitoringMiddleware } from './common/middleware/performance
     PullRequestsModule,
     NotificationsModule,
     BranchProtectionModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],

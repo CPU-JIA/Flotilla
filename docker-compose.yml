@@ -62,6 +62,28 @@ services:
     networks:
       - cloud-dev-network
 
+  # MeiliSearch - 代码搜索引擎
+  meilisearch:
+    image: getmeili/meilisearch:v1.10
+    container_name: flotilla-meilisearch
+    restart: unless-stopped
+    ports:
+      - '7700:7700'
+    environment:
+      MEILI_MASTER_KEY: 'flotilla-search-master-key-min-16-chars-2025'
+      MEILI_ENV: development
+      MEILI_HTTP_ADDR: '0.0.0.0:7700'
+      MEILI_NO_ANALYTICS: 'true'
+    volumes:
+      - meilisearch_data:/meili_data
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:7700/health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cloud-dev-network
+
   # 后端 NestJS API
   backend:
     build:
@@ -82,6 +104,9 @@ services:
       MINIO_SECRET_KEY: minioadmin123
       MINIO_USE_SSL: 'false'
       MINIO_BUCKET_NAME: cloud-dev-platform
+      MEILI_HOST: 'http://meilisearch:7700'
+      MEILI_MASTER_KEY: 'flotilla-search-master-key-min-16-chars-2025'
+      MEILI_INDEX_PREFIX: 'flotilla_'
       JWT_SECRET: 'your-super-secret-jwt-key-change-in-production-2025'
       JWT_EXPIRATION: '7d'
       JWT_REFRESH_SECRET: 'your-super-secret-refresh-key-change-in-production-2025'
@@ -93,6 +118,8 @@ services:
       redis:
         condition: service_healthy
       minio:
+        condition: service_healthy
+      meilisearch:
         condition: service_healthy
     networks:
       - cloud-dev-network
@@ -167,6 +194,8 @@ volumes:
   redis_data:
     driver: local
   minio_data:
+    driver: local
+  meilisearch_data:
     driver: local
 
 networks:

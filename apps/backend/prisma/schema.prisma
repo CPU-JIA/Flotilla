@@ -76,6 +76,14 @@ enum TeamRole {
   MEMBER // 团队成员（继承团队权限）
 }
 
+enum IndexStatus {
+  PENDING     // 等待索引
+  INDEXING    // 索引中
+  INDEXED     // 已索引
+  FAILED      // 索引失败
+  OUTDATED    // 已过期（文件有新提交）
+}
+
 // ============================================
 // 用户模块
 // ============================================
@@ -267,6 +275,7 @@ model Project {
   milestones            Milestone[]
   pullRequests          PullRequest[]
   branchProtectionRules BranchProtectionRule[]
+  searchMetadata        SearchMetadata[]  // Code Search索引元数据
 
   @@unique([ownerId, name])
   @@unique([organizationId, name])
@@ -310,6 +319,7 @@ model Repository {
   branches Branch[]
   commits  Commit[]
   files    File[]
+  searchMetadata SearchMetadata[]  // Code Search索引元数据
 
   @@index([projectId])
   @@map("repositories")
@@ -379,11 +389,53 @@ model File {
   branch     Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade)
   commit     Commit?    @relation(fields: [commitId], references: [id], onDelete: SetNull)
 
+  // Code Search索引元数据（可选关系）
+  searchMetadata SearchMetadata?
+
   @@unique([repositoryId, branchId, path])
   @@index([branchId])
   @@index([commitId])
   @@index([path])
   @@map("files")
+}
+
+// ============================================
+// Code Search 模块
+// ============================================
+
+model SearchMetadata {
+  id           String      @id @default(cuid())
+  fileId       String      @unique  // 关联到File表
+  projectId    String
+  repositoryId String
+
+  // 索引状态
+  status       IndexStatus @default(PENDING)
+  indexedAt    DateTime?   // 上次索引时间
+  failureReason String?    @db.Text  // 失败原因
+  retryCount   Int         @default(0)  // 重试次数
+
+  // 文件快照（用于检测变化）
+  lastCommitId String?     @db.VarChar(64)
+  contentHash  String?     @db.VarChar(64)  // SHA256 hash
+
+  // 索引统计
+  symbolCount  Int         @default(0)  // 代码符号数量
+  lineCount    Int         @default(0)  // 总行数
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  // 关系
+  file       File       @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  repository Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([repositoryId])
+  @@index([status])
+  @@index([indexedAt])
+  @@map("search_metadata")
 }
 
 // ============================================

@@ -135,4 +135,36 @@ export class MinioService implements OnModuleInit {
       stream.on('error', reject);
     });
   }
+
+  /**
+   * 获取文件元数据
+   */
+  async statObject(objectName: string): Promise<Minio.BucketItemStat> {
+    try {
+      const stat = await this.minioClient.statObject(
+        this.bucketName,
+        objectName,
+      );
+      return stat;
+    } catch (error) {
+      this.logger.error(`❌ Stat object failed: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * 获取文件流（用于大文件下载）
+   */
+  async getObject(objectName: string): Promise<any> {
+    try {
+      const stream = await this.minioClient.getObject(
+        this.bucketName,
+        objectName,
+      );
+      return stream;
+    } catch (error) {
+      this.logger.error(`❌ Get object stream failed: ${error.message}`);
+      throw error;
+    }
+  }
 }
