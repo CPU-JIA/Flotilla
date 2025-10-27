@@ -13,7 +13,7 @@
  * ECP-B1: DRY - 复用全局搜索组件
  */
 
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, Suspense } from 'react'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, Loader2, FileSearch } from 'lucide-react'
@@ -25,7 +25,6 @@ import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import type { SearchResult, SearchFilters as SearchFiltersType } from '@/types/search'
 import type { Project } from '@/types/project'
-import { cn } from '@/lib/utils'
 
 const DEFAULT_FILTERS: SearchFiltersType = {
   languages: [],
@@ -34,7 +33,7 @@ const DEFAULT_FILTERS: SearchFiltersType = {
   sort: 'relevance',
 }
 
-export default function ProjectSearchPage() {
+function ProjectSearchPageContent() {
   const params = useParams()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -54,7 +53,7 @@ export default function ProjectSearchPage() {
   useEffect(() => {
     async function fetchProject() {
       try {
-        const projectData = await api.projects.get(projectId)
+        const projectData = await api.projects.getById(projectId)
         setProject(projectData)
       } catch (err) {
         console.error('Failed to fetch project:', err)
@@ -304,5 +303,21 @@ export default function ProjectSearchPage() {
         </main>
       </div>
     </div>
+  )
+}
+
+export default function ProjectSearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        </div>
+      }
+    >
+      <ProjectSearchPageContent />
+    </Suspense>
   )
 }

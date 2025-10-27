@@ -14,7 +14,7 @@
  * ECP-C1: Defensive Programming - 错误处理和加载状态
  */
 
-import React, { useState, useCallback, useEffect } from 'react'
+import React, { useState, useCallback, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { SearchBar } from '@/components/search/SearchBar'
 import { SearchResultItem } from '@/components/search/SearchResultItem'
@@ -24,7 +24,6 @@ import { Button } from '@/components/ui/button'
 import { Loader2, Search as SearchIcon, FileSearch } from 'lucide-react'
 import { api } from '@/lib/api'
 import type { SearchResult, SearchFilters as SearchFiltersType } from '@/types/search'
-import { cn } from '@/lib/utils'
 
 const DEFAULT_FILTERS: SearchFiltersType = {
   languages: [],
@@ -33,7 +32,7 @@ const DEFAULT_FILTERS: SearchFiltersType = {
   sort: 'relevance',
 }
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -266,5 +265,21 @@ export default function SearchPage() {
         </main>
       </div>
     </div>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        </div>
+      }
+    >
+      <SearchPageContent />
+    </Suspense>
   )
 }
