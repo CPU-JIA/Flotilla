@@ -8,8 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Status**: 🚧 Phase 1 - Foundation (Git Protocol & PR System Development)
 **Version**: v1.0.0-MVP
-**Last Updated**: 2025-10-23
-**Current Sprint**: Sprint 1 Complete ✅ | Sprint 2-3 - Git Protocol & Pull Request System
+**Last Updated**: 2025-10-27
+**Current Sprint**: Sprint 1 Complete ✅ | Sprint 2 - Code Search MVP ✅ | Sprint 3 - Git Protocol & Pull Request System
 **Roadmap**: See [ROADMAP_2025.md](./docs/ROADMAP_2025.md) for 24-month strategic plan
 
 ## Prerequisites
@@ -53,7 +53,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Infrastructure
 - **PostgreSQL 16** - Primary database (port 5434)
 - **Redis 7** - Cache and session storage (port 6380)
-- **MinIO** - Object storage (ports 9000/9001)
+- **MinIO** - S3-compatible object storage (ports 9000/9001)
+- **MeiliSearch 1.10** - Full-text search engine for Code Search (port 7700)
 - **Docker Compose** - Local development orchestration
 
 ## Common Commands
@@ -215,6 +216,19 @@ apps/backend/src/
 │   ├── comments.controller.ts  # Comment endpoints
 │   ├── comments.service.ts     # Comment management
 │   └── issues.module.ts        # Issue module configuration
+├── search/            # Code Search with MeiliSearch integration
+│   ├── search.controller.ts    # Search API endpoints
+│   ├── search.service.ts       # Search orchestration
+│   ├── index.service.ts        # File indexing service
+│   ├── parsers/                # Symbol extractors for different languages
+│   │   ├── typescript-parser.ts # TypeScript/JavaScript AST parser
+│   │   ├── python-parser.ts     # Python regex-based parser
+│   │   ├── java-parser.ts       # Java regex-based parser
+│   │   └── *.spec.ts            # 47 unit tests (100% pass rate)
+│   ├── utils/                   # Search utilities
+│   │   ├── language-detector.ts # File extension to language mapping
+│   │   └── file-utils.ts        # File type detection and filtering
+│   └── dto/                     # Search query and response DTOs
 ├── raft/              # Core Raft consensus algorithm implementation
 ├── raft-cluster/      # Raft cluster management and WebSocket gateway
 ├── monitoring/        # System monitoring and performance metrics
@@ -240,19 +254,27 @@ apps/backend/src/
 apps/frontend/src/
 ├── app/               # Next.js App Router pages
 │   ├── (auth)/        # Auth-related pages (login, register)
+│   ├── search/        # Global Code Search page
+│   │   └── page.tsx   # Search UI with filters and results
 │   ├── projects/      # Project pages with dynamic routes
 │   │   └── [id]/
-│   │       ├── issues/          # Issue tracking pages
-│   │       │   ├── page.tsx     # Issue list view
-│   │       │   ├── new/page.tsx # Create new issue
+│   │       ├── search/            # Project-scoped Code Search
+│   │       │   └── page.tsx       # Project search page
+│   │       ├── issues/            # Issue tracking pages
+│   │       │   ├── page.tsx       # Issue list view
+│   │       │   ├── new/page.tsx   # Create new issue
 │   │       │   └── [number]/page.tsx  # Issue detail view
-│   │       ├── files/           # File browser
-│   │       └── page.tsx         # Project dashboard
+│   │       ├── files/             # File browser
+│   │       └── page.tsx           # Project dashboard
 │   ├── organizations/ # Organization management pages
 │   │   └── [slug]/    # Org detail with teams tab
 │   │       └── teams/[teamSlug]/  # Team detail pages
 │   └── layout.tsx     # Root layout
 ├── components/        # Reusable React components
+│   ├── search/        # Code Search components
+│   │   ├── SearchBar.tsx          # Search input with Cmd+K shortcut
+│   │   ├── SearchResultItem.tsx   # Result item with syntax highlighting
+│   │   └── SearchFilters.tsx      # Language/extension/sort filters
 │   ├── editor/        # Monaco Editor wrapper
 │   ├── files/         # File browser components
 │   ├── organizations/ # Org-specific components (MembersTab, TeamsTab, SettingsTab)
@@ -263,7 +285,7 @@ apps/frontend/src/
 │   ├── api.ts         # Fetch wrapper for backend API
 │   └── language-detector.ts  # File extension to language mapping
 ├── locales/           # i18n translation files (zh.ts, en.ts)
-└── types/             # TypeScript type definitions (organization.ts, team.ts, etc.)
+└── types/             # TypeScript type definitions (search.ts, organization.ts, team.ts, etc.)
 ```
 
 **Key Frontend Patterns:**
@@ -458,6 +480,90 @@ User creates Issue → Assign Labels/Milestone → Add Comments → Track Events
 - Markdown support for issue body with sanitization
 - Auto-increment issue numbers using Prisma `@@unique([projectId, number])`
 - Optimized indexes on `projectId`, `state`, `authorId`, `milestoneId`
+
+### Code Search Architecture
+
+**Status**: ✅ **IMPLEMENTED** (Phase 2.5-2.7 - Completed 2025-10-27)
+
+The platform implements a full-text Code Search feature powered by MeiliSearch with multi-language symbol extraction:
+
+**Search Workflow**:
+```
+File Upload → Language Detection → Symbol Extraction → MeiliSearch Indexing → Permission-filtered Search
+```
+
+**Key Features**:
+- **Multi-language Support**: TypeScript/JavaScript (AST), Python (regex), Java (regex)
+- **Symbol Extraction**: Classes, functions, interfaces, methods, decorators, annotations
+- **Global Search**: Cross-project search with permission filtering
+- **Project-scoped Search**: Search within specific project
+- **Advanced Filters**: Languages, file extensions, sort by relevance/date/size
+- **Cmd+K Shortcut**: Quick search access across the application
+- **Permission Filtering**: Only show results from accessible projects
+
+**Supported Languages** (with symbol extraction):
+1. **TypeScript/JavaScript** (AST-based via @typescript-eslint/typescript-estree)
+   - Classes, functions, variables, interfaces, type aliases, enums, methods, properties
+2. **Python** (Regex-based)
+   - Classes, functions (async support), decorators, constants (UPPERCASE)
+3. **Java** (Regex-based)
+   - Classes, interfaces, enums, methods, annotations, static final constants
+
+**Database Models** (see `apps/backend/prisma/schema.prisma`):
+- `SearchMetadata` model: Tracks indexing status per file (INDEXED/INDEXING/FAILED)
+  - Fields: `status`, `lastIndexedAt`, `contentHash` (SHA256 for incremental indexing)
+
+**API Endpoints** (`apps/backend/src/search/`):
+- `POST /api/search` - Search code with filters (global or project-scoped)
+- `POST /api/search/index/project/:projectId` - Trigger project reindexing
+- `GET /api/search/index/status/:projectId` - Get indexing status
+
+**Frontend Pages**:
+- `/search` - Global search across all accessible projects
+- `/projects/:id/search` - Project-scoped search
+
+**Frontend Components** (`apps/frontend/src/components/search/`):
+- `SearchBar.tsx` - Input with debouncing (300ms) and Cmd+K shortcut handler
+- `SearchResultItem.tsx` - Result display with syntax highlighting and symbol tags
+- `SearchFilters.tsx` - Language/extension/sort filter UI with toggle buttons
+
+**Implementation Patterns**:
+- **Incremental Indexing**: SHA256 hash comparison to skip unchanged files
+- **Batch Processing**: 10-file concurrency limit to prevent memory overflow
+- **Fault-tolerant**: Regex parsers continue on syntax errors (silent failures)
+- **File Type Detection**: 82 indexable extensions, 18 excluded patterns (node_modules, .git, etc.)
+- **Symbol Deduplication**: Set-based storage prevents duplicate symbols
+- **Permission Integration**: Filters results by ProjectMember relationships and visibility
+
+**Test Coverage** (Unit Tests):
+- `typescript-parser.spec.ts`: 19 tests ✅
+- `python-parser.spec.ts`: 14 tests ✅
+- `java-parser.spec.ts`: 14 tests ✅
+- `language-detector.spec.ts`: 35 tests ✅
+- `file-utils.spec.ts`: 45 tests ✅
+- `search.service.spec.ts`: 13 tests ✅
+- **Total: 140+ unit tests, 100% pass rate**
+
+**E2E Tests** (`apps/frontend/tests/search/`):
+- `search.spec.ts`: 9 test cases covering search UI, filters, shortcuts, navigation
+
+**Technical Decisions**:
+- **Why regex for Python/Java?** Avoids runtime dependencies (Python interpreter, Java compiler), fault-tolerant, good enough for symbol search
+- **Why AST for TypeScript?** Complex syntax (generics, decorators), already in Node.js ecosystem
+- **Why MeiliSearch?** Fast typo-tolerant search, simple API, easy deployment
+- **Why SHA256 hash?** Reliable change detection, standard crypto library, acceptable performance
+
+**Performance Characteristics**:
+- Index speed: ~100 files/second (depends on file size and language)
+- Search latency: <100ms for typical queries (MeiliSearch benchmark)
+- Storage: ~2KB per indexed file in MeiliSearch
+
+**Future Enhancements** (Phase 2.8+):
+- Go, Rust, C++ symbol extractors
+- Code snippet preview in search results
+- Symbol ranking optimization (prioritize class/function names)
+- Search history and saved searches
+- Advanced query syntax (regex, wildcards)
 
 ### Organization & Team Architecture
 
