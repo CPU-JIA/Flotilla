@@ -33,6 +33,9 @@ RUN cd apps/backend && pnpm run build
 FROM node:22-alpine AS runner
 RUN corepack enable && corepack prepare pnpm@10.18.2 --activate
 
+# 安装 git 和必要的系统工具（用于 Git HTTP Smart Protocol）
+RUN apk add --no-cache git
+
 WORKDIR /app
 
 # 复制 workspace 配置和依赖

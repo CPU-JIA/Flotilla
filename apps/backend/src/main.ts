@@ -20,9 +20,9 @@ async function bootstrap() {
   // 支持最大 10MB 的请求体（为 5MB 头像上传留有余地）
   const bodyParser = require('body-parser');
 
-  // Git HTTP Protocol 路由需要 raw body
-  app.use('/api/repo/:projectId/git-upload-pack', bodyParser.raw({ type: '*/*', limit: '50mb' }));
-  app.use('/api/repo/:projectId/git-receive-pack', bodyParser.raw({ type: '*/*', limit: '50mb' }));
+  // Git HTTP Protocol 路由需要 raw body (不加 /api 前缀)
+  app.use('/repo/:projectId/git-upload-pack', bodyParser.raw({ type: '*/*', limit: '50mb' }));
+  app.use('/repo/:projectId/git-receive-pack', bodyParser.raw({ type: '*/*', limit: '50mb' }));
 
   // 其他路由使用 JSON parser
   app.use(bodyParser.json({ limit: '10mb' }));
@@ -48,8 +48,11 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // 设置全局前缀
-  app.setGlobalPrefix('api');
+  // 设置全局前缀，但排除 Git HTTP Protocol 路由
+  // Git 客户端期望仓库 URL 为 http://host/repo/:id，不包含 /api 前缀
+  app.setGlobalPrefix('api', {
+    exclude: ['repo/:projectId/info/refs', 'repo/:projectId/git-upload-pack', 'repo/:projectId/git-receive-pack'],
+  });
 
   // Swagger API 文档配置
   const config = new DocumentBuilder()
