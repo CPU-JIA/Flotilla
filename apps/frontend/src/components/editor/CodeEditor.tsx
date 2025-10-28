@@ -6,7 +6,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useTheme } from 'next-themes'
 import { api } from '@/lib/api'
-import 'github-markdown-css/github-markdown-dark.css'
+import 'github-markdown-css/github-markdown.css'
 
 /**
  * CodeEditor 组件
@@ -179,9 +179,9 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   }, [])
 
   return (
-    <div className="h-full w-full flex bg-white dark:bg-gray-900">
+    <div className="h-full w-full flex bg-white dark:bg-gray-900 relative">
       {/* 主编辑区 */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* 工具栏 */}
         <div className="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
           {/* 左侧按钮组 */}
@@ -271,6 +271,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
             <div className="h-full overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-900 p-8">
               <div
                 className="markdown-body max-w-5xl mx-auto px-12"
+                data-color-mode={theme === 'dark' ? 'dark' : 'light'}
+                data-dark-theme="dark"
                 style={{ backgroundColor: 'transparent' }}
               >
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
@@ -292,14 +294,15 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
           {/* 侧边栏容器 */}
           <div
             className="
-            fixed lg:relative
-            inset-y-0 right-0 lg:inset-y-auto
+            fixed lg:absolute
+            inset-y-0 right-0 lg:top-0 lg:bottom-0 lg:right-0
             w-full sm:w-[320px] lg:w-[380px] xl:w-[400px]
             bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700
             flex flex-col
-            z-50 lg:z-auto
+            z-50 lg:z-10
             transform lg:transform-none
             shadow-xl lg:shadow-none
+            overflow-hidden
           "
           >
             {/* 侧边栏标题 */}

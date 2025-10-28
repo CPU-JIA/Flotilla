@@ -34,6 +34,7 @@
     "@xyflow/react": "^12.8.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "dayjs": "^1.11.18",
     "diff": "^8.0.2",
     "github-markdown-css": "^5.8.1",

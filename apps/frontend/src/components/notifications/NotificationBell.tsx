@@ -6,6 +6,7 @@ import { Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { apiRequest } from '@/lib/api'
 import { useAuth } from '@/contexts/auth-context'
+import type { Notification } from '@/types/notification'
 
 interface NotificationBellProps {
   className?: string
@@ -28,7 +29,7 @@ export function NotificationBell({ className = '' }: NotificationBellProps) {
   const fetchUnreadCount = async () => {
     try {
       setLoading(true)
-      const data = await apiRequest<{ notifications: any[]; total: number }>(
+      const data = await apiRequest<{ notifications: Notification[]; total: number }>(
         '/notifications?read=false&pageSize=1'
       )
       setUnreadCount(data.total)

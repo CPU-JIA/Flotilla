@@ -77,7 +77,7 @@ services:
     volumes:
       - meilisearch_data:/meili_data
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', '--inet4-only', 'http://127.0.0.1:7700/health']
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://127.0.0.1:7700/health']
       interval: 10s
       timeout: 5s
       retries: 5

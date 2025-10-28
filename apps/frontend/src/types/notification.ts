@@ -22,7 +22,7 @@ export interface Notification {
   body?: string
   read: boolean
   link?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   createdAt: string
 }
 
