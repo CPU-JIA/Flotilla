@@ -15,6 +15,7 @@ import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { LanguageToggle } from '@/components/language/language-toggle'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { useMantineThemeSync } from '@/hooks/use-mantine-theme-sync'
 
 interface AppLayoutProps {
@@ -87,6 +88,9 @@ export function AppLayout({ children }: AppLayoutProps) {
               </nav>
             </div>
             <div className="flex items-center gap-3">
+              {/* 通知铃铛 */}
+              <NotificationBell />
+
               {/* 主题切换按钮 */}
               <ThemeToggle size="sm" variant="outline" />
 
