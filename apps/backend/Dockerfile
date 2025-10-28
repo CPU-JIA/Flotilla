@@ -34,7 +34,8 @@ FROM node:22-alpine AS runner
 RUN corepack enable && corepack prepare pnpm@10.18.2 --activate
 
 # 安装 git 和必要的系统工具（用于 Git HTTP Smart Protocol）
-RUN apk add --no-cache git
+# git-daemon 包含 git-http-backend CGI 程序
+RUN apk add --no-cache git git-daemon
 
 WORKDIR /app
 
