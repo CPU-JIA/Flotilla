@@ -6,6 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 import { AddTeamMemberDto } from './dto/add-team-member.dto';
@@ -15,7 +16,10 @@ import { UpdateProjectPermissionDto } from './dto/update-project-permission.dto'
 
 @Injectable()
 export class TeamsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redisService: RedisService,
+  ) {}
 
   /**
    * Find all teams a user is a member of
@@ -67,51 +71,70 @@ export class TeamsService {
 
   /**
    * Find a specific team by organization and team slug
+   * ECP-C3: 性能意识 - Redis缓存优化
    */
   async findBySlug(
     organizationSlug: string,
     teamSlug: string,
     userId?: string,
   ) {
-    const team = await this.prisma.team.findFirst({
-      where: {
-        slug: teamSlug,
-        organization: { slug: organizationSlug },
-      },
-      include: {
-        organization: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
+    // ✅ Cache-Aside模式: 先检查缓存（缓存团队数据，不包含userId相关的myRole）
+    const cacheKey = `team:${organizationSlug}:${teamSlug}`;
+    const cachedTeam = await this.redisService.get<any>(cacheKey);
+
+    let team;
+
+    if (cachedTeam) {
+      team = cachedTeam;
+    } else {
+      // Cache miss: 查询数据库
+      team = await this.prisma.team.findFirst({
+        where: {
+          slug: teamSlug,
+          organization: { slug: organizationSlug },
         },
-        members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-                email: true,
-                avatar: true,
-              },
+        include: {
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
             },
           },
-          orderBy: [{ role: 'asc' }, { joinedAt: 'asc' }],
-        },
-        _count: {
-          select: {
-            projectPermissions: true,
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  email: true,
+                  avatar: true,
+                },
+              },
+            },
+            orderBy: [{ role: 'asc' }, { joinedAt: 'asc' }],
+          },
+          _count: {
+            select: {
+              projectPermissions: true,
+            },
           },
         },
-      },
-    });
+      });
+
+      if (!team) {
+        throw new NotFoundException('Team not found');
+      }
+
+      // 填充缓存 (TTL: 300秒)
+      await this.redisService.set(cacheKey, team, 300);
+    }
 
     if (!team) {
       throw new NotFoundException('Team not found');
     }
 
-    // Calculate user's role if userId provided
+    // Calculate user's role if userId provided (在应用层动态计算，不缓存)
     const myMember = userId
       ? team.members.find((m) => m.user.id === userId)
       : null;
@@ -237,6 +260,9 @@ export class TeamsService {
       },
     });
 
+    // ✅ 缓存失效: 删除团队详情缓存
+    await this.redisService.del(`team:${organizationSlug}:${teamSlug}`);
+
     return {
       id: updated.id,
       name: updated.name,
@@ -264,6 +290,9 @@ export class TeamsService {
     await this.prisma.team.delete({
       where: { id: team.id },
     });
+
+    // ✅ 缓存失效: 删除团队详情缓存
+    await this.redisService.del(`team:${organizationSlug}:${teamSlug}`);
 
     return {
       message: 'Team deleted successfully',
@@ -389,6 +418,9 @@ export class TeamsService {
       },
     });
 
+    // ✅ 缓存失效: 删除团队详情缓存（成员列表已变化）
+    await this.redisService.del(`team:${organizationSlug}:${teamSlug}`);
+
     return {
       id: member.id,
       role: member.role,
@@ -457,6 +489,9 @@ export class TeamsService {
       },
     });
 
+    // ✅ 缓存失效: 删除团队详情缓存（成员角色已变化）
+    await this.redisService.del(`team:${organizationSlug}:${teamSlug}`);
+
     return {
       id: updated.id,
       role: updated.role,
@@ -514,6 +549,9 @@ export class TeamsService {
     await this.prisma.teamMember.delete({
       where: { id: member.id },
     });
+
+    // ✅ 缓存失效: 删除团队详情缓存（成员列表已变化）
+    await this.redisService.del(`team:${organizationSlug}:${teamSlug}`);
 
     return {
       message: 'Member removed successfully',
@@ -627,6 +665,9 @@ export class TeamsService {
       },
     });
 
+    // ✅ 缓存失效: 删除团队详情缓存（项目权限已变化）
+    await this.redisService.del(`team:${organizationSlug}:${teamSlug}`);
+
     return {
       id: permission.id,
       role: permission.role,
@@ -693,6 +734,9 @@ export class TeamsService {
       },
     });
 
+    // ✅ 缓存失效: 删除团队详情缓存（项目权限已变化）
+    await this.redisService.del(`team:${organizationSlug}:${teamSlug}`);
+
     return {
       id: updated.id,
       role: updated.role,
@@ -738,6 +782,9 @@ export class TeamsService {
     await this.prisma.teamProjectPermission.delete({
       where: { id: permission.id },
     });
+
+    // ✅ 缓存失效: 删除团队详情缓存（项目权限已变化）
+    await this.redisService.del(`team:${organizationSlug}:${teamSlug}`);
 
     return {
       message: 'Permission revoked successfully',

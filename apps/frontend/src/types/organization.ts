@@ -45,7 +45,7 @@ export interface UpdateOrganizationRequest {
 }
 
 export interface AddOrganizationMemberRequest {
-  userId: string
+  email: string
   role: OrgRole
 }
 

@@ -43,26 +43,33 @@ export function AddOrganizationMemberDialog({
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [userId, setUserId] = useState('')
+  const [email, setEmail] = useState('')
   const [role, setRole] = useState<OrgRole>('MEMBER')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    if (!userId || userId.trim().length === 0) {
-      setError(t.loading === t.loading ? '请输入用户ID' : 'Please enter user ID')
+    if (!email || email.trim().length === 0) {
+      setError(t.loading === t.loading ? '请输入邮箱地址' : 'Please enter email address')
+      return
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email.trim())) {
+      setError(t.loading === t.loading ? '请输入有效的邮箱地址' : 'Please enter a valid email address')
       return
     }
 
     setIsLoading(true)
     try {
       await api.organizations.addMember(organizationSlug, {
-        userId: userId.trim(),
+        email: email.trim(),
         role,
       })
       setOpen(false)
-      setUserId('')
+      setEmail('')
       setRole('MEMBER')
       onSuccess?.()
       alert(t.loading === t.loading ? '成员添加成功' : 'Member added successfully')
@@ -90,8 +97,8 @@ export function AddOrganizationMemberDialog({
             <DialogTitle>{t.organizations.addMember}</DialogTitle>
             <DialogDescription>
               {t.loading === t.loading
-                ? '输入要添加的用户ID并选择角色'
-                : 'Enter user ID and select role'}
+                ? '输入要添加的用户邮箱并选择角色'
+                : 'Enter user email address and select role'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -101,23 +108,26 @@ export function AddOrganizationMemberDialog({
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="userId">{t.organizations.selectUser} *</Label>
+              <Label htmlFor="email">
+                {t.loading === t.loading ? '用户邮箱' : 'User Email'} *
+              </Label>
               <Input
-                id="userId"
+                id="email"
+                type="email"
                 placeholder={
                   t.loading === t.loading
-                    ? '输入用户ID（如: cm...）'
-                    : 'Enter user ID (e.g., cm...)'
+                    ? '输入用户邮箱（如: user@example.com）'
+                    : 'Enter user email (e.g., user@example.com)'
                 }
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
               />
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {t.loading === t.loading
-                  ? '提示：可以在用户管理页面查看用户ID'
-                  : 'Tip: View user IDs in user management page'}
+                  ? '提示：用户必须已在平台注册'
+                  : 'Tip: User must be registered on the platform'}
               </p>
             </div>
             <div className="space-y-2">

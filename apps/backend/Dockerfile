@@ -50,6 +50,9 @@ COPY --from=builder /app/apps/backend/node_modules ./apps/backend/node_modules
 COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
 COPY --from=builder /app/apps/backend/prisma ./apps/backend/prisma
 
+# 复制启动脚本
+COPY apps/backend/docker-entrypoint.sh ./apps/backend/
+
 WORKDIR /app/apps/backend
 
 # 暴露端口
@@ -58,5 +61,8 @@ EXPOSE 4000
 # 设置环境变量
 ENV NODE_ENV=production
 
-# 启动命令
-CMD ["node", "dist/src/main.js"]
+# 赋予启动脚本执行权限
+RUN chmod +x docker-entrypoint.sh
+
+# 使用启动脚本（自动执行迁移）
+CMD ["./docker-entrypoint.sh"]

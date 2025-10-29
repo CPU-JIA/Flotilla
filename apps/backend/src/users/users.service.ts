@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
+import { RedisService } from '../redis/redis.service';
 import { UpdateUserDto, ChangePasswordDto, QueryUsersDto } from './dto';
 import type { User } from '@prisma/client';
 import { UserRole } from '@prisma/client';
@@ -27,6 +28,7 @@ export class UsersService {
   constructor(
     private prisma: PrismaService,
     private minioService: MinioService,
+    private redisService: RedisService,
   ) {}
 
   /**
@@ -158,6 +160,9 @@ export class UsersService {
       },
     });
 
+    // ECP-C1: 防御性编程 - 清除用户缓存，确保下次请求获取最新数据
+    await this.redisService.del(`user:${id}`);
+
     this.logger.log(`✏️ User ${id} updated by ${currentUser.username}`);
 
     return updatedUser as Omit<User, 'passwordHash'>;
@@ -251,6 +256,9 @@ export class UsersService {
         where: { id: userId },
         data: { avatar: avatarUrl },
       });
+
+      // ECP-C1: 防御性编程 - 清除用户缓存，确保下次请求获取最新数据
+      await this.redisService.del(`user:${userId}`);
 
       this.logger.log(`📷 Avatar uploaded for user ${userId}: ${avatarUrl}`);
 

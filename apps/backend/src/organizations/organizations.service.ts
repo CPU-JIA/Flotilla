@@ -6,6 +6,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { AddOrganizationMemberDto } from './dto/add-member.dto';
@@ -16,7 +17,10 @@ export class OrganizationsService {
   // Maximum number of organizations a user can create
   private readonly USER_ORG_QUOTA = 10;
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redisService: RedisService,
+  ) {}
 
   /**
    * Find all organizations a user is a member of
@@ -66,38 +70,57 @@ export class OrganizationsService {
 
   /**
    * Find a specific organization by slug with detailed information
+   * ECP-C3: 性能意识 - Redis缓存优化
    */
   async findBySlug(slug: string, userId?: string) {
-    const organization = await this.prisma.organization.findUnique({
-      where: { slug, deletedAt: null },
-      include: {
-        members: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-                email: true,
-                avatar: true,
+    // ✅ Cache-Aside模式: 先检查缓存（缓存组织数据，不包含userId相关的myRole）
+    const cacheKey = `org:slug:${slug}`;
+    const cachedOrg = await this.redisService.get<any>(cacheKey);
+
+    let organization;
+
+    if (cachedOrg) {
+      organization = cachedOrg;
+    } else {
+      // Cache miss: 查询数据库
+      organization = await this.prisma.organization.findUnique({
+        where: { slug, deletedAt: null },
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  email: true,
+                  avatar: true,
+                },
               },
             },
+            orderBy: [{ role: 'asc' }, { joinedAt: 'asc' }],
           },
-          orderBy: [{ role: 'asc' }, { joinedAt: 'asc' }],
-        },
-        _count: {
-          select: {
-            projects: true,
-            teams: true,
+          _count: {
+            select: {
+              projects: true,
+              teams: true,
+            },
           },
         },
-      },
-    });
+      });
+
+      if (!organization) {
+        throw new NotFoundException('Organization not found');
+      }
+
+      // 填充缓存 (TTL: 300秒)
+      await this.redisService.set(cacheKey, organization, 300);
+    }
 
     if (!organization) {
       throw new NotFoundException('Organization not found');
     }
 
-    // Calculate user's role if userId provided
+    // Calculate user's role if userId provided (在应用层动态计算，不缓存)
     const myMember = userId
       ? organization.members.find((m) => m.user.id === userId)
       : null;
@@ -252,6 +275,9 @@ export class OrganizationsService {
       },
     });
 
+    // ✅ 缓存失效: 删除组织详情缓存
+    await this.redisService.del(`org:slug:${slug}`);
+
     return {
       id: updated.id,
       name: updated.name,
@@ -335,6 +361,8 @@ export class OrganizationsService {
 
     return org.members.map((member) => ({
       id: member.id,
+      userId: member.userId,  // ✅ ECP-C1: 防御性编程 - 确保前端能获取到成员的 userId
+      organizationId: member.organizationId,  // ✅ 完整的成员数据结构
       role: member.role,
       joinedAt: member.joinedAt,
       user: member.user,
@@ -409,6 +437,9 @@ export class OrganizationsService {
       },
     });
 
+    // ✅ 缓存失效: 删除组织详情缓存（成员列表已变化）
+    await this.redisService.del(`org:slug:${slug}`);
+
     return {
       id: member.id,
       role: member.role,
@@ -473,6 +504,9 @@ export class OrganizationsService {
       },
     });
 
+    // ✅ 缓存失效: 删除组织详情缓存（成员角色已变化）
+    await this.redisService.del(`org:slug:${slug}`);
+
     return {
       id: updated.id,
       role: updated.role,
@@ -523,6 +557,9 @@ export class OrganizationsService {
     await this.prisma.organizationMember.delete({
       where: { id: member.id },
     });
+
+    // ✅ 缓存失效: 删除组织详情缓存（成员列表已变化）
+    await this.redisService.del(`org:slug:${slug}`);
 
     return {
       message: 'Member removed successfully',

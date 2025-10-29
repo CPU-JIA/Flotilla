@@ -80,25 +80,55 @@ export class AuthService {
       }
     }
 
-    // 创建用户
-    const user = await this.prisma.user.create({
-      data: {
-        username: dto.username,
-        email: dto.email,
-        passwordHash: hashedPassword,
-        role,
-      },
+    // 创建用户（使用事务保证原子性 - ECP-C1: 防御性编程）
+    const result = await this.prisma.$transaction(async (tx) => {
+      // 1. 创建用户
+      const user = await tx.user.create({
+        data: {
+          username: dto.username,
+          email: dto.email,
+          passwordHash: hashedPassword,
+          role,
+        },
+      });
+
+      this.logger.log(
+        `✅ New user registered: ${user.username} (role: ${user.role})`,
+      );
+
+      // 2. 自动创建个人组织（Personal Organization）
+      // ECP-A1: SOLID原则 - 完整的用户注册流程
+      const personalOrgSlug = `user-${user.username}`;
+      const personalOrg = await tx.organization.create({
+        data: {
+          name: `${user.username}'s Organization`,
+          slug: personalOrgSlug,
+          description: `Personal workspace for ${user.username}`,
+          isPersonal: true,
+        },
+      });
+
+      // 3. 将用户添加为组织 OWNER
+      await tx.organizationMember.create({
+        data: {
+          organizationId: personalOrg.id,
+          userId: user.id,
+          role: 'OWNER',
+        },
+      });
+
+      this.logger.log(
+        `🏢 Personal organization created: ${personalOrg.slug}`,
+      );
+
+      return user;
     });
 
-    this.logger.log(
-      `✅ New user registered: ${user.username} (role: ${user.role})`,
-    );
-
     // 生成 Token
-    const { accessToken, refreshToken } = await this.generateTokens(user);
+    const { accessToken, refreshToken } = await this.generateTokens(result);
 
     // 移除密码字段
-    const { passwordHash, ...userWithoutPassword } = user;
+    const { passwordHash, ...userWithoutPassword } = result;
 
     return {
       user: userWithoutPassword,

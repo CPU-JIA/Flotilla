@@ -120,26 +120,11 @@ export default function RegisterPage() {
   }
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center px-4 py-8"
-      style={{
-        background: `
-          radial-gradient(1200px 600px at 10% -10%, #dbeafe 0%, transparent 60%),
-          radial-gradient(1200px 600px at 110% 10%, #fde68a 0%, transparent 60%),
-          #f4f6f9
-        `,
-      }}
-    >
-      <div
-        className="bg-card rounded-[14px] p-8 max-w-md w-full border border-border"
-        style={{
-          boxShadow: '10px 10px 15px black',
-          filter: 'drop-shadow(0 8px 24px rgba(0,0,0,.12))',
-        }}
-      >
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-blue-50 via-yellow-50 to-gray-100 dark:from-blue-950 dark:via-gray-950 dark:to-yellow-950">
+      <div className="bg-card rounded-[14px] p-8 max-w-md w-full border border-border shadow-2xl">
         <div className="space-y-1 mb-6">
-          <h1 className="text-2xl font-bold text-center">{t.auth.registerTitle}</h1>
-          <p className="text-center text-gray-600">{t.auth.registerSubtitle}</p>
+          <h1 className="text-2xl font-bold text-center text-foreground">{t.auth.registerTitle}</h1>
+          <p className="text-center text-muted-foreground">{t.auth.registerSubtitle}</p>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
@@ -160,7 +145,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 disabled={isLoading}
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400">{t.auth.usernameHelper}</p>
+              <p className="text-xs text-muted-foreground">{t.auth.usernameHelper}</p>
             </div>
 
             <div className="space-y-2">
@@ -208,9 +193,9 @@ export default function RegisterPage() {
               {isLoading ? t.auth.registering : t.auth.registerButton}
             </Button>
 
-            <div className="text-sm text-center text-gray-600">
+            <div className="text-sm text-center text-muted-foreground">
               {t.auth.alreadyHaveAccount}{' '}
-              <Link href="/auth/login" className="text-blue-600 hover:underline font-medium">
+              <Link href="/auth/login" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
                 {t.auth.loginNow}
               </Link>
             </div>

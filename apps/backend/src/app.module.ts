@@ -21,6 +21,7 @@ import { PullRequestsModule } from './pull-requests/pull-requests.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { BranchProtectionModule } from './branch-protection/branch-protection.module';
 import { SearchModule } from './search/search.module';
+import { RedisModule } from './redis/redis.module';
 import { PerformanceMonitoringMiddleware } from './common/middleware/performance-monitoring.middleware';
 
 @Module({
@@ -32,6 +33,7 @@ import { PerformanceMonitoringMiddleware } from './common/middleware/performance
     PrismaModule,
     CommonModule,
     MinioModule,
+    RedisModule,
     AuthModule,
     UsersModule,
     ProjectsModule,

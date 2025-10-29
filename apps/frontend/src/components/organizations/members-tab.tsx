@@ -150,13 +150,14 @@ export function MembersTab({ organizationSlug, canManage, currentUserRole }: Mem
         </Card>
       ) : (
         <div className="space-y-4">
-          {members.map((member) => {
-            if (!member.user) return null
-            const isOwner = member.role === 'OWNER'
-            const canModifyThisMember = canManage && !isOwner && currentUserRole === 'OWNER'
+          {members
+            .filter((member) => member.user !== null && member.user !== undefined)
+            .map((member) => {
+              const isOwner = member.role === 'OWNER'
+              const canModifyThisMember = canManage && !isOwner && currentUserRole === 'OWNER'
 
-            return (
-              <Card key={member.userId} className="hover:shadow-md transition-shadow">
+              return (
+                <Card key={member.userId} className="hover:shadow-md transition-shadow">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 flex-1">

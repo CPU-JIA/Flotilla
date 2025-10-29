@@ -9,6 +9,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 import { RepositoriesService } from '../repositories/repositories.service';
 import {
   CreateProjectDto,
@@ -45,6 +46,7 @@ export class ProjectsService {
 
   constructor(
     private prisma: PrismaService,
+    private redisService: RedisService,
     @Inject(forwardRef(() => RepositoriesService))
     private repositoriesService: RepositoriesService,
   ) {}
@@ -191,8 +193,19 @@ export class ProjectsService {
   /**
    * 获取项目详情
    * ECP-C2: 系统性错误处理
+   * ECP-C3: 性能意识 - Redis缓存优化
    */
   async findOne(id: string, currentUser: User): Promise<ProjectDetailResponse> {
+    // ✅ Cache-Aside模式: 先检查缓存
+    const cacheKey = `project:${id}:detail`;
+    const cachedProject = await this.redisService.get<ProjectDetailResponse>(cacheKey);
+
+    if (cachedProject) {
+      this.logger.debug(`✅ Cache hit for project ${id}`);
+      return cachedProject;
+    }
+
+    // Cache miss: 查询数据库
     const project = await this.prisma.project.findUnique({
       where: { id },
       include: {
@@ -218,6 +231,10 @@ export class ProjectsService {
     }
 
     // 权限检查已由ProjectRoleGuard处理
+
+    // 填充缓存 (TTL: 300秒)
+    await this.redisService.set(cacheKey, project as ProjectDetailResponse, 300);
+    this.logger.debug(`📝 Cached project ${id} for 300s`);
 
     return project as ProjectDetailResponse;
   }
@@ -261,6 +278,9 @@ export class ProjectsService {
       where: { id },
       data: updateDto,
     });
+
+    // ✅ 缓存失效: 删除项目详情缓存
+    await this.redisService.del(`project:${id}:detail`);
 
     this.logger.log(`✏️ Project ${id} updated by ${currentUser.username}`);
 
@@ -339,6 +359,10 @@ export class ProjectsService {
       },
     });
 
+    // ✅ 缓存失效: 删除项目详情缓存和成员列表缓存
+    await this.redisService.del(`project:${projectId}:detail`);
+    await this.redisService.del(`project:${projectId}:members`);
+
     this.logger.log(
       `👥 User ${user.username} added to project ${projectId} as ${addMemberDto.role}`,
     );
@@ -391,6 +415,10 @@ export class ProjectsService {
       },
     });
 
+    // ✅ 缓存失效: 删除项目详情缓存和成员列表缓存
+    await this.redisService.del(`project:${projectId}:detail`);
+    await this.redisService.del(`project:${projectId}:members`);
+
     this.logger.log(`👤 User ${userId} removed from project ${projectId}`);
 
     return { message: '成员已移除' };
@@ -438,6 +466,10 @@ export class ProjectsService {
       data: { role: updateRoleDto.role },
     });
 
+    // ✅ 缓存失效: 删除项目详情缓存和成员列表缓存
+    await this.redisService.del(`project:${projectId}:detail`);
+    await this.redisService.del(`project:${projectId}:members`);
+
     this.logger.log(
       `🔄 Member ${userId} role updated to ${updateRoleDto.role} in project ${projectId}`,
     );
@@ -448,6 +480,7 @@ export class ProjectsService {
   /**
    * 获取项目成员列表
    * ECP-A1: 单一职责原则
+   * ECP-C3: 性能意识 - Redis缓存优化
    */
   async getMembers(projectId: string, currentUser: User): Promise<(ProjectMember & {
     user: { id: string; username: string; email: string };
@@ -462,6 +495,18 @@ export class ProjectsService {
 
     // 权限检查已由ProjectRoleGuard处理
 
+    // ✅ Cache-Aside模式: 先检查缓存
+    const cacheKey = `project:${projectId}:members`;
+    const cachedMembers = await this.redisService.get<(ProjectMember & {
+      user: { id: string; username: string; email: string };
+    })[]>(cacheKey);
+
+    if (cachedMembers) {
+      this.logger.debug(`✅ Cache hit for project ${projectId} members`);
+      return cachedMembers;
+    }
+
+    // Cache miss: 查询数据库
     const members = await this.prisma.projectMember.findMany({
       where: { projectId },
       include: {
@@ -478,6 +523,8 @@ export class ProjectsService {
       },
     });
 
+    // 填充缓存 (TTL: 180秒)
+    await this.redisService.set(cacheKey, members, 180);
     this.logger.log(`👥 Retrieved ${members.length} members for project ${projectId}`);
 
     return members;
@@ -510,6 +557,9 @@ export class ProjectsService {
       },
     });
 
+    // ✅ 缓存失效: 删除项目详情缓存
+    await this.redisService.del(`project:${id}:detail`);
+
     this.logger.warn(`📦 Project ${id} archived by ${currentUser.username}`);
 
     return archivedProject;
@@ -541,6 +591,9 @@ export class ProjectsService {
         archivedAt: null,
       },
     });
+
+    // ✅ 缓存失效: 删除项目详情缓存
+    await this.redisService.del(`project:${id}:detail`);
 
     this.logger.log(`📦 Project ${id} unarchived by ${currentUser.username}`);
 
