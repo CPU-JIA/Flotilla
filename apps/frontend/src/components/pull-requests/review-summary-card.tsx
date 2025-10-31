@@ -35,6 +35,7 @@ export function ReviewSummaryCard({ prId, onRefresh }: ReviewSummaryCardProps) {
 
   useEffect(() => {
     fetchReviewSummary()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prId])
 
   const getReviewStateIcon = (state: ReviewState): string => {
@@ -143,6 +144,7 @@ export function ReviewSummaryCard({ prId, onRefresh }: ReviewSummaryCardProps) {
                 className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-800 rounded"
               >
                 {/* Avatar */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={reviewer.avatar || '/default-avatar.png'}
                   alt={reviewer.username}

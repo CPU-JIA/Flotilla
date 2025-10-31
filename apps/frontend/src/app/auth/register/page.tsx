@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ApiError } from '@/lib/api'
+import PasswordStrengthIndicator from '@/components/auth/PasswordStrengthIndicator'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -71,9 +72,11 @@ export default function RegisterPage() {
       return t.auth.emailInvalid
     }
 
-    // 密码强度验证（至少8个字符）
-    if (formData.password.length < 8) {
-      return t.auth.passwordTooShort
+    // 密码强度验证（与后端register.dto.ts保持一致）
+    // 至少8个字符，必须包含大小写字母和数字
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/
+    if (!passwordRegex.test(formData.password)) {
+      return t.auth.passwordStrengthRequirement
     }
 
     // 确认密码匹配
@@ -172,6 +175,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 disabled={isLoading}
               />
+              <PasswordStrengthIndicator password={formData.password} />
             </div>
 
             <div className="space-y-2">

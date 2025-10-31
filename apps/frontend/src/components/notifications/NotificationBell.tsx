@@ -15,7 +15,6 @@ interface NotificationBellProps {
 export function NotificationBell({ className = '' }: NotificationBellProps) {
   const { isAuthenticated } = useAuth()
   const [unreadCount, setUnreadCount] = useState(0)
-  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -28,15 +27,12 @@ export function NotificationBell({ className = '' }: NotificationBellProps) {
 
   const fetchUnreadCount = async () => {
     try {
-      setLoading(true)
       const data = await apiRequest<{ notifications: Notification[]; total: number }>(
         '/notifications?read=false&pageSize=1'
       )
       setUnreadCount(data.total)
     } catch (err) {
       console.error('Failed to fetch unread count:', err)
-    } finally {
-      setLoading(false)
     }
   }
 

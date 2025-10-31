@@ -298,6 +298,35 @@ export const api = {
         window.location.href = '/auth/login'
       }
     },
+
+    forgotPassword: (data: { email: string }) =>
+      apiRequest<{ message: string }>(
+        '/auth/forgot-password',
+        {
+          method: 'POST',
+          body: JSON.stringify(data),
+        },
+        false
+      ),
+
+    resetPassword: (token: string, data: { newPassword: string }) =>
+      apiRequest<{ message: string }>(
+        `/auth/reset-password/${token}`,
+        {
+          method: 'POST',
+          body: JSON.stringify(data),
+        },
+        false
+      ),
+
+    verifyEmail: (token: string) =>
+      apiRequest<{ message: string }>(
+        `/auth/verify-email/${token}`,
+        {
+          method: 'POST',
+        },
+        false
+      ),
   },
 
   /**

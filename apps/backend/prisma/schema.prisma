@@ -98,6 +98,15 @@ model User {
   role         UserRole @default(USER)
   isActive     Boolean  @default(true) // 账户是否激活（封禁功能）
 
+  // 邮箱验证字段
+  emailVerified      Boolean   @default(false) // 邮箱是否已验证
+  emailVerifyToken   String?   @unique @db.VarChar(255) // 邮箱验证token
+  emailVerifyExpires DateTime? // 验证token过期时间（24小时）
+
+  // 密码重置字段
+  passwordResetToken   String?   @unique @db.VarChar(255) // 密码重置token
+  passwordResetExpires DateTime? // 重置token过期时间（1小时）
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

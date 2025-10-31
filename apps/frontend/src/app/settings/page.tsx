@@ -84,7 +84,7 @@ export default function SettingsPage() {
       const formData = new FormData()
       formData.append('avatar', file)
 
-      const response = await apiRequest<{ avatarUrl: string }>('/users/profile/avatar', {
+      await apiRequest<{ avatarUrl: string }>('/users/profile/avatar', {
         method: 'PUT',
         body: formData,
       })

@@ -22,6 +22,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { BranchProtectionModule } from './branch-protection/branch-protection.module';
 import { SearchModule } from './search/search.module';
 import { RedisModule } from './redis/redis.module';
+import { EmailModule } from './email/email.module';
 import { PerformanceMonitoringMiddleware } from './common/middleware/performance-monitoring.middleware';
 
 @Module({
@@ -50,6 +51,7 @@ import { PerformanceMonitoringMiddleware } from './common/middleware/performance
     NotificationsModule,
     BranchProtectionModule,
     SearchModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

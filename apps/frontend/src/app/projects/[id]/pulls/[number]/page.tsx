@@ -9,13 +9,11 @@ import {
   PullRequest,
   PRState,
   ReviewState,
-  GitDiff,
   CreateReviewDto,
   CreateCommentDto,
   MergePullRequestDto,
   MergeStrategy,
   MergeStatus,
-  ReviewSummary,
   DiffResponseDto,
 } from '@/types/pull-request'
 import { ReviewSummaryCard } from '@/components/pull-requests/review-summary-card'
@@ -50,7 +48,6 @@ export default function PullRequestDetailPage() {
   // PR Review Enhancement states
   const [mergeStatus, setMergeStatus] = useState<MergeStatus | null>(null)
   const [loadingMergeStatus, setLoadingMergeStatus] = useState(false)
-  const [reviewSummary, setReviewSummary] = useState<ReviewSummary | null>(null)
 
   useEffect(() => {
     fetchPR()
@@ -123,7 +120,8 @@ export default function PullRequestDetailPage() {
     if (pr && pr.state === PRState.OPEN) {
       fetchMergeStatus()
     }
-  }, [pr, reviewSummary])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pr])
 
   const handleSubmitReview = async () => {
     if (!pr) return
@@ -487,7 +485,6 @@ export default function PullRequestDetailPage() {
                 key={file.path}
                 file={file}
                 comments={diffData.comments}
-                pullRequestId={pr.id}
                 commitHash={pr.sourceBranch}
                 onAddComment={handleAddLineComment}
               />

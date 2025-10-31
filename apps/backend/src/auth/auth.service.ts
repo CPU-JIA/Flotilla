@@ -3,12 +3,22 @@ import {
   ConflictException,
   UnauthorizedException,
   Logger,
+  BadRequestException,
+  NotFoundException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
-import { RegisterDto, LoginDto } from './dto';
+import { EmailService } from '../email/email.service';
+import {
+  RegisterDto,
+  LoginDto,
+  ResendVerificationDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+} from './dto';
 import * as bcrypt from 'bcrypt';
 import { User, UserRole } from '@prisma/client';
+import { randomBytes } from 'crypto';
 
 export interface JwtPayload {
   sub: string;
@@ -30,6 +40,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private emailService: EmailService,
   ) {}
 
   async register(dto: RegisterDto): Promise<AuthResponse> {
@@ -82,6 +93,10 @@ export class AuthService {
 
     // 创建用户（使用事务保证原子性 - ECP-C1: 防御性编程）
     const result = await this.prisma.$transaction(async (tx) => {
+      // 生成邮箱验证token（24小时有效）
+      const emailVerifyToken = randomBytes(32).toString('hex');
+      const emailVerifyExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24小时后过期
+
       // 1. 创建用户
       const user = await tx.user.create({
         data: {
@@ -89,6 +104,8 @@ export class AuthService {
           email: dto.email,
           passwordHash: hashedPassword,
           role,
+          emailVerifyToken,
+          emailVerifyExpires,
         },
       });
 
@@ -126,6 +143,24 @@ export class AuthService {
 
     // 生成 Token
     const { accessToken, refreshToken } = await this.generateTokens(result);
+
+    // 发送验证邮件（异步，不阻塞注册流程）
+    this.emailService
+      .sendVerificationEmail(result.email, result.username, result.emailVerifyToken!)
+      .then((emailResult) => {
+        if (emailResult.success) {
+          this.logger.log(`📧 Verification email sent to: ${result.email}`);
+        } else {
+          this.logger.error(
+            `❌ Failed to send verification email to ${result.email}: ${emailResult.error}`,
+          );
+        }
+      })
+      .catch((error) => {
+        this.logger.error(
+          `❌ Unexpected error sending verification email: ${error.message}`,
+        );
+      });
 
     // 移除密码字段
     const { passwordHash, ...userWithoutPassword } = result;
@@ -244,5 +279,179 @@ export class AuthService {
       // Otherwise it's a token verification error
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  /**
+   * 验证邮箱
+   * ECP-C1: 防御性编程 - 验证token有效性和过期时间
+   */
+  async verifyEmail(token: string): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({
+      where: { emailVerifyToken: token },
+    });
+
+    if (!user) {
+      throw new BadRequestException('无效的验证链接');
+    }
+
+    // 检查token是否过期
+    if (user.emailVerifyExpires && user.emailVerifyExpires < new Date()) {
+      throw new BadRequestException('验证链接已过期，请重新发送验证邮件');
+    }
+
+    // 更新用户为已验证状态
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: true,
+        emailVerifyToken: null,
+        emailVerifyExpires: null,
+      },
+    });
+
+    this.logger.log(`✅ Email verified for user: ${user.username}`);
+
+    // 发送欢迎邮件
+    this.emailService
+      .sendWelcomeEmail(user.email, user.username)
+      .catch((error) => {
+        this.logger.error(`Failed to send welcome email: ${error.message}`);
+      });
+
+    return { message: '邮箱验证成功！' };
+  }
+
+  /**
+   * 重新发送验证邮件
+   */
+  async resendVerificationEmail(
+    dto: ResendVerificationDto,
+  ): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    if (user.emailVerified) {
+      throw new BadRequestException('邮箱已验证，无需重复验证');
+    }
+
+    // 生成新的验证token
+    const emailVerifyToken = randomBytes(32).toString('hex');
+    const emailVerifyExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerifyToken,
+        emailVerifyExpires,
+      },
+    });
+
+    // 发送验证邮件
+    const result = await this.emailService.sendVerificationEmail(
+      user.email,
+      user.username,
+      emailVerifyToken,
+    );
+
+    if (!result.success) {
+      throw new BadRequestException('发送验证邮件失败，请稍后重试');
+    }
+
+    this.logger.log(`📧 Verification email resent to: ${user.email}`);
+
+    return { message: '验证邮件已发送，请检查您的邮箱' };
+  }
+
+  /**
+   * 忘记密码 - 发送密码重置邮件
+   */
+  async forgotPassword(
+    dto: ForgotPasswordDto,
+  ): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    // 为了安全，即使用户不存在也返回成功消息（防止邮箱枚举攻击）
+    if (!user) {
+      this.logger.warn(`Password reset requested for non-existent email: ${dto.email}`);
+      return { message: '如果该邮箱已注册，您将收到密码重置邮件' };
+    }
+
+    // 生成密码重置token（1小时有效）
+    const passwordResetToken = randomBytes(32).toString('hex');
+    const passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1小时后过期
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken,
+        passwordResetExpires,
+      },
+    });
+
+    // 发送密码重置邮件
+    const result = await this.emailService.sendPasswordResetEmail(
+      user.email,
+      user.username,
+      passwordResetToken,
+    );
+
+    if (!result.success) {
+      this.logger.error(`Failed to send password reset email to ${user.email}`);
+      throw new BadRequestException('发送密码重置邮件失败，请稍后重试');
+    }
+
+    this.logger.log(`📧 Password reset email sent to: ${user.email}`);
+
+    return { message: '如果该邮箱已注册，您将收到密码重置邮件' };
+  }
+
+  /**
+   * 重置密码
+   */
+  async resetPassword(
+    token: string,
+    dto: ResetPasswordDto,
+  ): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({
+      where: { passwordResetToken: token },
+    });
+
+    if (!user) {
+      throw new BadRequestException('无效的重置链接');
+    }
+
+    // 检查token是否过期
+    if (
+      user.passwordResetExpires &&
+      user.passwordResetExpires < new Date()
+    ) {
+      throw new BadRequestException(
+        '重置链接已过期，请重新申请密码重置',
+      );
+    }
+
+    // 加密新密码
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 12);
+
+    // 更新密码并清除重置token
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash: hashedPassword,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      },
+    });
+
+    this.logger.log(`✅ Password reset successful for user: ${user.username}`);
+
+    return { message: '密码重置成功，请使用新密码登录' };
   }
 }

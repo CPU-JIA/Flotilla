@@ -41,6 +41,7 @@ export default function PullRequestsPage() {
 
   useEffect(() => {
     fetchPullRequests()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId])
 
   async function fetchPullRequests() {
@@ -62,7 +63,7 @@ export default function PullRequestsPage() {
       } else {
         setError('Failed to fetch pull requests')
       }
-    } catch (err) {
+    } catch {
       setError('Network error')
     } finally {
       setLoading(false)

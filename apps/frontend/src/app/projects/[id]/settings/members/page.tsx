@@ -94,7 +94,7 @@ export default function MembersManagementPage() {
   }
 
   // 移除成员
-  const handleRemoveMember = async (memberId: string, memberName: string) => {
+  const handleRemoveMember = async (memberId: string) => {
     if (!projectId) return
 
     if (!confirm(t.projects.settings.removeMemberConfirm)) return
@@ -239,7 +239,7 @@ export default function MembersManagementPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleRemoveMember(member.user.id, member.user.username)}
+                              onClick={() => handleRemoveMember(member.user.id)}
                               className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                             >
                               🗑️ {t.projects.settings.removeMember}

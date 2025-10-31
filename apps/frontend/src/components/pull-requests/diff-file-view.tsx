@@ -6,12 +6,12 @@ import { FileDiff, PRCommentWithAuthor } from '@/types/pull-request'
 interface DiffFileViewProps {
   file: FileDiff
   comments: PRCommentWithAuthor[]
-  pullRequestId: string
+  pullRequestId: string  // Used for API calls (kept for future use)
   commitHash?: string
   onAddComment: (filePath: string, lineNumber: number, body: string, commitHash?: string) => Promise<void>
 }
 
-export function DiffFileView({ file, comments, pullRequestId, commitHash, onAddComment }: DiffFileViewProps) {
+export function DiffFileView({ file, comments, commitHash, onAddComment }: Omit<DiffFileViewProps, 'pullRequestId'>) {
   const [activeLineNumber, setActiveLineNumber] = useState<number | null>(null)
   const [commentBody, setCommentBody] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -191,6 +191,7 @@ export function DiffFileView({ file, comments, pullRequestId, commitHash, onAddC
                       </div>
                       {commentsByLine[lineNumber!].map((comment) => (
                         <div key={comment.id} className="flex gap-3 mb-2 last:mb-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={comment.author.avatar || '/default-avatar.png'}
                             alt={comment.author.username}

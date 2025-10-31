@@ -8,6 +8,11 @@
       {
         "include": "git/hooks/**/*.sh",
         "outDir": "dist"
+      },
+      {
+        "include": "email/templates/**/*.hbs",
+        "outDir": "dist/src",
+        "watchAssets": true
       }
     ],
     "plugins": [

@@ -20,7 +20,7 @@ import { zhCN, enUS } from 'date-fns/locale'
 export default function NotificationsPage() {
   const router = useRouter()
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
-  const { t, language } = useLanguage()
+  const { language } = useLanguage()
 
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [total, setTotal] = useState(0)
@@ -103,7 +103,7 @@ export default function NotificationsPage() {
     }
   }
 
-  const getNotificationIcon = (type: NotificationType) => {
+  const getNotificationIcon = () => {
     return <Bell className="h-5 w-5" />
   }
 
@@ -182,7 +182,7 @@ export default function NotificationsPage() {
                 <div className="flex items-start gap-3">
                   {/* Icon */}
                   <div className={`mt-1 ${getNotificationColor(notification.type)}`}>
-                    {getNotificationIcon(notification.type)}
+                    {getNotificationIcon()}
                   </div>
 
                   {/* Content */}

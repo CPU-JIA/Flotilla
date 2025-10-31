@@ -38,6 +38,7 @@ export default function CreatePullRequestPage() {
 
   useEffect(() => {
     fetchBranches()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId])
 
   async function fetchBranches() {
@@ -123,7 +124,7 @@ export default function CreatePullRequestPage() {
         const errorData = await response.json()
         setError(errorData.message || t.pullRequests.create.createFailed)
       }
-    } catch (err) {
+    } catch {
       setError(t.pullRequests.create.createFailed)
     } finally {
       setCreating(false)

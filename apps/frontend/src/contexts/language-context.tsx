@@ -353,9 +353,43 @@ export interface Translations {
     usernameInvalid: string
     emailInvalid: string
     passwordTooShort: string
+    passwordStrengthRequirement: string
     passwordMismatch: string
     registerFailed: string
     networkError: string
+    emailVerificationTitle: string
+    verifying: string
+    verifyingMessage: string
+    verificationSuccess: string
+    verificationSuccessMessage: string
+    verificationFailed: string
+    verificationFailedMessage: string
+    verifyAgain: string
+    goToLogin: string
+    backToLogin: string
+    forgotPasswordTitle: string
+    forgotPasswordSubtitle: string
+    emailAddress: string
+    emailPlaceholderGeneric: string
+    sendResetEmail: string
+    sending: string
+    emailSent: string
+    emailSentMessage: string
+    checkInbox: string
+    resendEmail: string
+    rememberPassword: string
+    requestFailed: string
+    resetPasswordTitle: string
+    resetPasswordSubtitle: string
+    newPassword: string
+    confirmNewPassword: string
+    newPasswordPlaceholder: string
+    confirmNewPasswordPlaceholder: string
+    resetPasswordButton: string
+    resetting: string
+    resetSuccess: string
+    resetFailed: string
+    invalidResetLink: string
   }
 
   // 组织
