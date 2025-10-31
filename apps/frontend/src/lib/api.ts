@@ -327,6 +327,25 @@ export const api = {
         },
         false
       ),
+
+    // Token验证方法（不执行实际操作，仅验证有效性）
+    verifyResetToken: (token: string) =>
+      apiRequest<{ valid: boolean; message: string; expiresAt?: string }>(
+        `/auth/verify-reset-token/${token}`,
+        {
+          method: 'GET',
+        },
+        false
+      ),
+
+    verifyEmailToken: (token: string) =>
+      apiRequest<{ valid: boolean; message: string; expiresAt?: string }>(
+        `/auth/verify-email-token/${token}`,
+        {
+          method: 'GET',
+        },
+        false
+      ),
   },
 
   /**

@@ -57,7 +57,38 @@ async function bootstrap() {
   // Swagger API 文档配置
   const config = new DocumentBuilder()
     .setTitle('Flotilla API')
-    .setDescription('基于云计算的开发协作平台 RESTful API 文档')
+    .setDescription(`
+基于云计算的开发协作平台 RESTful API 文档
+
+## Rate Limiting 限流策略
+
+本API使用全局限流保护，防止滥用和确保服务可用性。
+
+### 全局限制
+- **默认限制**: 100 requests / minute (所有endpoint)
+
+### 敏感endpoint限制
+以下endpoint有更严格的限流策略：
+- \`POST /auth/forgot-password\`: **5 requests / hour**
+- \`POST /auth/resend-verification\`: **5 requests / hour**
+
+### Rate Limit Headers
+每个API响应都包含以下headers：
+- \`X-RateLimit-Limit\`: 时间窗口内的请求限制数
+- \`X-RateLimit-Remaining\`: 剩余可用请求数
+- \`X-RateLimit-Reset\`: 限制重置的Unix时间戳
+
+### 429 Too Many Requests
+当超过限流限制时，API将返回HTTP 429状态码，响应中包含\`Retry-After\` header指示需要等待的秒数。
+
+**示例响应**:
+\`\`\`json
+{
+  "statusCode": 429,
+  "message": "ThrottlerException: Too Many Requests"
+}
+\`\`\`
+    `)
     .setVersion('1.0')
     .addBearerAuth(
       {

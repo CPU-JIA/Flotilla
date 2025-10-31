@@ -1,5 +1,7 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -31,6 +33,15 @@ import { PerformanceMonitoringMiddleware } from './common/middleware/performance
       isGlobal: true,
       envFilePath: '.env',
     }),
+    // ECP-C3: 性能优化 - Rate Limiting防护
+    // 全局限流：100 requests/minute
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60000, // 60秒时间窗口
+        limit: 100, // 100次请求限制
+      },
+    ]),
     PrismaModule,
     CommonModule,
     MinioModule,
@@ -54,7 +65,14 @@ import { PerformanceMonitoringMiddleware } from './common/middleware/performance
     EmailModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // 全局应用Rate Limiting Guard
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

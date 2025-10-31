@@ -454,4 +454,178 @@ export class AuthService {
 
     return { message: '密码重置成功，请使用新密码登录' };
   }
+
+  /**
+   * 验证密码重置token有效性（不执行重置操作）
+   * ECP-A1: 单一职责 - 仅验证token，不修改数据
+   * ECP-C1: 防御性编程 - 完整的错误处理和状态返回
+   */
+  async verifyResetToken(token: string): Promise<{
+    valid: boolean;
+    message: string;
+    expiresAt?: Date;
+  }> {
+    if (!token || token.length < 10) {
+      return {
+        valid: false,
+        message: '无效的重置链接格式',
+      };
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { passwordResetToken: token },
+      select: {
+        id: true,
+        passwordResetExpires: true,
+      },
+    });
+
+    if (!user) {
+      this.logger.warn(`Invalid reset token attempted: ${token.substring(0, 10)}...`);
+      return {
+        valid: false,
+        message: '重置链接不存在或已被使用',
+      };
+    }
+
+    // 检查token是否过期
+    if (
+      user.passwordResetExpires &&
+      user.passwordResetExpires < new Date()
+    ) {
+      this.logger.warn(`Expired reset token attempted: ${token.substring(0, 10)}...`);
+      return {
+        valid: false,
+        message: '重置链接已过期（有效期1小时）',
+        expiresAt: user.passwordResetExpires,
+      };
+    }
+
+    this.logger.log(`✅ Valid reset token verified: ${token.substring(0, 10)}...`);
+    return {
+      valid: true,
+      message: '重置链接有效',
+      expiresAt: user.passwordResetExpires || undefined,
+    };
+  }
+
+  /**
+   * 验证邮箱验证token有效性（不执行验证操作）
+   * ECP-A1: 单一职责 - 仅验证token，不修改数据
+   * ECP-C1: 防御性编程 - 完整的错误处理和状态返回
+   */
+  async verifyEmailVerificationToken(token: string): Promise<{
+    valid: boolean;
+    message: string;
+    expiresAt?: Date;
+  }> {
+    if (!token || token.length < 10) {
+      return {
+        valid: false,
+        message: '无效的验证��接格式',
+      };
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { emailVerifyToken: token },
+      select: {
+        id: true,
+        emailVerified: true,
+        emailVerifyExpires: true,
+      },
+    });
+
+    if (!user) {
+      this.logger.warn(`Invalid email verification token attempted: ${token.substring(0, 10)}...`);
+      return {
+        valid: false,
+        message: '验证链接不存在或已被使用',
+      };
+    }
+
+    // 检查邮箱是否已验证
+    if (user.emailVerified) {
+      this.logger.warn(`Email already verified, token: ${token.substring(0, 10)}...`);
+      return {
+        valid: false,
+        message: '邮箱已验证，无需重复验证',
+      };
+    }
+
+    // 检查token是否过期
+    if (
+      user.emailVerifyExpires &&
+      user.emailVerifyExpires < new Date()
+    ) {
+      this.logger.warn(`Expired email verification token attempted: ${token.substring(0, 10)}...`);
+      return {
+        valid: false,
+        message: '验证链接已过期（有效期24小时）',
+        expiresAt: user.emailVerifyExpires,
+      };
+    }
+
+    this.logger.log(`✅ Valid email verification token verified: ${token.substring(0, 10)}...`);
+    return {
+      valid: true,
+      message: '验证链接有效',
+      expiresAt: user.emailVerifyExpires || undefined,
+    };
+  }
+
+  /**
+   * 🧪 测试专用API - 获取密码重置token
+   * ECP-D1: Design for Testability - E2E测试支持
+   * 仅供测试环境使用，生产环境禁止调用
+   */
+  async getResetTokenForTest(email: string): Promise<{
+    token: string | null;
+    expiresAt: Date | null;
+  }> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        passwordResetToken: true,
+        passwordResetExpires: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`用户不存在: ${email}`);
+    }
+
+    this.logger.log(`🧪 [TEST] Retrieved reset token for: ${email}`);
+    return {
+      token: user.passwordResetToken,
+      expiresAt: user.passwordResetExpires,
+    };
+  }
+
+  /**
+   * 🧪 测试专用API - 获取邮箱验证token
+   * ECP-D1: Design for Testability - E2E测试支持
+   * 仅供测试环境使用，生产环境禁止调用
+   */
+  async getEmailTokenForTest(email: string): Promise<{
+    token: string | null;
+    expiresAt: Date | null;
+  }> {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        emailVerifyToken: true,
+        emailVerifyExpires: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`用户不存在: ${email}`);
+    }
+
+    this.logger.log(`🧪 [TEST] Retrieved email token for: ${email}`);
+    return {
+      token: user.emailVerifyToken,
+      expiresAt: user.emailVerifyExpires,
+    };
+  }
 }

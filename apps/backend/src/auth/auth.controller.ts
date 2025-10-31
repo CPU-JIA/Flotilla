@@ -8,7 +8,11 @@ import {
   UseGuards,
   Logger,
   Param,
+  Query,
+  ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService, AuthResponse } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { RedisService } from '../redis/redis.service';
@@ -108,11 +112,13 @@ export class AuthController {
    * 重新发送验证邮件
    */
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 requests/hour
   @Post('resend-verification')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '重新发送验证邮件' })
   @ApiResponseDoc({ status: 200, description: '验证邮件已发送' })
   @ApiResponseDoc({ status: 400, description: '邮箱已验证或用户不存在' })
+  @ApiResponseDoc({ status: 429, description: 'Rate limit exceeded: 超过频率限制（5次/小时）' })
   async resendVerificationEmail(@Body() dto: ResendVerificationDto) {
     this.logger.log(`📧 Resend verification email to: ${dto.email}`);
     return this.authService.resendVerificationEmail(dto);
@@ -122,6 +128,7 @@ export class AuthController {
    * 忘记密码 - 发送密码重置邮件
    */
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 requests/hour
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '忘记密码' })
@@ -146,5 +153,123 @@ export class AuthController {
   ) {
     this.logger.log(`🔑 Password reset attempt with token: ${token.substring(0, 10)}...`);
     return this.authService.resetPassword(token, dto);
+  }
+
+  /**
+   * 验证密码重置token有效性（仅查询，不执行重置）
+   */
+  @Public()
+  @Get('verify-reset-token/:token')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '验证密码重置token有效性' })
+  @ApiResponseDoc({
+    status: 200,
+    description: '返回token验证结果',
+    schema: {
+      example: {
+        valid: true,
+        message: '重置链接有效',
+        expiresAt: '2025-10-31T12:00:00.000Z',
+      },
+    },
+  })
+  async verifyResetToken(@Param('token') token: string) {
+    this.logger.log(`🔍 Verifying reset token: ${token.substring(0, 10)}...`);
+    return this.authService.verifyResetToken(token);
+  }
+
+  /**
+   * 验证邮箱验证token有效性（仅查询，不执行验证）
+   */
+  @Public()
+  @Get('verify-email-token/:token')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '验证邮箱验证token有效性' })
+  @ApiResponseDoc({
+    status: 200,
+    description: '返回token验证结果',
+    schema: {
+      example: {
+        valid: true,
+        message: '验证链接有效',
+        expiresAt: '2025-11-01T12:00:00.000Z',
+      },
+    },
+  })
+  async verifyEmailToken(@Param('token') token: string) {
+    this.logger.log(`🔍 Verifying email token: ${token.substring(0, 10)}...`);
+    return this.authService.verifyEmailVerificationToken(token);
+  }
+
+  /**
+   * 🧪 测试专用API - 获取密码重置token
+   * ECP-D1: Design for Testability - E2E测试支持
+   * 仅测试环境可用，生产环境自动禁止
+   */
+  @Public()
+  @Get('test/get-reset-token')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '🧪 [TEST ONLY] 获取密码重置token',
+    description: '仅测试环境可用，用于E2E测试获取token。生产环境自动禁止访问。',
+  })
+  @ApiResponseDoc({
+    status: 200,
+    description: '返回用户的密码重置token',
+    schema: {
+      example: {
+        token: 'abc123def456...',
+        expiresAt: '2025-10-31T12:00:00.000Z',
+      },
+    },
+  })
+  async getResetTokenForTest(@Query('email') email: string) {
+    // ECP-C1: 防御性编程 - 生产环境禁止调用
+    if (process.env.NODE_ENV === 'production') {
+      throw new ForbiddenException('🚫 Test endpoints are disabled in production');
+    }
+
+    if (!email) {
+      throw new BadRequestException('Email parameter is required');
+    }
+
+    this.logger.log(`🧪 [TEST] Get reset token request for: ${email}`);
+    return this.authService.getResetTokenForTest(email);
+  }
+
+  /**
+   * 🧪 测试专用API - 获取邮箱验证token
+   * ECP-D1: Design for Testability - E2E测试支持
+   * 仅测试环境可用，生产环境自动禁止
+   */
+  @Public()
+  @Get('test/get-email-token')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '🧪 [TEST ONLY] 获取邮箱验证token',
+    description: '仅测试环境可用，用于E2E测试获取token。生产环境自动禁止访问。',
+  })
+  @ApiResponseDoc({
+    status: 200,
+    description: '返回用户的邮箱验证token',
+    schema: {
+      example: {
+        token: 'xyz789abc123...',
+        expiresAt: '2025-11-01T12:00:00.000Z',
+      },
+    },
+  })
+  async getEmailTokenForTest(@Query('email') email: string) {
+    // ECP-C1: 防御性编程 - 生产环境禁止调用
+    if (process.env.NODE_ENV === 'production') {
+      throw new ForbiddenException('🚫 Test endpoints are disabled in production');
+    }
+
+    if (!email) {
+      throw new BadRequestException('Email parameter is required');
+    }
+
+    this.logger.log(`🧪 [TEST] Get email token request for: ${email}`);
+    return this.authService.getEmailTokenForTest(email);
   }
 }

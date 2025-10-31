@@ -118,6 +118,14 @@ export default function LoginPage() {
                 onChange={handleChange}
                 disabled={isLoading}
               />
+              <div className="text-right">
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  忘记密码？
+                </Link>
+              </div>
             </div>
           </div>
 
