@@ -160,10 +160,13 @@ export class UsersService {
       },
     });
 
-    // ECP-C1: 防御性编程 - 清除用户缓存，确保下次请求获取最新数据
-    await this.redisService.del(`user:${id}`);
+    // ECP-C1: Write-Through缓存策略 - 立即更新Redis缓存而不是删除
+    // 保证缓存和数据库的一致性，避免竞态条件
+    await this.redisService.set(`user:${id}`, updatedUser, 60);
 
-    this.logger.log(`✏️ User ${id} updated by ${currentUser.username}`);
+    this.logger.log(
+      `✏️ User ${id} updated and cache refreshed by ${currentUser.username}`,
+    );
 
     return updatedUser as Omit<User, 'passwordHash'>;
   }
@@ -257,10 +260,14 @@ export class UsersService {
         data: { avatar: avatarUrl },
       });
 
-      // ECP-C1: 防御性编程 - 清除用户缓存，确保下次请求获取最新数据
-      await this.redisService.del(`user:${userId}`);
+      // ECP-C1: Write-Through缓存策略 - 立即更新Redis缓存而不是删除
+      // 这样可以保证缓存和数据库的原子性更新，避免竞态条件
+      const updatedUser = await this.findOne(userId);
+      await this.redisService.set(`user:${userId}`, updatedUser, 60);
 
-      this.logger.log(`📷 Avatar uploaded for user ${userId}: ${avatarUrl}`);
+      this.logger.log(
+        `📷 Avatar uploaded and cache updated for user ${userId}: ${avatarUrl}`,
+      );
 
       return { avatarUrl };
     } catch (error) {

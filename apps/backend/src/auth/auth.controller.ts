@@ -74,12 +74,15 @@ export class AuthController {
   async getCurrentUser(@CurrentUser() user: Omit<User, 'passwordHash'>) {
     this.logger.log(`👤 Fetching current user info: ${user.username}`);
 
-    // ECP-C1: 防御性编程 - 从Redis缓存中尝试获取用户信息
+    // ECP-C1: 防御性编程 - 使用Redis缓存提高性能
+    // Write-Through缓存策略：配合users.service.ts的缓存更新机制
     const cacheKey = `user:${user.id}`;
-    const cachedUser = await this.redisService.get<Omit<User, 'passwordHash'>>(cacheKey);
+    const cachedUser = await this.redisService.get<Omit<User, 'passwordHash'>>(
+      cacheKey,
+    );
 
     if (cachedUser) {
-      this.logger.debug(`✅ Cache hit for user ${user.id}`);
+      this.logger.debug(`✅ Cache hit for user ${user.id} with avatar: ${cachedUser.avatar?.substring(0, 50) || 'none'}`);
       return cachedUser;
     }
 
@@ -87,9 +90,11 @@ export class AuthController {
     this.logger.debug(`❌ Cache miss for user ${user.id}, fetching from DB`);
     const freshUser = await this.usersService.findOne(user.id);
 
-    // 缓存用户信息（TTL: 10秒）
-    // ECP-C3: 性能意识 - 短期缓存平衡性能和数据新鲜度
-    await this.redisService.set(cacheKey, freshUser, 10);
+    // 缓存用户信息（TTL: 60秒）
+    // ECP-C3: 性能意识 - 60秒TTL平衡性能和数据新鲜度
+    await this.redisService.set(cacheKey, freshUser, 60);
+
+    this.logger.debug(`📝 Cached user ${user.id} with avatar: ${freshUser.avatar?.substring(0, 50) || 'none'}`);
 
     return freshUser;
   }
