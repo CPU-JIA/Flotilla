@@ -20,6 +20,8 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^22.10.6",
+    "axios": "^1.13.1",
+    "form-data": "^4.0.4",
     "prettier": "^3.4.2",
     "typescript": "^5.7.3"
   },

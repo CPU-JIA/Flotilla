@@ -33,6 +33,11 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('您的账户已被停用，请联系管理员');
     }
 
+    // SUPER_ADMIN bypasses all role checks
+    if (user.role === UserRole.SUPER_ADMIN) {
+      return true;
+    }
+
     const hasRole = requiredRoles.includes(user.role);
 
     if (!hasRole) {
