@@ -31,16 +31,25 @@ export class HttpSmartService {
 
   /**
    * Execute git http-backend command
+   *
+   * IMPORTANT: Git http-backend requires:
+   * - GIT_PROJECT_ROOT: Parent directory containing all repositories
+   * - PATH_INFO: /{projectId}{gitPath} (e.g., /cmhfopcmt000dxbu8rvmjvtse/info/refs)
    */
   async executeGitHttpBackend(
     options: GitHttpBackendOptions,
   ): Promise<GitHttpBackendResponse> {
     return new Promise((resolve, reject) => {
+      // Extract parent directory from repoPath
+      // repoPath: E:\Flotilla\apps\backend\repos\cmhfopcmt000dxbu8rvmjvtse
+      // gitProjectRoot: E:\Flotilla\apps\backend\repos
+      const gitProjectRoot = path.dirname(options.repoPath);
+
       const env = {
         ...process.env,
-        GIT_PROJECT_ROOT: options.repoPath,
+        GIT_PROJECT_ROOT: gitProjectRoot,
         GIT_HTTP_EXPORT_ALL: '1',
-        PATH_INFO: options.pathInfo || `/${options.projectId}`,
+        PATH_INFO: `/${options.projectId}${options.pathInfo || ''}`,
         QUERY_STRING: options.queryString || '',
         REQUEST_METHOD: options.requestBody ? 'POST' : 'GET',
         CONTENT_TYPE: options.contentType || 'application/x-git-upload-pack-request',
