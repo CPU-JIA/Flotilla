@@ -108,8 +108,8 @@ test.describe('Git UI功能测试', () => {
     // 验证Clone URL面板标题存在
     await expect(page.locator('text=/Git Clone URL|Git.*URL/i')).toBeVisible({ timeout: 5000 })
 
-    // 验证URL输入框存在
-    await expect(page.locator('input[value*="/api/repo/"]')).toBeVisible()
+    // 验证URL输入框存在且不包含 /api 前缀（Git HTTP 路由被排除在外）
+    await expect(page.locator('input[value*="/repo/"]')).toBeVisible()
   })
 
   test('应该能够复制Clone URL到剪贴板', async ({ page, context }) => {
@@ -133,9 +133,9 @@ test.describe('Git UI功能测试', () => {
       timeout: 2000,
     })
 
-    // 验证剪贴板内容
+    // 验证剪贴板内容（Git HTTP 路由不包含 /api 前缀）
     const clipboardText = await page.evaluate(() => navigator.clipboard.readText())
-    expect(clipboardText).toContain('/api/repo/')
+    expect(clipboardText).toContain('/repo/')
     expect(clipboardText).toContain(projectId!)
   })
 

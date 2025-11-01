@@ -22,8 +22,9 @@ export function CloneUrlPanel({ projectId }: CloneUrlPanelProps) {
   const [copied, setCopied] = useState(false)
 
   // ECP-D3: No magic strings - API URL from environment
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
-  const cloneUrl = `${apiUrl}/repo/${projectId}`
+  // Note: Git HTTP Smart Protocol routes are excluded from /api prefix
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:4000'
+  const cloneUrl = `${baseUrl}/repo/${projectId}`
 
   // 复制 URL 到剪贴板
   const handleCopy = async () => {
