@@ -203,6 +203,7 @@ export class RepositoriesService {
   /**
    * 上传文件
    * ECP-C3: 性能意识 - 使用MinIO存储
+   * Phase 3.2: Auto-commit files to Git after upload
    */
   async uploadFile(
     projectId: string,
@@ -261,7 +262,31 @@ export class RepositoriesService {
       },
     });
 
-    this.logger.log(`📄 File uploaded: ${filePath} to branch ${branch.name}`);
+    // Phase 3.2: Commit file to Git repository
+    try {
+      const commitMessage = `Upload ${filePath}`;
+      await this.gitService.commit(
+        projectId,
+        branch.name,
+        [{ path: filePath, content: fileBuffer.toString('utf-8') }],
+        commitMessage,
+        {
+          name: currentUser.username,
+          email: currentUser.email,
+        },
+      );
+      this.logger.log(
+        `✅ File uploaded and committed to Git: ${filePath} to branch ${branch.name}`,
+      );
+    } catch (gitError) {
+      // ECP-C2: Log Git commit error but don't fail the upload
+      // File is already in MinIO and database, commit failure shouldn't block user
+      this.logger.error(
+        `❌ Git commit failed for ${filePath} (file still uploaded to MinIO): ${gitError.message}`,
+      );
+      // Continue execution - file upload succeeded even if Git commit failed
+    }
+
     return file;
   }
 

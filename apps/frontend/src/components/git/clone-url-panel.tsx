@@ -20,6 +20,9 @@ export function CloneUrlPanel({ projectId }: CloneUrlPanelProps) {
   const { t } = useLanguage()
   const [showGuide, setShowGuide] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [copiedClone, setCopiedClone] = useState(false)
+  const [copiedPush, setCopiedPush] = useState(false)
+  const [copiedPull, setCopiedPull] = useState(false)
 
   // ECP-D3: No magic strings - API URL from environment
   // Note: Git HTTP Smart Protocol routes are excluded from /api prefix
@@ -35,6 +38,18 @@ export function CloneUrlPanel({ projectId }: CloneUrlPanelProps) {
     } catch (err) {
       console.error('Failed to copy:', err)
       alert(t.git.cloneUrl.copyFailed || 'Failed to copy URL')
+    }
+  }
+
+  // 复制命令到剪贴板
+  const handleCopyCommand = async (command: string, setCopied: (value: boolean) => void) => {
+    try {
+      await navigator.clipboard.writeText(command)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy command:', err)
+      alert(t.git.cloneUrl.copyFailed || 'Failed to copy command')
     }
   }
 
@@ -92,9 +107,29 @@ export function CloneUrlPanel({ projectId }: CloneUrlPanelProps) {
               <p className="text-xs text-muted-foreground mb-1">
                 {t.git.cloneUrl.cloneCommand}:
               </p>
-              <code className="block bg-gray-900 dark:bg-gray-950 text-green-400 p-2 rounded text-xs overflow-x-auto">
-                git clone {cloneUrl}
-              </code>
+              <div className="flex gap-2">
+                <code className="flex-1 bg-gray-900 dark:bg-gray-950 text-green-400 p-2 rounded text-xs overflow-x-auto">
+                  git clone {cloneUrl}
+                </code>
+                <Button
+                  onClick={() => handleCopyCommand(`git clone ${cloneUrl}`, setCopiedClone)}
+                  variant={copiedClone ? 'default' : 'outline'}
+                  size="sm"
+                  className="shrink-0"
+                >
+                  {copiedClone ? (
+                    <>
+                      <span className="mr-1">✅</span>
+                      {t.git.cloneUrl.copied}
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-1">📋</span>
+                      {t.git.cloneUrl.copy}
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
 
             {/* Push Command */}
@@ -102,11 +137,36 @@ export function CloneUrlPanel({ projectId }: CloneUrlPanelProps) {
               <p className="text-xs text-muted-foreground mb-1">
                 {t.git.cloneUrl.pushCommand}:
               </p>
-              <code className="block bg-gray-900 dark:bg-gray-950 text-green-400 p-2 rounded text-xs overflow-x-auto">
-                git add .{'\n'}
-                git commit -m &quot;your message&quot;{'\n'}
-                git push origin main
-              </code>
+              <div className="flex gap-2">
+                <code className="flex-1 bg-gray-900 dark:bg-gray-950 text-green-400 p-2 rounded text-xs overflow-x-auto">
+                  git add .{'\n'}
+                  git commit -m &quot;your message&quot;{'\n'}
+                  git push origin main
+                </code>
+                <Button
+                  onClick={() =>
+                    handleCopyCommand(
+                      'git add .\ngit commit -m "your message"\ngit push origin main',
+                      setCopiedPush
+                    )
+                  }
+                  variant={copiedPush ? 'default' : 'outline'}
+                  size="sm"
+                  className="shrink-0"
+                >
+                  {copiedPush ? (
+                    <>
+                      <span className="mr-1">✅</span>
+                      {t.git.cloneUrl.copied}
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-1">📋</span>
+                      {t.git.cloneUrl.copy}
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
 
             {/* Pull Command */}
@@ -114,9 +174,29 @@ export function CloneUrlPanel({ projectId }: CloneUrlPanelProps) {
               <p className="text-xs text-muted-foreground mb-1">
                 {t.git.cloneUrl.pullCommand}:
               </p>
-              <code className="block bg-gray-900 dark:bg-gray-950 text-green-400 p-2 rounded text-xs overflow-x-auto">
-                git pull origin main
-              </code>
+              <div className="flex gap-2">
+                <code className="flex-1 bg-gray-900 dark:bg-gray-950 text-green-400 p-2 rounded text-xs overflow-x-auto">
+                  git pull origin main
+                </code>
+                <Button
+                  onClick={() => handleCopyCommand('git pull origin main', setCopiedPull)}
+                  variant={copiedPull ? 'default' : 'outline'}
+                  size="sm"
+                  className="shrink-0"
+                >
+                  {copiedPull ? (
+                    <>
+                      <span className="mr-1">✅</span>
+                      {t.git.cloneUrl.copied}
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-1">📋</span>
+                      {t.git.cloneUrl.copy}
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         )}
