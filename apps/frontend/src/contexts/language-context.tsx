@@ -1161,6 +1161,44 @@ export interface Translations {
     nameTooShort: string
     descriptionTooLong: string
   }
+
+  git: {
+    cloneUrl: {
+      title: string
+      copy: string
+      copied: string
+      copyFailed: string
+      showGuide: string
+      hideGuide: string
+      guide: string
+      cloneCommand: string
+      pushCommand: string
+      pullCommand: string
+    }
+    branch: {
+      title: string
+      select: string
+      loading: string
+      error: string
+      noBranches: string
+      default: string
+      create: string
+      createNew: string
+      creating: string
+      createSuccess: string
+      createFailed: string
+      createDescription: string
+      branchName: string
+      branchNamePlaceholder: string
+      baseBranch: string
+      selectBaseBranch: string
+      baseBranchHint: string
+      nameRequired: string
+      nameInvalid: string
+      nameInvalidSlash: string
+      nameInvalidDoubleSlash: string
+    }
+  }
 }
 
 interface LanguageContextType {

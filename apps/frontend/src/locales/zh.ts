@@ -1193,6 +1193,45 @@ export const zh: Translations = {
     },
   },
 
+  // Git 操作
+  git: {
+    cloneUrl: {
+      title: 'Git Clone URL',
+      copy: '复制',
+      copied: '已复制',
+      copyFailed: '复制失败',
+      showGuide: '查看使用指南',
+      hideGuide: '隐藏使用指南',
+      guide: '使用指南',
+      cloneCommand: '克隆项目',
+      pushCommand: '推送代码',
+      pullCommand: '拉取代码',
+    },
+    branch: {
+      title: '分支',
+      select: '选择分支',
+      loading: '加载分支...',
+      error: '加载分支失败',
+      noBranches: '暂无分支',
+      default: '默认',
+      create: '创建',
+      createNew: '创建新分支',
+      creating: '创建中...',
+      createSuccess: '分支创建成功',
+      createFailed: '创建分支失败',
+      createDescription: '从现有分支创建一个新分支',
+      branchName: '分支名称',
+      branchNamePlaceholder: '例如：feature/new-feature',
+      baseBranch: '基于分支',
+      selectBaseBranch: '选择基础分支',
+      baseBranchHint: '新分支将从选定的分支复制',
+      nameRequired: '分支名称不能为空',
+      nameInvalid: '分支名称只能包含字母、数字、连字符、下划线和斜杠',
+      nameInvalidSlash: '分支名称不能以斜杠开头或结尾',
+      nameInvalidDoubleSlash: '分支名称不能包含连续的斜杠',
+    },
+  },
+
   // 表单验证
   validation: {
     emailRequired: '请输入邮箱地址',

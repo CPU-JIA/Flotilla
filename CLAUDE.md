@@ -197,6 +197,7 @@ pnpm migrate:to-organizations  # Migration script for org structure
 pnpm test                   # Run unit tests (Jest)
 pnpm test:watch             # Watch mode
 pnpm test:cov               # With coverage
+pnpm test:debug             # Debug mode with --inspect-brk
 pnpm test:e2e               # E2E tests
 
 # Build
@@ -603,6 +604,11 @@ User
 | [TESTING_GUIDE.md](./apps/frontend/TESTING_GUIDE.md) | E2E testing guide and checklist |
 | [PERFORMANCE_CHECKLIST.md](./apps/frontend/PERFORMANCE_CHECKLIST.md) | Performance optimization guidelines |
 
+### Quick Start Guides
+| Document | Description |
+|----------|-------------|
+| [DOCKER_QUICKSTART.md](./DOCKER_QUICKSTART.md) | Docker one-click deployment guide |
+
 ### Strategic Planning
 | Document | Description |
 |----------|-------------|
@@ -745,21 +751,21 @@ curl -s -o /dev/null -w "%{http_code}" http://localhost:4000  # Should return 20
 
 **"We don't just host code. We build consensus."**
 
-This project uses Raft consensus algorithm as both a technical implementation and a philosophical metaphor for distributed team collaboration.
+This project implements Raft consensus algorithm as both a technical feature and a metaphor for distributed team collaboration.
 
-**Academic Rigor**:
+**Engineering Standards**: Follow the ECP (Engineering & Code Principles) defined in global `~/.claude/CLAUDE.md`.
+
+**Core Development Workflow**:
 1. Requirements Analysis
 2. Architecture Design
-3. Implementation
+3. Implementation (TDD)
 4. Testing
 5. Documentation
 
-**Documentation-first approach**: Check `/docs` before implementing major features.
-
-**Frontend-Backend Separation**:
+**Architecture Pattern**: Frontend-Backend Separation
 - Backend provides RESTful APIs (see Swagger at `/api/docs`)
 - Frontend consumes APIs without direct database access
-- API changes must be documented
+- All API changes must be documented
 
 ---
 

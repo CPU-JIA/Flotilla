@@ -1194,6 +1194,45 @@ export const en: Translations = {
     },
   },
 
+  // Git operations
+  git: {
+    cloneUrl: {
+      title: 'Git Clone URL',
+      copy: 'Copy',
+      copied: 'Copied',
+      copyFailed: 'Failed to copy',
+      showGuide: 'Show Guide',
+      hideGuide: 'Hide Guide',
+      guide: 'Usage Guide',
+      cloneCommand: 'Clone Repository',
+      pushCommand: 'Push Code',
+      pullCommand: 'Pull Code',
+    },
+    branch: {
+      title: 'Branch',
+      select: 'Select Branch',
+      loading: 'Loading branches...',
+      error: 'Failed to load branches',
+      noBranches: 'No branches',
+      default: 'Default',
+      create: 'Create',
+      createNew: 'Create New Branch',
+      creating: 'Creating...',
+      createSuccess: 'Branch created successfully',
+      createFailed: 'Failed to create branch',
+      createDescription: 'Create a new branch from an existing branch',
+      branchName: 'Branch Name',
+      branchNamePlaceholder: 'e.g., feature/new-feature',
+      baseBranch: 'Base Branch',
+      selectBaseBranch: 'Select base branch',
+      baseBranchHint: 'The new branch will be copied from the selected branch',
+      nameRequired: 'Branch name cannot be empty',
+      nameInvalid: 'Branch name can only contain letters, numbers, hyphens, underscores and slashes',
+      nameInvalidSlash: 'Branch name cannot start or end with a slash',
+      nameInvalidDoubleSlash: 'Branch name cannot contain consecutive slashes',
+    },
+  },
+
   // Form validation
   validation: {
     emailRequired: 'Please enter email address',

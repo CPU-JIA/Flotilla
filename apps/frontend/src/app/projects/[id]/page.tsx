@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ProjectMembersPanel } from '@/components/projects/project-members-panel'
+import { CloneUrlPanel } from '@/components/git/clone-url-panel'
 import { api, ApiError } from '@/lib/api'
 import type { Project } from '@/types/project'
 
@@ -233,6 +234,14 @@ export default function ProjectDetailPage() {
                 onMembersChange={fetchProject}
               />
             </div>
+
+            {/* Git Clone URL Panel - 显示给所有用户 */}
+            {hasRepository === true && (
+              <div>
+                <CloneUrlPanel projectId={project.id} />
+              </div>
+            )}
+
             {isOwner && (
               <div className="border-t border-border pt-6">
                 <h3 className="text-lg font-semibold text-card-foreground mb-4">

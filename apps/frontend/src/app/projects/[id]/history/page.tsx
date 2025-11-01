@@ -15,6 +15,8 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Clock, User, FileText, Plus, Minus, Edit, ArrowLeft } from 'lucide-react'
+import { BranchSelector } from '@/components/git/branch-selector'
+import { CreateBranchDialog } from '@/components/git/create-branch-dialog'
 import { api } from '@/lib/api'
 
 interface Commit {
@@ -116,6 +118,21 @@ export default function VersionHistoryPage() {
     fetchCommitDiff(commitId)
   }
 
+  // 处理分支切换
+  const handleBranchChange = (newBranchId: string) => {
+    // 更新 URL 参数，触发页面重新加载数据
+    router.push(`/projects/${projectId}/history?branchId=${newBranchId}`)
+    // 清空当前选中的 commit
+    setSelectedCommit(null)
+    setCommitDiff(null)
+  }
+
+  // 处理创建分支成功
+  const handleBranchCreated = () => {
+    // 刷新页面以更新分支列表
+    router.refresh()
+  }
+
   // 格式化日期
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -157,7 +174,7 @@ export default function VersionHistoryPage() {
       <div className="max-w-7xl mx-auto px-4">
         {/* 页头 */}
         <div className="mb-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <Button
                 variant="outline"
@@ -167,16 +184,28 @@ export default function VersionHistoryPage() {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 {t.projects.history.backToProject}
               </Button>
-              <div>
-                <h1 className="text-3xl font-bold text-card-foreground">
-                  {t.projects.history.title}
-                </h1>
-                <p className="text-muted-foreground mt-1">{t.projects.history.description}</p>
-              </div>
+              <h1 className="text-3xl font-bold text-card-foreground">
+                {t.projects.history.title}
+              </h1>
             </div>
             <Badge variant="outline" className="text-lg px-4 py-2">
               {t.projects.history.totalCommits.replace('{count}', String(total))}
             </Badge>
+          </div>
+
+          {/* 分支选择器和描述 */}
+          <div className="flex items-center gap-4">
+            <BranchSelector
+              projectId={projectId}
+              currentBranchId={branchId || undefined}
+              onBranchChange={handleBranchChange}
+            />
+            <CreateBranchDialog
+              projectId={projectId}
+              baseBranchId={branchId || undefined}
+              onSuccess={handleBranchCreated}
+            />
+            <p className="text-muted-foreground">{t.projects.history.description}</p>
           </div>
         </div>
 

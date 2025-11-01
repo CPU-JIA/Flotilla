@@ -532,7 +532,7 @@ export const api = {
     getBranches: (projectId: string) =>
       apiRequest<Branch[]>(`/projects/${projectId}/repository/branches`),
 
-    createBranch: (projectId: string, data: { name: string }) =>
+    createBranch: (projectId: string, data: { name: string; baseBranchId?: string }) =>
       apiRequest<Branch>(`/projects/${projectId}/repository/branches`, {
         method: 'POST',
         body: JSON.stringify(data),
