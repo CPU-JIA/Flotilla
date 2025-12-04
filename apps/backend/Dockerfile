@@ -37,6 +37,10 @@ RUN corepack enable && corepack prepare pnpm@10.18.2 --activate
 # git-daemon 包含 git-http-backend CGI 程序
 RUN apk add --no-cache git git-daemon
 
+# ⚠️ SECURITY: Create non-root user to run the application
+# Running as root is a security risk in production
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
 WORKDIR /app
 
 # 复制 workspace 配置和依赖
@@ -53,6 +57,12 @@ COPY --from=builder /app/apps/backend/prisma ./apps/backend/prisma
 # 复制启动脚本
 COPY apps/backend/docker-entrypoint.sh ./apps/backend/
 
+# 赋予启动脚本执行权限
+RUN chmod +x ./apps/backend/docker-entrypoint.sh
+
+# Change ownership to nodejs user
+RUN chown -R nodejs:nodejs /app
+
 WORKDIR /app/apps/backend
 
 # 暴露端口
@@ -61,8 +71,8 @@ EXPOSE 4000
 # 设置环境变量
 ENV NODE_ENV=production
 
-# 赋予启动脚本执行权限
-RUN chmod +x docker-entrypoint.sh
+# ✅ SECURITY: Switch to non-root user before running the application
+USER nodejs
 
 # 使用启动脚本（自动执行迁移）
 CMD ["./docker-entrypoint.sh"]

@@ -33,6 +33,10 @@ RUN cd website && pnpm run build
 FROM node:22-alpine AS runner
 RUN corepack enable && corepack prepare pnpm@10.18.2 --activate
 
+# ⚠️ SECURITY: Create non-root user to run the application
+# Running as root is a security risk in production
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
 WORKDIR /app
 
 # 复制 workspace 配置和依赖
@@ -48,6 +52,9 @@ COPY --from=builder /app/website/public ./website/public
 COPY --from=builder /app/website/next.config.ts ./website/
 COPY --from=base /app/website/i18n ./website/i18n
 
+# Change ownership to nodejs user
+RUN chown -R nodejs:nodejs /app
+
 WORKDIR /app/website
 
 # 暴露端口
@@ -56,6 +63,9 @@ EXPOSE 3003
 # 设置环境变量
 ENV NODE_ENV=production
 ENV PORT=3003
+
+# ✅ SECURITY: Switch to non-root user before running the application
+USER nodejs
 
 # 启动命令
 CMD ["pnpm", "start", "-p", "3003"]

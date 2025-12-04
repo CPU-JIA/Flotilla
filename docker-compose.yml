@@ -112,6 +112,10 @@ services:
       JWT_REFRESH_SECRET: 'your-super-secret-refresh-key-change-in-production-2025'
       JWT_REFRESH_EXPIRATION: '30d'
       FRONTEND_URL: 'http://localhost:3000'
+      WEBSITE_URL: 'http://localhost:3003'
+      GIT_STORAGE_PATH: '/app/repos'
+    volumes:
+      - git_repos_data:/app/repos
     depends_on:
       postgres:
         condition: service_healthy
@@ -196,6 +200,8 @@ volumes:
   minio_data:
     driver: local
   meilisearch_data:
+    driver: local
+  git_repos_data:
     driver: local
 
 networks:
