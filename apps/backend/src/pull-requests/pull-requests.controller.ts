@@ -242,10 +242,7 @@ export class PullRequestsController {
     type: MergeStatusResponseDto,
   })
   @ApiResponse({ status: 404, description: 'PR不存在' })
-  getMergeStatus(
-    @Param('id') id: string,
-    @CurrentUser('id') userId: string,
-  ) {
+  getMergeStatus(@Param('id') id: string, @CurrentUser('id') userId: string) {
     return this.pullRequestsService.canMergePR(id, userId);
   }
 }

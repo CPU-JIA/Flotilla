@@ -78,16 +78,13 @@ describe('GitService', () => {
 
       // Assert
       expect(result).toBe(true);
-      expect(mockExecFile).toHaveBeenCalledWith(
-        'git',
-        [
-          'config',
-          '--file',
-          expect.stringContaining('config'),
-          '--get',
-          'http.receivepack',
-        ],
-      );
+      expect(mockExecFile).toHaveBeenCalledWith('git', [
+        'config',
+        '--file',
+        expect.stringContaining('config'),
+        '--get',
+        'http.receivepack',
+      ]);
     });
 
     it('should return false when config value does not match', async () => {
@@ -148,7 +145,8 @@ describe('GitService', () => {
         stderr: '',
       });
 
-      const repoPath = 'E:\\Cloud-Dev-Platform\\apps\\backend\\repos\\test-project-id';
+      const repoPath =
+        'E:\\Cloud-Dev-Platform\\apps\\backend\\repos\\test-project-id';
 
       // Act
       await (service as any).verifyConfigViaSystemGit(
@@ -158,16 +156,13 @@ describe('GitService', () => {
       );
 
       // Assert
-      expect(mockExecFile).toHaveBeenCalledWith(
-        'git',
-        [
-          'config',
-          '--file',
-          expect.stringContaining('repos\\test-project-id\\config'),
-          '--get',
-          'http.receivepack',
-        ],
-      );
+      expect(mockExecFile).toHaveBeenCalledWith('git', [
+        'config',
+        '--file',
+        expect.stringContaining('repos\\test-project-id\\config'),
+        '--get',
+        'http.receivepack',
+      ]);
     });
   });
 

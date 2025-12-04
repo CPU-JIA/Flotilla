@@ -76,7 +76,11 @@ export class NotificationsService {
 
     // 🚀 WebSocket实时推送通知给在线用户
     try {
-      this.gateway.sendToUser(notification.userId, 'notification', notification);
+      this.gateway.sendToUser(
+        notification.userId,
+        'notification',
+        notification,
+      );
     } catch (error) {
       // WebSocket推送失败不影响通知创建
       this.logger.warn(

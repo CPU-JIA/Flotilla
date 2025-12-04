@@ -24,19 +24,19 @@ import { MinioModule } from '../minio/minio.module';
  */
 @Module({
   imports: [
-    ConfigModule,  // 环境变量配置
-    PrismaModule,  // 数据库访问
-    MinioModule,   // 文件存储
+    ConfigModule, // 环境变量配置
+    PrismaModule, // 数据库访问
+    MinioModule, // 文件存储
   ],
   controllers: [SearchController],
   providers: [
-    MeilisearchService,  // MeiliSearch客户端
-    IndexService,        // 索引服务
-    SearchService,       // 搜索服务
+    MeilisearchService, // MeiliSearch客户端
+    IndexService, // 索引服务
+    SearchService, // 搜索服务
   ],
   exports: [
-    SearchService,  // 导出给其他模块使用
-    IndexService,   // 导出给其他模块触发索引
+    SearchService, // 导出给其他模块使用
+    IndexService, // 导出给其他模块触发索引
   ],
 })
 export class SearchModule {}

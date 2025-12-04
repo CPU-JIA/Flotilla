@@ -20,7 +20,8 @@ export class CreateIssueDto {
 
   @ApiProperty({
     description: 'Issue详细描述（支持Markdown）',
-    example: '## 问题描述\n登录时出现500错误\n\n## 复现步骤\n1. 打开登录页面\n2. 输入用户名密码\n3. 点击登录',
+    example:
+      '## 问题描述\n登录时出现500错误\n\n## 复现步骤\n1. 打开登录页面\n2. 输入用户名密码\n3. 点击登录',
     required: false,
   })
   @IsString()

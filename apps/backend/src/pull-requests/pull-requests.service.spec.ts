@@ -8,7 +8,10 @@ import { PullRequestsService } from './pull-requests.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { GitService } from '../git/git.service';
 import { CreatePullRequestDto } from './dto/create-pull-request.dto';
-import { MergePullRequestDto, MergeStrategy } from './dto/merge-pull-request.dto';
+import {
+  MergePullRequestDto,
+  MergeStrategy,
+} from './dto/merge-pull-request.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { PullRequestCreateCommentDto } from './dto/create-comment.dto';
 import { PRState } from '@prisma/client';
@@ -166,7 +169,12 @@ describe('PullRequestsService', () => {
         closedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
-        author: { id: authorId, username: 'testuser', email: 'test@example.com', avatar: null },
+        author: {
+          id: authorId,
+          username: 'testuser',
+          email: 'test@example.com',
+          avatar: null,
+        },
         project: { id: 'proj-1', name: 'Test Project' },
       });
       mockPrisma.pREvent.create.mockResolvedValue({});
@@ -232,7 +240,12 @@ describe('PullRequestsService', () => {
           targetBranch: createDto.targetBranch,
           createdAt: new Date(),
           updatedAt: new Date(),
-          author: { id: authorId, username: 'testuser', email: 'test@example.com', avatar: null },
+          author: {
+            id: authorId,
+            username: 'testuser',
+            email: 'test@example.com',
+            avatar: null,
+          },
           project: { id: 'proj-1', name: 'Test Project' },
         });
       mockPrisma.pREvent.create.mockResolvedValue({});
@@ -260,7 +273,12 @@ describe('PullRequestsService', () => {
         targetBranch: createDto.targetBranch,
         createdAt: new Date(),
         updatedAt: new Date(),
-        author: { id: authorId, username: 'testuser', email: 'test@example.com', avatar: null },
+        author: {
+          id: authorId,
+          username: 'testuser',
+          email: 'test@example.com',
+          avatar: null,
+        },
         project: { id: 'proj-1', name: 'Test Project' },
       });
       mockPrisma.pREvent.create.mockResolvedValue({
@@ -421,7 +439,12 @@ describe('PullRequestsService', () => {
       state: PRState.OPEN,
       authorId: 'user-1',
       project: { id: 'proj-1', name: 'Test Project' },
-      author: { id: 'user-1', username: 'author', email: 'author@example.com', avatar: null },
+      author: {
+        id: 'user-1',
+        username: 'author',
+        email: 'author@example.com',
+        avatar: null,
+      },
     };
     const mockMerger = {
       username: 'merger',

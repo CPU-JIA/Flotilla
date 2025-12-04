@@ -90,10 +90,10 @@ export class MeilisearchService implements OnModuleInit {
     await this.codeIndex.updateSettings({
       // 可搜索字段（权重从高到低）
       searchableAttributes: [
-        'content',       // 文件内容（最高权重）
-        'fileName',      // 文件名
-        'filePath',      // 文件路径
-        'symbols',       // 代码符号（类名、函数名）
+        'content', // 文件内容（最高权重）
+        'fileName', // 文件名
+        'filePath', // 文件路径
+        'symbols', // 代码符号（类名、函数名）
         'commitMessage', // 提交信息
       ],
 
@@ -112,20 +112,20 @@ export class MeilisearchService implements OnModuleInit {
 
       // 排序规则（按优先级）
       rankingRules: [
-        'words',      // 匹配词数量
-        'typo',       // 拼写容错
-        'proximity',  // 词语接近度
-        'attribute',  // 属性权重
-        'sort',       // 自定义排序
-        'exactness',  // 精确匹配
+        'words', // 匹配词数量
+        'typo', // 拼写容错
+        'proximity', // 词语接近度
+        'attribute', // 属性权重
+        'sort', // 自定义排序
+        'exactness', // 精确匹配
       ],
 
       // 拼写容错配置
       typoTolerance: {
         enabled: true,
         minWordSizeForTypos: {
-          oneTypo: 4,   // 4字符以上允许1个拼写错误
-          twoTypos: 8,  // 8字符以上允许2个拼写错误
+          oneTypo: 4, // 4字符以上允许1个拼写错误
+          twoTypos: 8, // 8字符以上允许2个拼写错误
         },
       },
 

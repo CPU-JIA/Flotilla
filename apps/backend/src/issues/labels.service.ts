@@ -64,7 +64,9 @@ export class LabelsService {
     });
 
     if (!label) {
-      throw new NotFoundException(`Label ${id} not found in project ${projectId}`);
+      throw new NotFoundException(
+        `Label ${id} not found in project ${projectId}`,
+      );
     }
 
     return label;

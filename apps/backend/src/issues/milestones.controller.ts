@@ -37,7 +37,10 @@ export class MilestonesController {
   @ApiParam({ name: 'projectId', description: '项目ID' })
   @ApiResponse({ status: 201, description: '里程碑创建成功' })
   @ApiResponse({ status: 409, description: '里程碑标题已存在' })
-  @ApiResponse({ status: 403, description: '权限不足（需要MAINTAINER或更高权限）' })
+  @ApiResponse({
+    status: 403,
+    description: '权限不足（需要MAINTAINER或更高权限）',
+  })
   create(
     @Param('projectId') projectId: string,
     @Body() createMilestoneDto: CreateMilestoneDto,
@@ -84,7 +87,10 @@ export class MilestonesController {
   @ApiResponse({ status: 200, description: '里程碑更新成功' })
   @ApiResponse({ status: 404, description: '里程碑不存在' })
   @ApiResponse({ status: 409, description: '里程碑标题已存在' })
-  @ApiResponse({ status: 403, description: '权限不足（需要MAINTAINER或更高权限）' })
+  @ApiResponse({
+    status: 403,
+    description: '权限不足（需要MAINTAINER或更高权限）',
+  })
   update(
     @Param('projectId') projectId: string,
     @Param('id') id: string,
@@ -100,7 +106,10 @@ export class MilestonesController {
   @ApiParam({ name: 'id', description: '里程碑ID' })
   @ApiResponse({ status: 204, description: '里程碑已删除' })
   @ApiResponse({ status: 404, description: '里程碑不存在' })
-  @ApiResponse({ status: 403, description: '权限不足（需要MAINTAINER或更高权限）' })
+  @ApiResponse({
+    status: 403,
+    description: '权限不足（需要MAINTAINER或更高权限）',
+  })
   async remove(@Param('projectId') projectId: string, @Param('id') id: string) {
     await this.milestonesService.remove(projectId, id);
     return { message: 'Milestone deleted successfully' };

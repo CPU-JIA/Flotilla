@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
@@ -166,13 +171,18 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         stream.on('end', async () => {
           if (keys.length > 0) {
             deletedCount = await this.client.del(...keys);
-            this.logger.debug(`🗑️ Redis DEL pattern ${pattern}: ${deletedCount} keys`);
+            this.logger.debug(
+              `🗑️ Redis DEL pattern ${pattern}: ${deletedCount} keys`,
+            );
           }
           resolve(deletedCount);
         });
 
         stream.on('error', (error) => {
-          this.logger.error(`❌ Redis DEL pattern error for ${pattern}:`, error);
+          this.logger.error(
+            `❌ Redis DEL pattern error for ${pattern}:`,
+            error,
+          );
           reject(error);
         });
       });

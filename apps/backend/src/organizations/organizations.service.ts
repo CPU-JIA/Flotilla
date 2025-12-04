@@ -361,8 +361,8 @@ export class OrganizationsService {
 
     return org.members.map((member) => ({
       id: member.id,
-      userId: member.userId,  // ✅ ECP-C1: 防御性编程 - 确保前端能获取到成员的 userId
-      organizationId: member.organizationId,  // ✅ 完整的成员数据结构
+      userId: member.userId, // ✅ ECP-C1: 防御性编程 - 确保前端能获取到成员的 userId
+      organizationId: member.organizationId, // ✅ 完整的成员数据结构
       role: member.role,
       joinedAt: member.joinedAt,
       user: member.user,

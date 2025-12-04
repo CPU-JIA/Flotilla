@@ -8,7 +8,11 @@
  * ECP-C2: Systematic Error Handling - All operations with proper error messages
  */
 
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { IssueCreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
@@ -46,7 +50,11 @@ export class CommentsService {
    * @param createCommentDto - Comment data
    * @returns Created comment with author information
    */
-  async create(issueId: string, authorId: string, createCommentDto: IssueCreateCommentDto) {
+  async create(
+    issueId: string,
+    authorId: string,
+    createCommentDto: IssueCreateCommentDto,
+  ) {
     // ECP-C1: Verify issue exists
     const issue = await this.prisma.issue.findUnique({
       where: { id: issueId },
@@ -82,7 +90,11 @@ export class CommentsService {
    * @param updateCommentDto - Updated comment data
    * @returns Updated comment
    */
-  async update(commentId: string, userId: string, updateCommentDto: UpdateCommentDto) {
+  async update(
+    commentId: string,
+    userId: string,
+    updateCommentDto: UpdateCommentDto,
+  ) {
     // ECP-C1: Verify comment exists
     const comment = await this.prisma.issueComment.findUnique({
       where: { id: commentId },

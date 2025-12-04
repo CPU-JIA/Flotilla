@@ -35,7 +35,10 @@ export class LabelsController {
   @ApiParam({ name: 'projectId', description: '项目ID' })
   @ApiResponse({ status: 201, description: '标签创建成功' })
   @ApiResponse({ status: 409, description: '标签名称已存在' })
-  @ApiResponse({ status: 403, description: '权限不足（需要MAINTAINER或更高权限）' })
+  @ApiResponse({
+    status: 403,
+    description: '权限不足（需要MAINTAINER或更高权限）',
+  })
   create(
     @Param('projectId') projectId: string,
     @Body() createLabelDto: CreateLabelDto,
@@ -73,7 +76,10 @@ export class LabelsController {
   @ApiResponse({ status: 200, description: '标签更新成功' })
   @ApiResponse({ status: 404, description: '标签不存在' })
   @ApiResponse({ status: 409, description: '标签名称已存在' })
-  @ApiResponse({ status: 403, description: '权限不足（需要MAINTAINER或更高权限）' })
+  @ApiResponse({
+    status: 403,
+    description: '权限不足（需要MAINTAINER或更高权限）',
+  })
   update(
     @Param('projectId') projectId: string,
     @Param('id') id: string,
@@ -89,7 +95,10 @@ export class LabelsController {
   @ApiParam({ name: 'id', description: '标签ID' })
   @ApiResponse({ status: 204, description: '标签已删除' })
   @ApiResponse({ status: 404, description: '标签不存在' })
-  @ApiResponse({ status: 403, description: '权限不足（需要MAINTAINER或更高权限）' })
+  @ApiResponse({
+    status: 403,
+    description: '权限不足（需要MAINTAINER或更高权限）',
+  })
   async remove(@Param('projectId') projectId: string, @Param('id') id: string) {
     await this.labelsService.remove(projectId, id);
     return { message: 'Label deleted successfully' };

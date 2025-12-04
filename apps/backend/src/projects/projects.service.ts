@@ -198,7 +198,8 @@ export class ProjectsService {
   async findOne(id: string, currentUser: User): Promise<ProjectDetailResponse> {
     // ✅ Cache-Aside模式: 先检查缓存
     const cacheKey = `project:${id}:detail`;
-    const cachedProject = await this.redisService.get<ProjectDetailResponse>(cacheKey);
+    const cachedProject =
+      await this.redisService.get<ProjectDetailResponse>(cacheKey);
 
     if (cachedProject) {
       this.logger.debug(`✅ Cache hit for project ${id}`);
@@ -233,7 +234,11 @@ export class ProjectsService {
     // 权限检查已由ProjectRoleGuard处理
 
     // 填充缓存 (TTL: 300秒)
-    await this.redisService.set(cacheKey, project as ProjectDetailResponse, 300);
+    await this.redisService.set(
+      cacheKey,
+      project as ProjectDetailResponse,
+      300,
+    );
     this.logger.debug(`📝 Cached project ${id} for 300s`);
 
     return project as ProjectDetailResponse;
@@ -482,9 +487,14 @@ export class ProjectsService {
    * ECP-A1: 单一职责原则
    * ECP-C3: 性能意识 - Redis缓存优化
    */
-  async getMembers(projectId: string, currentUser: User): Promise<(ProjectMember & {
-    user: { id: string; username: string; email: string };
-  })[]> {
+  async getMembers(
+    projectId: string,
+    currentUser: User,
+  ): Promise<
+    (ProjectMember & {
+      user: { id: string; username: string; email: string };
+    })[]
+  > {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
     });
@@ -497,9 +507,11 @@ export class ProjectsService {
 
     // ✅ Cache-Aside模式: 先检查缓存
     const cacheKey = `project:${projectId}:members`;
-    const cachedMembers = await this.redisService.get<(ProjectMember & {
-      user: { id: string; username: string; email: string };
-    })[]>(cacheKey);
+    const cachedMembers = await this.redisService.get<
+      (ProjectMember & {
+        user: { id: string; username: string; email: string };
+      })[]
+    >(cacheKey);
 
     if (cachedMembers) {
       this.logger.debug(`✅ Cache hit for project ${projectId} members`);
@@ -525,7 +537,9 @@ export class ProjectsService {
 
     // 填充缓存 (TTL: 180秒)
     await this.redisService.set(cacheKey, members, 180);
-    this.logger.log(`👥 Retrieved ${members.length} members for project ${projectId}`);
+    this.logger.log(
+      `👥 Retrieved ${members.length} members for project ${projectId}`,
+    );
 
     return members;
   }

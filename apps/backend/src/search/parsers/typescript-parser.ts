@@ -45,10 +45,7 @@ export function extractTypeScriptSymbols(
   } catch (error) {
     // 静默失败：解析错误不影响索引流程
     // 返回空数组，调用方会索引纯文本内容
-    console.warn(
-      `Failed to parse TypeScript file ${filePath}:`,
-      error.message,
-    );
+    console.warn(`Failed to parse TypeScript file ${filePath}:`, error.message);
   }
 
   return Array.from(symbols);

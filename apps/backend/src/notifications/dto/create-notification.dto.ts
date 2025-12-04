@@ -1,4 +1,10 @@
-import { IsString, IsEnum, IsOptional, MaxLength, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  MaxLength,
+  IsObject,
+} from 'class-validator';
 import { NotificationType } from '@prisma/client';
 
 /**

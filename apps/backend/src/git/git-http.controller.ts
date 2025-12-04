@@ -59,10 +59,7 @@ export class GitHttpController {
     @Res() res: Response,
   ) {
     // Validate service
-    if (
-      service !== 'git-upload-pack' &&
-      service !== 'git-receive-pack'
-    ) {
+    if (service !== 'git-upload-pack' && service !== 'git-receive-pack') {
       throw new BadRequestException('Invalid service');
     }
 
@@ -89,7 +86,7 @@ export class GitHttpController {
     const response = await this.httpSmartService.handleInfoRefs(
       projectId,
       repoPath,
-      service as 'git-upload-pack' | 'git-receive-pack',
+      service,
     );
 
     // Set response headers

@@ -1,7 +1,10 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { IEmailProvider } from './interfaces/email-provider.interface';
-import type { EmailOptions, EmailResult } from './interfaces/email-provider.interface';
+import type {
+  EmailOptions,
+  EmailResult,
+} from './interfaces/email-provider.interface';
 
 /**
  * 邮件服务（业务层）
@@ -19,8 +22,7 @@ export class EmailService {
     private readonly configService: ConfigService,
   ) {
     this.baseUrl =
-      this.configService.get<string>('FRONTEND_URL') ||
-      'http://localhost:3000';
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
     this.fromEmail =
       this.configService.get<string>('SMTP_FROM_EMAIL') ||
       'noreply@flotilla.dev';

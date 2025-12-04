@@ -1,9 +1,4 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  MaxLength,
-} from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreatePullRequestDto {
@@ -19,7 +14,8 @@ export class CreatePullRequestDto {
 
   @ApiProperty({
     description: 'PR详细描述（支持Markdown）',
-    example: '## 变更内容\n- 添加用户认证功能\n- 集成JWT\n\n## 测试\n- ✅ 单元测试通过\n- ✅ E2E测试通过',
+    example:
+      '## 变更内容\n- 添加用户认证功能\n- 集成JWT\n\n## 测试\n- ✅ 单元测试通过\n- ✅ E2E测试通过',
     required: false,
   })
   @IsString()

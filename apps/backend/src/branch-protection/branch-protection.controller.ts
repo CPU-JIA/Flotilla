@@ -18,10 +18,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { BranchProtectionService } from './branch-protection.service';
-import {
-  CreateBranchProtectionDto,
-  UpdateBranchProtectionDto,
-} from './dto';
+import { CreateBranchProtectionDto, UpdateBranchProtectionDto } from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Public } from '../auth/decorators/public.decorator';

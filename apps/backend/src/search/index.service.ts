@@ -217,9 +217,7 @@ export class IndexService {
     this.logger.log(`Found ${files.length} files in project ${projectId}`);
 
     // 过滤可索引文件
-    const indexableFiles = files.filter((file) =>
-      isIndexableFile(file.path),
-    );
+    const indexableFiles = files.filter((file) => isIndexableFile(file.path));
 
     this.logger.log(
       `Indexing ${indexableFiles.length} indexable files (filtered from ${files.length})`,

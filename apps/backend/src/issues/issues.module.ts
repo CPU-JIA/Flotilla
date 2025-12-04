@@ -12,7 +12,12 @@ import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [PrismaModule, NotificationsModule],
-  controllers: [IssuesController, LabelsController, MilestonesController, CommentsController],
+  controllers: [
+    IssuesController,
+    LabelsController,
+    MilestonesController,
+    CommentsController,
+  ],
   providers: [IssuesService, LabelsService, MilestonesService, CommentsService],
   exports: [IssuesService, LabelsService, MilestonesService, CommentsService],
 })

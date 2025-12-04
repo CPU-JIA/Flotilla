@@ -121,7 +121,15 @@ export class IssuesService {
    * 查询Issue列表（支持分页和筛选）
    */
   async findAll(projectId: string, query: QueryIssueDto) {
-    const { page = 1, limit = 20, state, assignee, labels, milestone, search } = query;
+    const {
+      page = 1,
+      limit = 20,
+      state,
+      assignee,
+      labels,
+      milestone,
+      search,
+    } = query;
     const skip = (page - 1) * limit;
 
     // 构建查询条件

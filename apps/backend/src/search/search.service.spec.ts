@@ -86,11 +86,9 @@ describe('SearchService', () => {
     }).compile();
 
     service = module.get<SearchService>(SearchService);
-    prismaService = module.get(PrismaService) as jest.Mocked<PrismaService>;
-    meilisearchService = module.get(
-      MeilisearchService,
-    ) as jest.Mocked<MeilisearchService>;
-    indexService = module.get(IndexService) as jest.Mocked<IndexService>;
+    prismaService = module.get(PrismaService);
+    meilisearchService = module.get(MeilisearchService);
+    indexService = module.get(IndexService);
   });
 
   afterEach(() => {
@@ -263,7 +261,9 @@ describe('SearchService', () => {
       expect(mockIndex.search).toHaveBeenCalledWith(
         'test',
         expect.objectContaining({
-          filter: expect.stringMatching(/language = "typescript" OR language = "javascript"/),
+          filter: expect.stringMatching(
+            /language = "typescript" OR language = "javascript"/,
+          ),
         }),
       );
     });

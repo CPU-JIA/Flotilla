@@ -156,14 +156,12 @@ export class SearchService {
       });
 
       // 3. 异步触发索引（不等待完成）
-      this.indexService
-        .indexProject(projectId)
-        .catch((error) => {
-          this.logger.error(
-            `Background indexing failed for project ${projectId}:`,
-            error,
-          );
-        });
+      this.indexService.indexProject(projectId).catch((error) => {
+        this.logger.error(
+          `Background indexing failed for project ${projectId}:`,
+          error,
+        );
+      });
 
       // 4. 返回任务信息
       const jobId = `reindex_${projectId}_${Date.now()}`;
@@ -176,7 +174,10 @@ export class SearchService {
         estimatedFiles: totalFiles,
       };
     } catch (error) {
-      this.logger.error(`Reindex trigger failed: ${error.message}`, error.stack);
+      this.logger.error(
+        `Reindex trigger failed: ${error.message}`,
+        error.stack,
+      );
       throw new Error(`Failed to trigger reindex: ${error.message}`);
     }
   }
@@ -247,8 +248,7 @@ export class SearchService {
       const pendingFiles = totalFiles - metadataCount;
 
       // 5. 计算进度百分比
-      const progress =
-        totalFiles > 0 ? (indexedCount / totalFiles) * 100 : 0;
+      const progress = totalFiles > 0 ? (indexedCount / totalFiles) * 100 : 0;
 
       // 6. 获取最后索引时间
       const lastIndexed = await this.prisma.searchMetadata.findFirst({
@@ -274,7 +274,10 @@ export class SearchService {
         lastIndexedAt: lastIndexed?.indexedAt || undefined,
       };
     } catch (error) {
-      this.logger.error(`Get index status failed: ${error.message}`, error.stack);
+      this.logger.error(
+        `Get index status failed: ${error.message}`,
+        error.stack,
+      );
       throw new Error(`Failed to get index status: ${error.message}`);
     }
   }
@@ -375,9 +378,7 @@ export class SearchService {
     }
 
     // 构建 IN 过滤器
-    const filterParts = uniqueProjectIds.map(
-      (id) => `projectId = "${id}"`,
-    );
+    const filterParts = uniqueProjectIds.map((id) => `projectId = "${id}"`);
     return `(${filterParts.join(' OR ')})`;
   }
 

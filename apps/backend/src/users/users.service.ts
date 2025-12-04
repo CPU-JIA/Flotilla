@@ -243,12 +243,9 @@ export class UsersService {
 
     try {
       // 上传到MinIO
-      await this.minioService.uploadFile(
-        objectName,
-        file.buffer,
-        file.size,
-        { 'Content-Type': file.mimetype },
-      );
+      await this.minioService.uploadFile(objectName, file.buffer, file.size, {
+        'Content-Type': file.mimetype,
+      });
 
       // 生成可访问的URL
       const bucketName = 'cloud-dev-platform';

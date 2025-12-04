@@ -152,7 +152,10 @@ export class IssuesController {
     description: 'Issue已删除',
   })
   @ApiResponse({ status: 404, description: 'Issue不存在' })
-  @ApiResponse({ status: 403, description: '权限不足（需要MAINTAINER或更高权限）' })
+  @ApiResponse({
+    status: 403,
+    description: '权限不足（需要MAINTAINER或更高权限）',
+  })
   async remove(
     @Param('projectId') projectId: string,
     @Param('number', ParseIntPipe) number: number,

@@ -12,7 +12,10 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { BranchProtectionService } from '../branch-protection/branch-protection.service';
 import { CreatePullRequestDto } from './dto/create-pull-request.dto';
 import { UpdatePullRequestDto } from './dto/update-pull-request.dto';
-import { MergePullRequestDto, MergeStrategy } from './dto/merge-pull-request.dto';
+import {
+  MergePullRequestDto,
+  MergeStrategy,
+} from './dto/merge-pull-request.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { PullRequestCreateCommentDto } from './dto/create-comment.dto';
 import { PullRequest, PRState, Prisma } from '@prisma/client';
@@ -144,7 +147,9 @@ export class PullRequestsService {
       }
     }
 
-    throw new BadRequestException('Failed to create pull request after retries');
+    throw new BadRequestException(
+      'Failed to create pull request after retries',
+    );
   }
 
   /**
@@ -576,9 +581,7 @@ export class PullRequestsService {
       }
     } catch (error) {
       this.logger.error(`Merge failed for PR ${id}:`, error);
-      throw new InternalServerErrorException(
-        `Merge failed: ${error.message}`,
-      );
+      throw new InternalServerErrorException(`Merge failed: ${error.message}`);
     }
 
     // Update database with merge result
@@ -723,7 +726,9 @@ export class PullRequestsService {
           userId: pr.authorId,
           type: 'PR_REVIEWED',
           title: `[PR #${pr.number}] ${review.reviewer.username} ${reviewStateText}您的 Pull Request`,
-          body: dto.body || `${review.reviewer.username} ${reviewStateText}了您的 PR`,
+          body:
+            dto.body ||
+            `${review.reviewer.username} ${reviewStateText}了您的 PR`,
           link: `/projects/${pr.projectId}/pull-requests/${pr.number}`,
           metadata: {
             prId: pr.id,
@@ -748,7 +753,11 @@ export class PullRequestsService {
   /**
    * 添加Comment
    */
-  async addComment(prId: string, authorId: string, dto: PullRequestCreateCommentDto) {
+  async addComment(
+    prId: string,
+    authorId: string,
+    dto: PullRequestCreateCommentDto,
+  ) {
     const pr = await this.prisma.pullRequest.findUnique({
       where: { id: prId },
       include: {
@@ -877,7 +886,7 @@ export class PullRequestsService {
     });
 
     // Get latest review per reviewer using Map
-    const latestReviewsMap = new Map<string, typeof reviews[0]>();
+    const latestReviewsMap = new Map<string, (typeof reviews)[0]>();
     for (const review of reviews) {
       if (!latestReviewsMap.has(review.reviewerId)) {
         latestReviewsMap.set(review.reviewerId, review);

@@ -65,7 +65,9 @@ export class CommentsController {
     });
 
     if (!issue) {
-      throw new Error(`Issue #${issueNumber} not found in project ${projectId}`);
+      throw new Error(
+        `Issue #${issueNumber} not found in project ${projectId}`,
+      );
     }
 
     return this.commentsService.findAll(issue.id);
@@ -100,7 +102,9 @@ export class CommentsController {
     });
 
     if (!issue) {
-      throw new Error(`Issue #${issueNumber} not found in project ${projectId}`);
+      throw new Error(
+        `Issue #${issueNumber} not found in project ${projectId}`,
+      );
     }
 
     return this.commentsService.create(issue.id, userId, createCommentDto);

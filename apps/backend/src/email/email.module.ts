@@ -27,7 +27,9 @@ import { IEmailProvider } from './interfaces/email-provider.interface';
         // Auto-detect secure mode based on port: 465 uses SSL, 587 uses STARTTLS
         const secure = port === 465;
 
-        console.log(`[EmailModule] SMTP Configuration: host=${configService.get('SMTP_HOST')}, port=${port}, secure=${secure}`);
+        console.log(
+          `[EmailModule] SMTP Configuration: host=${configService.get('SMTP_HOST')}, port=${port}, secure=${secure}`,
+        );
 
         return {
           transport: {
@@ -39,16 +41,18 @@ import { IEmailProvider } from './interfaces/email-provider.interface';
               pass: configService.get<string>('SMTP_PASS'),
             },
           },
-        defaults: {
-          from: configService.get<string>('SMTP_FROM_EMAIL') || 'noreply@flotilla.dev',
-        },
-        template: {
-          dir: join(process.cwd(), 'src/email/templates'),
-          adapter: new HandlebarsAdapter(), // Handlebars模板引擎
-          options: {
-            strict: true,
+          defaults: {
+            from:
+              configService.get<string>('SMTP_FROM_EMAIL') ||
+              'noreply@flotilla.dev',
           },
-        },
+          template: {
+            dir: join(process.cwd(), 'src/email/templates'),
+            adapter: new HandlebarsAdapter(), // Handlebars模板引擎
+            options: {
+              strict: true,
+            },
+          },
         };
       },
     }),

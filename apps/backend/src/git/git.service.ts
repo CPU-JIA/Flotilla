@@ -92,7 +92,9 @@ export class GitService {
 
     try {
       // Step 1: Try isomorphic-git setConfig
-      this.logger.debug(`Attempting to set ${configKey} via isomorphic-git for ${dir}`);
+      this.logger.debug(
+        `Attempting to set ${configKey} via isomorphic-git for ${dir}`,
+      );
       await git.setConfig({
         fs,
         dir,
@@ -102,52 +104,65 @@ export class GitService {
 
       // Step 2: Verify config was written (primary validation)
       // Use system git for verification (isomorphic-git.getConfig fails on Windows)
-      const verified = await this.verifyConfigViaSystemGit(dir, configKey, configValue);
+      const verified = await this.verifyConfigViaSystemGit(
+        dir,
+        configKey,
+        configValue,
+      );
 
       if (verified) {
-        this.logger.log(`✓ Successfully set ${configKey}=${configValue} via isomorphic-git`);
+        this.logger.log(
+          `✓ Successfully set ${configKey}=${configValue} via isomorphic-git`,
+        );
         return; // Success - config verified
       }
 
       // Step 3: Verification failed - log warning and try fallback
       this.logger.warn(
         `isomorphic-git setConfig failed to persist ${configKey}. ` +
-        `Verification via system git returned false. ` +
-        `Attempting fallback to system git config...`
+          `Verification via system git returned false. ` +
+          `Attempting fallback to system git config...`,
       );
-
     } catch (primaryError) {
       this.logger.warn(
         `isomorphic-git setConfig threw error: ${primaryError.message}. ` +
-        `Attempting fallback to system git config...`
+          `Attempting fallback to system git config...`,
       );
     }
 
     // Step 4: Fallback to system git config command
     try {
-      this.logger.debug(`Executing system git config --file "${path.join(dir, 'config')}" ${configKey} ${configValue}`);
+      this.logger.debug(
+        `Executing system git config --file "${path.join(dir, 'config')}" ${configKey} ${configValue}`,
+      );
 
       const configFilePath = path.join(dir, 'config');
       await execFileAsync('git', [
         'config',
-        '--file', configFilePath,
+        '--file',
+        configFilePath,
         configKey,
-        configValue
+        configValue,
       ]);
 
       // Step 5: Re-verify after fallback
-      const verified = await this.verifyConfigViaSystemGit(dir, configKey, configValue);
+      const verified = await this.verifyConfigViaSystemGit(
+        dir,
+        configKey,
+        configValue,
+      );
 
       if (verified) {
-        this.logger.log(`✓ Successfully set ${configKey}=${configValue} via system git (fallback)`);
+        this.logger.log(
+          `✓ Successfully set ${configKey}=${configValue} via system git (fallback)`,
+        );
         return; // Success - fallback worked
       }
 
       // Fallback executed but verification still failed
       throw new Error(
-        `System git config executed successfully but verification failed.`
+        `System git config executed successfully but verification failed.`,
       );
-
     } catch (fallbackError) {
       // Step 6: Both methods failed - throw comprehensive error
       const errorMessage =
@@ -180,18 +195,28 @@ export class GitService {
    * @param dir - Absolute path to the bare Git repository
    * @param projectId - Project ID (passed to hook via environment variable)
    */
-  private async installPreReceiveHook(dir: string, projectId: string): Promise<void> {
+  private async installPreReceiveHook(
+    dir: string,
+    projectId: string,
+  ): Promise<void> {
     try {
       const hooksDir = path.join(dir, 'hooks');
       // __dirname at runtime is dist/src/git/, need to go up to dist/ and then to git/hooks/
-      const hookSource = path.join(__dirname, '..', '..', 'git', 'hooks', 'pre-receive.sh');
+      const hookSource = path.join(
+        __dirname,
+        '..',
+        '..',
+        'git',
+        'hooks',
+        'pre-receive.sh',
+      );
       const hookTarget = path.join(hooksDir, 'pre-receive');
 
       // ECP-C1: Verify hook source exists before attempting installation
       if (!fs.existsSync(hookSource)) {
         this.logger.warn(
           `Pre-receive hook source not found: ${hookSource}. ` +
-          `Skipping hook installation. Branch protection will only apply at PR merge time.`
+            `Skipping hook installation. Branch protection will only apply at PR merge time.`,
         );
         return;
       }
@@ -213,13 +238,13 @@ export class GitService {
       } else {
         // Windows: Git Bash will handle execution automatically
         this.logger.debug(
-          `Windows platform detected. Git Bash will handle hook execution automatically.`
+          `Windows platform detected. Git Bash will handle hook execution automatically.`,
         );
       }
 
       this.logger.log(
         `✓ Successfully installed pre-receive hook for project: ${projectId}. ` +
-        `Branch protection will be enforced at Git push time.`
+          `Branch protection will be enforced at Git push time.`,
       );
     } catch (error) {
       // ECP-C2: Graceful degradation - log warning but don't throw
@@ -227,8 +252,8 @@ export class GitService {
       // Branch protection will still work at PR merge level
       this.logger.warn(
         `Failed to install pre-receive hook for project ${projectId}: ${error.message}. ` +
-        `Branch protection will only apply at PR merge time. ` +
-        `Troubleshooting: Check file permissions and ensure hooks/ directory is writable.`
+          `Branch protection will only apply at PR merge time. ` +
+          `Troubleshooting: Check file permissions and ensure hooks/ directory is writable.`,
       );
       // Don't throw - allow repository to be created even if hook installation fails
     }
@@ -237,10 +262,7 @@ export class GitService {
   /**
    * Initialize a new Git repository
    */
-  async init(
-    projectId: string,
-    defaultBranch = 'main',
-  ): Promise<void> {
+  async init(projectId: string, defaultBranch = 'main'): Promise<void> {
     try {
       const dir = getRepoPath(projectId);
 
@@ -322,7 +344,9 @@ export class GitService {
       // Fix isomorphic-git bug: move objects from .git subdirectory to root
       const gitSubdir = path.join(dir, '.git');
       if (fs.existsSync(gitSubdir)) {
-        this.logger.debug(`Fixing isomorphic-git .git subdirectory for ${projectId}`);
+        this.logger.debug(
+          `Fixing isomorphic-git .git subdirectory for ${projectId}`,
+        );
 
         // Copy objects and refs from .git to root
         const gitObjectsDir = path.join(gitSubdir, 'objects');
@@ -352,7 +376,9 @@ export class GitService {
         this.logger.debug(`Forced sync of main ref for ${projectId}`);
       }
 
-      this.logger.log(`Created initial commit for bare repository: ${projectId}`);
+      this.logger.log(
+        `Created initial commit for bare repository: ${projectId}`,
+      );
       return sha;
     } catch (error) {
       this.logger.error(
@@ -380,7 +406,7 @@ export class GitService {
 
       // Try to resolve current branch HEAD to get parent commit
       let parentCommit: string | null = null;
-      let existingTree: any[] = [];
+      const existingTree: any[] = [];
 
       try {
         // Read ref file directly (git.resolveRef has bugs with bare repos)
@@ -426,7 +452,9 @@ export class GitService {
         });
       } catch (error) {
         // Branch doesn't exist or no parent commit - will create new branch
-        this.logger.debug(`Branch ${branch} doesn't exist, creating new branch`);
+        this.logger.debug(
+          `Branch ${branch} doesn't exist, creating new branch`,
+        );
       }
 
       // Create tree entries map for merging
@@ -588,10 +616,7 @@ export class GitService {
 
       return files;
     } catch (error) {
-      this.logger.error(
-        `Failed to list files for project ${projectId}`,
-        error,
-      );
+      this.logger.error(`Failed to list files for project ${projectId}`, error);
       throw error;
     }
   }
@@ -647,7 +672,9 @@ export class GitService {
               `Read ref file directly: ${startPoint} → ${commitSha}`,
             );
           } catch (error) {
-            this.logger.warn(`Failed to read ref file ${refPath}: ${error.message}`);
+            this.logger.warn(
+              `Failed to read ref file ${refPath}: ${error.message}`,
+            );
           }
         }
 
@@ -717,9 +744,7 @@ export class GitService {
         );
       }
 
-      this.logger.log(
-        `Created branch ${branchName} for project: ${projectId}`,
-      );
+      this.logger.log(`Created branch ${branchName} for project: ${projectId}`);
     } catch (error) {
       this.logger.error(
         `Failed to create branch for project ${projectId}`,
@@ -742,9 +767,7 @@ export class GitService {
         ref: branchName,
       });
 
-      this.logger.log(
-        `Deleted branch ${branchName} for project: ${projectId}`,
-      );
+      this.logger.log(`Deleted branch ${branchName} for project: ${projectId}`);
     } catch (error) {
       this.logger.error(
         `Failed to delete branch for project ${projectId}`,
@@ -799,9 +822,13 @@ export class GitService {
       const refsDir = path.join(dir, 'refs', 'heads');
       if (fs.existsSync(refsDir)) {
         const files = fs.readdirSync(refsDir);
-        this.logger.debug(`Files in refs/heads: ${files.join(', ')} for ${projectId}`);
+        this.logger.debug(
+          `Files in refs/heads: ${files.join(', ')} for ${projectId}`,
+        );
       } else {
-        this.logger.debug(`refs/heads directory does not exist for ${projectId}`);
+        this.logger.debug(
+          `refs/heads directory does not exist for ${projectId}`,
+        );
       }
 
       // Get all branch names - bypass isomorphic-git.listBranches (has bugs with bare repos)
@@ -809,14 +836,18 @@ export class GitService {
       let branches: string[] = [];
       if (fs.existsSync(refsDir)) {
         const files = fs.readdirSync(refsDir);
-        branches = files.filter(name => {
+        branches = files.filter((name) => {
           const filePath = path.join(refsDir, name);
           return fs.statSync(filePath).isFile();
         });
-        this.logger.debug(`Read branches directly from filesystem: ${JSON.stringify(branches)}`);
+        this.logger.debug(
+          `Read branches directly from filesystem: ${JSON.stringify(branches)}`,
+        );
       }
 
-      this.logger.log(`Found ${branches.length} branches in project ${projectId}`);
+      this.logger.log(
+        `Found ${branches.length} branches in project ${projectId}`,
+      );
 
       // Get HEAD commit info for each branch
       const branchesWithInfo = await Promise.all(
@@ -922,16 +953,30 @@ export class GitService {
       );
 
       // Verify objects exist BEFORE calling git.readCommit (diagnostic check)
-      const sourceObjectPath = path.join(dir, 'objects', sourceOid.substring(0, 2), sourceOid.substring(2));
-      const targetObjectPath = path.join(dir, 'objects', targetOid.substring(0, 2), targetOid.substring(2));
+      const sourceObjectPath = path.join(
+        dir,
+        'objects',
+        sourceOid.substring(0, 2),
+        sourceOid.substring(2),
+      );
+      const targetObjectPath = path.join(
+        dir,
+        'objects',
+        targetOid.substring(0, 2),
+        targetOid.substring(2),
+      );
 
       if (!fs.existsSync(sourceObjectPath)) {
         this.logger.error(`Source commit object missing: ${sourceObjectPath}`);
-        throw new Error(`Source commit object ${sourceOid} does not exist on filesystem`);
+        throw new Error(
+          `Source commit object ${sourceOid} does not exist on filesystem`,
+        );
       }
       if (!fs.existsSync(targetObjectPath)) {
         this.logger.error(`Target commit object missing: ${targetObjectPath}`);
-        throw new Error(`Target commit object ${targetOid} does not exist on filesystem`);
+        throw new Error(
+          `Target commit object ${targetOid} does not exist on filesystem`,
+        );
       }
 
       this.logger.debug(`Verified both commit objects exist on filesystem`);
@@ -953,8 +998,18 @@ export class GitService {
 
       // Read commits to get tree OIDs (git.walk needs tree OIDs, not commit OIDs)
       // For bare repositories, explicitly set gitdir=dir to avoid .git subdirectory lookups
-      const targetCommit = await git.readCommit({ fs, dir, gitdir: dir, oid: targetOid });
-      const sourceCommit = await git.readCommit({ fs, dir, gitdir: dir, oid: sourceOid });
+      const targetCommit = await git.readCommit({
+        fs,
+        dir,
+        gitdir: dir,
+        oid: targetOid,
+      });
+      const sourceCommit = await git.readCommit({
+        fs,
+        dir,
+        gitdir: dir,
+        oid: sourceOid,
+      });
       const targetTreeOid = targetCommit.commit.tree;
       const sourceTreeOid = sourceCommit.commit.tree;
 
@@ -1041,9 +1096,7 @@ export class GitService {
     // Fix isomorphic-git bug BEFORE git.walk: ensure trees are accessible
     const gitSubdirBeforeWalk = path.join(dir, '.git');
     if (fs.existsSync(gitSubdirBeforeWalk)) {
-      this.logger.debug(
-        `Fixing .git subdirectory before git.walk`,
-      );
+      this.logger.debug(`Fixing .git subdirectory before git.walk`);
       const gitObjectsDir = path.join(gitSubdirBeforeWalk, 'objects');
       const rootObjectsDir = path.join(dir, 'objects');
       if (fs.existsSync(gitObjectsDir)) {
@@ -1072,12 +1125,8 @@ export class GitService {
         }
 
         // Get OIDs for comparison
-        const targetBlobOid = targetEntry
-          ? await targetEntry.oid()
-          : undefined;
-        const sourceBlobOid = sourceEntry
-          ? await sourceEntry.oid()
-          : undefined;
+        const targetBlobOid = targetEntry ? await targetEntry.oid() : undefined;
+        const sourceBlobOid = sourceEntry ? await sourceEntry.oid() : undefined;
 
         // Determine file status
         if (!targetBlobOid && sourceBlobOid) {
@@ -1271,7 +1320,7 @@ export class GitService {
         fs,
         dir,
         gitdir: dir,
-        oid: sourceOid
+        oid: sourceOid,
       });
       const sourceTree = sourceCommit.commit.tree;
 
@@ -1283,8 +1332,8 @@ export class GitService {
         dir,
         gitdir: dir,
         message: commitMessage,
-        tree: sourceTree,  // Use source tree as merge result (no conflicts for now)
-        parent: [targetOid, sourceOid],  // Two parents make it a merge commit
+        tree: sourceTree, // Use source tree as merge result (no conflicts for now)
+        parent: [targetOid, sourceOid], // Two parents make it a merge commit
         author,
         committer: author,
       });
@@ -1344,7 +1393,12 @@ export class GitService {
         `Read branch refs for squash: ${sourceBranch} → ${sourceOid}, ${targetBranch} → ${targetOid}`,
       );
 
-      const sourceCommit = await git.readCommit({ fs, dir, gitdir: dir, oid: sourceOid });
+      const sourceCommit = await git.readCommit({
+        fs,
+        dir,
+        gitdir: dir,
+        oid: sourceOid,
+      });
       const tree = sourceCommit.commit.tree;
 
       // Create a single commit on target branch with source's tree
@@ -1528,7 +1582,12 @@ export class GitService {
       while (current) {
         commits1.add(current);
         this.logger.debug(`  Added commit: ${current}`);
-        const commit = await git.readCommit({ fs, dir, gitdir: dir, oid: current });
+        const commit = await git.readCommit({
+          fs,
+          dir,
+          gitdir: dir,
+          oid: current,
+        });
         current = commit.commit.parent[0]; // Follow first parent only
         if (current) {
           this.logger.debug(`  Parent: ${current}`);
@@ -1547,12 +1606,19 @@ export class GitService {
           this.logger.debug(`  ✅ Found common ancestor: ${current}`);
           return current; // Found merge base
         }
-        const commit = await git.readCommit({ fs, dir, gitdir: dir, oid: current });
+        const commit = await git.readCommit({
+          fs,
+          dir,
+          gitdir: dir,
+          oid: current,
+        });
         current = commit.commit.parent[0];
         if (current) {
           this.logger.debug(`  Parent: ${current}`);
         } else {
-          this.logger.debug(`  No parent (reached initial commit without finding common ancestor)`);
+          this.logger.debug(
+            `  No parent (reached initial commit without finding common ancestor)`,
+          );
         }
       }
 
@@ -1571,24 +1637,41 @@ export class GitService {
     dir: string,
     baseOid: string,
     headOid: string,
-  ): Promise<Array<{
-    commit: {
-      tree: string;
-      message: string;
-      author: { name: string; email: string; timestamp: number; timezoneOffset: number };
-    };
-  }>> {
+  ): Promise<
+    Array<{
+      commit: {
+        tree: string;
+        message: string;
+        author: {
+          name: string;
+          email: string;
+          timestamp: number;
+          timezoneOffset: number;
+        };
+      };
+    }>
+  > {
     const commits: Array<{
       commit: {
         tree: string;
         message: string;
-        author: { name: string; email: string; timestamp: number; timezoneOffset: number };
+        author: {
+          name: string;
+          email: string;
+          timestamp: number;
+          timezoneOffset: number;
+        };
       };
     }> = [];
     let current = headOid;
 
     while (current && current !== baseOid) {
-      const commitObj = await git.readCommit({ fs, dir, gitdir: dir, oid: current });
+      const commitObj = await git.readCommit({
+        fs,
+        dir,
+        gitdir: dir,
+        oid: current,
+      });
       commits.unshift(commitObj); // Add to beginning to maintain order
       current = commitObj.commit.parent[0];
     }

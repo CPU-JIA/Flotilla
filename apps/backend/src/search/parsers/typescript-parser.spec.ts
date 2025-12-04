@@ -1,7 +1,4 @@
-import {
-  extractTypeScriptSymbols,
-  extractSymbols,
-} from './typescript-parser';
+import { extractTypeScriptSymbols, extractSymbols } from './typescript-parser';
 
 /**
  * TypeScript/JavaScript符号提取器单元测试

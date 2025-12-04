@@ -57,7 +57,6 @@ export function extractPythonSymbols(
 
     // 5. 提取类方法（在class内部的def）
     // 这需要更复杂的解析，暂时跳过（由函数模式覆盖）
-
   } catch (error) {
     // 静默失败：解析错误不影响索引流程
     console.warn(

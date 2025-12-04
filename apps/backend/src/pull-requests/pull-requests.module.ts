@@ -7,7 +7,12 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { BranchProtectionModule } from '../branch-protection/branch-protection.module';
 
 @Module({
-  imports: [PrismaModule, GitModule, NotificationsModule, BranchProtectionModule],
+  imports: [
+    PrismaModule,
+    GitModule,
+    NotificationsModule,
+    BranchProtectionModule,
+  ],
   controllers: [PullRequestsController],
   providers: [PullRequestsService],
   exports: [PullRequestsService],

@@ -246,6 +246,7 @@ pnpm test:cov
 - [数据库设计文档](./docs/数据库设计文档.md)
 - [分布式共识算法设计方案](./docs/分布式共识算法设计方案.md)
 - [UI设计与实现文档](./docs/UI设计与实现文档.md)
+- [开发指南 (Development Guide)](./DEVELOPMENT_GUIDE.md) - 包含架构概览、常用命令和故障排除
 
 ## 🗺️ 开发路线图
 
@@ -258,7 +259,7 @@ pnpm test:cov
 
 ## 🤝 贡献
 
-欢迎贡献！请阅读 [贡献指南](CONTRIBUTING.md)（待创建）。
+欢迎贡献！请阅读 [贡献指南](CONTRIBUTING.md)。
 
 ## 📄 许可证
 

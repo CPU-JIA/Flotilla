@@ -187,8 +187,10 @@ API_KEY = "key2"  # Duplicate constant
       const symbols = extractPythonSymbols(content, 'test.py');
 
       // Each symbol should appear only once (Set deduplication)
-      const processDataCount = symbols.filter(s => s === 'process_data').length;
-      const apiKeyCount = symbols.filter(s => s === 'API_KEY').length;
+      const processDataCount = symbols.filter(
+        (s) => s === 'process_data',
+      ).length;
+      const apiKeyCount = symbols.filter((s) => s === 'API_KEY').length;
 
       expect(processDataCount).toBe(1);
       expect(apiKeyCount).toBe(1);

@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException, ConflictException, Logger } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
 import {
-  CreateBranchProtectionDto,
-  UpdateBranchProtectionDto,
-} from './dto';
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  Logger,
+} from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateBranchProtectionDto, UpdateBranchProtectionDto } from './dto';
 
 /**
  * 分支保护规则Service
@@ -59,7 +61,9 @@ export class BranchProtectionService {
       if (error instanceof ConflictException) {
         throw error;
       }
-      this.logger.error(`Failed to create branch protection rule: ${error.message}`);
+      this.logger.error(
+        `Failed to create branch protection rule: ${error.message}`,
+      );
       throw error;
     }
   }
@@ -76,7 +80,9 @@ export class BranchProtectionService {
 
       return rules;
     } catch (error) {
-      this.logger.error(`Failed to fetch branch protection rules: ${error.message}`);
+      this.logger.error(
+        `Failed to fetch branch protection rules: ${error.message}`,
+      );
       throw error;
     }
   }
@@ -107,7 +113,9 @@ export class BranchProtectionService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      this.logger.error(`Failed to fetch branch protection rule: ${error.message}`);
+      this.logger.error(
+        `Failed to fetch branch protection rule: ${error.message}`,
+      );
       throw error;
     }
   }
@@ -157,7 +165,9 @@ export class BranchProtectionService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      this.logger.error(`Failed to update branch protection rule: ${error.message}`);
+      this.logger.error(
+        `Failed to update branch protection rule: ${error.message}`,
+      );
       throw error;
     }
   }
@@ -181,7 +191,9 @@ export class BranchProtectionService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      this.logger.error(`Failed to delete branch protection rule: ${error.message}`);
+      this.logger.error(
+        `Failed to delete branch protection rule: ${error.message}`,
+      );
       throw error;
     }
   }

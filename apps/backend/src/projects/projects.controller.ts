@@ -176,9 +176,11 @@ export class ProjectsController {
   async getMembers(
     @Param('id') projectId: string,
     @CurrentUser() currentUser: User,
-  ): Promise<(ProjectMember & {
-    user: { id: string; username: string; email: string };
-  })[]> {
+  ): Promise<
+    (ProjectMember & {
+      user: { id: string; username: string; email: string };
+    })[]
+  > {
     this.logger.log(`👥 Fetching members for project: ${projectId}`);
     return this.projectsService.getMembers(projectId, currentUser);
   }
@@ -219,9 +221,7 @@ export class ProjectsController {
   @Get(':id/branches')
   @UseGuards(ProjectRoleGuard)
   @RequireProjectRole('VIEWER')
-  async listBranches(
-    @Param('id') id: string,
-  ): Promise<
+  async listBranches(@Param('id') id: string): Promise<
     Array<{
       name: string;
       commit: {

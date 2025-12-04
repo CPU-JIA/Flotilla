@@ -77,12 +77,13 @@ export class AuthController {
     // ECP-C1: 防御性编程 - 使用Redis缓存提高性能
     // Write-Through缓存策略：配合users.service.ts的缓存更新机制
     const cacheKey = `user:${user.id}`;
-    const cachedUser = await this.redisService.get<Omit<User, 'passwordHash'>>(
-      cacheKey,
-    );
+    const cachedUser =
+      await this.redisService.get<Omit<User, 'passwordHash'>>(cacheKey);
 
     if (cachedUser) {
-      this.logger.debug(`✅ Cache hit for user ${user.id} with avatar: ${cachedUser.avatar?.substring(0, 50) || 'none'}`);
+      this.logger.debug(
+        `✅ Cache hit for user ${user.id} with avatar: ${cachedUser.avatar?.substring(0, 50) || 'none'}`,
+      );
       return cachedUser;
     }
 
@@ -94,7 +95,9 @@ export class AuthController {
     // ECP-C3: 性能意识 - 60秒TTL平衡性能和数据新鲜度
     await this.redisService.set(cacheKey, freshUser, 60);
 
-    this.logger.debug(`📝 Cached user ${user.id} with avatar: ${freshUser.avatar?.substring(0, 50) || 'none'}`);
+    this.logger.debug(
+      `📝 Cached user ${user.id} with avatar: ${freshUser.avatar?.substring(0, 50) || 'none'}`,
+    );
 
     return freshUser;
   }
@@ -109,7 +112,9 @@ export class AuthController {
   @ApiResponseDoc({ status: 200, description: '邮箱验证成功' })
   @ApiResponseDoc({ status: 400, description: '验证链接无效或已过期' })
   async verifyEmail(@Param('token') token: string) {
-    this.logger.log(`📧 Email verification attempt with token: ${token.substring(0, 10)}...`);
+    this.logger.log(
+      `📧 Email verification attempt with token: ${token.substring(0, 10)}...`,
+    );
     return this.authService.verifyEmail(token);
   }
 
@@ -123,7 +128,10 @@ export class AuthController {
   @ApiOperation({ summary: '重新发送验证邮件' })
   @ApiResponseDoc({ status: 200, description: '验证邮件已发送' })
   @ApiResponseDoc({ status: 400, description: '邮箱已验证或用户不存在' })
-  @ApiResponseDoc({ status: 429, description: 'Rate limit exceeded: 超过频率限制（5次/小时）' })
+  @ApiResponseDoc({
+    status: 429,
+    description: 'Rate limit exceeded: 超过频率限制（5次/小时）',
+  })
   async resendVerificationEmail(@Body() dto: ResendVerificationDto) {
     this.logger.log(`📧 Resend verification email to: ${dto.email}`);
     return this.authService.resendVerificationEmail(dto);
@@ -137,7 +145,10 @@ export class AuthController {
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '忘记密码' })
-  @ApiResponseDoc({ status: 200, description: '如果邮箱存在，将收到密码重置邮件' })
+  @ApiResponseDoc({
+    status: 200,
+    description: '如果邮箱存在，将收到密码重置邮件',
+  })
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
     this.logger.log(`🔑 Password reset requested for: ${dto.email}`);
     return this.authService.forgotPassword(dto);
@@ -156,7 +167,9 @@ export class AuthController {
     @Param('token') token: string,
     @Body() dto: ResetPasswordDto,
   ) {
-    this.logger.log(`🔑 Password reset attempt with token: ${token.substring(0, 10)}...`);
+    this.logger.log(
+      `🔑 Password reset attempt with token: ${token.substring(0, 10)}...`,
+    );
     return this.authService.resetPassword(token, dto);
   }
 
@@ -231,7 +244,9 @@ export class AuthController {
   async getResetTokenForTest(@Query('email') email: string) {
     // ECP-C1: 防御性编程 - 生产环境禁止调用
     if (process.env.NODE_ENV === 'production') {
-      throw new ForbiddenException('🚫 Test endpoints are disabled in production');
+      throw new ForbiddenException(
+        '🚫 Test endpoints are disabled in production',
+      );
     }
 
     if (!email) {
@@ -267,7 +282,9 @@ export class AuthController {
   async getEmailTokenForTest(@Query('email') email: string) {
     // ECP-C1: 防御性编程 - 生产环境禁止调用
     if (process.env.NODE_ENV === 'production') {
-      throw new ForbiddenException('🚫 Test endpoints are disabled in production');
+      throw new ForbiddenException(
+        '🚫 Test endpoints are disabled in production',
+      );
     }
 
     if (!email) {

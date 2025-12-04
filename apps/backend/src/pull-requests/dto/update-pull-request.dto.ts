@@ -15,7 +15,8 @@ export class UpdatePullRequestDto {
 
   @ApiProperty({
     description: 'PR详细描述（支持Markdown）',
-    example: '## 变更内容（更新）\n- 添加用户认证功能\n- 集成JWT\n- 添加密码加密',
+    example:
+      '## 变更内容（更新）\n- 添加用户认证功能\n- 集成JWT\n- 添加密码加密',
     required: false,
   })
   @IsString()

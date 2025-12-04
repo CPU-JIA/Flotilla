@@ -87,13 +87,15 @@ export class RepositoriesService {
 
       // Clean up database records on Git initialization failure
       // This ensures consistency between database and filesystem
-      await this.prisma.branch.deleteMany({ where: { repositoryId: repository.id } });
+      await this.prisma.branch.deleteMany({
+        where: { repositoryId: repository.id },
+      });
       await this.prisma.repository.delete({ where: { id: repository.id } });
 
       // Re-throw error to propagate to ProjectsService for final cleanup
       throw new Error(
         `Git repository initialization failed: ${error.message}. ` +
-        `Database records have been cleaned up. Please retry project creation.`
+          `Database records have been cleaned up. Please retry project creation.`,
       );
     }
 

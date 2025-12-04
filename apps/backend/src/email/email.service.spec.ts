@@ -1,7 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from './email.service';
-import type { IEmailProvider, EmailResult } from './interfaces/email-provider.interface';
+import type {
+  IEmailProvider,
+  EmailResult,
+} from './interfaces/email-provider.interface';
 
 /**
  * EmailService单元测试
@@ -59,7 +62,11 @@ describe('EmailService', () => {
       const username = 'testuser';
       const token = 'abc123token';
 
-      const result = await service.sendVerificationEmail(email, username, token);
+      const result = await service.sendVerificationEmail(
+        email,
+        username,
+        token,
+      );
 
       expect(result.success).toBe(true);
       expect(mockEmailProvider.sendEmail).toHaveBeenCalledWith({
@@ -115,12 +122,17 @@ describe('EmailService', () => {
 
       const customService = module.get<EmailService>(EmailService);
 
-      await customService.sendVerificationEmail('user@test.com', 'user', 'token123');
+      await customService.sendVerificationEmail(
+        'user@test.com',
+        'user',
+        'token123',
+      );
 
       expect(mockEmailProvider.sendEmail).toHaveBeenCalledWith(
         expect.objectContaining({
           context: expect.objectContaining({
-            verifyUrl: 'https://flotilla.example.com/auth/verify-email/token123',
+            verifyUrl:
+              'https://flotilla.example.com/auth/verify-email/token123',
             baseUrl: 'https://flotilla.example.com',
           }),
         }),
@@ -134,7 +146,11 @@ describe('EmailService', () => {
       const username = 'testuser';
       const token = 'reset123token';
 
-      const result = await service.sendPasswordResetEmail(email, username, token);
+      const result = await service.sendPasswordResetEmail(
+        email,
+        username,
+        token,
+      );
 
       expect(result.success).toBe(true);
       expect(mockEmailProvider.sendEmail).toHaveBeenCalledWith({
@@ -166,7 +182,11 @@ describe('EmailService', () => {
 
     it('应构建正确的密码重置URL', async () => {
       const token = 'unique-reset-token-456';
-      await service.sendPasswordResetEmail('test@example.com', 'testuser', token);
+      await service.sendPasswordResetEmail(
+        'test@example.com',
+        'testuser',
+        token,
+      );
 
       expect(mockEmailProvider.sendEmail).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -200,9 +220,9 @@ describe('EmailService', () => {
     });
 
     it('应在缺少必要参数时抛出错误', async () => {
-      await expect(
-        service.sendWelcomeEmail('', 'user'),
-      ).rejects.toThrow('Missing required parameters for welcome email');
+      await expect(service.sendWelcomeEmail('', 'user')).rejects.toThrow(
+        'Missing required parameters for welcome email',
+      );
 
       await expect(
         service.sendWelcomeEmail('email@test.com', ''),
@@ -297,7 +317,11 @@ describe('EmailService', () => {
 
       const testService = module.get<EmailService>(EmailService);
 
-      await testService.sendVerificationEmail('test@example.com', 'user', 'token');
+      await testService.sendVerificationEmail(
+        'test@example.com',
+        'user',
+        'token',
+      );
 
       expect(mockEmailProvider.sendEmail).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -327,7 +351,11 @@ describe('EmailService', () => {
         error: 'Invalid recipient',
       } as EmailResult);
 
-      const result = await service.sendVerificationEmail('invalid@example.com', 'user', 'token');
+      const result = await service.sendVerificationEmail(
+        'invalid@example.com',
+        'user',
+        'token',
+      );
 
       expect(result.success).toBe(false);
       expect(result.error).toBe('Invalid recipient');

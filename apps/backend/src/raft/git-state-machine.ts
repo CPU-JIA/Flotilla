@@ -190,7 +190,7 @@ export class GitStateMachine implements StateMachine {
       for (const [id, repoData] of Object.entries(
         data.repositories as Record<string, any>,
       )) {
-        const typedRepoData = repoData as any;
+        const typedRepoData = repoData;
         const repo: GitRepository = {
           id: typedRepoData.id,
           name: typedRepoData.name,
