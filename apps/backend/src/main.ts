@@ -2,10 +2,15 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { validateEnvironmentVariables } from './config/env.validation';
+
+// ⚠️ CRITICAL: Validate environment variables BEFORE application starts
+// This prevents the application from starting with invalid configuration
+validateEnvironmentVariables(process.env);
 
 // ECP-C1: 防御性编程 - 全局BigInt序列化支持
 // PostgreSQL的BIGINT类型映射为JavaScript的BigInt，需要添加JSON序列化支持
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 (BigInt.prototype as any).toJSON = function () {
   return this.toString();
 };
@@ -21,8 +26,14 @@ async function bootstrap() {
   const bodyParser = require('body-parser');
 
   // Git HTTP Protocol 路由需要 raw body (不加 /api 前缀)
-  app.use('/repo/:projectId/git-upload-pack', bodyParser.raw({ type: '*/*', limit: '50mb' }));
-  app.use('/repo/:projectId/git-receive-pack', bodyParser.raw({ type: '*/*', limit: '50mb' }));
+  app.use(
+    '/repo/:projectId/git-upload-pack',
+    bodyParser.raw({ type: '*/*', limit: '50mb' }),
+  );
+  app.use(
+    '/repo/:projectId/git-receive-pack',
+    bodyParser.raw({ type: '*/*', limit: '50mb' }),
+  );
 
   // 其他路由使用 JSON parser
   app.use(bodyParser.json({ limit: '10mb' }));
@@ -41,23 +52,55 @@ async function bootstrap() {
   );
 
   // 启用 CORS - ECP-C1: 动态读取环境变量确保运行时配置生效
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-  logger.log(`🌐 CORS enabled for origin: ${frontendUrl}`);
+  // Phase 3: 支持多源配置
+  const allowedOrigins: string[] = [];
+
+  // 方式1: 使用 CORS_ALLOWED_ORIGINS (生产环境推荐，支持多域名)
+  if (process.env.CORS_ALLOWED_ORIGINS) {
+    const origins = process.env.CORS_ALLOWED_ORIGINS.split(',')
+      .map((o) => o.trim())
+      .filter(Boolean);
+    allowedOrigins.push(...origins);
+  }
+
+  // 方式2: 使用单独的环境变量 (开发环境)
+  if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(process.env.FRONTEND_URL);
+  }
+  if (process.env.WEBSITE_URL) {
+    allowedOrigins.push(process.env.WEBSITE_URL);
+  }
+
+  // 默认值：开发环境
+  if (allowedOrigins.length === 0) {
+    allowedOrigins.push('http://localhost:3000', 'http://localhost:3003');
+  }
+
+  logger.log(`🌐 CORS enabled for origins: ${allowedOrigins.join(', ')}`);
   app.enableCors({
-    origin: frontendUrl,
+    origin: allowedOrigins,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['X-Total-Count', 'X-Page', 'X-Page-Size'],
+    maxAge: 3600, // 预检请求缓存 1 小时
   });
 
   // 设置全局前缀，但排除 Git HTTP Protocol 路由
   // Git 客户端期望仓库 URL 为 http://host/repo/:id，不包含 /api 前缀
   app.setGlobalPrefix('api', {
-    exclude: ['repo/:projectId/info/refs', 'repo/:projectId/git-upload-pack', 'repo/:projectId/git-receive-pack'],
+    exclude: [
+      'repo/:projectId/info/refs',
+      'repo/:projectId/git-upload-pack',
+      'repo/:projectId/git-receive-pack',
+    ],
   });
 
   // Swagger API 文档配置
   const config = new DocumentBuilder()
     .setTitle('Flotilla API')
-    .setDescription(`
+    .setDescription(
+      `
 基于云计算的开发协作平台 RESTful API 文档
 
 ## Rate Limiting 限流策略
@@ -88,7 +131,8 @@ async function bootstrap() {
   "message": "ThrottlerException: Too Many Requests"
 }
 \`\`\`
-    `)
+    `,
+    )
     .setVersion('1.0')
     .addBearerAuth(
       {

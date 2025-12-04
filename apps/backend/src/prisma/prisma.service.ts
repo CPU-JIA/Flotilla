@@ -15,7 +15,21 @@ export class PrismaService
 
   constructor() {
     super({
-      log: ['query', 'info', 'warn', 'error'],
+      // ========== LOGGING CONFIGURATION ==========
+      // Production: Only log warnings and errors to reduce noise
+      // Development: Log all queries for debugging
+      log:
+        process.env.NODE_ENV === 'production'
+          ? ['warn', 'error']
+          : ['query', 'info', 'warn', 'error'],
+
+      // ========== CONNECTION POOL CONFIGURATION ==========
+      // Prisma uses a connection pool to efficiently manage database connections
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
     });
   }
 

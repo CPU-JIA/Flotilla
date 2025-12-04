@@ -25,7 +25,10 @@ import { BranchProtectionModule } from './branch-protection/branch-protection.mo
 import { SearchModule } from './search/search.module';
 import { RedisModule } from './redis/redis.module';
 import { EmailModule } from './email/email.module';
+import { AuditModule } from './audit/audit.module';
 import { PerformanceMonitoringMiddleware } from './common/middleware/performance-monitoring.middleware';
+import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
+import { HttpsRedirectMiddleware } from './common/middleware/https-redirect.middleware';
 
 @Module({
   imports: [
@@ -63,6 +66,7 @@ import { PerformanceMonitoringMiddleware } from './common/middleware/performance
     BranchProtectionModule,
     SearchModule,
     EmailModule,
+    AuditModule, // Phase 4: 安全审计日志模块
   ],
   controllers: [AppController],
   providers: [
@@ -76,7 +80,13 @@ import { PerformanceMonitoringMiddleware } from './common/middleware/performance
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    // 为所有API路由应用性能监控中间件
+    // Phase 3: HTTPS 强制重定向中间件（生产环境，应用于所有路由，最先执行）
+    consumer.apply(HttpsRedirectMiddleware).forRoutes('*');
+
+    // Phase 3: 安全 Headers 中间件（应用于所有路由）
+    consumer.apply(SecurityHeadersMiddleware).forRoutes('*');
+
+    // 性能监控中间件（应用于所有路由）
     consumer.apply(PerformanceMonitoringMiddleware).forRoutes('*');
   }
 }
