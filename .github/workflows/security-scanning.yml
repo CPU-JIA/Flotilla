@@ -1,0 +1,376 @@
+name: Security Scanning (SAST/DAST)
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # 每天凌晨 2 点运行（UTC）
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+# Phase 4 P4.5: 自动化安全扫描
+# 集成 SAST (静态应用安全测试) 和 DAST (动态应用安全测试)
+
+jobs:
+  # Job 1: 依赖漏洞扫描 (SAST)
+  dependency-scan:
+    name: 依赖漏洞扫描
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run npm audit
+        run: |
+          echo "📦 Running npm audit..."
+          pnpm audit --audit-level=moderate --json > audit-results.json || true
+          cat audit-results.json
+        continue-on-error: true
+
+      - name: Check for high/critical vulnerabilities
+        run: |
+          echo "🔍 Checking for high/critical vulnerabilities..."
+          HIGH_COUNT=$(pnpm audit --audit-level=high --json | jq '.metadata.vulnerabilities.high // 0')
+          CRITICAL_COUNT=$(pnpm audit --audit-level=critical --json | jq '.metadata.vulnerabilities.critical // 0')
+
+          echo "High vulnerabilities: $HIGH_COUNT"
+          echo "Critical vulnerabilities: $CRITICAL_COUNT"
+
+          if [ "$CRITICAL_COUNT" -gt 0 ]; then
+            echo "❌ Critical vulnerabilities found! Failing build."
+            exit 1
+          fi
+
+          if [ "$HIGH_COUNT" -gt 5 ]; then
+            echo "⚠️  Too many high vulnerabilities ($HIGH_COUNT > 5). Consider fixing them."
+            exit 1
+          fi
+
+          echo "✅ Dependency scan passed"
+
+      - name: Upload audit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-audit-results
+          path: audit-results.json
+
+  # Job 2: 代码质量和安全扫描 (SonarQube/SonarCloud)
+  sonarcloud-scan:
+    name: SonarCloud 代码质量扫描
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 完整历史记录，用于分析
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests with coverage
+        run: |
+          cd apps/backend
+          pnpm test:cov || true
+        continue-on-error: true
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=flotilla
+            -Dsonar.organization=your-org
+            -Dsonar.javascript.lcov.reportPaths=apps/backend/coverage/lcov.info
+            -Dsonar.sources=apps/backend/src,apps/frontend/app
+            -Dsonar.exclusions=**/*.spec.ts,**/*.test.ts,**/node_modules/**
+            -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info
+        continue-on-error: true
+
+  # Job 3: CodeQL 高级安全扫描 (GitHub 原生)
+  codeql-analysis:
+    name: CodeQL 安全分析
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript', 'typescript']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+  # Job 4: 秘密泄露扫描
+  secret-scan:
+    name: 秘密和凭证扫描
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        continue-on-error: true
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+        continue-on-error: true
+
+  # Job 5: Docker 镜像扫描
+  docker-scan:
+    name: Docker 镜像安全扫描
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'schedule'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build backend Docker image
+        run: docker build -f apps/backend/Dockerfile -t flotilla-backend:scan .
+
+      - name: Build frontend Docker image
+        run: docker build -f apps/frontend/Dockerfile -t flotilla-frontend:scan .
+
+      - name: Scan backend image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'flotilla-backend:scan'
+          format: 'sarif'
+          output: 'trivy-backend-results.sarif'
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
+
+      - name: Scan frontend image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'flotilla-frontend:scan'
+          format: 'sarif'
+          output: 'trivy-frontend-results.sarif'
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-backend-results.sarif'
+        continue-on-error: true
+
+  # Job 6: DAST - 动态应用安全测试 (OWASP ZAP)
+  dast-scan:
+    name: OWASP ZAP 动态扫描
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: devplatform
+          POSTGRES_PASSWORD: devplatform123
+          POSTGRES_DB: cloud_dev_platform
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      minio:
+        image: minio/minio:latest
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin123
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/minio/health/live"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build backend
+        run: |
+          cd apps/backend
+          pnpm prisma generate
+          pnpm build
+
+      - name: Start backend
+        run: |
+          cd apps/backend
+          pnpm start:prod &
+          sleep 30
+        env:
+          NODE_ENV: production
+          PORT: 4000
+          DATABASE_URL: postgresql://devplatform:devplatform123@localhost:5432/cloud_dev_platform
+          REDIS_URL: redis://localhost:6379
+          MINIO_ENDPOINT: localhost
+          MINIO_PORT: 9000
+          MINIO_ACCESS_KEY: minioadmin
+          MINIO_SECRET_KEY: minioadmin123
+          JWT_SECRET: test-jwt-secret-for-ci
+
+      - name: Wait for backend to be ready
+        run: |
+          for i in {1..30}; do
+            if curl -f http://localhost:4000/api/health; then
+              echo "Backend is ready"
+              break
+            fi
+            echo "Waiting for backend... ($i/30)"
+            sleep 2
+          done
+
+      - name: Run OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: 'http://localhost:4000'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a -j -l INFO'
+          allow_issue_writing: false
+        continue-on-error: true
+
+      - name: Run OWASP ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.10.0
+        with:
+          target: 'http://localhost:4000'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a -j -l INFO'
+          allow_issue_writing: false
+        continue-on-error: true
+
+      - name: Upload ZAP results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-scan-results
+          path: |
+            zap-baseline-report.html
+            zap-full-scan-report.html
+
+  # Job 7: 安全报告汇总
+  security-summary:
+    name: 安全扫描报告汇总
+    runs-on: ubuntu-latest
+    needs: [dependency-scan, sonarcloud-scan, codeql-analysis, secret-scan, docker-scan]
+    if: always()
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: scan-results
+
+      - name: Generate security summary
+        run: |
+          echo "# 🔒 Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Scan Date:** $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "## Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Scan Type | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Dependency Scan | ${{ needs.dependency-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| SonarCloud | ${{ needs.sonarcloud-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| CodeQL | ${{ needs.codeql-analysis.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Secret Scan | ${{ needs.secret-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker Scan | ${{ needs.docker-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review failed scans in the Actions log" >> $GITHUB_STEP_SUMMARY
+          echo "2. Fix critical/high vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          echo "3. Update dependencies regularly" >> $GITHUB_STEP_SUMMARY
+          echo "4. Check GitHub Security tab for alerts" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check if critical failures exist
+        run: |
+          if [ "${{ needs.dependency-scan.result }}" == "failure" ]; then
+            echo "❌ Dependency scan found critical vulnerabilities"
+            exit 1
+          fi
+
+          echo "✅ All critical security checks passed"

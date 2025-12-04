@@ -77,11 +77,39 @@ enum TeamRole {
 }
 
 enum IndexStatus {
-  PENDING     // 等待索引
-  INDEXING    // 索引中
-  INDEXED     // 已索引
-  FAILED      // 索引失败
-  OUTDATED    // 已过期（文件有新提交）
+  PENDING // 等待索引
+  INDEXING // 索引中
+  INDEXED // 已索引
+  FAILED // 索引失败
+  OUTDATED // 已过期（文件有新提交）
+}
+
+enum AuditAction {
+  CREATE // 创建
+  UPDATE // 更新
+  DELETE // 删除
+  LOGIN // 登录
+  LOGOUT // 登出
+  ACCESS // 访问
+  DOWNLOAD // 下载
+  UPLOAD // 上传
+  GRANT // 授权
+  REVOKE // 撤销
+  APPROVE // 批准
+  REJECT // 拒绝
+}
+
+enum AuditEntityType {
+  USER // 用户
+  PROJECT // 项目
+  REPOSITORY // 仓库
+  FILE // 文件
+  ISSUE // Issue
+  PULL_REQUEST // Pull Request
+  ORGANIZATION // 组织
+  TEAM // 团队
+  BRANCH_PROTECTION // 分支保护
+  SETTINGS // 设置
 }
 
 // ============================================
@@ -127,6 +155,7 @@ model User {
   prEvents               PREvent[]
   notifications          Notification[] // 用户接收的通知
   notificationPreference NotificationPreference? // 用户通知偏好设置（1:1关系）
+  auditLogs              AuditLog[] // Phase 4: 用户的审计日志
 
   @@index([email])
   @@index([username])
@@ -260,9 +289,9 @@ model Project {
   organizationId String?
 
   // 项目设置功能字段
-  defaultBranch  String?   @default("main") @db.VarChar(100)
-  isArchived     Boolean   @default(false)
-  archivedAt     DateTime?
+  defaultBranch String?   @default("main") @db.VarChar(100)
+  isArchived    Boolean   @default(false)
+  archivedAt    DateTime?
 
   // PR Approval Settings
   requireApprovals       Int     @default(1)
@@ -273,18 +302,18 @@ model Project {
   updatedAt DateTime @updatedAt
 
   // 关系
-  owner           User                    @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  organization    Organization?           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  repository      Repository?
-  members         ProjectMember[]
-  projectFiles    ProjectFile[]
-  teamPermissions TeamProjectPermission[]
-  issues          Issue[]
+  owner                 User                    @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  organization          Organization?           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  repository            Repository?
+  members               ProjectMember[]
+  projectFiles          ProjectFile[]
+  teamPermissions       TeamProjectPermission[]
+  issues                Issue[]
   labels                Label[]
   milestones            Milestone[]
   pullRequests          PullRequest[]
   branchProtectionRules BranchProtectionRule[]
-  searchMetadata        SearchMetadata[]  // Code Search索引元数据
+  searchMetadata        SearchMetadata[] // Code Search索引元数据
 
   @@unique([ownerId, name])
   @@unique([organizationId, name])
@@ -324,11 +353,11 @@ model Repository {
   updatedAt DateTime @updatedAt
 
   // 关系
-  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  branches Branch[]
-  commits  Commit[]
-  files    File[]
-  searchMetadata SearchMetadata[]  // Code Search索引元数据
+  project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  branches       Branch[]
+  commits        Commit[]
+  files          File[]
+  searchMetadata SearchMetadata[] // Code Search索引元数据
 
   @@index([projectId])
   @@map("repositories")
@@ -413,27 +442,27 @@ model File {
 // ============================================
 
 model SearchMetadata {
-  id           String      @id @default(cuid())
-  fileId       String      @unique  // 关联到File表
+  id           String @id @default(cuid())
+  fileId       String @unique // 关联到File表
   projectId    String
   repositoryId String
 
   // 索引状态
-  status       IndexStatus @default(PENDING)
-  indexedAt    DateTime?   // 上次索引时间
-  failureReason String?    @db.Text  // 失败原因
-  retryCount   Int         @default(0)  // 重试次数
+  status        IndexStatus @default(PENDING)
+  indexedAt     DateTime? // 上次索引时间
+  failureReason String?     @db.Text // 失败原因
+  retryCount    Int         @default(0) // 重试次数
 
   // 文件快照（用于检测变化）
-  lastCommitId String?     @db.VarChar(64)
-  contentHash  String?     @db.VarChar(64)  // SHA256 hash
+  lastCommitId String? @db.VarChar(64)
+  contentHash  String? @db.VarChar(64) // SHA256 hash
 
   // 索引统计
-  symbolCount  Int         @default(0)  // 代码符号数量
-  lineCount    Int         @default(0)  // 总行数
+  symbolCount Int @default(0) // 代码符号数量
+  lineCount   Int @default(0) // 总行数
 
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // 关系
   file       File       @relation(fields: [fileId], references: [id], onDelete: Cascade)
@@ -525,9 +554,9 @@ model Issue {
   authorId  String
 
   // 关联关系（多对多）
-  assigneeIds  String[] // 分配给的用户ID数组
-  labelIds     String[] // 标签ID数组
-  milestoneId  String?
+  assigneeIds String[] // 分配给的用户ID数组
+  labelIds    String[] // 标签ID数组
+  milestoneId String?
 
   closedAt  DateTime?
   createdAt DateTime  @default(now())
@@ -607,10 +636,10 @@ model IssueComment {
 }
 
 model IssueEvent {
-  id       String   @id @default(cuid())
+  id       String @id @default(cuid())
   issueId  String
   actorId  String
-  event    String   @db.VarChar(50) // 事件类型：opened, closed, reopened, assigned, labeled, etc.
+  event    String @db.VarChar(50) // 事件类型：opened, closed, reopened, assigned, labeled, etc.
   metadata Json? // 事件相关元数据
 
   createdAt DateTime @default(now())
@@ -652,9 +681,9 @@ model PullRequest {
   updatedAt DateTime  @updatedAt
 
   // 关系
-  project  Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  author   User       @relation("PRAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  merger   User?      @relation("PRMerger", fields: [mergedBy], references: [id], onDelete: SetNull)
+  project  Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author   User        @relation("PRAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  merger   User?       @relation("PRMerger", fields: [mergedBy], references: [id], onDelete: SetNull)
   reviews  PRReview[]
   comments PRComment[]
   events   PREvent[]
@@ -710,10 +739,10 @@ model PRComment {
 }
 
 model PREvent {
-  id            String   @id @default(cuid())
+  id            String @id @default(cuid())
   pullRequestId String
   actorId       String
-  event         String   @db.VarChar(50) // 事件类型：opened, closed, merged, reviewed, etc.
+  event         String @db.VarChar(50) // 事件类型：opened, closed, merged, reviewed, etc.
   metadata      Json? // 事件相关元数据
 
   createdAt DateTime @default(now())
@@ -735,41 +764,38 @@ model PREvent {
 
 /**
  * 通知类型枚举
- *
  * 支持的通知场景：
  * - Pull Request相关：创建、合并、关闭、审查、评论
  * - Issue相关：提及、分配、评论
  */
 enum NotificationType {
-  PR_CREATED       // PR被创建
-  PR_MERGED        // PR被合并
-  PR_CLOSED        // PR被关闭
-  PR_REVIEWED      // PR被审查
-  PR_COMMENTED     // PR被评论
-  ISSUE_MENTIONED  // 在Issue中被提及
-  ISSUE_ASSIGNED   // 被分配到Issue
-  ISSUE_COMMENTED  // Issue被评论
+  PR_CREATED // PR被创建
+  PR_MERGED // PR被合并
+  PR_CLOSED // PR被关闭
+  PR_REVIEWED // PR被审查
+  PR_COMMENTED // PR被评论
+  ISSUE_MENTIONED // 在Issue中被提及
+  ISSUE_ASSIGNED // 被分配到Issue
+  ISSUE_COMMENTED // Issue被评论
 }
 
 /**
  * 通知表
- *
  * 存储所有用户通知记录
- *
  * ECP-C3: Performance Awareness - 添加索引优化查询
  * - userId: 按用户查询未读通知
  * - read: 快速过滤已读/未读
  * - createdAt: 时间排序
  */
 model Notification {
-  id        String           @id @default(cuid())
-  userId    String           // 通知接收者
-  type      NotificationType // 通知类型
-  title     String           @db.VarChar(200) // 通知标题
-  body      String?          @db.Text // 通知内容（支持Markdown）
-  read      Boolean          @default(false) // 是否已读
-  link      String?          @db.VarChar(500) // 相关资源链接（如PR详情页）
-  metadata  Json? // 额外元数据（PR ID、Issue ID、评论内容等）
+  id       String           @id @default(cuid())
+  userId   String // 通知接收者
+  type     NotificationType // 通知类型
+  title    String           @db.VarChar(200) // 通知标题
+  body     String?          @db.Text // 通知内容（支持Markdown）
+  read     Boolean          @default(false) // 是否已读
+  link     String?          @db.VarChar(500) // 相关资源链接（如PR详情页）
+  metadata Json? // 额外元数据（PR ID、Issue ID、评论内容等）
 
   createdAt DateTime @default(now())
 
@@ -785,9 +811,7 @@ model Notification {
 
 /**
  * 通知偏好设置表
- *
  * 用户可自定义接收哪些类型的通知
- *
  * ECP-A1: SOLID - 单一职责原则
  * - 每个用户一条配置记录（1:1关系）
  */
@@ -824,29 +848,26 @@ model NotificationPreference {
 
 /**
  * 分支保护规则表
- *
  * 为项目的特定分支配置保护策略，防止未经审核的代码合并
- *
  * MVP功能：
  * - 要求PR审核才能合并
  * - 设置最少审核人数
  * - 禁止直接推送到保护分支
- *
  * 后续扩展：
  * - 分支模式匹配（通配符支持）
  * - CI/CD状态检查集成
  * - Code Owner审查要求
  */
 model BranchProtectionRule {
-  id        String  @id @default(cuid())
+  id        String @id @default(cuid())
   projectId String
 
   // 保护的分支名称（MVP: 精确匹配，如 "main", "develop"）
   branchPattern String @db.VarChar(100)
 
   // 核心保护规则
-  requirePullRequest       Boolean @default(true)  // 必须通过PR修改（不能直接push）
-  requiredApprovingReviews Int     @default(1)     // 最少批准审核数量
+  requirePullRequest       Boolean @default(true) // 必须通过PR修改（不能直接push）
+  requiredApprovingReviews Int     @default(1) // 最少批准审核数量
   dismissStaleReviews      Boolean @default(false) // 新提交后作废旧审查
   requireCodeOwnerReview   Boolean @default(false) // 要求Code Owner审查
 
@@ -867,4 +888,57 @@ model BranchProtectionRule {
   @@unique([projectId, branchPattern]) // 每个项目的每个分支只能有一条保护规则
   @@index([projectId])
   @@map("branch_protection_rules")
+}
+
+// ============================================
+// 安全审计日志模块
+// ============================================
+
+/**
+ * 安全审计日志表
+ * Phase 4: 记录所有敏感操作和安全事件，用于合规审计和安全分析
+ * 核心功能：
+ * - 记录用户操作（登录、权限变更、敏感数据访问）
+ * - 记录资源变更（创建、更新、删除）
+ * - 记录审计追踪（谁、什么时间、做了什么、结果如何）
+ * - 支持 IP 地址和 User-Agent 追踪
+ * 合规要求：
+ * - SOC2: 审计日志保留至少90天
+ * - ISO27001: 记录安全相关事件
+ * - GDPR: 记录个人数据访问
+ */
+model AuditLog {
+  id String @id @default(cuid())
+
+  // 操作信息
+  action     AuditAction     @default(ACCESS) // 操作类型
+  entityType AuditEntityType // 实体类型
+  entityId   String?         @db.VarChar(100) // 实体 ID（可选，如登录操作无实体）
+
+  // 操作者信息
+  userId    String? @db.VarChar(100) // 操作用户 ID（系统操作可为 null）
+  username  String? @db.VarChar(50) // 操作用户名（冗余，便于查询）
+  ipAddress String? @db.VarChar(45) // IP 地址（IPv4/IPv6）
+  userAgent String? @db.Text // User-Agent
+
+  // 操作详情
+  description String  @db.Text // 操作描述（人类可读）
+  metadata    Json? // 额外元数据（JSON格式）
+  success     Boolean @default(true) // 操作是否成功
+  errorMsg    String? @db.Text // 失败时的错误信息
+
+  // 时间戳
+  createdAt DateTime @default(now())
+
+  // 关系（可选，用于级联删除）
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // 索引优化
+  @@index([userId]) // 按用户查询审计日志
+  @@index([action]) // 按操作类型查询
+  @@index([entityType]) // 按实体类型查询
+  @@index([createdAt]) // 按时间范围查询
+  @@index([success]) // 查询失败操作
+  @@index([userId, createdAt]) // 复合索引：用户的时间线
+  @@map("audit_logs")
 }

@@ -1,0 +1,147 @@
+# Dependabot 配置文件
+# Phase 4 P4.5: 自动依赖更新和漏洞扫描
+
+version: 2
+updates:
+  # 后端依赖（pnpm）
+  - package-ecosystem: "npm"
+    directory: "/apps/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "02:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "backend"
+      - "security"
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+    assignees:
+      - "maintainer-username"
+    reviewers:
+      - "security-team"
+    # 自动合并补丁版本更新
+    versioning-strategy: increase
+    # 仅允许安全更新自动合并
+    allow:
+      - dependency-type: "direct"
+        update-types: ["security"]
+
+  # 前端依赖（pnpm）
+  - package-ecosystem: "npm"
+    directory: "/apps/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "02:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "security"
+    commit-message:
+      prefix: "chore(deps)"
+    assignees:
+      - "maintainer-username"
+    reviewers:
+      - "security-team"
+    allow:
+      - dependency-type: "direct"
+        update-types: ["security"]
+
+  # 官网依赖（pnpm）
+  - package-ecosystem: "npm"
+    directory: "/website"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "02:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "website"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # 根目录依赖（pnpm workspace）
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "02:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "workspace"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Docker 基础镜像
+  - package-ecosystem: "docker"
+    directory: "/apps/backend"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "02:00"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "backend"
+    commit-message:
+      prefix: "chore(docker)"
+
+  - package-ecosystem: "docker"
+    directory: "/apps/frontend"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "02:00"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "frontend"
+    commit-message:
+      prefix: "chore(docker)"
+
+  - package-ecosystem: "docker"
+    directory: "/website"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "02:00"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "website"
+    commit-message:
+      prefix: "chore(docker)"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "02:00"
+    labels:
+      - "dependencies"
+      - "ci/cd"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(ci)"
+
+# 忽略特定依赖更新（如果需要）
+# ignore:
+#   - dependency-name: "某个包名"
+#     versions: ["x.x.x"]
+
+# 分组更新（可选）
+# groups:
+#   security-updates:
+#     patterns:
+#       - "*"
+#     update-types:
+#       - "security"

@@ -1,0 +1,95 @@
+# OWASP ZAP Rules Configuration
+# Phase 4 P4.5: DAST (Dynamic Application Security Testing)
+#
+# Format: <rule_id> <action> <url_pattern> <parameter> <comment>
+# Actions: IGNORE, WARN, FAIL
+#
+# Rule IDs 参考: https://www.zaproxy.org/docs/alerts/
+
+# 忽略开发环境特定的警告
+10202	IGNORE	http://localhost:4000	X-Content-Type-Options	Development environment
+10096	IGNORE	http://localhost:4000	timestamp	Timestamp disclosure is acceptable in dev
+10049	IGNORE	http://localhost:4000		Storable and Cacheable Content - API responses
+
+# CORS 配置警告（我们的 CORS 是有意配置的）
+10098	WARN	http://localhost:4000	Access-Control-Allow-Origin	Intentional CORS config
+
+# Content Security Policy (CSP)
+# 我们已经在 Phase 4 P4.1/P4.4 中配置了 CSP
+10038	WARN	http://localhost:4000	Content-Security-Policy	CSP configured in middleware
+
+# Cookie 安全
+10010	FAIL	http://localhost:4000	HttpOnly	Cookie without HttpOnly flag
+10011	FAIL	http://localhost:4000	Secure	Cookie without Secure flag
+10054	FAIL	http://localhost:4000	SameSite	Cookie without SameSite attribute
+
+# 认证和会话管理
+10110	FAIL	http://localhost:4000	authentication	Insufficient Authentication
+10112	FAIL	http://localhost:4000	session	Weak Authentication Method
+
+# SQL 注入
+40018	FAIL	http://localhost:4000	sql	SQL Injection
+40019	FAIL	http://localhost:4000	sql	SQL Injection - MySQL
+40020	FAIL	http://localhost:4000	sql	SQL Injection - PostgreSQL
+40021	FAIL	http://localhost:4000	sql	SQL Injection - Oracle
+
+# XSS (跨站脚本)
+40012	FAIL	http://localhost:4000	xss	Cross Site Scripting (Reflected)
+40014	FAIL	http://localhost:4000	xss	Cross Site Scripting (Persistent)
+40016	FAIL	http://localhost:4000	xss	Cross Site Scripting (DOM Based)
+
+# 路径遍历
+6	FAIL	http://localhost:4000	path	Path Traversal
+7	FAIL	http://localhost:4000	path	Remote File Inclusion
+
+# 命令注入
+90020	FAIL	http://localhost:4000	cmd	Command Injection
+90034	FAIL	http://localhost:4000	cmd	OS Command Injection
+
+# CSRF (跨站请求伪造)
+10202	FAIL	http://localhost:4000	csrf	Absence of Anti-CSRF Tokens
+
+# 信息泄露
+10045	WARN	http://localhost:4000	info	Source Code Disclosure
+10047	WARN	http://localhost:4000	info	Information Disclosure - Suspicious Comments
+10094	WARN	http://localhost:4000	info	Base64 Disclosure
+
+# 不安全的反序列化
+90026	FAIL	http://localhost:4000	deserialize	Insecure Deserialization
+
+# XML 注入
+90021	FAIL	http://localhost:4000	xml	XML External Entity Attack
+90023	FAIL	http://localhost:4000	xml	XML Injection
+
+# 服务器配置
+10020	WARN	http://localhost:4000	headers	Missing Anti-clickjacking Header
+10021	WARN	http://localhost:4000	headers	X-Content-Type-Options Header Missing
+10063	WARN	http://localhost:4000	headers	Permissions Policy Header Not Set
+
+# TLS/SSL 配置
+10035	WARN	http://localhost:4000	ssl	Strict-Transport-Security Header Not Set
+
+# API 特定规则
+# 允许 Swagger/OpenAPI 文档端点
+0	IGNORE	http://localhost:4000/api/docs	swagger	API documentation endpoint
+0	IGNORE	http://localhost:4000/api-json	swagger	OpenAPI spec endpoint
+
+# 健康检查端点
+0	IGNORE	http://localhost:4000/health	health	Health check endpoint
+0	IGNORE	http://localhost:4000/api/health	health	API health check
+
+# 认证端点（预期行为）
+0	IGNORE	http://localhost:4000/api/auth/login	auth	Login endpoint
+0	IGNORE	http://localhost:4000/api/auth/register	auth	Register endpoint
+
+# 文件上传端点（已在 Phase 3/4 中保护）
+0	WARN	http://localhost:4000/api/files/upload	upload	File upload - secured in Phase 3
+
+# Git 端点（已在 Phase 1 中保护）
+0	WARN	http://localhost:4000/repo	git	Git endpoints - secured in Phase 1
+
+# Raft 集群端点（已在 Phase 1 中保护）
+0	WARN	http://localhost:4000/raft-cluster	raft	Raft endpoints - secured in Phase 1
+
+# 监控端点（已在 Phase 1 中保护）
+0	WARN	http://localhost:4000/monitoring	monitoring	Monitoring - secured in Phase 1
