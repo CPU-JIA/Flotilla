@@ -5,7 +5,7 @@
  * Supports git clone, fetch, and push operations.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { spawn } from 'child_process';
 import * as path from 'path';
 
@@ -39,24 +39,63 @@ export class HttpSmartService {
   async executeGitHttpBackend(
     options: GitHttpBackendOptions,
   ): Promise<GitHttpBackendResponse> {
+    // ⚠️ SECURITY: Validate all inputs to prevent injection attacks
+    // projectId should only contain alphanumeric characters and hyphens
+    if (!/^[a-z0-9-]+$/i.test(options.projectId)) {
+      throw new BadRequestException(
+        'Invalid projectId format - only alphanumeric characters and hyphens allowed',
+      );
+    }
+
+    // Validate pathInfo - must be a valid Git path
+    const allowedPaths = [
+      '/info/refs',
+      '/git-upload-pack',
+      '/git-receive-pack',
+    ];
+    if (options.pathInfo && !allowedPaths.includes(options.pathInfo)) {
+      throw new BadRequestException(
+        `Invalid pathInfo - must be one of: ${allowedPaths.join(', ')}`,
+      );
+    }
+
+    // Validate queryString format (only allow safe characters)
+    if (options.queryString && !/^[a-zA-Z0-9=&-]+$/.test(options.queryString)) {
+      throw new BadRequestException(
+        'Invalid queryString format - only alphanumeric, =, &, and - allowed',
+      );
+    }
+
     return new Promise((resolve, reject) => {
       // Extract parent directory from repoPath
       // repoPath: E:\Flotilla\apps\backend\repos\cmhfopcmt000dxbu8rvmjvtse
       // gitProjectRoot: E:\Flotilla\apps\backend\repos
       const gitProjectRoot = path.dirname(options.repoPath);
 
+      // ⚠️ SECURITY: Only pass necessary environment variables
+      // Do NOT use ...process.env to avoid leaking sensitive data
       const env = {
-        ...process.env,
+        // Only pass essential variables
+        PATH: process.env.PATH || '/usr/bin:/bin',
+        HOME: process.env.HOME || '/tmp',
+        NODE_ENV: process.env.NODE_ENV || 'development',
+
+        // Git-specific variables
         GIT_PROJECT_ROOT: gitProjectRoot,
         GIT_HTTP_EXPORT_ALL: '1',
         PATH_INFO: `/${options.projectId}${options.pathInfo || ''}`,
         QUERY_STRING: options.queryString || '',
         REQUEST_METHOD: options.requestBody ? 'POST' : 'GET',
-        CONTENT_TYPE: options.contentType || 'application/x-git-upload-pack-request',
-        CONTENT_LENGTH: options.requestBody ? String(options.requestBody.length) : '0',
+        CONTENT_TYPE:
+          options.contentType || 'application/x-git-upload-pack-request',
+        CONTENT_LENGTH: options.requestBody
+          ? String(options.requestBody.length)
+          : '0',
+
         // Add environment variables for pre-receive hook
         // Hook uses PROJECT_ID to query branch protection API
         PROJECT_ID: options.projectId,
+
         // API_BASE_URL can be overridden via process.env for production deployments
         API_BASE_URL: process.env.API_BASE_URL || 'http://localhost:4000/api',
       };

@@ -19,6 +19,7 @@ import {
   HttpException,
   HttpStatus,
   Logger,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -31,7 +32,10 @@ import {
 import { IsString, IsNotEmpty, IsArray, IsObject } from 'class-validator';
 import { RaftClusterService } from './raft-cluster.service';
 import { ClusterConfigService } from './cluster-config.service';
-import { Public } from '../auth/decorators/public.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UserRole } from '@prisma/client';
 import type { Command, ClientResponse } from '../raft/types';
 
 // DTO类定义
@@ -97,7 +101,8 @@ export class RaftExecuteCommandDto {
 
 @ApiTags('Raft Cluster')
 @Controller('raft-cluster')
-@Public()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.SUPER_ADMIN)
 export class RaftClusterController {
   private readonly logger = new Logger(RaftClusterController.name);
 

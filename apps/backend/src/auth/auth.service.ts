@@ -66,28 +66,37 @@ export class AuthService {
     // 🔐 Bootstrap Admin Logic: 确定用户角色
     let role: UserRole = UserRole.USER; // Default role
     const initialAdminEmail = process.env.INITIAL_ADMIN_EMAIL;
+    const envMode = process.env.NODE_ENV || 'development';
 
-    // 优先级1: 环境变量指定的初始管理员邮箱（生产环境）
+    // 优先级1: 环境变量指定的初始管理员邮箱
     if (initialAdminEmail && dto.email === initialAdminEmail) {
       role = UserRole.SUPER_ADMIN;
       this.logger.warn(
         `🔐 Creating INITIAL_ADMIN from INITIAL_ADMIN_EMAIL env: ${dto.email}`,
       );
     }
-    // 优先级2: 首个用户自动提升为SUPER_ADMIN（开发/测试环境）
-    else {
+    // ⚠️ SECURITY FIX: In production, MUST set INITIAL_ADMIN_EMAIL
+    else if (envMode === 'production' && !initialAdminEmail) {
+      const userCount = await this.prisma.user.count();
+      if (userCount === 0) {
+        // First user in production but no INITIAL_ADMIN_EMAIL set
+        throw new BadRequestException(
+          'INITIAL_ADMIN_EMAIL environment variable must be set in production environment. ' +
+            'Cannot create first user without explicit admin designation.',
+        );
+      }
+    }
+    // 优先级2: 首个用户自动提升为SUPER_ADMIN（仅开发/测试环境）
+    else if (envMode !== 'production') {
       const userCount = await this.prisma.user.count();
       if (userCount === 0) {
         role = UserRole.SUPER_ADMIN;
-        const envMode = process.env.NODE_ENV || 'development';
         this.logger.warn(
           `🚨 FIRST USER AUTO-PROMOTED TO SUPER_ADMIN (${envMode} mode): ${dto.email}`,
         );
-        if (envMode === 'production') {
-          this.logger.error(
-            '⚠️  WARNING: First user in production became SUPER_ADMIN. Consider setting INITIAL_ADMIN_EMAIL env variable for explicit control.',
-          );
-        }
+        this.logger.warn(
+          '⚠️  This behavior is only allowed in development/test environments.',
+        );
       }
     }
 
@@ -134,9 +143,7 @@ export class AuthService {
         },
       });
 
-      this.logger.log(
-        `🏢 Personal organization created: ${personalOrg.slug}`,
-      );
+      this.logger.log(`🏢 Personal organization created: ${personalOrg.slug}`);
 
       return user;
     });
@@ -146,7 +153,11 @@ export class AuthService {
 
     // 发送验证邮件（异步，不阻塞注册流程）
     this.emailService
-      .sendVerificationEmail(result.email, result.username, result.emailVerifyToken!)
+      .sendVerificationEmail(
+        result.email,
+        result.username,
+        result.emailVerifyToken!,
+      )
       .then((emailResult) => {
         if (emailResult.success) {
           this.logger.log(`📧 Verification email sent to: ${result.email}`);
@@ -370,16 +381,16 @@ export class AuthService {
   /**
    * 忘记密码 - 发送密码重置邮件
    */
-  async forgotPassword(
-    dto: ForgotPasswordDto,
-  ): Promise<{ message: string }> {
+  async forgotPassword(dto: ForgotPasswordDto): Promise<{ message: string }> {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
 
     // 为了安全，即使用户不存在也返回成功消息（防止邮箱枚举攻击）
     if (!user) {
-      this.logger.warn(`Password reset requested for non-existent email: ${dto.email}`);
+      this.logger.warn(
+        `Password reset requested for non-existent email: ${dto.email}`,
+      );
       return { message: '如果该邮箱已注册，您将收到密码重置邮件' };
     }
 
@@ -428,13 +439,8 @@ export class AuthService {
     }
 
     // 检查token是否过期
-    if (
-      user.passwordResetExpires &&
-      user.passwordResetExpires < new Date()
-    ) {
-      throw new BadRequestException(
-        '重置链接已过期，请重新申请密码重置',
-      );
+    if (user.passwordResetExpires && user.passwordResetExpires < new Date()) {
+      throw new BadRequestException('重置链接已过期，请重新申请密码重置');
     }
 
     // 加密新密码
@@ -481,7 +487,9 @@ export class AuthService {
     });
 
     if (!user) {
-      this.logger.warn(`Invalid reset token attempted: ${token.substring(0, 10)}...`);
+      this.logger.warn(
+        `Invalid reset token attempted: ${token.substring(0, 10)}...`,
+      );
       return {
         valid: false,
         message: '重置链接不存在或已被使用',
@@ -489,11 +497,10 @@ export class AuthService {
     }
 
     // 检查token是否过期
-    if (
-      user.passwordResetExpires &&
-      user.passwordResetExpires < new Date()
-    ) {
-      this.logger.warn(`Expired reset token attempted: ${token.substring(0, 10)}...`);
+    if (user.passwordResetExpires && user.passwordResetExpires < new Date()) {
+      this.logger.warn(
+        `Expired reset token attempted: ${token.substring(0, 10)}...`,
+      );
       return {
         valid: false,
         message: '重置链接已过期（有效期1小时）',
@@ -501,7 +508,9 @@ export class AuthService {
       };
     }
 
-    this.logger.log(`✅ Valid reset token verified: ${token.substring(0, 10)}...`);
+    this.logger.log(
+      `✅ Valid reset token verified: ${token.substring(0, 10)}...`,
+    );
     return {
       valid: true,
       message: '重置链接有效',
@@ -536,7 +545,9 @@ export class AuthService {
     });
 
     if (!user) {
-      this.logger.warn(`Invalid email verification token attempted: ${token.substring(0, 10)}...`);
+      this.logger.warn(
+        `Invalid email verification token attempted: ${token.substring(0, 10)}...`,
+      );
       return {
         valid: false,
         message: '验证链接不存在或已被使用',
@@ -545,7 +556,9 @@ export class AuthService {
 
     // 检查邮箱是否已验证
     if (user.emailVerified) {
-      this.logger.warn(`Email already verified, token: ${token.substring(0, 10)}...`);
+      this.logger.warn(
+        `Email already verified, token: ${token.substring(0, 10)}...`,
+      );
       return {
         valid: false,
         message: '邮箱已验证，无需重复验证',
@@ -553,11 +566,10 @@ export class AuthService {
     }
 
     // 检查token是否过期
-    if (
-      user.emailVerifyExpires &&
-      user.emailVerifyExpires < new Date()
-    ) {
-      this.logger.warn(`Expired email verification token attempted: ${token.substring(0, 10)}...`);
+    if (user.emailVerifyExpires && user.emailVerifyExpires < new Date()) {
+      this.logger.warn(
+        `Expired email verification token attempted: ${token.substring(0, 10)}...`,
+      );
       return {
         valid: false,
         message: '验证链接已过期（有效期24小时）',
@@ -565,7 +577,9 @@ export class AuthService {
       };
     }
 
-    this.logger.log(`✅ Valid email verification token verified: ${token.substring(0, 10)}...`);
+    this.logger.log(
+      `✅ Valid email verification token verified: ${token.substring(0, 10)}...`,
+    );
     return {
       valid: true,
       message: '验证链接有效',
