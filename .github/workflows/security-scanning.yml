@@ -242,22 +242,41 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      minio:
-        image: minio/minio:latest
-        env:
-          MINIO_ROOT_USER: minioadmin
-          MINIO_ROOT_PASSWORD: minioadmin123
-        ports:
-          - 9000:9000
-        options: >-
-          --health-cmd "curl -f http://localhost:9000/minio/health/live"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Start MinIO
+        run: |
+          docker run -d \
+            --name minio \
+            --network bridge \
+            -p 9000:9000 \
+            -p 9001:9001 \
+            -e MINIO_ROOT_USER=minioadmin \
+            -e MINIO_ROOT_PASSWORD=minioadmin123 \
+            minio/minio:latest server /data --console-address ":9001"
+
+          # Wait for MinIO to be ready
+          echo "Waiting for MinIO to start..."
+          sleep 5
+
+          for i in {1..30}; do
+            if curl -f http://localhost:9000/minio/health/live 2>/dev/null; then
+              echo "✅ MinIO is ready"
+              docker logs minio
+              break
+            fi
+            echo "Waiting for MinIO... ($i/30)"
+            sleep 2
+          done
+
+          # Verify MinIO is accessible
+          if ! curl -I http://localhost:9000/minio/health/live 2>/dev/null; then
+            echo "❌ MinIO health check failed, showing logs:"
+            docker logs minio
+            exit 1
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -329,6 +348,12 @@ jobs:
           path: |
             zap-baseline-report.html
             zap-full-scan-report.html
+
+      - name: Cleanup containers
+        if: always()
+        run: |
+          docker stop minio || true
+          docker rm minio || true
 
   # Job 7: 安全报告汇总
   security-summary:
