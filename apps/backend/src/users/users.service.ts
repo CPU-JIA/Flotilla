@@ -248,7 +248,7 @@ export class UsersService {
       });
 
       // 生成可访问的URL
-      const bucketName = 'cloud-dev-platform';
+      const bucketName = 'flotilla-storage';
       const avatarUrl = `http://localhost:9000/${bucketName}/${objectName}`;
 
       // 更新用户avatar字段

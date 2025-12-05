@@ -11,7 +11,7 @@ export class MinioService implements OnModuleInit {
   constructor(private configService: ConfigService) {
     this.bucketName =
       this.configService.get<string>('MINIO_BUCKET_NAME') ||
-      'cloud-dev-platform';
+      'flotilla-storage';
 
     this.minioClient = new Minio.Client({
       endPoint: this.configService.get<string>('MINIO_ENDPOINT') || 'localhost',

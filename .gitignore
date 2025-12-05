@@ -20,6 +20,10 @@ out/
 .env.test.local
 .env.production.local
 
+# Credentials (敏感信息)
+.credentials.txt
+*.credentials.*
+
 # IDE
 .vscode/
 .idea/

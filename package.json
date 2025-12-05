@@ -1,7 +1,7 @@
 {
-  "name": "cloud-dev-platform",
+  "name": "flotilla",
   "version": "1.0.0",
-  "description": "基于云计算的开发协作平台",
+  "description": "Flotilla - 云端代码托管与协作平台（基于分布式共识算法）",
   "private": true,
   "scripts": {
     "dev": "pnpm --parallel --filter \"./apps/*\" dev",

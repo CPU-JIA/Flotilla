@@ -223,7 +223,7 @@ jobs:
         env:
           POSTGRES_USER: devplatform
           POSTGRES_PASSWORD: devplatform123
-          POSTGRES_DB: cloud_dev_platform
+          POSTGRES_DB: flotilla
         ports:
           - 5432:5432
         options: >-
@@ -303,7 +303,7 @@ jobs:
         env:
           NODE_ENV: production
           PORT: 4000
-          DATABASE_URL: postgresql://devplatform:devplatform123@localhost:5432/cloud_dev_platform
+          DATABASE_URL: postgresql://devplatform:devplatform123@localhost:5432/flotilla
           REDIS_URL: redis://localhost:6379
           MINIO_ENDPOINT: localhost
           MINIO_PORT: 9000
