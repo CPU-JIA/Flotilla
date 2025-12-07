@@ -20,40 +20,40 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return handleRequest(request, params, 'GET')
+  return handleRequest(request, { params }, 'GET')
 }
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return handleRequest(request, params, 'POST')
+  return handleRequest(request, { params }, 'POST')
 }
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return handleRequest(request, params, 'PUT')
+  return handleRequest(request, { params }, 'PUT')
 }
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return handleRequest(request, params, 'PATCH')
+  return handleRequest(request, { params }, 'PATCH')
 }
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
-  return handleRequest(request, params, 'DELETE')
+  return handleRequest(request, { params }, 'DELETE')
 }
 
 async function handleRequest(
   request: NextRequest,
-  params: { params: Promise<{ path: string[] }> },
+  { params }: { params: Promise<{ path: string[] }> },
   method: string
 ) {
   try {

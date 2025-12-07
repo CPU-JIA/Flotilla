@@ -7,6 +7,7 @@ export interface User {
   id: string
   username: string
   email: string
+  emailVerified: boolean
   role: 'USER' | 'SUPER_ADMIN'
   isActive: boolean
   avatar?: string

@@ -26,6 +26,8 @@ export const zh: Translations = {
     projects: '项目',
     organizations: '组织',
     admin: '管理',
+    profile: '个人资料',
+    settings: '设置',
     logout: '退出登录',
   },
 

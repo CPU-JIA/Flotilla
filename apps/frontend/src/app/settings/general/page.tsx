@@ -229,7 +229,7 @@ export default function GeneralSettingsPage() {
             </div>
             <div>
               <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
-                {user.role === 'ADMIN' ? '管理员' : user.role === 'USER' ? '普通用户' : user.role}
+                {user.role === 'SUPER_ADMIN' ? '超级管理员' : user.role === 'USER' ? '普通用户' : user.role}
               </span>
             </div>
           </div>

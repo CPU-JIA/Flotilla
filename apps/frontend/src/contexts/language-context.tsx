@@ -32,6 +32,8 @@ export interface Translations {
     projects: string
     organizations: string
     admin: string
+    profile: string
+    settings: string
     logout: string
   }
 

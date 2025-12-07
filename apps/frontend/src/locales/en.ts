@@ -26,6 +26,8 @@ export const en: Translations = {
     projects: 'Projects',
     organizations: 'Organizations',
     admin: 'Admin',
+    profile: 'Profile',
+    settings: 'Settings',
     logout: 'Logout',
   },
 

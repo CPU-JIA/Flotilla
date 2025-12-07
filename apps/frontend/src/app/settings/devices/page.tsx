@@ -284,7 +284,6 @@ export default function DevicesPage() {
             </CardContent>
           </Card>
         )}
-      </div>
     </div>
   )
 }
