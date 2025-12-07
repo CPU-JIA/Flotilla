@@ -204,12 +204,29 @@ jobs:
           severity: 'CRITICAL,HIGH'
         continue-on-error: true
 
-      - name: Upload Trivy results to GitHub Security
+      - name: Upload backend Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        if: always() && hashFiles('trivy-backend-results.sarif') != ''
         with:
           sarif_file: 'trivy-backend-results.sarif'
         continue-on-error: true
+
+      - name: Upload frontend Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && hashFiles('trivy-frontend-results.sarif') != ''
+        with:
+          sarif_file: 'trivy-frontend-results.sarif'
+        continue-on-error: true
+
+      - name: Upload Trivy scan results as artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-scan-results
+          path: |
+            trivy-backend-results.sarif
+            trivy-frontend-results.sarif
+          if-no-files-found: warn
 
   # Job 6: DAST - 动态应用安全测试 (OWASP ZAP)
   dast-scan:
