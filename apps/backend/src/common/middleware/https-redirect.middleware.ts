@@ -14,10 +14,13 @@ import { Request, Response, NextFunction } from 'express';
 @Injectable()
 export class HttpsRedirectMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
+    // ECP-C1: 防御性编程 - 仅在生产环境明确启用 HTTPS 重定向
+    // 默认行为：开发环境不启用（避免 NODE_ENV 未设置时误触发）
     const isProduction = process.env.NODE_ENV === 'production';
+    const forceHttps = process.env.FORCE_HTTPS === 'true';
 
-    // 开发环境和测试环境不强制 HTTPS
-    if (!isProduction) {
+    // 开发环境和测试环境默认不强制 HTTPS（除非明确指定 FORCE_HTTPS=true）
+    if (!isProduction && !forceHttps) {
       return next();
     }
 

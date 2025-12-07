@@ -7,7 +7,7 @@
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { api, clearTokens, setTokens } from '@/lib/api'
+import { api, clearTokens, setTokens, startAutoRefresh, stopAutoRefresh } from '@/lib/api'
 import type { User, LoginRequest, RegisterRequest, AuthResponse } from '@/types/auth'
 
 interface AuthContextType {
@@ -32,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /**
    * 刷新用户信息
    * ECP-C1: 防御性编程 - 错误处理
+   * 🔒 Phase 2 FIX: 页面刷新后恢复自动刷新定时器
    */
   const refreshUser = useCallback(async () => {
     try {
@@ -41,16 +42,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!token) {
           setUser(null)
           setIsLoading(false)
+          stopAutoRefresh() // 清理可能存在的定时器
           return
         }
       }
 
       const userData = await api.auth.me()
       setUser(userData)
+
+      // 🔒 Phase 2 FIX: Token有效，启动自动刷新（15分钟Access Token需要14分钟刷新一次）
+      startAutoRefresh()
     } catch (error) {
       console.error('Failed to fetch user:', error)
       clearTokens()
       setUser(null)
+      stopAutoRefresh() // Token失效，停止自动刷新
     } finally {
       setIsLoading(false)
     }
@@ -66,12 +72,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /**
    * 登录方法
    * ECP-C2: 系统化错误处理
+   * 🔒 Phase 2 FIX: 登录成功后启动自动Token刷新
    */
   const login = useCallback(async (data: LoginRequest) => {
     try {
       const response: AuthResponse = await api.auth.login(data)
       setTokens(response.accessToken, response.refreshToken)
       setUser(response.user)
+
+      // 🔒 Phase 2 FIX: 启动自动刷新（15分钟Access Token，每14分钟刷新一次）
+      startAutoRefresh()
     } catch (error) {
       throw error
     }
@@ -79,12 +89,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * 注册方法
+   * 🔒 Phase 2 FIX: 注册成功后启动自动Token刷新
    */
   const register = useCallback(async (data: RegisterRequest) => {
     try {
       const response: AuthResponse = await api.auth.register(data)
       setTokens(response.accessToken, response.refreshToken)
       setUser(response.user)
+
+      // 🔒 Phase 2 FIX: 启动自动刷新
+      startAutoRefresh()
     } catch (error) {
       throw error
     }
@@ -92,11 +106,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * 登出方法
+   * 🔒 Phase 2 FIX: 登出时停止自动刷新定时器
    */
   const logout = useCallback(() => {
     clearTokens()
     setUser(null)
     api.auth.logout()
+
+    // 🔒 Phase 2 FIX: 停止自动刷新，清理定时器
+    stopAutoRefresh()
   }, [])
 
   const value: AuthContextType = {

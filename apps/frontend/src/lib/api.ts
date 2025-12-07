@@ -146,6 +146,7 @@ export class ApiError extends Error {
 
 /**
  * 刷新访问令牌
+ * 🔒 Phase 2 FIX: 支持自动刷新（Access Token有效期15分钟）
  */
 async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = getRefreshToken()
@@ -173,6 +174,40 @@ async function refreshAccessToken(): Promise<string | null> {
   } catch {
     clearTokens()
     return null
+  }
+}
+
+/**
+ * 🔒 Phase 2 FIX: 定时自动刷新Token（每14分钟刷新一次）
+ * Access Token有效期15分钟，提前1分钟刷新
+ */
+let refreshIntervalId: NodeJS.Timeout | null = null
+
+export const startAutoRefresh = () => {
+  // 清除已存在的定时器
+  if (refreshIntervalId) {
+    clearInterval(refreshIntervalId)
+  }
+
+  // 每14分钟自动刷新一次
+  refreshIntervalId = setInterval(async () => {
+    const currentToken = getAccessToken()
+    if (currentToken) {
+      const newToken = await refreshAccessToken()
+      if (!newToken) {
+        // 刷新失败，重定向到登录页
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth/login'
+        }
+      }
+    }
+  }, 14 * 60 * 1000) // 14分钟
+}
+
+export const stopAutoRefresh = () => {
+  if (refreshIntervalId) {
+    clearInterval(refreshIntervalId)
+    refreshIntervalId = null
   }
 }
 
@@ -299,6 +334,26 @@ export const api = {
       }
     },
 
+    // 🔒 Phase 4: 获取所有活跃会话（设备列表）
+    getSessions: () =>
+      apiRequest<Array<{
+        id: string
+        ipAddress: string
+        device: string | null
+        browser: string | null
+        os: string | null
+        location: string | null
+        lastUsedAt: string
+        createdAt: string
+        expiresAt: string
+      }>>('/auth/sessions'),
+
+    // 🔒 Phase 4: 撤销特定会话（单个设备登出）
+    revokeSession: (sessionId: string) =>
+      apiRequest<{ message: string }>(`/auth/sessions/${sessionId}/revoke`, {
+        method: 'POST',
+      }),
+
     forgotPassword: (data: { email: string }) =>
       apiRequest<{ message: string }>(
         '/auth/forgot-password',
@@ -324,6 +379,17 @@ export const api = {
         `/auth/verify-email/${token}`,
         {
           method: 'POST',
+        },
+        false
+      ),
+
+    // 🔒 Phase 2 FIX: 重新发送验证邮件
+    resendVerificationEmail: (data: { email: string }) =>
+      apiRequest<{ message: string }>(
+        '/auth/resend-verification',
+        {
+          method: 'POST',
+          body: JSON.stringify(data),
         },
         false
       ),

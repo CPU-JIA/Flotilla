@@ -9,6 +9,7 @@ import { translations } from '@/locales'
 import { MantineProvider } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import { mantineTheme } from '@/config/mantine-theme'
+import { Toaster } from 'sonner'
 
 // Mantine CSS imports
 import '@mantine/core/styles.css'
@@ -47,6 +48,7 @@ export default function RootLayout({
         >
           <MantineProvider theme={mantineTheme}>
             <Notifications position="top-right" limit={5} />
+            <Toaster position="top-right" richColors closeButton />
             <QueryProvider>
               <LanguageProvider translations={translations}>
                 <AuthProvider>{children}</AuthProvider>

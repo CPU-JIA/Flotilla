@@ -12,10 +12,10 @@ import Link from 'next/link'
 import { useTheme } from 'next-themes'
 import { useAuth } from '@/contexts/auth-context'
 import { useLanguage } from '@/contexts/language-context'
-import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/theme/theme-toggle'
 import { LanguageToggle } from '@/components/language/language-toggle'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
+import { UserMenu } from '@/components/layout/UserMenu'
 import { useMantineThemeSync } from '@/hooks/use-mantine-theme-sync'
 
 interface AppLayoutProps {
@@ -23,7 +23,7 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const { theme } = useTheme()
   const { t } = useLanguage()
 
@@ -97,16 +97,8 @@ export function AppLayout({ children }: AppLayoutProps) {
               {/* 语言切换按钮 */}
               <LanguageToggle size="sm" variant="outline" showFullName />
 
-              {user && (
-                <div className="text-sm text-gray-600 dark:text-gray-300">
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {user.username}
-                  </span>
-                </div>
-              )}
-              <Button variant="outline" size="sm" onClick={logout}>
-                {t.nav.logout}
-              </Button>
+              {/* 🔒 Phase 2 FIX: 用户菜单下拉框（包含设备管理、设置、登出） */}
+              <UserMenu />
             </div>
           </div>
         </div>

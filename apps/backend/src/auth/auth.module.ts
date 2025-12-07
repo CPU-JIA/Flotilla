@@ -17,16 +17,54 @@ import { EmailModule } from '../email/email.module';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService): JwtModuleOptions => ({
-        secret:
-          configService.get<string>('JWT_SECRET') ||
-          process.env.JWT_SECRET ||
-          'default-secret-key',
-        signOptions: {
-          expiresIn: (configService.get<string>('JWT_EXPIRATION') ||
-            '7d') as any,
-        },
-      }),
+      useFactory: (configService: ConfigService): JwtModuleOptions => {
+        // 🔒 SECURITY FIX: 强制要求JWT_SECRET和JWT_REFRESH_SECRET环境变量
+        // CWE-798: Use of Hard-coded Credentials
+        const jwtSecret =
+          configService.get<string>('JWT_SECRET') || process.env.JWT_SECRET;
+        const jwtRefreshSecret =
+          configService.get<string>('JWT_REFRESH_SECRET') ||
+          process.env.JWT_REFRESH_SECRET;
+
+        // 验证JWT_SECRET
+        if (
+          !jwtSecret ||
+          jwtSecret === 'default-secret-key' ||
+          jwtSecret.length < 32
+        ) {
+          throw new Error(
+            'CRITICAL SECURITY ERROR: JWT_SECRET must be set in environment variables ' +
+              'and must be at least 32 characters long. Never use default values in production!',
+          );
+        }
+
+        // 验证JWT_REFRESH_SECRET
+        if (
+          !jwtRefreshSecret ||
+          jwtRefreshSecret === 'default-secret-key' ||
+          jwtRefreshSecret.length < 32
+        ) {
+          throw new Error(
+            'CRITICAL SECURITY ERROR: JWT_REFRESH_SECRET must be set in environment variables ' +
+              'and must be at least 32 characters long. Never use default values in production!',
+          );
+        }
+
+        // 确保两个密钥不同
+        if (jwtSecret === jwtRefreshSecret) {
+          throw new Error(
+            'CRITICAL SECURITY ERROR: JWT_SECRET and JWT_REFRESH_SECRET must be different!',
+          );
+        }
+
+        return {
+          secret: jwtSecret,
+          signOptions: {
+            expiresIn: (configService.get<string>('JWT_EXPIRATION') ||
+              '7d') as any,
+          },
+        };
+      },
     }),
     UsersModule,
     EmailModule,

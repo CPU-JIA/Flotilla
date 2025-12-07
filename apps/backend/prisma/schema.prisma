@@ -135,6 +135,9 @@ model User {
   passwordResetToken   String?   @unique @db.VarChar(255) // 密码重置token
   passwordResetExpires DateTime? // 重置token过期时间（1小时）
 
+  // 🔒 SECURITY FIX: JWT Token版本控制（CWE-613: 密码重置后撤销旧Token）
+  tokenVersion Int @default(0) // Token版本号，密码重置/登出时递增
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -156,10 +159,58 @@ model User {
   notifications          Notification[] // 用户接收的通知
   notificationPreference NotificationPreference? // 用户通知偏好设置（1:1关系）
   auditLogs              AuditLog[] // Phase 4: 用户的审计日志
+  passwordHistories      PasswordHistory[] // 🔒 密码历史记录（防止重用旧密码）
+  sessions               UserSession[] // 🔒 Phase 4: 用户会话记录（设备管理）
 
   @@index([email])
   @@index([username])
   @@map("users")
+}
+
+// 🔒 SECURITY FIX: 密码历史记录表（防止重用旧密码）
+// CWE-521: Weak Password Requirements
+model PasswordHistory {
+  id           String   @id @default(cuid())
+  userId       String
+  passwordHash String   @db.VarChar(255)
+  createdAt    DateTime @default(now())
+
+  // 关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)]) // 按用户和时间倒序索引（查询最近密码）
+  @@map("password_histories")
+}
+
+// 🔒 Phase 4: 用户会话表（设备管理、异地登录检测）
+// 记录每次登录的设备、IP、地理位置
+model UserSession {
+  id        String   @id @default(cuid())
+  userId    String
+  ipAddress String   @db.VarChar(45) // IPv4: 15字符, IPv6: 45字符
+  userAgent String   @db.Text // 浏览器User-Agent
+  device    String?  @db.VarChar(100) // 设备类型（解析自User-Agent）
+  browser   String?  @db.VarChar(100) // 浏览器类型
+  os        String?  @db.VarChar(100) // 操作系统
+  location  String?  @db.VarChar(200) // 地理位置（城市/国家）
+
+  // Token版本（用于撤销特定会话）
+  tokenVersion Int
+
+  // 会话状态
+  isActive  Boolean  @default(true) // 会话是否激活
+  lastUsedAt DateTime @default(now()) // 最后活跃时间
+  expiresAt DateTime // Token过期时间
+
+  createdAt DateTime @default(now())
+
+  // 关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive]) // 查询用户的活跃会话
+  @@index([userId, createdAt(sort: Desc)]) // 查询用户的历史会话
+  @@index([expiresAt]) // 定期清理过期会话
+  @@map("user_sessions")
 }
 
 // ============================================

@@ -21,10 +21,11 @@ import { User, UserRole } from '@prisma/client';
 import { randomBytes } from 'crypto';
 
 export interface JwtPayload {
-  sub: string;
-  username: string;
-  email: string;
-  role: string;
+  sub: string; // User ID
+  role: string; // User role
+  tokenVersion: number; // 🔒 Token版本号（用于撤销旧Token）
+  // 🔒 SECURITY FIX: 移除email和username（减小Payload，降低信息泄露风险）
+  // email和username可通过validateUser从数据库获取
 }
 
 export interface AuthResponse {
@@ -44,64 +45,65 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto): Promise<AuthResponse> {
-    // 检查用户名是否已存在
-    const existingUsername = await this.prisma.user.findUnique({
-      where: { username: dto.username },
-    });
-    if (existingUsername) {
-      throw new ConflictException('用户名已被使用');
-    }
+    // 🔒 SECURITY FIX: 并行查询用户名和邮箱（防止时序攻击）
+    // CWE-203: Observable Discrepancy (Timing Attack)
+    const [existingUsername, existingEmail] = await Promise.all([
+      this.prisma.user.findUnique({ where: { username: dto.username } }),
+      this.prisma.user.findUnique({ where: { email: dto.email } }),
+    ]);
 
-    // 检查邮箱是否已存在
-    const existingEmail = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-    if (existingEmail) {
-      throw new ConflictException('邮箱已被注册');
+    // 使用统一错误消息（防止用户枚举）
+    if (existingUsername || existingEmail) {
+      throw new ConflictException('用户名或邮箱已被使用');
     }
 
     // 加密密码
     const hashedPassword = await bcrypt.hash(dto.password, 12);
 
-    // 🔐 Bootstrap Admin Logic: 确定用户角色
-    let role: UserRole = UserRole.USER; // Default role
+    // 环境变量预检查（用于优化性能）
     const initialAdminEmail = process.env.INITIAL_ADMIN_EMAIL;
     const envMode = process.env.NODE_ENV || 'development';
 
-    // 优先级1: 环境变量指定的初始管理员邮箱
-    if (initialAdminEmail && dto.email === initialAdminEmail) {
-      role = UserRole.SUPER_ADMIN;
-      this.logger.warn(
-        `🔐 Creating INITIAL_ADMIN from INITIAL_ADMIN_EMAIL env: ${dto.email}`,
-      );
-    }
-    // ⚠️ SECURITY FIX: In production, MUST set INITIAL_ADMIN_EMAIL
-    else if (envMode === 'production' && !initialAdminEmail) {
-      const userCount = await this.prisma.user.count();
-      if (userCount === 0) {
-        // First user in production but no INITIAL_ADMIN_EMAIL set
-        throw new BadRequestException(
-          'INITIAL_ADMIN_EMAIL environment variable must be set in production environment. ' +
-            'Cannot create first user without explicit admin designation.',
-        );
-      }
-    }
-    // 优先级2: 首个用户自动提升为SUPER_ADMIN（仅开发/测试环境）
-    else if (envMode !== 'production') {
-      const userCount = await this.prisma.user.count();
-      if (userCount === 0) {
-        role = UserRole.SUPER_ADMIN;
-        this.logger.warn(
-          `🚨 FIRST USER AUTO-PROMOTED TO SUPER_ADMIN (${envMode} mode): ${dto.email}`,
-        );
-        this.logger.warn(
-          '⚠️  This behavior is only allowed in development/test environments.',
-        );
-      }
-    }
-
+    // 🔒 SECURITY FIX: 将角色确定逻辑移入事务内（防止TOCTOU竞态条件）
+    // CWE-367: Time-of-check Time-of-use (TOCTOU) Race Condition
     // 创建用户（使用事务保证原子性 - ECP-C1: 防御性编程）
     const result = await this.prisma.$transaction(async (tx) => {
+      // 🔐 Bootstrap Admin Logic: 在事务内确定用户角色
+      let role: UserRole = UserRole.USER; // Default role
+
+      // 优先级1: 环境变量指定的初始管理员邮箱
+      if (initialAdminEmail && dto.email === initialAdminEmail) {
+        role = UserRole.SUPER_ADMIN;
+        this.logger.warn(
+          `🔐 Creating INITIAL_ADMIN from INITIAL_ADMIN_EMAIL env: ${dto.email}`,
+        );
+      }
+      // ⚠️ SECURITY FIX: In production, MUST set INITIAL_ADMIN_EMAIL
+      else if (envMode === 'production' && !initialAdminEmail) {
+        // 🔒 在事务内检查用户数量（原子操作，防止竞态条件）
+        const userCount = await tx.user.count();
+        if (userCount === 0) {
+          // First user in production but no INITIAL_ADMIN_EMAIL set
+          throw new BadRequestException(
+            'INITIAL_ADMIN_EMAIL environment variable must be set in production environment. ' +
+              'Cannot create first user without explicit admin designation.',
+          );
+        }
+      }
+      // 优先级2: 首个用户自动提升为SUPER_ADMIN（仅开发/测试环境）
+      else if (envMode !== 'production') {
+        // 🔒 在事务内检查用户数量（原子操作，防止竞态条件）
+        const userCount = await tx.user.count();
+        if (userCount === 0) {
+          role = UserRole.SUPER_ADMIN;
+          this.logger.warn(
+            `🚨 FIRST USER AUTO-PROMOTED TO SUPER_ADMIN (${envMode} mode): ${dto.email}`,
+          );
+          this.logger.warn(
+            '⚠️  This behavior is only allowed in development/test environments.',
+          );
+        }
+      }
       // 生成邮箱验证token（24小时有效）
       const emailVerifyToken = randomBytes(32).toString('hex');
       const emailVerifyExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24小时后过期
@@ -183,7 +185,15 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginDto): Promise<AuthResponse> {
+  /**
+   * 登录
+   * 🔒 Phase 4: 添加会话记录（设备管理、异地登录检测）
+   */
+  async login(
+    dto: LoginDto,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<AuthResponse> {
     // 查找用户（通过用户名或邮箱）
     const user = await this.prisma.user.findFirst({
       where: {
@@ -205,10 +215,51 @@ export class AuthService {
       throw new UnauthorizedException('用户名或密码错误');
     }
 
+    // 🔒 SECURITY FIX: 检查账户状态和邮箱验证（防止未验证/禁用账户登录）
+    // CWE-287: Improper Authentication
+    if (!user.isActive) {
+      throw new UnauthorizedException('账户已被禁用，请联系管理员');
+    }
+
+    // 邮箱验证检查（可通过环境变量REQUIRE_EMAIL_VERIFICATION=false关闭）
+    const requireEmailVerification =
+      process.env.REQUIRE_EMAIL_VERIFICATION !== 'false';
+    if (requireEmailVerification && !user.emailVerified) {
+      throw new UnauthorizedException(
+        '邮箱未验证，请先验证邮箱后再登录。如未收到验证邮件，请使用"重新发送验证邮件"功能',
+      );
+    }
+
     this.logger.log(`✅ User logged in: ${user.username}`);
 
     // 生成 Token
     const { accessToken, refreshToken } = await this.generateTokens(user);
+
+    // 🔒 Phase 4: 创建会话记录
+    if (ipAddress && userAgent) {
+      const parsedUA = this.parseUserAgent(userAgent);
+      const expiresAt = new Date(
+        Date.now() +
+          this.parseExpiration(process.env.JWT_REFRESH_EXPIRATION || '30d'),
+      );
+
+      await this.prisma.userSession.create({
+        data: {
+          userId: user.id,
+          ipAddress,
+          userAgent,
+          device: parsedUA.device,
+          browser: parsedUA.browser,
+          os: parsedUA.os,
+          tokenVersion: user.tokenVersion,
+          expiresAt,
+        },
+      });
+
+      this.logger.log(
+        `📱 Session created: ${user.username} from ${ipAddress} (${parsedUA.browser}/${parsedUA.os})`,
+      );
+    }
 
     // 移除密码字段
     const { passwordHash, ...userWithoutPassword } = user;
@@ -234,11 +285,12 @@ export class AuthService {
   }
 
   private async generateTokens(user: User) {
+    // 🔒 SECURITY FIX: 最小化JWT Payload（只包含必要字段）
+    // CWE-209: Generation of Error Message Containing Sensitive Information
     const payload: JwtPayload = {
       sub: user.id,
-      username: user.username,
-      email: user.email,
       role: user.role,
+      tokenVersion: user.tokenVersion,
     };
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -269,11 +321,23 @@ export class AuthService {
         throw new UnauthorizedException('用户不存在');
       }
 
+      // 🔒 SECURITY FIX: 验证tokenVersion（防止使用已撤销的Refresh Token）
+      // CWE-613: Insufficient Session Expiration
+      if (user.tokenVersion !== payload.tokenVersion) {
+        throw new UnauthorizedException(
+          'Refresh Token已失效，请重新登录（密码已重置或已登出）',
+        );
+      }
+
+      // 🔒 SECURITY FIX: 检查账户状态（防止禁用账户刷新Token）
+      if (!user.isActive) {
+        throw new UnauthorizedException('账户已被禁用');
+      }
+
       const newPayload: JwtPayload = {
         sub: user.id,
-        username: user.username,
-        email: user.email,
         role: user.role,
+        tokenVersion: user.tokenVersion,
       };
 
       const accessToken = await this.jwtService.signAsync(newPayload, {
@@ -289,6 +353,159 @@ export class AuthService {
       }
       // Otherwise it's a token verification error
       throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+
+  /**
+   * 登出 - 撤销所有Token
+   * 🔒 SECURITY FIX: 通过递增tokenVersion使所有现有Token失效
+   * CWE-613: Insufficient Session Expiration
+   */
+  async logout(userId: string): Promise<{ message: string }> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        tokenVersion: { increment: 1 }, // 递增版本号，撤销所有Token
+      },
+    });
+
+    // 🔒 Phase 4: 将所有会话标记为失效
+    await this.prisma.userSession.updateMany({
+      where: { userId, isActive: true },
+      data: { isActive: false },
+    });
+
+    this.logger.log(`✅ User logged out: ${userId}, all tokens revoked`);
+
+    return { message: '登出成功，所有设备的登录状态已失效' };
+  }
+
+  /**
+   * 🔒 Phase 4: 获取用户所有活跃会话
+   */
+  async getUserSessions(userId: string) {
+    const sessions = await this.prisma.userSession.findMany({
+      where: { userId, isActive: true },
+      orderBy: { lastUsedAt: 'desc' },
+      select: {
+        id: true,
+        ipAddress: true,
+        device: true,
+        browser: true,
+        os: true,
+        location: true,
+        lastUsedAt: true,
+        createdAt: true,
+        expiresAt: true,
+      },
+    });
+
+    return sessions;
+  }
+
+  /**
+   * 🔒 Phase 4: 撤销特定会话（单个设备登出）
+   */
+  async revokeSession(
+    userId: string,
+    sessionId: string,
+  ): Promise<{ message: string }> {
+    const session = await this.prisma.userSession.findFirst({
+      where: { id: sessionId, userId },
+    });
+
+    if (!session) {
+      throw new NotFoundException('会话不存在或无权限操作');
+    }
+
+    if (!session.isActive) {
+      throw new BadRequestException('会话已失效');
+    }
+
+    // 标记会话为失效
+    await this.prisma.userSession.update({
+      where: { id: sessionId },
+      data: { isActive: false },
+    });
+
+    this.logger.log(
+      `✅ Session revoked: ${sessionId} for user ${userId}`,
+    );
+
+    return { message: '设备已登出成功' };
+  }
+
+  /**
+   * 🔒 Phase 4: 解析User-Agent字符串（提取设备、浏览器、OS信息）
+   * 简化版实现，生产环境建议使用ua-parser-js库
+   */
+  private parseUserAgent(userAgent: string): {
+    device: string | null;
+    browser: string | null;
+    os: string | null;
+  } {
+    if (!userAgent) {
+      return { device: null, browser: null, os: null };
+    }
+
+    // 设备检测
+    let device = 'Desktop';
+    if (/Mobile|Android|iPhone|iPad|iPod/i.test(userAgent)) {
+      device = 'Mobile';
+    } else if (/Tablet|iPad/i.test(userAgent)) {
+      device = 'Tablet';
+    }
+
+    // 浏览器检测
+    let browser = 'Unknown';
+    if (userAgent.includes('Chrome/')) {
+      browser = 'Chrome';
+    } else if (userAgent.includes('Firefox/')) {
+      browser = 'Firefox';
+    } else if (userAgent.includes('Safari/') && !userAgent.includes('Chrome')) {
+      browser = 'Safari';
+    } else if (userAgent.includes('Edge/')) {
+      browser = 'Edge';
+    }
+
+    // 操作系统检测
+    let os = 'Unknown';
+    if (userAgent.includes('Windows')) {
+      os = 'Windows';
+    } else if (userAgent.includes('Mac OS')) {
+      os = 'macOS';
+    } else if (userAgent.includes('Linux')) {
+      os = 'Linux';
+    } else if (userAgent.includes('Android')) {
+      os = 'Android';
+    } else if (userAgent.includes('iOS') || userAgent.includes('iPhone')) {
+      os = 'iOS';
+    }
+
+    return { device, browser, os };
+  }
+
+  /**
+   * 🔒 Phase 4: 解析过期时间字符串（如"7d"、"15m"）为毫秒数
+   */
+  private parseExpiration(expiration: string): number {
+    const match = expiration.match(/^(\d+)([smhd])$/);
+    if (!match) return 30 * 24 * 60 * 60 * 1000; // 默认30天
+
+    const value = parseInt(match[1], 10);
+    const unit = match[2];
+
+    switch (unit) {
+      case 's':
+        return value * 1000;
+      case 'm':
+        return value * 60 * 1000;
+      case 'h':
+        return value * 60 * 60 * 1000;
+      case 'd':
+        return value * 24 * 60 * 60 * 1000;
+      default:
+        return 30 * 24 * 60 * 60 * 1000;
     }
   }
 
@@ -425,6 +642,8 @@ export class AuthService {
 
   /**
    * 重置密码
+   * 🔒 SECURITY FIX: 添加密码历史检查（防止重用最近3次密码）
+   * CWE-521: Weak Password Requirements
    */
   async resetPassword(
     token: string,
@@ -443,20 +662,68 @@ export class AuthService {
       throw new BadRequestException('重置链接已过期，请重新申请密码重置');
     }
 
+    // 🔒 检查新密码是否与最近3次密码相同
+    const recentPasswords = await this.prisma.passwordHistory.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: 'desc' },
+      take: 3, // 最近3次密码
+    });
+
+    // 验证新密码是否与历史密码匹配
+    for (const history of recentPasswords) {
+      const isSamePassword = await bcrypt.compare(
+        dto.newPassword,
+        history.passwordHash,
+      );
+      if (isSamePassword) {
+        throw new BadRequestException(
+          '新密码不能与最近使用的3次密码相同，请选择不同的密码',
+        );
+      }
+    }
+
     // 加密新密码
     const hashedPassword = await bcrypt.hash(dto.newPassword, 12);
 
-    // 更新密码并清除重置token
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        passwordHash: hashedPassword,
-        passwordResetToken: null,
-        passwordResetExpires: null,
-      },
+    // 🔒 SECURITY FIX: 更新密码、递增tokenVersion、保存密码历史
+    // 使用事务确保原子性
+    await this.prisma.$transaction(async (tx) => {
+      // 1. 保存当前密码到历史记录（在更新前）
+      await tx.passwordHistory.create({
+        data: {
+          userId: user.id,
+          passwordHash: user.passwordHash, // 保存旧密码hash
+        },
+      });
+
+      // 2. 更新用户密码和tokenVersion
+      await tx.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash: hashedPassword,
+          passwordResetToken: null,
+          passwordResetExpires: null,
+          tokenVersion: { increment: 1 }, // 递增版本号，撤销所有旧Token
+        },
+      });
+
+      // 3. 清理旧历史记录（只保留最近5次）
+      const allHistories = await tx.passwordHistory.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (allHistories.length > 5) {
+        const idsToDelete = allHistories.slice(5).map((h) => h.id);
+        await tx.passwordHistory.deleteMany({
+          where: { id: { in: idsToDelete } },
+        });
+      }
     });
 
-    this.logger.log(`✅ Password reset successful for user: ${user.username}`);
+    this.logger.log(
+      `✅ Password reset successful for user: ${user.username}, tokenVersion incremented`,
+    );
 
     return { message: '密码重置成功，请使用新密码登录' };
   }

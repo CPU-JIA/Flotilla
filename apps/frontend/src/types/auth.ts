@@ -26,6 +26,10 @@ export interface RegisterRequest {
   password: string
 }
 
+export interface ResendVerificationRequest {
+  email: string
+}
+
 export interface AuthResponse {
   accessToken: string
   refreshToken: string

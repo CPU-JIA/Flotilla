@@ -11,6 +11,7 @@ import {
   Query,
   ForbiddenException,
   BadRequestException,
+  Req,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService, AuthResponse } from './auth.service';
@@ -27,6 +28,7 @@ import { Public } from './decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import type { User } from '@prisma/client';
+import type { Request } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -46,19 +48,47 @@ export class AuthController {
   ) {}
 
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 3600000 } }) // 🔒 SECURITY FIX: 5 requests/hour (防止垃圾注册攻击)
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: '用户注册' })
+  @ApiResponseDoc({ status: 201, description: '注册成功' })
+  @ApiResponseDoc({ status: 409, description: '用户名或邮箱已存在' })
+  @ApiResponseDoc({
+    status: 429,
+    description: 'Rate limit exceeded: 超过频率限制（5次/小时）',
+  })
   async register(@Body() dto: RegisterDto): Promise<AuthResponse> {
     this.logger.log(`📝 Registration attempt for username: ${dto.username}`);
     return this.authService.register(dto);
   }
 
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 900000 } }) // 🔒 SECURITY FIX: 15分钟10次（防止暴力破解）
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() dto: LoginDto): Promise<AuthResponse> {
+  @ApiOperation({ summary: '用户登录' })
+  @ApiResponseDoc({ status: 200, description: '登录成功' })
+  @ApiResponseDoc({ status: 401, description: '用户名或密码错误' })
+  @ApiResponseDoc({
+    status: 429,
+    description: 'Rate limit exceeded: 超过频率限制（10次/15分钟）',
+  })
+  async login(
+    @Body() dto: LoginDto,
+    @Req() request: Request,
+  ): Promise<AuthResponse> {
     this.logger.log(`🔐 Login attempt for: ${dto.usernameOrEmail}`);
-    return this.authService.login(dto);
+
+    // 🔒 Phase 4: 提取IP和User-Agent
+    const ipAddress =
+      (request.headers['x-forwarded-for'] as string)?.split(',')[0] ||
+      request.ip ||
+      request.socket.remoteAddress ||
+      'unknown';
+    const userAgent = request.headers['user-agent'] || 'unknown';
+
+    return this.authService.login(dto, ipAddress, userAgent);
   }
 
   @Public()
@@ -67,6 +97,57 @@ export class AuthController {
   async refresh(@Body('refreshToken') refreshToken: string) {
     this.logger.log('🔄 Token refresh attempt');
     return this.authService.refreshTokens(refreshToken);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '用户登出' })
+  @ApiResponseDoc({
+    status: 200,
+    description: '登出成功，所有设备的Token已失效',
+  })
+  @ApiBearerAuth()
+  async logout(@CurrentUser() user: Omit<User, 'passwordHash'>) {
+    this.logger.log(`🚪 Logout request from: ${user.username}`);
+    return this.authService.logout(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('sessions')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '获取所有活跃会话（设备列表）' })
+  @ApiResponseDoc({
+    status: 200,
+    description: '返回用户所有活跃登录设备',
+  })
+  @ApiBearerAuth()
+  async getSessions(@CurrentUser() user: Omit<User, 'passwordHash'>) {
+    this.logger.log(`📱 Get sessions request from: ${user.username}`);
+    return this.authService.getUserSessions(user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('sessions/:sessionId/revoke')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '撤销特定会话（单个设备登出）' })
+  @ApiResponseDoc({
+    status: 200,
+    description: '设备已登出成功',
+  })
+  @ApiResponseDoc({
+    status: 404,
+    description: '会话不存在或无权限操作',
+  })
+  @ApiBearerAuth()
+  async revokeSession(
+    @CurrentUser() user: Omit<User, 'passwordHash'>,
+    @Param('sessionId') sessionId: string,
+  ) {
+    this.logger.log(
+      `🚫 Revoke session request: ${sessionId} from ${user.username}`,
+    );
+    return this.authService.revokeSession(user.id, sessionId);
   }
 
   @UseGuards(JwtAuthGuard)

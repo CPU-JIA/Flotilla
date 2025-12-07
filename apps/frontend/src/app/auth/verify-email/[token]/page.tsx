@@ -199,6 +199,16 @@ export default function VerifyEmailPage() {
               过期时间: {new Date(expiresAt).toLocaleString('zh-CN')}
             </p>
           )}
+
+          {/* 🔒 FIX: 友好提示 - 引导用户使用最新邮件 */}
+          {errorType === 'INVALID' && errorMessage.includes('不存在或已被使用') && (
+            <div className="mt-4 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+              <p className="text-xs text-yellow-800 dark:text-yellow-200 text-center">
+                💡 提示：如果您多次请求了验证邮件，请使用<span className="font-semibold">最新邮件</span>中的验证链接。
+                旧链接会在新邮件发送后失效。
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col space-y-3">
@@ -212,16 +222,16 @@ export default function VerifyEmailPage() {
           ) : (
             <>
               <Button
-                onClick={() => router.push('/auth/register')}
+                onClick={() => router.push('/auth/login')}
                 className="w-full"
               >
-                重新注册
+                返回登录
               </Button>
               <Link
-                href="/auth/login"
+                href="/auth/register"
                 className="text-sm text-center text-muted-foreground hover:text-foreground"
               >
-                返回登录
+                重新注册
               </Link>
             </>
           )}

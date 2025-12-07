@@ -4,6 +4,7 @@
  * 登录页面
  * ECP-A1: 单一职责 - 仅处理登录逻辑
  * ECP-C1: 防御性编程 - 表单验证和错误处理
+ * 🔒 Phase 2 FIX: 邮箱未验证错误友好提示
  */
 
 import { useState, useEffect } from 'react'
@@ -13,13 +14,16 @@ import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ApiError } from '@/lib/api'
+import { ApiError, api } from '@/lib/api'
+import { toast } from 'sonner'
 
 export default function LoginPage() {
   const router = useRouter()
   const { login, isAuthenticated } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [emailVerificationError, setEmailVerificationError] = useState(false)
+  const [resendingEmail, setResendingEmail] = useState(false)
 
   const [formData, setFormData] = useState({
     usernameOrEmail: '',
@@ -47,15 +51,49 @@ export default function LoginPage() {
     })
     // 清除错误消息
     if (error) setError('')
+    if (emailVerificationError) setEmailVerificationError(false)
+  }
+
+  /**
+   * 🔒 Phase 2 FIX: 重新发送验证邮件
+   */
+  const handleResendVerification = async () => {
+    setResendingEmail(true)
+    try {
+      // 提取邮箱（如果用户输入的是邮箱）
+      const email = formData.usernameOrEmail.includes('@')
+        ? formData.usernameOrEmail
+        : ''
+
+      if (!email) {
+        toast.error('请使用邮箱地址登录以重新发送验证邮件')
+        setResendingEmail(false)
+        return
+      }
+
+      await api.auth.resendVerificationEmail({ email })
+      toast.success('验证邮件已发送，请检查您的邮箱（包括垃圾邮件箱）')
+      setEmailVerificationError(false)
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message || '发送失败，请稍后重试')
+      } else {
+        toast.error('网络错误，请稍后重试')
+      }
+    } finally {
+      setResendingEmail(false)
+    }
   }
 
   /**
    * 表单提交处理
    * ECP-C2: 系统化错误处理
+   * 🔒 Phase 2 FIX: 检测邮箱未验证错误并提供友好提示
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setEmailVerificationError(false)
 
     // 客户端验证
     if (!formData.usernameOrEmail || !formData.password) {
@@ -71,7 +109,15 @@ export default function LoginPage() {
       setIsLoading(false)
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message || '登录失败，请检查用户名和密码')
+        const errorMessage = err.message || '登录失败，请检查用户名和密码'
+
+        // 🔒 Phase 2 FIX: 检测邮箱未验证错误
+        if (errorMessage.includes('邮箱未验证')) {
+          setEmailVerificationError(true)
+          setError('您的邮箱尚未验证')
+        } else {
+          setError(errorMessage)
+        }
       } else {
         setError('网络错误，请稍后重试')
       }
@@ -89,8 +135,35 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-md text-sm">
-                {error}
+              <div
+                className={`border px-4 py-3 rounded-md text-sm ${
+                  emailVerificationError
+                    ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-400'
+                    : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1">
+                    <p className="font-medium mb-1">{error}</p>
+                    {emailVerificationError && (
+                      <p className="text-xs opacity-90">
+                        请检查您的邮箱（包括垃圾邮件箱）并点击验证链接
+                      </p>
+                    )}
+                  </div>
+                  {emailVerificationError && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResendVerification}
+                      disabled={resendingEmail}
+                      className="whitespace-nowrap"
+                    >
+                      {resendingEmail ? '发送中...' : '重新发送'}
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
 
