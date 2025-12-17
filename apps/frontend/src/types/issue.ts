@@ -1,3 +1,18 @@
+/**
+ * 🔒 REFACTOR: Issue assignees 关联表结构
+ */
+export interface IssueAssignee {
+  id: string;
+  issueId: string;
+  userId: string;
+  assignedAt: string;
+  user: {
+    id: string;
+    username: string;
+    email: string;
+  };
+}
+
 export interface Issue {
   id: string;
   projectId: string;
@@ -6,7 +21,9 @@ export interface Issue {
   body?: string;
   state: 'OPEN' | 'CLOSED';
   authorId: string;
-  assigneeIds: string[];
+  // 🔒 REFACTOR: 使用关联表替代数组字段
+  assignees?: IssueAssignee[]; // 新格式
+  assigneeIds?: string[]; // 向后兼容，客户端可从assignees提取
   labelIds: string[];
   milestoneId?: string;
   closedAt?: string;
