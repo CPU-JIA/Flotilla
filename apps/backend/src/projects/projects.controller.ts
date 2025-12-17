@@ -17,6 +17,7 @@ import {
   ProjectListResponse,
   ProjectDetailResponse,
 } from './projects.service';
+import { ProjectMembersService } from './project-members.service';
 import {
   CreateProjectDto,
   UpdateProjectDto,
@@ -38,6 +39,7 @@ export class ProjectsController {
 
   constructor(
     private readonly projectsService: ProjectsService,
+    private readonly projectMembersService: ProjectMembersService, // 🔒 REFACTOR: 新增成员管理服务
     private readonly gitService: GitService,
   ) {}
 
@@ -125,7 +127,7 @@ export class ProjectsController {
     @CurrentUser() currentUser: User,
   ): Promise<ProjectMember> {
     this.logger.log(`👥 Adding member to project: ${projectId}`);
-    return this.projectsService.addMember(projectId, addMemberDto, currentUser);
+    return this.projectMembersService.addMember(projectId, addMemberDto, currentUser);
   }
 
   /**
@@ -141,7 +143,7 @@ export class ProjectsController {
     @CurrentUser() currentUser: User,
   ): Promise<{ message: string }> {
     this.logger.log(`👤 Removing member ${userId} from project: ${projectId}`);
-    return this.projectsService.removeMember(projectId, userId, currentUser);
+    return this.projectMembersService.removeMember(projectId, userId, currentUser);
   }
 
   /**
@@ -159,7 +161,7 @@ export class ProjectsController {
     this.logger.log(
       `🔄 Updating member ${userId} role in project: ${projectId}`,
     );
-    return this.projectsService.updateMemberRole(
+    return this.projectMembersService.updateMemberRole(
       projectId,
       userId,
       updateRoleDto,
@@ -182,7 +184,7 @@ export class ProjectsController {
     })[]
   > {
     this.logger.log(`👥 Fetching members for project: ${projectId}`);
-    return this.projectsService.getMembers(projectId, currentUser);
+    return this.projectMembersService.getMembers(projectId);
   }
 
   /**
