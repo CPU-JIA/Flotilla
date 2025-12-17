@@ -123,6 +123,25 @@ export const clearTokens = () => {
 }
 
 /**
+ * 🔒 SECURITY FIX: 获取 CSRF Token 从 Cookie
+ * Double Submit Cookie 模式
+ */
+function getCsrfToken(): string | null {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const [name, value] = cookie.trim().split('=');
+    if (name === 'XSRF-TOKEN') {
+      return decodeURIComponent(value);
+    }
+  }
+  return null;
+}
+
+/**
  * API 错误类
  * ECP-C2: 系统化错误处理
  */
@@ -202,6 +221,16 @@ export async function apiRequest<T = unknown>(
   // FormData 需要浏览器自动生成 multipart/form-data 和 boundary 参数
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json'
+  }
+
+  // 🔒 SECURITY FIX: 添加 CSRF Token (POST/PUT/PATCH/DELETE 请求)
+  const method = options.method?.toUpperCase() || 'GET';
+  const protectedMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
+  if (protectedMethods.includes(method)) {
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+      headers['X-XSRF-TOKEN'] = csrfToken;
+    }
   }
 
   // 合并用户传入的 headers

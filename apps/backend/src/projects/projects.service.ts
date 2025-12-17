@@ -120,12 +120,27 @@ export class ProjectsService {
   /**
    * 获取项目列表（当前用户可见的项目）
    * ECP-C3: 性能意识 - 分页查询
+   *
+   * 🔒 PERFORMANCE FIX: Redis缓存优化 (高频查询)
    */
   async findAll(
     query: QueryProjectsDto,
     currentUser: User,
   ): Promise<ProjectListResponse> {
     const { search, visibility, page = 1, pageSize = 20 } = query;
+
+    // 🔒 仅缓存无搜索、无过滤的首页查询（最常见场景）
+    const isDefaultQuery = !search && !visibility && page === 1 && pageSize === 20;
+    const cacheKey = `user:${currentUser.id}:projects:default`;
+
+    if (isDefaultQuery) {
+      const cached = await this.redisService.get<ProjectListResponse>(cacheKey);
+      if (cached) {
+        this.logger.debug(`✅ Cache hit for user ${currentUser.id} projects list`);
+        return cached;
+      }
+    }
+
     const skip = (page - 1) * pageSize;
 
     const where: any = {
@@ -180,12 +195,20 @@ export class ProjectsService {
       `📋 Retrieved ${projects.length} projects (total: ${total})`,
     );
 
-    return {
+    const response = {
       projects,
       total,
       page,
       pageSize,
     };
+
+    // 🔒 缓存默认查询结果 (TTL: 60秒)
+    if (isDefaultQuery) {
+      await this.redisService.set(cacheKey, response, 60);
+      this.logger.debug(`📝 Cached user ${currentUser.id} projects list for 60s`);
+    }
+
+    return response;
   }
 
   /**

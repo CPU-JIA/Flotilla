@@ -55,7 +55,12 @@ export class IssuesService {
             number,
             title: dto.title,
             body: dto.body,
-            assigneeIds: dto.assigneeIds || [],
+            // 🔒 REFACTOR: 使用关联表创建被分配人
+            assignees: dto.assigneeIds
+              ? {
+                  create: dto.assigneeIds.map((userId) => ({ userId })),
+                }
+              : undefined,
             labelIds: dto.labelIds || [],
             milestoneId: dto.milestoneId,
           },
@@ -69,6 +74,18 @@ export class IssuesService {
               },
             },
             milestone: true,
+            assignees: {
+              // 🔒 REFACTOR: 包含被分配人信息
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    username: true,
+                    email: true,
+                  },
+                },
+              },
+            },
           },
         });
 
@@ -142,8 +159,9 @@ export class IssuesService {
     }
 
     if (assignee) {
-      where.assigneeIds = {
-        has: assignee,
+      // 🔒 REFACTOR: 使用关联表查询
+      where.assignees = {
+        some: { userId: assignee },
       };
     }
 
@@ -186,6 +204,18 @@ export class IssuesService {
               title: true,
               state: true,
               dueDate: true,
+            },
+          },
+          assignees: {
+            // 🔒 REFACTOR: 包含被分配人信息
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  email: true,
+                },
+              },
             },
           },
           _count: {
@@ -231,6 +261,18 @@ export class IssuesService {
           },
         },
         milestone: true,
+        assignees: {
+          // 🔒 REFACTOR: 包含被分配人信息
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                email: true,
+              },
+            },
+          },
+        },
         comments: {
           include: {
             author: {
@@ -289,7 +331,13 @@ export class IssuesService {
 
     if (dto.title !== undefined) updateData.title = dto.title;
     if (dto.body !== undefined) updateData.body = dto.body;
-    if (dto.assigneeIds !== undefined) updateData.assigneeIds = dto.assigneeIds;
+    if (dto.assigneeIds !== undefined) {
+      // 🔒 REFACTOR: 使用关联表更新被分配人
+      updateData.assignees = {
+        deleteMany: {}, // 删除现有分配
+        create: dto.assigneeIds.map((userId) => ({ userId })), // 创建新分配
+      };
+    }
     if (dto.labelIds !== undefined) updateData.labelIds = dto.labelIds;
 
     // Milestone 关联需要使用嵌套更新语法
@@ -328,6 +376,18 @@ export class IssuesService {
           },
         },
         milestone: true,
+        assignees: {
+          // 🔒 REFACTOR: 包含更新后的被分配人
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+                email: true,
+              },
+            },
+          },
+        },
       },
     });
   }

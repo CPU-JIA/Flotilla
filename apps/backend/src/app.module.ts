@@ -29,6 +29,7 @@ import { AuditModule } from './audit/audit.module';
 import { PerformanceMonitoringMiddleware } from './common/middleware/performance-monitoring.middleware';
 import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
 import { HttpsRedirectMiddleware } from './common/middleware/https-redirect.middleware';
+import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 
 @Module({
   imports: [
@@ -37,12 +38,22 @@ import { HttpsRedirectMiddleware } from './common/middleware/https-redirect.midd
       envFilePath: '.env',
     }),
     // ECP-C3: 性能优化 - Rate Limiting防护
-    // 全局限流：100 requests/minute
+    // 🔒 SECURITY FIX: 分层限流策略
     ThrottlerModule.forRoot([
       {
         name: 'default',
         ttl: 60000, // 60秒时间窗口
         limit: 100, // 100次请求限制
+      },
+      {
+        name: 'strict', // 严格限流（用于敏感端点）
+        ttl: 60000, // 60秒
+        limit: 10, // 10次请求
+      },
+      {
+        name: 'upload', // 文件上传限流
+        ttl: 60000, // 60秒
+        limit: 20, // 20次上传
       },
     ]),
     PrismaModule,
@@ -85,6 +96,10 @@ export class AppModule implements NestModule {
 
     // Phase 3: 安全 Headers 中间件（应用于所有路由）
     consumer.apply(SecurityHeadersMiddleware).forRoutes('*');
+
+    // 🔒 SECURITY FIX: CSRF 保护中间件（应用于所有路由）
+    // CWE-352: Cross-Site Request Forgery (CSRF)
+    consumer.apply(CsrfMiddleware).forRoutes('*');
 
     // 性能监控中间件（应用于所有路由）
     consumer.apply(PerformanceMonitoringMiddleware).forRoutes('*');

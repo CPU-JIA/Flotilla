@@ -149,9 +149,11 @@ model User {
   organizationMembers    OrganizationMember[]
   teamMembers            TeamMember[]
   authoredIssues         Issue[]                 @relation("IssueAuthor")
+  assignedIssues         IssueAssignee[]         @relation("IssueAssignees") // 🔒 新增
   issueComments          IssueComment[]          @relation("IssueCommentAuthor")
   issueEvents            IssueEvent[]            @relation("IssueEventActor")
   authoredPRs            PullRequest[]           @relation("PRAuthor")
+  assignedPRs            PRAssignee[]            @relation("PRAssignees") // 🔒 新增
   mergedPRs              PullRequest[]           @relation("PRMerger")
   prReviews              PRReview[]
   prComments             PRComment[]
@@ -185,22 +187,22 @@ model PasswordHistory {
 // 🔒 Phase 4: 用户会话表（设备管理、异地登录检测）
 // 记录每次登录的设备、IP、地理位置
 model UserSession {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   userId    String
-  ipAddress String   @db.VarChar(45) // IPv4: 15字符, IPv6: 45字符
-  userAgent String   @db.Text // 浏览器User-Agent
-  device    String?  @db.VarChar(100) // 设备类型（解析自User-Agent）
-  browser   String?  @db.VarChar(100) // 浏览器类型
-  os        String?  @db.VarChar(100) // 操作系统
-  location  String?  @db.VarChar(200) // 地理位置（城市/国家）
+  ipAddress String  @db.VarChar(45) // IPv4: 15字符, IPv6: 45字符
+  userAgent String  @db.Text // 浏览器User-Agent
+  device    String? @db.VarChar(100) // 设备类型（解析自User-Agent）
+  browser   String? @db.VarChar(100) // 浏览器类型
+  os        String? @db.VarChar(100) // 操作系统
+  location  String? @db.VarChar(200) // 地理位置（城市/国家）
 
   // Token版本（用于撤销特定会话）
   tokenVersion Int
 
   // 会话状态
-  isActive  Boolean  @default(true) // 会话是否激活
+  isActive   Boolean  @default(true) // 会话是否激活
   lastUsedAt DateTime @default(now()) // 最后活跃时间
-  expiresAt DateTime // Token过期时间
+  expiresAt  DateTime // Token过期时间
 
   createdAt DateTime @default(now())
 
@@ -604,9 +606,10 @@ model Issue {
   state     IssueState @default(OPEN)
   authorId  String
 
-  // 关联关系（多对多）
-  assigneeIds String[] // 分配给的用户ID数组
-  labelIds    String[] // 标签ID数组
+  // 🔒 REFACTOR: 使用关联表替代数组字段（符合关系型数据库范式）
+  // ❌ 旧实现: assigneeIds String[]
+  // ✅ 新实现: assignees IssueAssignee[]
+  labelIds    String[] // 标签ID数组 (暂时保留，下次重构)
   milestoneId String?
 
   closedAt  DateTime?
@@ -614,9 +617,10 @@ model Issue {
   updatedAt DateTime  @updatedAt
 
   // 关系
-  project   Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  author    User           @relation("IssueAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  milestone Milestone?     @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  project   Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author    User            @relation("IssueAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  milestone Milestone?      @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  assignees IssueAssignee[] // 🔒 新增: 被分配人关联表
   comments  IssueComment[]
   events    IssueEvent[]
 
@@ -686,6 +690,24 @@ model IssueComment {
   @@map("issue_comments")
 }
 
+// 🔒 REFACTOR: Issue 被分配人关联表（替代 assigneeIds String[]）
+// ECP-A1: SOLID 原则 - 符合关系型数据库设计范式
+model IssueAssignee {
+  id         String   @id @default(cuid())
+  issueId    String
+  userId     String
+  assignedAt DateTime @default(now())
+
+  // 关系
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user  User  @relation("IssueAssignees", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([issueId, userId]) // 防止重复分配
+  @@index([userId]) // 查询用户被分配的所有Issue
+  @@index([issueId]) // 查询Issue的所有被分配人
+  @@map("issue_assignees")
+}
+
 model IssueEvent {
   id       String @id @default(cuid())
   issueId  String
@@ -732,12 +754,13 @@ model PullRequest {
   updatedAt DateTime  @updatedAt
 
   // 关系
-  project  Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  author   User        @relation("PRAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  merger   User?       @relation("PRMerger", fields: [mergedBy], references: [id], onDelete: SetNull)
-  reviews  PRReview[]
-  comments PRComment[]
-  events   PREvent[]
+  project   Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  author    User         @relation("PRAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  merger    User?        @relation("PRMerger", fields: [mergedBy], references: [id], onDelete: SetNull)
+  assignees PRAssignee[] // 🔒 新增: 被分配人关联表
+  reviews   PRReview[]
+  comments  PRComment[]
+  events    PREvent[]
 
   @@unique([projectId, number])
   @@index([projectId])
@@ -745,6 +768,24 @@ model PullRequest {
   @@index([state])
   @@index([createdAt])
   @@map("pull_requests")
+}
+
+// 🔒 REFACTOR: PR 被分配人关联表
+// ECP-A1: SOLID 原则 - 符合关系型数据库设计范式
+model PRAssignee {
+  id            String   @id @default(cuid())
+  pullRequestId String
+  userId        String
+  assignedAt    DateTime @default(now())
+
+  // 关系
+  pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  user        User        @relation("PRAssignees", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pullRequestId, userId]) // 防止重复分配
+  @@index([userId]) // 查询用户被分配的所有PR
+  @@index([pullRequestId]) // 查询PR的所有被分配人
+  @@map("pr_assignees")
 }
 
 model PRReview {
