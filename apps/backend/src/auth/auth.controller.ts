@@ -11,7 +11,9 @@ import {
   Query,
   ForbiddenException,
   BadRequestException,
+  UnauthorizedException,
   Req,
+  Res,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService, AuthResponse } from './auth.service';
@@ -28,7 +30,7 @@ import { Public } from './decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import type { User } from '@prisma/client';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -47,6 +49,52 @@ export class AuthController {
     private redisService: RedisService,
   ) {}
 
+  /**
+   * 🔒 SECURITY FIX: 设置 HttpOnly Cookie (防止 XSS 攻击)
+   * CWE-79: Cross-site Scripting (XSS)
+   * CWE-922: Insecure Storage of Sensitive Information
+   *
+   * @param response Express Response对象
+   * @param accessToken JWT访问令牌 (15分钟有效期)
+   * @param refreshToken JWT刷新令牌 (7天有效期)
+   */
+  private setAuthCookies(
+    response: Response,
+    accessToken: string,
+    refreshToken: string,
+  ): void {
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    // 设置 accessToken Cookie (15分钟)
+    response.cookie('accessToken', accessToken, {
+      httpOnly: true, // 防止 JavaScript 访问 (XSS 防护)
+      secure: isProduction, // HTTPS only in production
+      sameSite: 'strict', // CSRF 防护
+      maxAge: 15 * 60 * 1000, // 15分钟
+      path: '/', // 所有路径可用
+    });
+
+    // 设置 refreshToken Cookie (7天)
+    response.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7天
+      path: '/api/auth/refresh', // 仅刷新端点可用
+    });
+
+    this.logger.debug('🍪 Auth cookies set successfully');
+  }
+
+  /**
+   * 🔒 SECURITY FIX: 清除认证 Cookie
+   */
+  private clearAuthCookies(response: Response): void {
+    response.clearCookie('accessToken', { path: '/' });
+    response.clearCookie('refreshToken', { path: '/api/auth/refresh' });
+    this.logger.debug('🍪 Auth cookies cleared');
+  }
+
   @Public()
   @Throttle({ default: { limit: 5, ttl: 3600000 } }) // 🔒 SECURITY FIX: 5 requests/hour (防止垃圾注册攻击)
   @Post('register')
@@ -58,9 +106,22 @@ export class AuthController {
     status: 429,
     description: 'Rate limit exceeded: 超过频率限制（5次/小时）',
   })
-  async register(@Body() dto: RegisterDto): Promise<AuthResponse> {
+  async register(
+    @Body() dto: RegisterDto,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<Omit<AuthResponse, 'accessToken' | 'refreshToken'>> {
     this.logger.log(`📝 Registration attempt for username: ${dto.username}`);
-    return this.authService.register(dto);
+    const result = await this.authService.register(dto);
+
+    // 🔒 SECURITY FIX: 使用 HttpOnly Cookie 存储 Token (防止 XSS 攻击)
+    // CWE-79: Cross-site Scripting (XSS)
+    // CWE-922: Insecure Storage of Sensitive Information
+    this.setAuthCookies(response, result.accessToken, result.refreshToken);
+
+    // 不在响应体中返回 Token
+    return {
+      user: result.user,
+    };
   }
 
   @Public()
@@ -77,7 +138,8 @@ export class AuthController {
   async login(
     @Body() dto: LoginDto,
     @Req() request: Request,
-  ): Promise<AuthResponse> {
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<Omit<AuthResponse, 'accessToken' | 'refreshToken'>> {
     this.logger.log(`🔐 Login attempt for: ${dto.usernameOrEmail}`);
 
     // 🔒 Phase 4: 提取IP和User-Agent
@@ -88,15 +150,42 @@ export class AuthController {
       'unknown';
     const userAgent = request.headers['user-agent'] || 'unknown';
 
-    return this.authService.login(dto, ipAddress, userAgent);
+    const result = await this.authService.login(dto, ipAddress, userAgent);
+
+    // 🔒 SECURITY FIX: 使用 HttpOnly Cookie 存储 Token
+    this.setAuthCookies(response, result.accessToken, result.refreshToken);
+
+    // 不在响应体中返回 Token
+    return {
+      user: result.user,
+    };
   }
 
   @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refresh(@Body('refreshToken') refreshToken: string) {
+  @ApiOperation({ summary: '刷新访问令牌' })
+  @ApiResponseDoc({ status: 200, description: '令牌刷新成功' })
+  @ApiResponseDoc({ status: 401, description: '刷新令牌无效或已过期' })
+  async refresh(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<{ message: string }> {
     this.logger.log('🔄 Token refresh attempt');
-    return this.authService.refreshTokens(refreshToken);
+
+    // 🔒 SECURITY FIX: 从 Cookie 读取 refreshToken
+    const refreshToken = request.cookies?.refreshToken;
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('刷新令牌缺失');
+    }
+
+    const result = await this.authService.refreshTokens(refreshToken);
+
+    // 设置新的 Cookie
+    this.setAuthCookies(response, result.accessToken, result.refreshToken);
+
+    return { message: '令牌刷新成功' };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -108,8 +197,15 @@ export class AuthController {
     description: '登出成功，所有设备的Token已失效',
   })
   @ApiBearerAuth()
-  async logout(@CurrentUser() user: Omit<User, 'passwordHash'>) {
+  async logout(
+    @CurrentUser() user: Omit<User, 'passwordHash'>,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     this.logger.log(`🚪 Logout request from: ${user.username}`);
+
+    // 清除 Cookie
+    this.clearAuthCookies(response);
+
     return this.authService.logout(user.id);
   }
 

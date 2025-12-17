@@ -5,8 +5,6 @@ import {
   ConflictException,
   BadRequestException,
   Logger,
-  forwardRef,
-  Inject,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
@@ -47,7 +45,7 @@ export class ProjectsService {
   constructor(
     private prisma: PrismaService,
     private redisService: RedisService,
-    @Inject(forwardRef(() => RepositoriesService))
+    // ECP-A2: 高内聚低耦合 - 正常依赖注入，无需 forwardRef
     private repositoriesService: RepositoriesService,
   ) {}
 

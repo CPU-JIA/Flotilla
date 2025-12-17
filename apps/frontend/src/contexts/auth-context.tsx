@@ -4,11 +4,14 @@
  * 认证上下文
  * ECP-A1: 单一职责 - 集中管理认证状态
  * ECP-C4: 无状态原则 - 使用JWT令牌，无服务器端会话
+ *
+ * 🔒 SECURITY FIX: Token 已迁移到 HttpOnly Cookie
+ * 不再需要手动管理 localStorage 和定时刷新
  */
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { api, clearTokens, setTokens, startAutoRefresh, stopAutoRefresh } from '@/lib/api'
-import type { User, LoginRequest, RegisterRequest, AuthResponse } from '@/types/auth'
+import { api } from '@/lib/api'
+import type { User, LoginRequest, RegisterRequest } from '@/types/auth'
 
 interface AuthContextType {
   user: User | null
@@ -32,31 +35,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /**
    * 刷新用户信息
    * ECP-C1: 防御性编程 - 错误处理
-   * 🔒 Phase 2 FIX: 页面刷新后恢复自动刷新定时器
+   *
+   * 🔒 SECURITY FIX: 不再检查 localStorage
+   * 直接调用 API，后端会验证 HttpOnly Cookie
    */
   const refreshUser = useCallback(async () => {
     try {
-      // 检查是否有token，没有token直接跳过API调用
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('accessToken')
-        if (!token) {
-          setUser(null)
-          setIsLoading(false)
-          stopAutoRefresh() // 清理可能存在的定时器
-          return
-        }
-      }
-
       const userData = await api.auth.me()
       setUser(userData)
-
-      // 🔒 Phase 2 FIX: Token有效，启动自动刷新（15分钟Access Token需要14分钟刷新一次）
-      startAutoRefresh()
     } catch (error) {
       console.error('Failed to fetch user:', error)
-      clearTokens()
       setUser(null)
-      stopAutoRefresh() // Token失效，停止自动刷新
     } finally {
       setIsLoading(false)
     }
@@ -72,16 +61,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   /**
    * 登录方法
    * ECP-C2: 系统化错误处理
-   * 🔒 Phase 2 FIX: 登录成功后启动自动Token刷新
+   *
+   * 🔒 SECURITY FIX: 后端会自动设置 HttpOnly Cookie
+   * 前端不再手动存储 Token
    */
   const login = useCallback(async (data: LoginRequest) => {
     try {
-      const response: AuthResponse = await api.auth.login(data)
-      setTokens(response.accessToken, response.refreshToken)
+      const response = await api.auth.login(data)
+      // 🔒 后端已通过 Cookie 设置 Token，前端只需设置用户状态
       setUser(response.user)
-
-      // 🔒 Phase 2 FIX: 启动自动刷新（15分钟Access Token，每14分钟刷新一次）
-      startAutoRefresh()
     } catch (error) {
       throw error
     }
@@ -89,16 +77,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * 注册方法
-   * 🔒 Phase 2 FIX: 注册成功后启动自动Token刷新
+   *
+   * 🔒 SECURITY FIX: 后端会自动设置 HttpOnly Cookie
+   * 前端不再手动存储 Token
    */
   const register = useCallback(async (data: RegisterRequest) => {
     try {
-      const response: AuthResponse = await api.auth.register(data)
-      setTokens(response.accessToken, response.refreshToken)
+      const response = await api.auth.register(data)
+      // 🔒 后端已通过 Cookie 设置 Token，前端只需设置用户状态
       setUser(response.user)
-
-      // 🔒 Phase 2 FIX: 启动自动刷新
-      startAutoRefresh()
     } catch (error) {
       throw error
     }
@@ -106,15 +93,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * 登出方法
-   * 🔒 Phase 2 FIX: 登出时停止自动刷新定时器
+   *
+   * 🔒 SECURITY FIX: 后端 API 会清除 HttpOnly Cookie
+   * 前端只需清除本地状态
    */
   const logout = useCallback(() => {
-    clearTokens()
     setUser(null)
-    api.auth.logout()
-
-    // 🔒 Phase 2 FIX: 停止自动刷新，清理定时器
-    stopAutoRefresh()
+    api.auth.logout() // 调用后端API清除Cookie并重定向
   }, [])
 
   const value: AuthContextType = {

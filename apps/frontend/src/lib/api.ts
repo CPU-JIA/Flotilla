@@ -90,43 +90,36 @@ interface CommitDiff {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
 
 /**
- * 存储令牌到 localStorage
+ * 🔒 SECURITY FIX: Token 已迁移到 HttpOnly Cookie
+ * 不再需要手动管理 Token (XSS 防护)
+ *
+ * 以下函数已废弃，保留仅为向后兼容：
+ * - setTokens() - 已废弃
+ * - getAccessToken() - 已废弃
+ * - getRefreshToken() - 已废弃
+ * - clearTokens() - 已废弃
  */
+
+/** @deprecated Token 现在使用 HttpOnly Cookie，无需手动设置 */
 export const setTokens = (accessToken: string, refreshToken: string) => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('accessToken', accessToken)
-    localStorage.setItem('refreshToken', refreshToken)
-  }
+  console.warn('setTokens() is deprecated. Tokens are now managed via HttpOnly cookies.')
 }
 
-/**
- * 获取访问令牌
- */
+/** @deprecated Token 现在使用 HttpOnly Cookie，无需手动获取 */
 export const getAccessToken = (): string | null => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('accessToken')
-  }
+  console.warn('getAccessToken() is deprecated. Tokens are now managed via HttpOnly cookies.')
   return null
 }
 
-/**
- * 获取刷新令牌
- */
+/** @deprecated Token 现在使用 HttpOnly Cookie，无需手动获取 */
 export const getRefreshToken = (): string | null => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('refreshToken')
-  }
+  console.warn('getRefreshToken() is deprecated. Tokens are now managed via HttpOnly cookies.')
   return null
 }
 
-/**
- * 清除所有令牌
- */
+/** @deprecated Token 现在使用 HttpOnly Cookie，后端会自动清除 */
 export const clearTokens = () => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
-  }
+  console.warn('clearTokens() is deprecated. Call api.auth.logout() instead.')
 }
 
 /**
@@ -145,75 +138,52 @@ export class ApiError extends Error {
 }
 
 /**
- * 刷新访问令牌
- * 🔒 Phase 2 FIX: 支持自动刷新（Access Token有效期15分钟）
+ * 🔒 SECURITY FIX: Token 刷新现在由后端自动处理
+ * 浏览器会自动发送 HttpOnly Cookie
+ *
+ * @deprecated 前端无需手动刷新 Token
  */
-async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = getRefreshToken()
-  if (!refreshToken) {
-    return null
-  }
-
+async function refreshAccessToken(): Promise<boolean> {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: 'POST',
+      credentials: 'include', // 🔒 自动发送 Cookie
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ refreshToken }),
     })
 
     if (!response.ok) {
-      clearTokens()
-      return null
+      return false
     }
 
-    const data = await response.json()
-    setTokens(data.accessToken, refreshToken)
-    return data.accessToken
+    // 后端会自动设置新的 Cookie
+    return true
   } catch {
-    clearTokens()
-    return null
+    return false
   }
 }
 
 /**
- * 🔒 Phase 2 FIX: 定时自动刷新Token（每14分钟刷新一次）
- * Access Token有效期15分钟，提前1分钟刷新
+ * 🔒 SECURITY FIX: 移除定时刷新
+ * Token 刷新现在在请求时自动处理 (401 响应时)
+ *
+ * @deprecated 无需前端定时刷新
  */
-let refreshIntervalId: NodeJS.Timeout | null = null
-
 export const startAutoRefresh = () => {
-  // 清除已存在的定时器
-  if (refreshIntervalId) {
-    clearInterval(refreshIntervalId)
-  }
-
-  // 每14分钟自动刷新一次
-  refreshIntervalId = setInterval(async () => {
-    const currentToken = getAccessToken()
-    if (currentToken) {
-      const newToken = await refreshAccessToken()
-      if (!newToken) {
-        // 刷新失败，重定向到登录页
-        if (typeof window !== 'undefined') {
-          window.location.href = '/auth/login'
-        }
-      }
-    }
-  }, 14 * 60 * 1000) // 14分钟
+  console.warn('startAutoRefresh() is deprecated. Token refresh is now handled automatically.')
 }
 
 export const stopAutoRefresh = () => {
-  if (refreshIntervalId) {
-    clearInterval(refreshIntervalId)
-    refreshIntervalId = null
-  }
+  console.warn('stopAutoRefresh() is deprecated.')
 }
 
 /**
  * 统一的 API 请求方法
  * ECP-C1: 防御性编程 - 自动令牌刷新和错误处理
+ *
+ * 🔒 SECURITY FIX: Token 现在使用 HttpOnly Cookie
+ * 浏览器会自动发送 Cookie，无需手动添加 Authorization header
  *
  * @param endpoint - API 端点路径（不包含baseURL）
  * @param options - fetch 选项
@@ -237,28 +207,22 @@ export async function apiRequest<T = unknown>(
   // 合并用户传入的 headers
   Object.assign(headers, options.headers as Record<string, string>)
 
-  // 添加认证令牌
-  if (requireAuth) {
-    const accessToken = getAccessToken()
-    if (accessToken) {
-      headers['Authorization'] = `Bearer ${accessToken}`
-    }
-  }
-
   try {
     let response = await fetch(url, {
       ...options,
       headers,
+      credentials: 'include', // 🔒 自动发送和接收 Cookie
     })
 
-    // 如果401未授权且有刷新令牌，尝试刷新
+    // 🔒 如果 401 未授权，尝试刷新 Token (后端会自动处理)
     if (response.status === 401 && requireAuth) {
-      const newAccessToken = await refreshAccessToken()
-      if (newAccessToken) {
-        headers['Authorization'] = `Bearer ${newAccessToken}`
+      const refreshed = await refreshAccessToken()
+      if (refreshed) {
+        // 重试原始请求
         response = await fetch(url, {
           ...options,
           headers,
+          credentials: 'include',
         })
       } else {
         // 刷新失败，重定向到登录页
@@ -315,22 +279,28 @@ export const api = {
         false
       ),
 
-    refresh: (refreshToken: string) =>
-      apiRequest<RefreshTokenResponse>(
+    refresh: () =>
+      apiRequest<{ message: string }>(
         '/auth/refresh',
         {
           method: 'POST',
-          body: JSON.stringify({ refreshToken }),
         },
         false
       ),
 
     me: () => apiRequest<User>('/auth/me'),
 
-    logout: () => {
-      clearTokens()
-      if (typeof window !== 'undefined') {
-        window.location.href = '/auth/login'
+    logout: async () => {
+      // 🔒 SECURITY FIX: 调用后端 API 清除 HttpOnly Cookie
+      try {
+        await apiRequest('/auth/logout', { method: 'POST' })
+      } catch (error) {
+        console.error('Logout error:', error)
+      } finally {
+        // 重定向到登录页
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth/login'
+        }
       }
     },
 
@@ -612,12 +582,10 @@ export const api = {
       formData.append('file', file)
       formData.append('path', path)
 
-      const accessToken = getAccessToken()
+      // 🔒 SECURITY FIX: credentials: 'include' 自动发送 Cookie
       return fetch(`${API_BASE_URL}/projects/${projectId}/repository/branches/${branchId}/files`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        credentials: 'include',
         body: formData,
       }).then(async (response) => {
         if (!response.ok) {
@@ -629,13 +597,11 @@ export const api = {
     },
 
     downloadFile: (projectId: string, branchId: string, filePath: string) => {
-      const accessToken = getAccessToken()
+      // 🔒 SECURITY FIX: credentials: 'include' 自动发送 Cookie
       return fetch(
         `${API_BASE_URL}/projects/${projectId}/repository/branches/${branchId}/files/download?path=${encodeURIComponent(filePath)}`,
         {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+          credentials: 'include',
         }
       )
     },
@@ -774,12 +740,10 @@ export const api = {
       formData.append('projectId', projectId)
       formData.append('folder', folder)
 
-      const accessToken = getAccessToken()
+      // 🔒 SECURITY FIX: credentials: 'include' 自动发送 Cookie
       return fetch(`${API_BASE_URL}/files/upload`, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        credentials: 'include',
         body: formData,
       }).then(async (response) => {
         if (!response.ok) {
@@ -813,11 +777,9 @@ export const api = {
 
     // 下载文件
     downloadFile: (id: string) => {
-      const accessToken = getAccessToken()
+      // 🔒 SECURITY FIX: credentials: 'include' 自动发送 Cookie
       return fetch(`${API_BASE_URL}/files/${id}/download`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+        credentials: 'include',
       })
     },
 

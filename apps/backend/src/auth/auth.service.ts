@@ -307,7 +307,9 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async refreshTokens(refreshToken: string): Promise<{ accessToken: string }> {
+  async refreshTokens(
+    refreshToken: string,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     try {
       const payload = this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_REFRESH_SECRET,
@@ -340,12 +342,20 @@ export class AuthService {
         tokenVersion: user.tokenVersion,
       };
 
-      const accessToken = await this.jwtService.signAsync(newPayload, {
-        secret: process.env.JWT_SECRET,
-        expiresIn: (process.env.JWT_EXPIRATION || '7d') as any,
-      });
+      // 🔒 SECURITY FIX: Refresh Token Rotation (刷新令牌轮换)
+      // 生成新的 accessToken 和 refreshToken
+      const [accessToken, newRefreshToken] = await Promise.all([
+        this.jwtService.signAsync(newPayload, {
+          secret: process.env.JWT_SECRET,
+          expiresIn: (process.env.JWT_EXPIRATION || '7d') as any,
+        }),
+        this.jwtService.signAsync(newPayload, {
+          secret: process.env.JWT_REFRESH_SECRET,
+          expiresIn: (process.env.JWT_REFRESH_EXPIRATION || '30d') as any,
+        }),
+      ]);
 
-      return { accessToken };
+      return { accessToken, refreshToken: newRefreshToken };
     } catch (error) {
       // Re-throw UnauthorizedException from user validation
       if (error instanceof UnauthorizedException) {

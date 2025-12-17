@@ -3,6 +3,9 @@
  *
  * Implements Git HTTP Smart Protocol endpoints.
  * Supports standard git clone, fetch, and push operations.
+ *
+ * 🔒 SECURITY FIX: 实现 Basic Auth 认证
+ * CWE-306: Missing Authentication for Critical Function
  */
 
 import {
@@ -22,18 +25,19 @@ import {
   ApiTags,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth,
+  ApiBasicAuth,
   ApiExcludeEndpoint,
 } from '@nestjs/swagger';
 import { HttpSmartService } from './protocols/http-smart.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { Public } from '../auth/decorators/public.decorator';
+import { GitHttpAuthGuard } from './guards/git-http-auth.guard';
 import { getGitStoragePath, getRepoPath } from '../config/git.config';
 import * as path from 'path';
 
 @ApiTags('git-http')
 @Controller('repo')
-@Public()
+@UseGuards(GitHttpAuthGuard) // 🔒 SECURITY FIX: 启用 Git HTTP 认证
+@ApiBasicAuth() // Swagger 文档标注
 export class GitHttpController {
   /**
    * Git repository storage path

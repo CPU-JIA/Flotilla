@@ -3,6 +3,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { validateEnvironmentVariables } from './config/env.validation';
+import cookieParser from 'cookie-parser';
 
 // ⚠️ CRITICAL: Validate environment variables BEFORE application starts
 // This prevents the application from starting with invalid configuration
@@ -24,6 +25,9 @@ async function bootstrap() {
   // ECP-C1: 防御性编程 - 增加请求体大小限制以支持文件上传
   // 支持最大 10MB 的请求体（为 5MB 头像上传留有余地）
   const bodyParser = require('body-parser');
+
+  // 🔒 SECURITY FIX: 启用 Cookie 解析 (用于 HttpOnly Cookie 认证)
+  app.use(cookieParser());
 
   // Git HTTP Protocol 路由需要 raw body (不加 /api 前缀)
   app.use(
