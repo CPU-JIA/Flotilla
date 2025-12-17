@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useRef, useEffect } from 'react'
-import Editor from '@monaco-editor/react'
+import dynamic from 'next/dynamic'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useTheme } from 'next-themes'
@@ -12,9 +12,24 @@ import 'github-markdown-css/github-markdown.css'
  * CodeEditor 组件
  * ECP-A1: 单一职责原则 - 专注于代码编辑功能
  * ECP-C1: 防御性编程 - 自动保存和错误处理
+ * 🔒 PERFORMANCE FIX: Monaco Editor 动态加载 (代码分割)
  * Phase 3.3: 添加版本历史功能
  * 新增: 支持Light/Dark主题切换
  */
+
+// 🔒 PERFORMANCE FIX: 动态导入 Monaco Editor (3MB+ bundle)
+// Next.js dynamic import - 仅在需要时加载
+const Editor = dynamic(() => import('@monaco-editor/react'), {
+  ssr: false, // Monaco不支持SSR
+  loading: () => (
+    <div className="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-900">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-600 dark:text-gray-400">正在加载编辑器...</p>
+      </div>
+    </div>
+  ),
+});
 
 interface CodeEditorProps {
   fileId: string
