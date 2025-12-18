@@ -38,22 +38,22 @@ import { CsrfMiddleware } from './common/middleware/csrf.middleware';
       envFilePath: '.env',
     }),
     // ECP-C3: 性能优化 - Rate Limiting防护
-    // 🔒 SECURITY FIX: 分层限流策略
+    // 🔒 SECURITY FIX: 分层限流策略（开发环境宽松配置）
     ThrottlerModule.forRoot([
       {
         name: 'default',
         ttl: 60000, // 60秒时间窗口
-        limit: 100, // 100次请求限制
+        limit: process.env.NODE_ENV === 'production' ? 100 : 1000, // 生产100次，开发1000次
       },
       {
         name: 'strict', // 严格限流（用于敏感端点）
         ttl: 60000, // 60秒
-        limit: 10, // 10次请求
+        limit: process.env.NODE_ENV === 'production' ? 10 : 100, // 生产10次，开发100次
       },
       {
         name: 'upload', // 文件上传限流
         ttl: 60000, // 60秒
-        limit: 20, // 20次上传
+        limit: process.env.NODE_ENV === 'production' ? 20 : 200, // 生产20次，开发200次
       },
     ]),
     PrismaModule,

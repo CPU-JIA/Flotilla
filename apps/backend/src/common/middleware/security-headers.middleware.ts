@@ -170,11 +170,13 @@ export class SecurityHeadersMiddleware implements NestMiddleware {
         // frame-ancestors: 控制哪些页面可以嵌入当前页面
         // 'none': 禁止任何页面嵌入（与 X-Frame-Options: DENY 相同）
         "frame-ancestors 'none'",
-
-        // upgrade-insecure-requests: 自动将 HTTP 请求升级为 HTTPS
-        // 注意: 仅在 HTTPS 环境下有效
-        'upgrade-insecure-requests',
       ];
+
+      // upgrade-insecure-requests: 自动将 HTTP 请求升级为 HTTPS
+      // 注意: 仅在 HTTPS 环境下有效（开发环境使用HTTP时不启用）
+      if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+        cspDirectives.push('upgrade-insecure-requests');
+      }
     }
 
     res.setHeader('Content-Security-Policy', cspDirectives.join('; '));

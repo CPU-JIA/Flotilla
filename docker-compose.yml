@@ -94,7 +94,7 @@ services:
     ports:
       - '4000:4000'
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       PORT: 4000
       DATABASE_URL: 'postgresql://devplatform:c0tmOi9Wx7LeXGBNipOTo%2BDmZ0PmKdPOiNO89d7r4y8%3D@postgres:5432/flotilla'
       REDIS_URL: 'redis://:O2iPiza2dCSq6pw+v0Wlc3aGrEOzbojQ@redis:6379'
@@ -144,7 +144,7 @@ services:
     ports:
       - '3000:3000'
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       PORT: 3000
       NEXT_PUBLIC_API_URL: 'http://localhost:4000/api'
       NEXT_TELEMETRY_DISABLED: 1
@@ -164,7 +164,7 @@ services:
     ports:
       - '3003:3003'
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       PORT: 3003
       NEXT_TELEMETRY_DISABLED: 1
     networks:
