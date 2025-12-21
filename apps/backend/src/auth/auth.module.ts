@@ -4,6 +4,10 @@ import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { TokenService } from './token.service';
+import { SessionService } from './session.service';
+import { PasswordService } from './password.service';
+import { EmailVerificationService } from './email-verification.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
@@ -71,7 +75,13 @@ import { EmailModule } from '../email/email.module';
   ],
   controllers: [AuthController],
   providers: [
+    // Core Services (P1-2: SOLID - 职责分离)
     AuthService,
+    TokenService,
+    SessionService,
+    PasswordService,
+    EmailVerificationService,
+    // Strategies & Guards
     JwtStrategy,
     {
       provide: APP_GUARD,
@@ -79,6 +89,13 @@ import { EmailModule } from '../email/email.module';
     },
     RolesGuard,
   ],
-  exports: [AuthService, JwtStrategy],
+  exports: [
+    AuthService,
+    TokenService,
+    SessionService,
+    PasswordService,
+    EmailVerificationService,
+    JwtStrategy,
+  ],
 })
 export class AuthModule {}

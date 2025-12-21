@@ -2,12 +2,17 @@
  * 认证服务单元测试
  * ECP-D1: 可测试性设计 - 使用依赖注入Mock
  * ECP-C1: 防御性编程 - 测试边界条件和错误情况
+ * P1-2: SOLID - 职责分离后的测试更新
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { TokenService } from './token.service';
+import { SessionService } from './session.service';
+import { PasswordService } from './password.service';
+import { EmailVerificationService } from './email-verification.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { UserRole } from '@prisma/client';
@@ -28,12 +33,16 @@ describe('AuthService', () => {
       findFirst: jest.fn(),
       create: jest.fn(),
       count: jest.fn(), // 🔐 Bootstrap Admin: 支持user.count()调用
+      update: jest.fn(),
     },
     organization: {
       create: jest.fn(),
     },
     organizationMember: {
       create: jest.fn(),
+    },
+    userSession: {
+      updateMany: jest.fn(),
     },
     $transaction: jest.fn((callback) => callback(mockPrismaService)),
   };
@@ -44,10 +53,48 @@ describe('AuthService', () => {
   };
 
   const mockEmailService = {
-    sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
-    sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
-    sendWelcomeEmail: jest.fn().mockResolvedValue(undefined),
-    sendEmail: jest.fn().mockResolvedValue(undefined),
+    sendVerificationEmail: jest.fn().mockResolvedValue({ success: true }),
+    sendPasswordResetEmail: jest.fn().mockResolvedValue({ success: true }),
+    sendWelcomeEmail: jest.fn().mockResolvedValue({ success: true }),
+    sendEmail: jest.fn().mockResolvedValue({ success: true }),
+  };
+
+  // P1-2: Mock for new specialized services
+  const mockTokenService = {
+    generateTokens: jest.fn().mockResolvedValue({
+      accessToken: 'accessToken',
+      refreshToken: 'refreshToken',
+    }),
+    refreshTokens: jest.fn(),
+    verifyAccessToken: jest.fn(),
+    decodeToken: jest.fn(),
+  };
+
+  const mockSessionService = {
+    createSession: jest.fn().mockResolvedValue(undefined),
+    getUserSessions: jest.fn().mockResolvedValue([]),
+    revokeSession: jest.fn().mockResolvedValue({ message: '设备已登出成功' }),
+    revokeAllSessions: jest.fn().mockResolvedValue(1),
+    parseExpiration: jest.fn().mockReturnValue(30 * 24 * 60 * 60 * 1000),
+    parseUserAgent: jest.fn().mockReturnValue({
+      device: 'Desktop',
+      browser: 'Chrome',
+      os: 'Windows',
+    }),
+  };
+
+  const mockPasswordService = {
+    forgotPassword: jest.fn().mockResolvedValue({ message: '如果该邮箱已注册，您将收到密码重置邮件' }),
+    resetPassword: jest.fn().mockResolvedValue({ message: '密码重置成功，请使用新密码登录' }),
+    verifyResetToken: jest.fn().mockResolvedValue({ valid: true, message: '重置链接有效' }),
+    getResetTokenForTest: jest.fn(),
+  };
+
+  const mockEmailVerificationService = {
+    verifyEmail: jest.fn().mockResolvedValue({ message: '邮箱验证成功！' }),
+    resendVerificationEmail: jest.fn().mockResolvedValue({ message: '验证邮件已发送，请检查您的邮箱' }),
+    verifyEmailToken: jest.fn().mockResolvedValue({ valid: true, message: '验证链接有效' }),
+    getEmailTokenForTest: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -66,6 +113,23 @@ describe('AuthService', () => {
           provide: EmailService,
           useValue: mockEmailService,
         },
+        // P1-2: Add new specialized service providers
+        {
+          provide: TokenService,
+          useValue: mockTokenService,
+        },
+        {
+          provide: SessionService,
+          useValue: mockSessionService,
+        },
+        {
+          provide: PasswordService,
+          useValue: mockPasswordService,
+        },
+        {
+          provide: EmailVerificationService,
+          useValue: mockEmailVerificationService,
+        },
       ],
     }).compile();
 
@@ -74,6 +138,11 @@ describe('AuthService', () => {
     jest.clearAllMocks();
     // 🔐 Bootstrap Admin: 默认返回1表示有用户存在,不触发首个用户自动提升
     mockPrismaService.user.count.mockResolvedValue(1);
+    // Reset mock implementations for new services
+    mockTokenService.generateTokens.mockResolvedValue({
+      accessToken: 'accessToken',
+      refreshToken: 'refreshToken',
+    });
   });
 
   it('应该成功创建服务实例', () => {
@@ -120,9 +189,11 @@ describe('AuthService', () => {
         userId: createdUser.id,
         role: 'OWNER',
       });
-      mockJwtService.signAsync
-        .mockResolvedValueOnce('accessToken')
-        .mockResolvedValueOnce('refreshToken');
+      // P1-2: Now using TokenService instead of JwtService directly
+      mockTokenService.generateTokens.mockResolvedValue({
+        accessToken: 'accessToken',
+        refreshToken: 'refreshToken',
+      });
 
       // Mock bcrypt.hash
       (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
@@ -135,6 +206,7 @@ describe('AuthService', () => {
       expect(result.user.username).toBe(registerDto.username);
       expect(result.user).not.toHaveProperty('passwordHash');
       expect(mockPrismaService.user.create).toHaveBeenCalled();
+      expect(mockTokenService.generateTokens).toHaveBeenCalled();
     });
 
     it('当用户名已存在时应抛出 ConflictException', async () => {
@@ -170,6 +242,7 @@ describe('AuthService', () => {
         avatar: null,
         bio: null,
         isActive: true,
+        tokenVersion: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -190,9 +263,11 @@ describe('AuthService', () => {
         userId: createdUser.id,
         role: 'OWNER',
       });
-      mockJwtService.signAsync
-        .mockResolvedValueOnce('accessToken')
-        .mockResolvedValueOnce('refreshToken');
+      // P1-2: Now using TokenService instead of JwtService directly
+      mockTokenService.generateTokens.mockResolvedValue({
+        accessToken: 'accessToken',
+        refreshToken: 'refreshToken',
+      });
       (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
 
       const result = await service.register(registerDto);
@@ -231,9 +306,11 @@ describe('AuthService', () => {
     it('应该成功登录并返回令牌', async () => {
       mockPrismaService.user.findFirst.mockResolvedValue(user);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-      mockJwtService.signAsync
-        .mockResolvedValueOnce('accessToken')
-        .mockResolvedValueOnce('refreshToken');
+      // P1-2: Now using TokenService instead of JwtService directly
+      mockTokenService.generateTokens.mockResolvedValue({
+        accessToken: 'accessToken',
+        refreshToken: 'refreshToken',
+      });
 
       const result = await service.login(loginDto);
 
@@ -242,6 +319,7 @@ describe('AuthService', () => {
       expect(result).toHaveProperty('user');
       expect(result.user.username).toBe(user.username);
       expect(result.user).not.toHaveProperty('passwordHash');
+      expect(mockTokenService.generateTokens).toHaveBeenCalled();
     });
 
     it('应该在用户不存在时抛出 UnauthorizedException', async () => {
@@ -305,42 +383,23 @@ describe('AuthService', () => {
     const refreshToken = 'validRefreshToken';
 
     it('应该成功刷新访问令牌', async () => {
-      const payload = {
-        sub: '1',
-        username: 'testuser',
-        email: 'test@example.com',
-        role: 'USER',
-        tokenVersion: 0, // 🔐 Required for token version validation
-      };
-      const user = {
-        id: '1',
-        username: 'testuser',
-        email: 'test@example.com',
-        passwordHash: 'hashedPassword',
-        role: UserRole.USER,
-        avatar: null,
-        bio: null,
-        isActive: true,
-        tokenVersion: 0,
-        emailVerified: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      mockJwtService.verify.mockReturnValue(payload);
-      mockPrismaService.user.findUnique.mockResolvedValue(user);
-      mockJwtService.signAsync.mockResolvedValue('newAccessToken');
+      // P1-2: Now delegating to TokenService
+      mockTokenService.refreshTokens.mockResolvedValue({
+        accessToken: 'newAccessToken',
+        refreshToken: 'newRefreshToken',
+      });
 
       const result = await service.refreshTokens(refreshToken);
 
       expect(result).toHaveProperty('accessToken');
       expect(result.accessToken).toBe('newAccessToken');
+      expect(mockTokenService.refreshTokens).toHaveBeenCalledWith(refreshToken);
     });
 
     it('应该在刷新令牌无效时抛出 UnauthorizedException', async () => {
-      mockJwtService.verify.mockImplementation(() => {
-        throw new Error('Invalid token');
-      });
+      mockTokenService.refreshTokens.mockRejectedValue(
+        new UnauthorizedException('Invalid refresh token'),
+      );
 
       await expect(service.refreshTokens(refreshToken)).rejects.toThrow(
         UnauthorizedException,
@@ -351,14 +410,9 @@ describe('AuthService', () => {
     });
 
     it('应该在用户不存在时抛出 UnauthorizedException', async () => {
-      const payload = {
-        sub: '999',
-        username: 'nonexistent',
-        email: 'test@test.com',
-        role: 'USER',
-      };
-      mockJwtService.verify.mockReturnValue(payload);
-      mockPrismaService.user.findUnique.mockResolvedValue(null);
+      mockTokenService.refreshTokens.mockRejectedValue(
+        new UnauthorizedException('用户不存在'),
+      );
 
       await expect(service.refreshTokens(refreshToken)).rejects.toThrow(
         UnauthorizedException,
