@@ -63,9 +63,9 @@ describe('RepositoriesService', () => {
     }).compile();
 
     service = module.get<RepositoriesService>(RepositoriesService);
-    prismaService = module.get<PrismaService>(PrismaService);
-    minioService = module.get<MinioService>(MinioService);
-    gitService = module.get<GitService>(GitService);
+    _prismaService = module.get<PrismaService>(PrismaService);
+    _minioService = module.get<MinioService>(MinioService);
+    _gitService = module.get<GitService>(GitService);
   });
 
   afterEach(() => {

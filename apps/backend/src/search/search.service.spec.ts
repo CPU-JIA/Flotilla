@@ -87,7 +87,7 @@ describe('SearchService', () => {
 
     service = module.get<SearchService>(SearchService);
     prismaService = module.get(PrismaService);
-    meilisearchService = module.get(MeilisearchService);
+    _meilisearchService = module.get(MeilisearchService);
     indexService = module.get(IndexService);
   });
 

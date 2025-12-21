@@ -299,7 +299,7 @@ describe('EmailService', () => {
   describe('配置回退机制', () => {
     it('应在FRONTEND_URL未配置时使用默认值', async () => {
       // 创建新的service实例，ConfigService返回null
-      mockConfigService.get = jest.fn(() => null);
+      mockConfigService.get = jest.fn(() => null) as any;
 
       const module: TestingModule = await Test.createTestingModule({
         providers: [

@@ -98,8 +98,8 @@ describe('PullRequestsService', () => {
     }).compile();
 
     service = module.get<PullRequestsService>(PullRequestsService);
-    prisma = module.get<PrismaService>(PrismaService);
-    gitService = module.get<GitService>(GitService);
+    _prisma = module.get<PrismaService>(PrismaService);
+    _gitService = module.get<GitService>(GitService);
   });
 
   afterEach(() => {

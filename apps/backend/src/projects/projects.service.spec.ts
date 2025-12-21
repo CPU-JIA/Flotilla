@@ -67,6 +67,16 @@ describe('ProjectsService', () => {
     role: UserRole.USER,
     createdAt: new Date(),
     updatedAt: new Date(),
+    avatar: null,
+    bio: null,
+    passwordHash: 'hashed',
+    isActive: true,
+    emailVerified: true,
+    emailVerifyToken: null,
+    emailVerifyExpires: null,
+    passwordResetToken: null,
+    passwordResetExpires: null,
+    tokenVersion: 0,
   };
 
   beforeEach(async () => {

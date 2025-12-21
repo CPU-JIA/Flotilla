@@ -51,7 +51,7 @@ describe('IssuesService', () => {
     }).compile();
 
     service = module.get<IssuesService>(IssuesService);
-    prisma = module.get<PrismaService>(PrismaService);
+    _prisma = module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -105,7 +105,7 @@ describe('IssuesService', () => {
         title: 'Test Issue',
         state: 'OPEN',
         authorId,
-        assigneeIds: [],
+        body: null,
         labelIds: [],
         milestoneId: null,
         closedAt: null,
@@ -134,18 +134,24 @@ describe('IssuesService', () => {
         id: 'issue-1',
         projectId,
         number: 1,
-        ...createDto,
+        title: createDto.title,
+        body: null,
         state: 'OPEN',
         authorId,
+        labelIds: createDto.labelIds,
         milestoneId: null,
         closedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
+        assignees: [
+          { userId: 'user-2', user: { id: 'user-2', username: 'user2', email: 'user2@test.com' } },
+          { userId: 'user-3', user: { id: 'user-3', username: 'user3', email: 'user3@test.com' } },
+        ],
       });
 
       const result = await service.create(projectId, authorId, createDto);
 
-      expect(result.assigneeIds).toEqual(['user-2', 'user-3']);
+      expect((result as any).assignees).toHaveLength(2);
       expect(result.labelIds).toEqual(['label-1', 'label-2']);
     });
   });

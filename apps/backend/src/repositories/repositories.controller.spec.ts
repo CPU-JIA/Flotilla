@@ -33,7 +33,7 @@ describe('RepositoriesController', () => {
     }).compile();
 
     controller = module.get<RepositoriesController>(RepositoriesController);
-    service = module.get<RepositoriesService>(RepositoriesService);
+    _service = module.get<RepositoriesService>(RepositoriesService);
   });
 
   it('should be defined', () => {

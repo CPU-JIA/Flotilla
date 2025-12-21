@@ -44,7 +44,7 @@ import { User, UserRole } from '@prisma/client';
 import { randomBytes } from 'crypto';
 
 // Re-export for backward compatibility
-export { JwtPayload } from './token.service';
+export type { JwtPayload } from './token.service';
 
 export interface AuthResponse {
   user: Omit<User, 'passwordHash'>;

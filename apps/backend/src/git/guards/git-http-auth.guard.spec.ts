@@ -49,10 +49,10 @@ describe('GitHttpAuthGuard', () => {
           provide: PrismaService,
           useValue: {
             user: {
-              findUnique: jest.fn(),
+              findUnique: jest.fn() as any,
             },
             project: {
-              findUnique: jest.fn(),
+              findUnique: jest.fn() as any,
             },
           },
         },
@@ -135,14 +135,14 @@ describe('GitHttpAuthGuard', () => {
       const context = createMockContext(validAuth, 'project-1');
 
       // Mock Prisma查询
-      jest
-        .spyOn(prismaService.user, 'findUnique')
-        .mockImplementation((args: any) => {
+      (jest.spyOn(prismaService.user, 'findUnique') as jest.Mock).mockImplementation(
+        (args: any) => {
           if (args.where.username === 'testuser') {
             return Promise.resolve(mockUser as any);
           }
           return Promise.resolve(null);
-        });
+        },
+      );
 
       jest.spyOn(prismaService.project, 'findUnique').mockResolvedValue({
         ...mockProject,
@@ -161,14 +161,14 @@ describe('GitHttpAuthGuard', () => {
       const context = createMockContext(validAuth, 'project-1');
 
       // Mock Prisma查询 (username查询返回null, email查询返回用户)
-      jest
-        .spyOn(prismaService.user, 'findUnique')
-        .mockImplementation((args: any) => {
+      (jest.spyOn(prismaService.user, 'findUnique') as jest.Mock).mockImplementation(
+        (args: any) => {
           if (args.where.email === 'test@example.com') {
             return Promise.resolve(mockUser as any);
           }
           return Promise.resolve(null);
-        });
+        },
+      );
 
       jest.spyOn(prismaService.project, 'findUnique').mockResolvedValue({
         ...mockProject,
@@ -185,14 +185,14 @@ describe('GitHttpAuthGuard', () => {
         'Basic ' + Buffer.from('testuser:wrongpassword').toString('base64');
       const context = createMockContext(invalidAuth, 'project-1');
 
-      jest
-        .spyOn(prismaService.user, 'findUnique')
-        .mockImplementation((args: any) => {
+      (jest.spyOn(prismaService.user, 'findUnique') as jest.Mock).mockImplementation(
+        (args: any) => {
           if (args.where.username === 'testuser') {
             return Promise.resolve(mockUser as any);
           }
           return Promise.resolve(null);
-        });
+        },
+      );
 
       await expect(guard.canActivate(context)).rejects.toThrow(
         UnauthorizedException,
@@ -234,14 +234,14 @@ describe('GitHttpAuthGuard', () => {
     beforeEach(() => {
       const _validAuth =
         'Basic ' + Buffer.from('testuser:testpass123').toString('base64');
-      jest
-        .spyOn(prismaService.user, 'findUnique')
-        .mockImplementation((args: any) => {
+      (jest.spyOn(prismaService.user, 'findUnique') as jest.Mock).mockImplementation(
+        (args: any) => {
           if (args.where.username === 'testuser') {
             return Promise.resolve(mockUser as any);
           }
           return Promise.resolve(null);
-        });
+        },
+      );
     });
 
     it('SUPER_ADMIN 应该bypass所有权限检查', async () => {
@@ -259,14 +259,14 @@ describe('GitHttpAuthGuard', () => {
         role: UserRole.SUPER_ADMIN,
       };
 
-      jest
-        .spyOn(prismaService.user, 'findUnique')
-        .mockImplementation((args: any) => {
+      (jest.spyOn(prismaService.user, 'findUnique') as jest.Mock).mockImplementation(
+        (args: any) => {
           if (args.where.username === 'admin') {
             return Promise.resolve(adminUser as any);
           }
           return Promise.resolve(null);
-        });
+        },
+      );
 
       jest.spyOn(prismaService.project, 'findUnique').mockResolvedValue({
         ...mockProject,
@@ -413,14 +413,14 @@ describe('GitHttpAuthGuard', () => {
 
   describe('操作类型识别', () => {
     beforeEach(() => {
-      jest
-        .spyOn(prismaService.user, 'findUnique')
-        .mockImplementation((args: any) => {
+      (jest.spyOn(prismaService.user, 'findUnique') as jest.Mock).mockImplementation(
+        (args: any) => {
           if (args.where.username === 'testuser') {
             return Promise.resolve(mockUser as any);
           }
           return Promise.resolve(null);
-        });
+        },
+      );
 
       jest.spyOn(prismaService.project, 'findUnique').mockResolvedValue({
         ...mockProject,
@@ -501,14 +501,14 @@ describe('GitHttpAuthGuard', () => {
         'Basic ' + Buffer.from('testuser:testpass123').toString('base64');
       const context = createMockContext(validAuth, 'project-1');
 
-      jest
-        .spyOn(prismaService.user, 'findUnique')
-        .mockImplementation((args: any) => {
+      (jest.spyOn(prismaService.user, 'findUnique') as jest.Mock).mockImplementation(
+        (args: any) => {
           if (args.where.username === 'testuser') {
             return Promise.resolve(mockUser as any);
           }
           return Promise.resolve(null);
-        });
+        },
+      );
 
       jest.spyOn(prismaService.project, 'findUnique').mockResolvedValue({
         ...mockProject,

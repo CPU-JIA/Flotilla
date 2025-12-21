@@ -4,20 +4,18 @@
  */
 
 // Core Service
-export { AuthService, AuthResponse } from './auth.service';
+export { AuthService } from './auth.service';
+export type { AuthResponse } from './auth.service';
 
 // Specialized Services
-export { TokenService, JwtPayload, TokenPair } from './token.service';
-export {
-  SessionService,
-  SessionInfo,
-  ParsedUserAgent,
-} from './session.service';
-export { PasswordService, TokenValidationResult } from './password.service';
-export {
-  EmailVerificationService,
-  VerificationResult,
-} from './email-verification.service';
+export { TokenService } from './token.service';
+export type { JwtPayload, TokenPair } from './token.service';
+export { SessionService } from './session.service';
+export type { SessionInfo, ParsedUserAgent } from './session.service';
+export { PasswordService } from './password.service';
+export type { TokenValidationResult } from './password.service';
+export { EmailVerificationService } from './email-verification.service';
+export type { VerificationResult } from './email-verification.service';
 
 // Guards
 export { JwtAuthGuard } from './guards/jwt-auth.guard';

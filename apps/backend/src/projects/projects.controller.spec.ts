@@ -69,7 +69,7 @@ describe('ProjectsController', () => {
     }).compile();
 
     controller = module.get<ProjectsController>(ProjectsController);
-    service = module.get<ProjectsService>(ProjectsService);
+    _service = module.get<ProjectsService>(ProjectsService);
   });
 
   afterEach(() => {

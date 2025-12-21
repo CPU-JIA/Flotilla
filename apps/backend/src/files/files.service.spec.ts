@@ -34,7 +34,7 @@ describe('FilesService - Security Tests', () => {
     id: 'user-123',
     email: 'test@example.com',
     username: 'testuser',
-    role: UserRole.DEVELOPER,
+    role: UserRole.USER,
     passwordHash: 'hashed',
     emailVerified: true,
     createdAt: new Date(),
@@ -159,7 +159,7 @@ describe('FilesService - Security Tests', () => {
         },
       } as any);
 
-      jest.spyOn(minioService, 'uploadFile').mockResolvedValue(undefined);
+      jest.spyOn(minioService, 'uploadFile').mockResolvedValue('mock-url');
 
       // Act
       const result = await service.uploadFile(
@@ -234,7 +234,7 @@ describe('FilesService - Security Tests', () => {
         },
       } as any);
 
-      jest.spyOn(minioService, 'uploadFile').mockResolvedValue(undefined);
+      jest.spyOn(minioService, 'uploadFile').mockResolvedValue('mock-url');
 
       // Act
       const result = await service.uploadFile(
@@ -269,9 +269,9 @@ describe('FilesService - Security Tests', () => {
       let uploadedPath: string = '';
       jest
         .spyOn(minioService, 'uploadFile')
-        .mockImplementation((objectName) => {
+        .mockImplementation((objectName: string) => {
           uploadedPath = objectName;
-          return Promise.resolve();
+          return Promise.resolve('mock-url');
         });
 
       jest.spyOn(prismaService.projectFile, 'create').mockResolvedValue({
@@ -366,7 +366,7 @@ describe('FilesService - Security Tests', () => {
         },
       } as any);
 
-      jest.spyOn(minioService, 'uploadFile').mockResolvedValue(undefined);
+      jest.spyOn(minioService, 'uploadFile').mockResolvedValue('mock-url');
 
       // Act
       const result = await service.uploadFile(
@@ -422,7 +422,7 @@ describe('FilesService - Security Tests', () => {
         },
       } as any);
 
-      jest.spyOn(minioService, 'uploadFile').mockResolvedValue(undefined);
+      jest.spyOn(minioService, 'uploadFile').mockResolvedValue('mock-url');
 
       // Act
       const result = await service.uploadFile(

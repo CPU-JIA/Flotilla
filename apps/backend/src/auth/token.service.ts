@@ -10,9 +10,35 @@
  */
 
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
+
+/**
+ * 将过期时间字符串转换为秒数
+ * @param duration 时间字符串如 '7d', '30d', '1h'
+ * @returns 秒数
+ */
+function parseExpiresIn(duration: string): number {
+  const match = duration.match(/^(\d+)(s|m|h|d)$/);
+  if (!match) return 7 * 24 * 60 * 60; // 默认7天
+
+  const value = parseInt(match[1], 10);
+  const unit = match[2];
+
+  switch (unit) {
+    case 's':
+      return value;
+    case 'm':
+      return value * 60;
+    case 'h':
+      return value * 60 * 60;
+    case 'd':
+      return value * 24 * 60 * 60;
+    default:
+      return 7 * 24 * 60 * 60;
+  }
+}
 
 /**
  * JWT Payload接口
@@ -59,11 +85,11 @@ export class TokenService {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: process.env.JWT_SECRET,
-        expiresIn: process.env.JWT_EXPIRATION || '7d',
+        expiresIn: parseExpiresIn(process.env.JWT_EXPIRATION || '7d'),
       }),
       this.jwtService.signAsync(payload, {
         secret: process.env.JWT_REFRESH_SECRET,
-        expiresIn: process.env.JWT_REFRESH_EXPIRATION || '30d',
+        expiresIn: parseExpiresIn(process.env.JWT_REFRESH_EXPIRATION || '30d'),
       }),
     ]);
 
@@ -116,11 +142,11 @@ export class TokenService {
       const [accessToken, newRefreshToken] = await Promise.all([
         this.jwtService.signAsync(newPayload, {
           secret: process.env.JWT_SECRET,
-          expiresIn: process.env.JWT_EXPIRATION || '7d',
+          expiresIn: parseExpiresIn(process.env.JWT_EXPIRATION || '7d'),
         }),
         this.jwtService.signAsync(newPayload, {
           secret: process.env.JWT_REFRESH_SECRET,
-          expiresIn: process.env.JWT_REFRESH_EXPIRATION || '30d',
+          expiresIn: parseExpiresIn(process.env.JWT_REFRESH_EXPIRATION || '30d'),
         }),
       ]);
 
