@@ -43,9 +43,6 @@ jobs:
       - name: Generate Prisma client
         run: cd apps/backend && pnpm prisma generate
 
-      - name: Run backend tests
-        run: cd apps/backend && pnpm test
-
       - name: Run backend tests with coverage
         run: cd apps/backend && pnpm test:cov
 
