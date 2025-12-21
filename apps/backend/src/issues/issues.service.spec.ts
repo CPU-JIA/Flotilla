@@ -144,8 +144,14 @@ describe('IssuesService', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         assignees: [
-          { userId: 'user-2', user: { id: 'user-2', username: 'user2', email: 'user2@test.com' } },
-          { userId: 'user-3', user: { id: 'user-3', username: 'user3', email: 'user3@test.com' } },
+          {
+            userId: 'user-2',
+            user: { id: 'user-2', username: 'user2', email: 'user2@test.com' },
+          },
+          {
+            userId: 'user-3',
+            user: { id: 'user-3', username: 'user3', email: 'user3@test.com' },
+          },
         ],
       });
 

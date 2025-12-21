@@ -10,7 +10,7 @@
  */
 
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
-import { JwtService, JwtSignOptions } from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
 
@@ -146,7 +146,9 @@ export class TokenService {
         }),
         this.jwtService.signAsync(newPayload, {
           secret: process.env.JWT_REFRESH_SECRET,
-          expiresIn: parseExpiresIn(process.env.JWT_REFRESH_EXPIRATION || '30d'),
+          expiresIn: parseExpiresIn(
+            process.env.JWT_REFRESH_EXPIRATION || '30d',
+          ),
         }),
       ]);
 

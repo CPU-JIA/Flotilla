@@ -15,6 +15,7 @@ import { MinioService } from '../minio/minio.service';
 import { RedisService } from '../redis/redis.service';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { createMockUser } from '../test-utils/mock-user';
 
 // Mock bcrypt at module level
 jest.mock('bcrypt', () => ({
@@ -178,18 +179,12 @@ describe('UsersService', () => {
   });
 
   describe('update - 更新用户信息', () => {
-    const currentUser = {
+    const currentUser = createMockUser({
       id: '1',
       username: 'testuser',
       email: 'test@example.com',
       passwordHash: 'hashedPassword',
-      role: UserRole.USER,
-      avatar: null,
-      bio: null,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    });
 
     const updateDto = {
       avatar: 'https://example.com/avatar.jpg',
@@ -222,28 +217,22 @@ describe('UsersService', () => {
 
     it('普通用户不能更新其他用户的信息', async () => {
       // Create another normal user trying to update user '1'
-      const otherUser = {
+      const otherUser = createMockUser({
         id: '2',
         username: 'otheruser',
         email: 'other@example.com',
         passwordHash: 'hashedPassword',
-        role: UserRole.USER,
-        avatar: null,
-        bio: null,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      } as const;
+      });
 
       mockPrismaService.user.findUnique.mockResolvedValue(currentUser);
 
       // Should throw ForbiddenException before reaching update
-      await expect(
-        service.update('1', updateDto, otherUser as any),
-      ).rejects.toThrow(ForbiddenException);
-      await expect(
-        service.update('1', updateDto, otherUser as any),
-      ).rejects.toThrow('您没有权限修改此用户信息');
+      await expect(service.update('1', updateDto, otherUser)).rejects.toThrow(
+        ForbiddenException,
+      );
+      await expect(service.update('1', updateDto, otherUser)).rejects.toThrow(
+        '您没有权限修改此用户信息',
+      );
 
       // Ensure update was never called due to permission check
       expect(mockPrismaService.user.update).not.toHaveBeenCalled();
@@ -251,18 +240,12 @@ describe('UsersService', () => {
   });
 
   describe('changePassword - 修改密码', () => {
-    const user = {
+    const user = createMockUser({
       id: '1',
       username: 'testuser',
       email: 'test@example.com',
-      role: UserRole.USER,
       passwordHash: 'hashedOldPassword',
-      avatar: null,
-      bio: null,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    });
 
     const changePasswordDto = {
       currentPassword: 'oldPassword123',
@@ -325,31 +308,20 @@ describe('UsersService', () => {
   });
 
   describe('remove - 删除用户', () => {
-    const admin = {
+    const admin = createMockUser({
       id: '1',
       username: 'admin',
       email: 'admin@example.com',
       role: UserRole.SUPER_ADMIN,
       passwordHash: 'hashedPassword',
-      avatar: null,
-      bio: null,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    });
 
-    const user = {
+    const user = createMockUser({
       id: '2',
       username: 'testuser',
       email: 'test@example.com',
-      role: UserRole.USER,
       passwordHash: 'hashedPassword',
-      avatar: null,
-      bio: null,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    });
 
     it('管理员应该能够删除用户', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(user);

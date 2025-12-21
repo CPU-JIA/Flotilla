@@ -22,8 +22,6 @@ import { PrismaService } from '../prisma/prisma.service';
  */
 describe('SearchService', () => {
   let service: SearchService;
-  let prismaService: jest.Mocked<PrismaService>;
-  let _meilisearchService: jest.Mocked<MeilisearchService>;
   let indexService: jest.Mocked<IndexService>;
 
   // Mock MeiliSearch index
@@ -32,40 +30,44 @@ describe('SearchService', () => {
     addDocuments: jest.fn(),
   };
 
+  // 定义在模块级别，便于测试直接访问
+  const mockPrismaService = {
+    project: {
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+    },
+    projectMember: {
+      findMany: jest.fn(),
+      findFirst: jest.fn(),
+    },
+    file: {
+      findUnique: jest.fn(),
+      findMany: jest.fn(),
+      count: jest.fn(),
+    },
+    searchMetadata: {
+      findUnique: jest.fn(),
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+      count: jest.fn(),
+      upsert: jest.fn(),
+      update: jest.fn(),
+    },
+  };
+
+  const mockMeilisearchService = {
+    getIndex: jest.fn().mockReturnValue(mockIndex),
+    getClient: jest.fn(),
+  };
+
+  const mockIndexService = {
+    indexProject: jest.fn(),
+    indexFile: jest.fn(),
+  };
+
   beforeEach(async () => {
-    const mockPrismaService = {
-      project: {
-        findUnique: jest.fn(),
-        findMany: jest.fn(),
-      },
-      projectMember: {
-        findMany: jest.fn(),
-        findFirst: jest.fn(),
-      },
-      file: {
-        findUnique: jest.fn(),
-        findMany: jest.fn(),
-        count: jest.fn(),
-      },
-      searchMetadata: {
-        findUnique: jest.fn(),
-        findFirst: jest.fn(),
-        findMany: jest.fn(),
-        count: jest.fn(),
-        upsert: jest.fn(),
-        update: jest.fn(),
-      },
-    };
-
-    const mockMeilisearchService = {
-      getIndex: jest.fn().mockReturnValue(mockIndex),
-      getClient: jest.fn(),
-    };
-
-    const mockIndexService = {
-      indexProject: jest.fn(),
-      indexFile: jest.fn(),
-    };
+    // 清空所有mock
+    jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -86,25 +88,19 @@ describe('SearchService', () => {
     }).compile();
 
     service = module.get<SearchService>(SearchService);
-    prismaService = module.get(PrismaService);
-    _meilisearchService = module.get(MeilisearchService);
     indexService = module.get(IndexService);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   describe('searchCode', () => {
     it('should search in user projects + public projects for authenticated user', async () => {
       // Mock: 用户有2个项目
-      prismaService.projectMember.findMany.mockResolvedValue([
+      mockPrismaService.projectMember.findMany.mockResolvedValue([
         { projectId: 'proj1' } as any,
         { projectId: 'proj2' } as any,
       ]);
 
       // Mock: 2个公开项目
-      prismaService.project.findMany.mockResolvedValue([
+      mockPrismaService.project.findMany.mockResolvedValue([
         { id: 'public1' } as any,
         { id: 'public2' } as any,
       ]);
@@ -135,7 +131,7 @@ describe('SearchService', () => {
 
     it('should only search in public projects for anonymous user', async () => {
       // Mock: 2个公开项目
-      prismaService.project.findMany.mockResolvedValue([
+      mockPrismaService.project.findMany.mockResolvedValue([
         { id: 'public1' } as any,
         { id: 'public2' } as any,
       ]);
@@ -153,7 +149,7 @@ describe('SearchService', () => {
       });
 
       // 验证只查询了公开项目
-      expect(prismaService.projectMember.findMany).not.toHaveBeenCalled();
+      expect(mockPrismaService.projectMember.findMany).not.toHaveBeenCalled();
       expect(mockIndex.search).toHaveBeenCalledWith(
         'test',
         expect.objectContaining({
@@ -168,7 +164,7 @@ describe('SearchService', () => {
       const projectId = 'proj123';
 
       // Mock: 用户是项目成员
-      prismaService.projectMember.findFirst.mockResolvedValue({
+      mockPrismaService.projectMember.findFirst.mockResolvedValue({
         userId: 'user123',
         projectId,
       } as any);
@@ -198,10 +194,10 @@ describe('SearchService', () => {
       const projectId = 'proj123';
 
       // Mock: 用户不是项目成员
-      prismaService.projectMember.findFirst.mockResolvedValue(null);
+      mockPrismaService.projectMember.findFirst.mockResolvedValue(null);
 
       // Mock: 项目不是公开的
-      prismaService.project.findUnique.mockResolvedValue({
+      mockPrismaService.project.findUnique.mockResolvedValue({
         id: projectId,
         visibility: 'PRIVATE',
       } as any);
@@ -218,7 +214,7 @@ describe('SearchService', () => {
       const projectId = 'public-proj';
 
       // Mock: 项目是公开的
-      prismaService.project.findUnique.mockResolvedValue({
+      mockPrismaService.project.findUnique.mockResolvedValue({
         id: projectId,
         visibility: 'PUBLIC',
       } as any);
@@ -241,7 +237,7 @@ describe('SearchService', () => {
     });
 
     it('should apply language filter correctly', async () => {
-      prismaService.project.findMany.mockResolvedValue([
+      mockPrismaService.project.findMany.mockResolvedValue([
         { id: 'public1' } as any,
       ]);
 
@@ -269,7 +265,7 @@ describe('SearchService', () => {
     });
 
     it('should apply branch filter correctly', async () => {
-      prismaService.project.findMany.mockResolvedValue([
+      mockPrismaService.project.findMany.mockResolvedValue([
         { id: 'public1' } as any,
       ]);
 
@@ -295,7 +291,7 @@ describe('SearchService', () => {
     });
 
     it('should apply sort rules correctly', async () => {
-      prismaService.project.findMany.mockResolvedValue([
+      mockPrismaService.project.findMany.mockResolvedValue([
         { id: 'public1' } as any,
       ]);
 
@@ -327,16 +323,16 @@ describe('SearchService', () => {
       const projectId = 'proj123';
 
       // Mock: 项目存在
-      prismaService.project.findUnique.mockResolvedValue({
+      mockPrismaService.project.findUnique.mockResolvedValue({
         id: projectId,
         name: 'Test Project',
       } as any);
 
       // Mock: 项目有100个文件
-      prismaService.file.count.mockResolvedValue(100);
+      mockPrismaService.file.count.mockResolvedValue(100);
 
       // Mock: indexProject成功
-      indexService.indexProject.mockResolvedValue(undefined);
+      mockIndexService.indexProject.mockResolvedValue(undefined);
 
       const result = await service.triggerReindex(projectId);
 
@@ -353,7 +349,7 @@ describe('SearchService', () => {
       const projectId = 'nonexistent';
 
       // Mock: 项目不存在
-      prismaService.project.findUnique.mockResolvedValue(null);
+      mockPrismaService.project.findUnique.mockResolvedValue(null);
 
       await expect(service.triggerReindex(projectId)).rejects.toThrow(
         'Project nonexistent not found',
@@ -366,22 +362,22 @@ describe('SearchService', () => {
       const projectId = 'proj123';
 
       // Mock: 项目存在
-      prismaService.project.findUnique.mockResolvedValue({
+      mockPrismaService.project.findUnique.mockResolvedValue({
         id: projectId,
       } as any);
 
       // Mock: 总文件数
-      (prismaService.file.count as jest.Mock).mockResolvedValueOnce(100);
+      mockPrismaService.file.count.mockResolvedValueOnce(100);
 
       // Mock: 已索引文件数
-      (prismaService.searchMetadata.count as jest.Mock)
+      mockPrismaService.searchMetadata.count
         .mockResolvedValueOnce(80) // INDEXED
         .mockResolvedValueOnce(5) // INDEXING
         .mockResolvedValueOnce(10) // FAILED
         .mockResolvedValueOnce(95); // Total metadata
 
       // Mock: 最后索引时间
-      prismaService.searchMetadata.findFirst.mockResolvedValue({
+      mockPrismaService.searchMetadata.findFirst.mockResolvedValue({
         indexedAt: new Date('2025-10-27T12:00:00Z'),
       } as any);
 
@@ -400,7 +396,7 @@ describe('SearchService', () => {
       const projectId = 'nonexistent';
 
       // Mock: 项目不存在
-      prismaService.project.findUnique.mockResolvedValue(null);
+      mockPrismaService.project.findUnique.mockResolvedValue(null);
 
       await expect(service.getIndexStatus(projectId)).rejects.toThrow(
         'Project nonexistent not found',
@@ -410,18 +406,18 @@ describe('SearchService', () => {
     it('should handle project with no files', async () => {
       const projectId = 'empty-proj';
 
-      prismaService.project.findUnique.mockResolvedValue({
+      mockPrismaService.project.findUnique.mockResolvedValue({
         id: projectId,
       } as any);
 
-      (prismaService.file.count as jest.Mock).mockResolvedValueOnce(0);
-      (prismaService.searchMetadata.count as jest.Mock)
+      mockPrismaService.file.count.mockResolvedValueOnce(0);
+      mockPrismaService.searchMetadata.count
         .mockResolvedValueOnce(0)
         .mockResolvedValueOnce(0)
         .mockResolvedValueOnce(0)
         .mockResolvedValueOnce(0);
 
-      prismaService.searchMetadata.findFirst.mockResolvedValue(null);
+      mockPrismaService.searchMetadata.findFirst.mockResolvedValue(null);
 
       const result = await service.getIndexStatus(projectId);
 
