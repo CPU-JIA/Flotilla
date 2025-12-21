@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { IssuesService } from './issues.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 describe('IssuesService', () => {
@@ -25,6 +26,15 @@ describe('IssuesService', () => {
     },
   };
 
+  const mockNotificationsService = {
+    sendNotification: jest.fn(),
+    notifyIssueCreated: jest.fn(),
+    notifyIssueUpdated: jest.fn(),
+    notifyIssueClosed: jest.fn(),
+    notifyIssueAssigned: jest.fn(),
+    notifyIssueCommented: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -32,6 +42,10 @@ describe('IssuesService', () => {
         {
           provide: PrismaService,
           useValue: mockPrisma,
+        },
+        {
+          provide: NotificationsService,
+          useValue: mockNotificationsService,
         },
       ],
     }).compile();

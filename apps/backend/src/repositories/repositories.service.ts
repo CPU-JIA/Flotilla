@@ -5,8 +5,6 @@ import {
   ConflictException,
   BadRequestException,
   Logger,
-  Inject,
-  forwardRef,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
@@ -19,10 +17,10 @@ import { MemberRole, UserRole } from '@prisma/client';
 export class RepositoriesService {
   private readonly logger = new Logger(RepositoriesService.name);
 
+  // ECP-A2: 高内聚低耦合 - 直接依赖注入，无需forwardRef
   constructor(
     private prisma: PrismaService,
     private minioService: MinioService,
-    @Inject(forwardRef(() => GitService))
     private gitService: GitService,
   ) {}
 

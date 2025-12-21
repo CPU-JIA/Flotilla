@@ -9,7 +9,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as git from 'isomorphic-git';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as os from 'os';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { createTwoFilesPatch } from 'diff';
@@ -63,7 +62,7 @@ export class GitService {
         configKey,
       ]);
       return stdout.trim() === expectedValue;
-    } catch (error) {
+    } catch (_error) {
       // Config key not found or error reading
       return false;
     }
@@ -195,10 +194,7 @@ export class GitService {
    * @param dir - Absolute path to the bare Git repository
    * @param projectId - Project ID (passed to hook via environment variable)
    */
-  private async installPreReceiveHook(
-    dir: string,
-    projectId: string,
-  ): Promise<void> {
+  private installPreReceiveHook(dir: string, projectId: string): void {
     try {
       const hooksDir = path.join(dir, 'hooks');
       // __dirname at runtime is dist/src/git/, need to go up to dist/ and then to git/hooks/
@@ -279,7 +275,7 @@ export class GitService {
 
       // Install pre-receive hook for branch protection validation
       // ECP-C1: Defensive programming - hook validation at Git push time
-      await this.installPreReceiveHook(dir, projectId);
+      this.installPreReceiveHook(dir, projectId);
 
       this.logger.log(`Initialized bare repository for project: ${projectId}`);
     } catch (error) {

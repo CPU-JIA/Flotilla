@@ -58,7 +58,10 @@ export class CsrfMiddleware implements NestMiddleware {
   /**
    * 验证 CSRF token
    */
-  private validateToken(cookieToken: string | undefined, headerToken: string | undefined): boolean {
+  private validateToken(
+    cookieToken: string | undefined,
+    headerToken: string | undefined,
+  ): boolean {
     if (!cookieToken || !headerToken) {
       return false;
     }
@@ -66,7 +69,7 @@ export class CsrfMiddleware implements NestMiddleware {
     // 使用常量时间比较，防止时序攻击
     return crypto.timingSafeEqual(
       Buffer.from(cookieToken),
-      Buffer.from(headerToken)
+      Buffer.from(headerToken),
     );
   }
 

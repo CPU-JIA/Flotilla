@@ -10,7 +10,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { GitService } from './git.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { execFile } from 'child_process';
-import { promisify } from 'util';
 
 // Mock child_process at module level
 jest.mock('child_process', () => ({

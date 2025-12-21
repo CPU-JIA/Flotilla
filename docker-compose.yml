@@ -1,3 +1,11 @@
+# ============================================
+# Flotilla Docker Compose 配置
+# ============================================
+# 使用方法:
+#   开发环境: docker-compose --env-file .env.docker up -d
+#   生产环境: docker-compose --env-file .env.prod up -d
+# ============================================
+
 services:
   # PostgreSQL 16 - 主数据库
   postgres:
@@ -7,15 +15,15 @@ services:
     ports:
       - '5434:5432'
     environment:
-      POSTGRES_USER: devplatform
-      POSTGRES_PASSWORD: c0tmOi9Wx7LeXGBNipOTo+DmZ0PmKdPOiNO89d7r4y8=
-      POSTGRES_DB: flotilla
+      POSTGRES_USER: ${POSTGRES_USER:-devplatform}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-flotilla}
       POSTGRES_INITDB_ARGS: '--encoding=UTF-8 --lc-collate=C --lc-ctype=C'
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U devplatform -d flotilla']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-devplatform} -d ${POSTGRES_DB:-flotilla}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -29,11 +37,11 @@ services:
     restart: unless-stopped
     ports:
       - '6380:6379'
-    command: redis-server --appendonly yes --requirepass O2iPiza2dCSq6pw+v0Wlc3aGrEOzbojQ
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', '--raw', 'incr', 'ping']
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD}', 'ping']
       interval: 10s
       timeout: 3s
       retries: 5
@@ -49,8 +57,8 @@ services:
       - '9000:9000'   # API端口
       - '9001:9001'   # Console端口
     environment:
-      MINIO_ROOT_USER: db98129c12cd8d178d76771d06de1c4f
-      MINIO_ROOT_PASSWORD: 'TT8td4psNhL4uKHkJHyQ1HBf/hAgiqIGXxR5UBd0G6I='
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
     command: server /data --console-address ':9001'
     volumes:
       - minio_data:/data
@@ -70,8 +78,8 @@ services:
     ports:
       - '7700:7700'
     environment:
-      MEILI_MASTER_KEY: 'VgzSTrUwaIg0cV/2Ta+7R+VmzHECUnUbMG+LnW15pmw='
-      MEILI_ENV: development
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:?MEILI_MASTER_KEY is required}
+      MEILI_ENV: ${NODE_ENV:-development}
       MEILI_HTTP_ADDR: '0.0.0.0:7700'
       MEILI_NO_ANALYTICS: 'true'
     volumes:
@@ -94,27 +102,27 @@ services:
     ports:
       - '4000:4000'
     environment:
-      NODE_ENV: development
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 4000
-      DATABASE_URL: 'postgresql://devplatform:c0tmOi9Wx7LeXGBNipOTo%2BDmZ0PmKdPOiNO89d7r4y8%3D@postgres:5432/flotilla'
-      REDIS_URL: 'redis://:O2iPiza2dCSq6pw+v0Wlc3aGrEOzbojQ@redis:6379'
+      DATABASE_URL: postgresql://${POSTGRES_USER:-devplatform}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-flotilla}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       MINIO_ENDPOINT: minio
       MINIO_PORT: 9000
-      MINIO_ACCESS_KEY: db98129c12cd8d178d76771d06de1c4f
-      MINIO_SECRET_KEY: 'TT8td4psNhL4uKHkJHyQ1HBf/hAgiqIGXxR5UBd0G6I='
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
       MINIO_USE_SSL: 'false'
-      MINIO_BUCKET_NAME: flotilla-storage
+      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME:-flotilla-storage}
       MEILI_HOST: 'http://meilisearch:7700'
-      MEILI_MASTER_KEY: 'VgzSTrUwaIg0cV/2Ta+7R+VmzHECUnUbMG+LnW15pmw='
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
       MEILI_INDEX_PREFIX: 'flotilla_'
-      JWT_SECRET: 'r+zzXRzVHRadjucwWvAZxE0FoeNxfzQP7foO4ZJWNqg='
-      JWT_EXPIRATION: '7d'
-      JWT_REFRESH_SECRET: 'kiICQ4l3urhFt0KvaVvTR93WsjfkroYs+nJxNxC0Id8='
-      JWT_REFRESH_EXPIRATION: '30d'
-      FRONTEND_URL: 'http://localhost:3000'
-      WEBSITE_URL: 'http://localhost:3003'
-      GIT_STORAGE_PATH: '/app/repos'
-      INITIAL_ADMIN_EMAIL: 'jia202520@gmail.com'
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET is required}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-30d}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      WEBSITE_URL: ${WEBSITE_URL:-http://localhost:3003}
+      GIT_STORAGE_PATH: ${GIT_STORAGE_PATH:-/app/repos}
+      INITIAL_ADMIN_EMAIL: ${INITIAL_ADMIN_EMAIL:-}
     volumes:
       - git_repos_data:/app/repos
     depends_on:
@@ -144,9 +152,9 @@ services:
     ports:
       - '3000:3000'
     environment:
-      NODE_ENV: development
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 3000
-      NEXT_PUBLIC_API_URL: 'http://localhost:4000/api'
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000/api}
       NEXT_TELEMETRY_DISABLED: 1
     depends_on:
       backend:
@@ -164,7 +172,7 @@ services:
     ports:
       - '3003:3003'
     environment:
-      NODE_ENV: development
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 3003
       NEXT_TELEMETRY_DISABLED: 1
     networks:
@@ -178,9 +186,9 @@ services:
     ports:
       - '5435:5432'
     environment:
-      POSTGRES_USER: devplatform
-      POSTGRES_PASSWORD: c0tmOi9Wx7LeXGBNipOTo+DmZ0PmKdPOiNO89d7r4y8=
-      POSTGRES_DB: flotilla
+      POSTGRES_USER: ${POSTGRES_USER:-devplatform}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-flotilla}
     volumes:
       - postgres_replica_data:/var/lib/postgresql/data
     depends_on:

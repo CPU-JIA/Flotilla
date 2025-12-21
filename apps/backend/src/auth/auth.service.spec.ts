@@ -6,9 +6,10 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
@@ -20,8 +21,6 @@ jest.mock('bcrypt', () => ({
 
 describe('AuthService', () => {
   let service: AuthService;
-  let prismaService: PrismaService;
-  let jwtService: JwtService;
 
   const mockPrismaService = {
     user: {
@@ -30,11 +29,25 @@ describe('AuthService', () => {
       create: jest.fn(),
       count: jest.fn(), // 🔐 Bootstrap Admin: 支持user.count()调用
     },
+    organization: {
+      create: jest.fn(),
+    },
+    organizationMember: {
+      create: jest.fn(),
+    },
+    $transaction: jest.fn((callback) => callback(mockPrismaService)),
   };
 
   const mockJwtService = {
     signAsync: jest.fn(),
     verify: jest.fn(),
+  };
+
+  const mockEmailService = {
+    sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+    sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
+    sendWelcomeEmail: jest.fn().mockResolvedValue(undefined),
+    sendEmail: jest.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
@@ -49,12 +62,14 @@ describe('AuthService', () => {
           provide: JwtService,
           useValue: mockJwtService,
         },
+        {
+          provide: EmailService,
+          useValue: mockEmailService,
+        },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    prismaService = module.get<PrismaService>(PrismaService);
-    jwtService = module.get<JwtService>(JwtService);
 
     jest.clearAllMocks();
     // 🔐 Bootstrap Admin: 默认返回1表示有用户存在,不触发首个用户自动提升
@@ -83,13 +98,28 @@ describe('AuthService', () => {
         avatar: null,
         bio: null,
         isActive: true,
+        tokenVersion: 0,
+        emailVerified: false,
+        emailVerifyToken: 'verify-token-123',
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(null); // username check
       mockPrismaService.user.findUnique.mockResolvedValue(null); // email check
+      mockPrismaService.user.count.mockResolvedValue(1); // Not first user
       mockPrismaService.user.create.mockResolvedValue(createdUser);
+      mockPrismaService.organization.create.mockResolvedValue({
+        id: 'org-1',
+        name: `${createdUser.username}'s Organization`,
+        slug: `user-${createdUser.username}`,
+      });
+      mockPrismaService.organizationMember.create.mockResolvedValue({
+        id: 'member-1',
+        organizationId: 'org-1',
+        userId: createdUser.id,
+        role: 'OWNER',
+      });
       mockJwtService.signAsync
         .mockResolvedValueOnce('accessToken')
         .mockResolvedValueOnce('refreshToken');
@@ -115,7 +145,7 @@ describe('AuthService', () => {
       });
 
       await expect(service.register(registerDto)).rejects.toThrow(
-        '用户名已被使用',
+        '用户名或邮箱已被使用',
       );
     });
 
@@ -125,7 +155,7 @@ describe('AuthService', () => {
         .mockResolvedValueOnce({ id: '1', email: registerDto.email }); // email check fails
 
       await expect(service.register(registerDto)).rejects.toThrow(
-        '邮箱已被注册',
+        '用户名或邮箱已被使用',
       );
     });
 
@@ -149,6 +179,17 @@ describe('AuthService', () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null); // username check
       mockPrismaService.user.findUnique.mockResolvedValue(null); // email check
       mockPrismaService.user.create.mockResolvedValue(createdUser);
+      mockPrismaService.organization.create.mockResolvedValue({
+        id: 'org-1',
+        name: `${createdUser.username}'s Organization`,
+        slug: `user-${createdUser.username}`,
+      });
+      mockPrismaService.organizationMember.create.mockResolvedValue({
+        id: 'member-1',
+        organizationId: 'org-1',
+        userId: createdUser.id,
+        role: 'OWNER',
+      });
       mockJwtService.signAsync
         .mockResolvedValueOnce('accessToken')
         .mockResolvedValueOnce('refreshToken');
@@ -181,6 +222,8 @@ describe('AuthService', () => {
       avatar: null,
       bio: null,
       isActive: true,
+      tokenVersion: 0,
+      emailVerified: true, // 🔐 Required for login to succeed
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -232,6 +275,8 @@ describe('AuthService', () => {
       avatar: null,
       bio: null,
       isActive: true,
+      tokenVersion: 0,
+      emailVerified: true,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -265,6 +310,7 @@ describe('AuthService', () => {
         username: 'testuser',
         email: 'test@example.com',
         role: 'USER',
+        tokenVersion: 0, // 🔐 Required for token version validation
       };
       const user = {
         id: '1',
@@ -275,6 +321,8 @@ describe('AuthService', () => {
         avatar: null,
         bio: null,
         isActive: true,
+        tokenVersion: 0,
+        emailVerified: true,
         createdAt: new Date(),
         updatedAt: new Date(),
       };

@@ -33,7 +33,7 @@ export class SMTPProvider implements IEmailProvider {
       }
 
       this.logger.debug(
-        `Sending email to ${options.to} with subject: ${options.subject}`,
+        `Sending email to ${String(options.to)} with subject: ${options.subject}`,
       );
 
       const result = await this.mailerService.sendMail({
@@ -47,7 +47,7 @@ export class SMTPProvider implements IEmailProvider {
       });
 
       this.logger.log(
-        `✅ Email sent successfully to ${options.to} (messageId: ${result.messageId})`,
+        `✅ Email sent successfully to ${String(options.to)} (messageId: ${result.messageId})`,
       );
 
       return {
@@ -56,14 +56,15 @@ export class SMTPProvider implements IEmailProvider {
       };
     } catch (error) {
       // ECP-C2: 错误处理 - 记录详细错误信息
+      const err = error as Error;
       this.logger.error(
-        `❌ Failed to send email to ${options.to}: ${error.message}`,
-        error.stack,
+        `❌ Failed to send email to ${String(options.to)}: ${err.message}`,
+        err.stack,
       );
 
       return {
         success: false,
-        error: error.message,
+        error: err.message,
       };
     }
   }

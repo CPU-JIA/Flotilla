@@ -24,7 +24,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
    * 模块初始化时连接Redis
    * ECP-C2: 系统化错误处理
    */
-  async onModuleInit() {
+  onModuleInit() {
     const redisUrl = this.configService.get<string>('REDIS_URL');
 
     if (!redisUrl) {
@@ -160,7 +160,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         count: 100,
       });
 
-      let deletedCount = 0;
+      const deletedCount = 0;
       const keys: string[] = [];
 
       return new Promise((resolve, reject) => {
@@ -168,14 +168,25 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
           keys.push(...resultKeys);
         });
 
-        stream.on('end', async () => {
+        stream.on('end', () => {
           if (keys.length > 0) {
-            deletedCount = await this.client.del(...keys);
-            this.logger.debug(
-              `🗑️ Redis DEL pattern ${pattern}: ${deletedCount} keys`,
-            );
+            this.client
+              .del(...keys)
+              .then((count) => {
+                this.logger.debug(
+                  `🗑️ Redis DEL pattern ${pattern}: ${count} keys`,
+                );
+                resolve(count);
+              })
+              .catch((error) => {
+                this.logger.error(`❌ Redis DEL error for ${pattern}:`, error);
+                reject(
+                  error instanceof Error ? error : new Error(String(error)),
+                );
+              });
+          } else {
+            resolve(deletedCount);
           }
-          resolve(deletedCount);
         });
 
         stream.on('error', (error) => {
@@ -183,7 +194,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
             `❌ Redis DEL pattern error for ${pattern}:`,
             error,
           );
-          reject(error);
+          reject(error instanceof Error ? error : new Error(String(error)));
         });
       });
     } catch (error) {

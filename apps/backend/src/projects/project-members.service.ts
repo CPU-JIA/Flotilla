@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  ForbiddenException,
   ConflictException,
   BadRequestException,
   Logger,
@@ -10,7 +9,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { AddMemberDto, UpdateMemberRoleDto } from './dto';
 import type { User, ProjectMember } from '@prisma/client';
-import { UserRole } from '@prisma/client';
 
 /**
  * Project Members Service
@@ -212,14 +210,24 @@ export class ProjectMembersService {
    */
   async getMembers(projectId: string): Promise<
     (ProjectMember & {
-      user: { id: string; username: string; email: string; avatar: string | null };
+      user: {
+        id: string;
+        username: string;
+        email: string;
+        avatar: string | null;
+      };
     })[]
   > {
     // ✅ Cache-Aside模式
     const cacheKey = `project:${projectId}:members`;
     const cached = await this.redisService.get<
       (ProjectMember & {
-        user: { id: string; username: string; email: string; avatar: string | null };
+        user: {
+          id: string;
+          username: string;
+          email: string;
+          avatar: string | null;
+        };
       })[]
     >(cacheKey);
 

@@ -55,7 +55,7 @@ export class BranchProtectionController {
   create(
     @Param('projectId') projectId: string,
     @Body() createDto: CreateBranchProtectionDto,
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('sub') _userId: string,
   ) {
     return this.branchProtectionService.create(projectId, createDto);
   }

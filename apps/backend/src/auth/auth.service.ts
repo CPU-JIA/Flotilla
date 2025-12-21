@@ -176,7 +176,7 @@ export class AuthService {
       });
 
     // 移除密码字段
-    const { passwordHash, ...userWithoutPassword } = result;
+    const { passwordHash: _passwordHash, ...userWithoutPassword } = result;
 
     return {
       user: userWithoutPassword,
@@ -262,7 +262,7 @@ export class AuthService {
     }
 
     // 移除密码字段
-    const { passwordHash, ...userWithoutPassword } = user;
+    const { passwordHash: _passwordHash, ...userWithoutPassword } = user;
 
     return {
       user: userWithoutPassword,
@@ -280,7 +280,7 @@ export class AuthService {
       throw new UnauthorizedException('用户不存在');
     }
 
-    const { passwordHash, ...userWithoutPassword } = user;
+    const { passwordHash: _passwordHash, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
 
@@ -438,9 +438,7 @@ export class AuthService {
       data: { isActive: false },
     });
 
-    this.logger.log(
-      `✅ Session revoked: ${sessionId} for user ${userId}`,
-    );
+    this.logger.log(`✅ Session revoked: ${sessionId} for user ${userId}`);
 
     return { message: '设备已登出成功' };
   }

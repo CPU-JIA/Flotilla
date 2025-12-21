@@ -17,10 +17,7 @@ import { RaftNode } from '../raft/raft-node';
 import { WebSocketTransport } from '../raft/websocket-transport';
 import { MemoryPersistentStorage } from '../raft/storage';
 import { GitStateMachine } from '../raft/git-state-machine';
-import {
-  ClusterConfigService,
-  type RaftClusterSettings,
-} from './cluster-config.service';
+import { ClusterConfigService } from './cluster-config.service';
 import { CommandType, NodeState as States } from '../raft/types';
 import type { Command, NodeStateSnapshot, ClientResponse } from '../raft/types';
 

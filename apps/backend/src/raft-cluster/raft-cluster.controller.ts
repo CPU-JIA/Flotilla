@@ -11,24 +11,13 @@ import {
   Controller,
   Get,
   Post,
-  Put,
-  Delete,
   Body,
-  Param,
-  Query,
   HttpException,
   HttpStatus,
   Logger,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBody,
-  ApiParam,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsArray, IsObject } from 'class-validator';
 import { RaftClusterService } from './raft-cluster.service';
 import { ClusterConfigService } from './cluster-config.service';
@@ -36,7 +25,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
-import type { Command, ClientResponse } from '../raft/types';
+import type { Command } from '../raft/types';
 
 // DTO类定义
 export class RaftCreateProjectDto {

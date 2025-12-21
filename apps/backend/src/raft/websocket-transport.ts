@@ -84,7 +84,7 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
           reject(error);
         });
       } catch (error) {
-        reject(error);
+        reject(error instanceof Error ? error : new Error(String(error)));
       }
     });
   }
@@ -171,12 +171,20 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
     this.connections.set(remoteNodeId, ws);
 
     // 设置消息处理
-    ws.on('message', async (data) => {
-      try {
-        await this.handleMessage(ws, data.toString());
-      } catch (error) {
-        console.error(`[${this.nodeId}] Error handling message:`, error);
+    ws.on('message', (data) => {
+      let message: string;
+      if (Buffer.isBuffer(data)) {
+        message = data.toString('utf8');
+      } else if (data instanceof ArrayBuffer) {
+        message = Buffer.from(data).toString('utf8');
+      } else if (Array.isArray(data)) {
+        message = Buffer.concat(data).toString('utf8');
+      } else {
+        message = '';
       }
+      void this.handleMessage(ws, message).catch((error) => {
+        console.error(`[${this.nodeId}] Error handling message:`, error);
+      });
     });
 
     // 处理连接关闭
@@ -255,35 +263,42 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
     type: 'RequestVote' | 'AppendEntries',
     data: any,
   ): Promise<any> {
-    return new Promise(async (resolve, reject) => {
+    // 获取或创建连接（在 Promise 外部进行异步操作）
+    let ws: WebSocket;
+    try {
+      ws = await this.getConnection(nodeId);
+    } catch (error) {
+      throw error instanceof Error ? error : new Error(String(error));
+    }
+
+    return new Promise((resolve, reject) => {
+      const requestId = this.generateRequestId();
+      const message: RaftMessage = {
+        type,
+        requestId,
+        data,
+      };
+
+      // 设置超时
+      const timer = setTimeout(() => {
+        this.pendingRequests.delete(requestId);
+        reject(new Error('RPC timeout'));
+      }, 5000); // 5秒超时
+
+      // 存储待处理的请求
+      this.pendingRequests.set(requestId, {
+        resolve,
+        reject,
+        timer,
+      });
+
       try {
-        // 获取或创建连接
-        const ws = await this.getConnection(nodeId);
-
-        const requestId = this.generateRequestId();
-        const message: RaftMessage = {
-          type,
-          requestId,
-          data,
-        };
-
-        // 设置超时
-        const timer = setTimeout(() => {
-          this.pendingRequests.delete(requestId);
-          reject(new Error('RPC timeout'));
-        }, 5000); // 5秒超时
-
-        // 存储待处理的请求
-        this.pendingRequests.set(requestId, {
-          resolve,
-          reject,
-          timer,
-        });
-
         // 发送消息
         ws.send(JSON.stringify(message));
       } catch (error) {
-        reject(error);
+        this.pendingRequests.delete(requestId);
+        clearTimeout(timer);
+        reject(error instanceof Error ? error : new Error(String(error)));
       }
     });
   }
@@ -341,15 +356,23 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
         });
 
         // 设置消息处理
-        ws.on('message', async (data) => {
-          try {
-            await this.handleMessage(ws, data.toString());
-          } catch (error) {
+        ws.on('message', (data) => {
+          let message: string;
+          if (Buffer.isBuffer(data)) {
+            message = data.toString('utf8');
+          } else if (data instanceof ArrayBuffer) {
+            message = Buffer.from(data).toString('utf8');
+          } else if (Array.isArray(data)) {
+            message = Buffer.concat(data).toString('utf8');
+          } else {
+            message = '';
+          }
+          void this.handleMessage(ws, message).catch((error) => {
             console.error(
               `[${this.nodeId}] Error handling message from ${nodeId}:`,
               error,
             );
-          }
+          });
         });
 
         resolve(ws);

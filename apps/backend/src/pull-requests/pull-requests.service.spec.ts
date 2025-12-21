@@ -7,6 +7,8 @@ import {
 import { PullRequestsService } from './pull-requests.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { GitService } from '../git/git.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { BranchProtectionService } from '../branch-protection/branch-protection.service';
 import { CreatePullRequestDto } from './dto/create-pull-request.dto';
 import {
   MergePullRequestDto,
@@ -55,6 +57,23 @@ describe('PullRequestsService', () => {
     getDiff: jest.fn(),
   };
 
+  const mockNotificationsService = {
+    sendNotification: jest.fn(),
+    notifyPullRequestCreated: jest.fn(),
+    notifyPullRequestMerged: jest.fn(),
+    notifyPullRequestReviewed: jest.fn(),
+    notifyPullRequestCommented: jest.fn(),
+  };
+
+  const mockBranchProtectionService = {
+    checkBranchProtection: jest.fn().mockResolvedValue({ allowed: true }),
+    validateMergeRequirements: jest.fn().mockResolvedValue({ valid: true }),
+    getBranchProtectionRules: jest.fn().mockResolvedValue([]),
+    findByBranch: jest.fn().mockResolvedValue(null),
+    findByProject: jest.fn().mockResolvedValue([]),
+    checkMergePermission: jest.fn().mockResolvedValue({ allowed: true }),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -66,6 +85,14 @@ describe('PullRequestsService', () => {
         {
           provide: GitService,
           useValue: mockGitService,
+        },
+        {
+          provide: NotificationsService,
+          useValue: mockNotificationsService,
+        },
+        {
+          provide: BranchProtectionService,
+          useValue: mockBranchProtectionService,
         },
       ],
     }).compile();

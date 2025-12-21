@@ -35,14 +35,18 @@ export class GitHttpAuthGuard implements CanActivate {
    * 解析 HTTP Basic Auth header
    * 格式: "Basic base64(username:password)"
    */
-  private parseBasicAuth(authHeader: string): { username: string; password: string } | null {
+  private parseBasicAuth(
+    authHeader: string,
+  ): { username: string; password: string } | null {
     if (!authHeader || !authHeader.startsWith('Basic ')) {
       return null;
     }
 
     try {
       const base64Credentials = authHeader.substring(6);
-      const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
+      const credentials = Buffer.from(base64Credentials, 'base64').toString(
+        'utf-8',
+      );
       const [username, password] = credentials.split(':');
 
       if (!username || !password) {
@@ -156,9 +160,13 @@ export class GitHttpAuthGuard implements CanActivate {
     // 解析 Basic Auth
     const authHeader = request.headers.authorization;
     if (!authHeader) {
-      throw new UnauthorizedException('Authentication required for Git operations', {
-        description: 'Git HTTP requires Basic Authentication. Use: git clone http://username:password@host/repo/projectId',
-      });
+      throw new UnauthorizedException(
+        'Authentication required for Git operations',
+        {
+          description:
+            'Git HTTP requires Basic Authentication. Use: git clone http://username:password@host/repo/projectId',
+        },
+      );
     }
 
     const credentials = this.parseBasicAuth(authHeader);
@@ -167,16 +175,25 @@ export class GitHttpAuthGuard implements CanActivate {
     }
 
     // 验证用户凭据
-    const user = await this.validateCredentials(credentials.username, credentials.password);
+    const user = await this.validateCredentials(
+      credentials.username,
+      credentials.password,
+    );
     if (!user) {
-      this.logger.warn(`Git HTTP auth failed for username: ${credentials.username}`);
+      this.logger.warn(
+        `Git HTTP auth failed for username: ${credentials.username}`,
+      );
       throw new UnauthorizedException('Invalid username or password');
     }
 
-    this.logger.log(`✅ Git HTTP auth success: ${user.username} (project: ${projectId})`);
+    this.logger.log(
+      `✅ Git HTTP auth success: ${user.username} (project: ${projectId})`,
+    );
 
     // 确定操作类型 (read/write)
-    const operation = request.path.includes('git-receive-pack') ? 'write' : 'read';
+    const operation = request.path.includes('git-receive-pack')
+      ? 'write'
+      : 'read';
 
     // 检查项目权限
     const hasPermission = await this.checkProjectPermission(

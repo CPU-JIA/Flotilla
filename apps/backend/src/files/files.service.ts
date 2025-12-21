@@ -5,8 +5,6 @@ import {
   ForbiddenException,
   BadRequestException,
   PayloadTooLargeException,
-  forwardRef,
-  Inject,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
@@ -61,10 +59,10 @@ const CODE_FILE_EXTENSIONS = [
 export class FilesService {
   private readonly logger = new Logger(FilesService.name);
 
+  // ECP-A2: 高内聚低耦合 - 直接依赖注入，无需forwardRef
   constructor(
     private prisma: PrismaService,
     private minioService: MinioService,
-    @Inject(forwardRef(() => RepositoriesService))
     private repositoriesService: RepositoriesService,
   ) {}
 
@@ -140,7 +138,7 @@ export class FilesService {
   /**
    * 判断文件类型
    */
-  private getFileType(filename: string, mimeType: string): 'file' | 'folder' {
+  private getFileType(_filename: string, _mimeType: string): 'file' | 'folder' {
     return 'file'; // 默认返回文件类型
   }
 

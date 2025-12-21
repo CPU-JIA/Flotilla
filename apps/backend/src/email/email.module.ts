@@ -5,7 +5,6 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { join } from 'path';
 import { EmailService } from './email.service';
 import { SMTPProvider } from './providers/smtp.provider';
-import { IEmailProvider } from './interfaces/email-provider.interface';
 
 /**
  * 邮件模块

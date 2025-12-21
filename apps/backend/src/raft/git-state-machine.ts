@@ -83,59 +83,63 @@ export class GitStateMachine implements StateMachine {
    * 应用命令到状态机
    * ECP-A1: 单一职责 - 专注于命令执行
    */
-  async apply(command: Command): Promise<any> {
+  apply(command: Command): Promise<any> {
     try {
       this.debugLog(`Applying command: ${command.type}`);
 
       let result: any;
       switch (command.type) {
         case CommandType.CREATE_PROJECT:
-          result = await this.handleCreateProject(command);
+          result = this.handleCreateProject(command);
           break;
 
         case CommandType.UPDATE_PROJECT:
-          result = await this.handleUpdateProject(command);
+          result = this.handleUpdateProject(command);
           break;
 
         case CommandType.DELETE_PROJECT:
-          result = await this.handleDeleteProject(command);
+          result = this.handleDeleteProject(command);
           break;
 
         case CommandType.GIT_COMMIT:
-          result = await this.handleGitCommit(command);
+          result = this.handleGitCommit(command);
           break;
 
         case CommandType.GIT_CREATE_BRANCH:
-          result = await this.handleGitCreateBranch(command);
+          result = this.handleGitCreateBranch(command);
           break;
 
         case CommandType.GIT_MERGE:
-          result = await this.handleGitMerge(command);
+          result = this.handleGitMerge(command);
           break;
 
         case CommandType.CREATE_FILE:
-          result = await this.handleCreateFile(command);
+          result = this.handleCreateFile(command);
           break;
 
         case CommandType.UPDATE_FILE:
-          result = await this.handleUpdateFile(command);
+          result = this.handleUpdateFile(command);
           break;
 
         case CommandType.DELETE_FILE:
-          result = await this.handleDeleteFile(command);
+          result = this.handleDeleteFile(command);
           break;
 
         default:
-          throw new Error(`Unknown command type: ${command.type}`);
+          return Promise.reject(
+            new Error(`Unknown command type: ${command.type}`),
+          );
       }
 
       this.debugLog(`Command ${command.type} applied successfully`);
-      return result;
+      return Promise.resolve(result);
     } catch (error) {
       this.debugLog(
         `Error applying command ${command.type}: ${(error as Error).message}`,
       );
-      throw error;
+      return Promise.reject(
+        error instanceof Error ? error : new Error(String(error)),
+      );
     }
   }
 
@@ -155,7 +159,7 @@ export class GitStateMachine implements StateMachine {
   /**
    * 创建状态快照
    */
-  async createSnapshot(): Promise<Buffer> {
+  createSnapshot(): Promise<Buffer> {
     const snapshot = {
       projects: Object.fromEntries(this.state.projects),
       repositories: Object.fromEntries(
@@ -171,13 +175,13 @@ export class GitStateMachine implements StateMachine {
       lastAppliedIndex: this.state.lastAppliedIndex,
     };
 
-    return Buffer.from(JSON.stringify(snapshot));
+    return Promise.resolve(Buffer.from(JSON.stringify(snapshot)));
   }
 
   /**
    * 从快照恢复状态
    */
-  async restoreFromSnapshot(snapshot: Buffer): Promise<void> {
+  restoreFromSnapshot(snapshot: Buffer): Promise<void> {
     try {
       const data = JSON.parse(snapshot.toString());
 
@@ -206,9 +210,12 @@ export class GitStateMachine implements StateMachine {
       this.debugLog(
         `Restored state from snapshot: ${this.state.projects.size} projects, ${this.state.repositories.size} repositories`,
       );
+      return Promise.resolve();
     } catch (error) {
-      throw new Error(
-        `Failed to restore from snapshot: ${(error as Error).message}`,
+      return Promise.reject(
+        new Error(
+          `Failed to restore from snapshot: ${(error as Error).message}`,
+        ),
       );
     }
   }
@@ -217,7 +224,7 @@ export class GitStateMachine implements StateMachine {
    * 命令处理器实现
    */
 
-  private async handleCreateProject(command: Command): Promise<any> {
+  private handleCreateProject(command: Command): any {
     const { id, name, description, ownerId } = command.payload;
 
     if (this.state.projects.has(id)) {
@@ -264,7 +271,7 @@ export class GitStateMachine implements StateMachine {
     return { project, repository };
   }
 
-  private async handleUpdateProject(command: Command): Promise<any> {
+  private handleUpdateProject(command: Command): any {
     const { id, ...updates } = command.payload;
 
     const project = this.state.projects.get(id);
@@ -282,7 +289,7 @@ export class GitStateMachine implements StateMachine {
     return updatedProject;
   }
 
-  private async handleDeleteProject(command: Command): Promise<any> {
+  private handleDeleteProject(command: Command): any {
     const { id } = command.payload;
 
     const project = this.state.projects.get(id);
@@ -299,7 +306,7 @@ export class GitStateMachine implements StateMachine {
     return { deleted: true };
   }
 
-  private async handleGitCommit(command: Command): Promise<any> {
+  private handleGitCommit(command: Command): any {
     const { repositoryId, branchName, message, author, files } =
       command.payload;
 
@@ -346,7 +353,7 @@ export class GitStateMachine implements StateMachine {
     return { commit, branch: branchName, repository: repositoryId };
   }
 
-  private async handleGitCreateBranch(command: Command): Promise<any> {
+  private handleGitCreateBranch(command: Command): any {
     const { repositoryId, branchName, fromBranch } = command.payload;
 
     const repository = this.state.repositories.get(repositoryId);
@@ -379,7 +386,7 @@ export class GitStateMachine implements StateMachine {
     return { branch: branchName, repository: repositoryId };
   }
 
-  private async handleGitMerge(command: Command): Promise<any> {
+  private handleGitMerge(command: Command): any {
     // 简化的合并实现
     const { repositoryId, sourceBranch, targetBranch, message, author } =
       command.payload;
@@ -414,22 +421,22 @@ export class GitStateMachine implements StateMachine {
     return { mergeCommit, targetBranch };
   }
 
-  private async handleCreateFile(command: Command): Promise<any> {
+  private handleCreateFile(command: Command): any {
     return this.handleFileOperation(command, 'create');
   }
 
-  private async handleUpdateFile(command: Command): Promise<any> {
+  private handleUpdateFile(command: Command): any {
     return this.handleFileOperation(command, 'update');
   }
 
-  private async handleDeleteFile(command: Command): Promise<any> {
+  private handleDeleteFile(command: Command): any {
     return this.handleFileOperation(command, 'delete');
   }
 
-  private async handleFileOperation(
+  private handleFileOperation(
     command: Command,
     operation: 'create' | 'update' | 'delete',
-  ): Promise<any> {
+  ): any {
     // 文件操作将作为Git提交处理
     const { repositoryId, branchName, filePath, content, author, message } =
       command.payload;

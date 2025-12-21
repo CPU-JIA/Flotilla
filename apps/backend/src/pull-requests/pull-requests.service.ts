@@ -577,7 +577,11 @@ export class PullRequestsService {
           break;
 
         default:
-          throw new BadRequestException(`Invalid merge strategy: ${strategy}`);
+          // TypeScript: strategy is 'never' here because all enum cases are handled
+          // Cast to string for error message
+          throw new BadRequestException(
+            `Invalid merge strategy: ${String(strategy)}`,
+          );
       }
     } catch (error) {
       this.logger.error(`Merge failed for PR ${id}:`, error);

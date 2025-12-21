@@ -5,7 +5,6 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import {
-  ForbiddenException,
   NotFoundException,
   BadRequestException,
   ConflictException,
@@ -13,12 +12,11 @@ import {
 import { ProjectsService } from './projects.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RepositoriesService } from '../repositories/repositories.service';
+import { RedisService } from '../redis/redis.service';
 import { UserRole, MemberRole, ProjectVisibility } from '@prisma/client';
 
 describe('ProjectsService', () => {
   let service: ProjectsService;
-  let prismaService: PrismaService;
-  let repositoriesService: RepositoriesService;
 
   const mockPrismaService = {
     project: {
@@ -50,6 +48,18 @@ describe('ProjectsService', () => {
     createRepository: jest.fn(),
   };
 
+  const mockRedisService = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+    setex: jest.fn(),
+    exists: jest.fn(),
+    keys: jest.fn(),
+    hget: jest.fn(),
+    hset: jest.fn(),
+    hdel: jest.fn(),
+  };
+
   const mockUser = {
     id: '1',
     username: 'testuser',
@@ -71,12 +81,14 @@ describe('ProjectsService', () => {
           provide: RepositoriesService,
           useValue: mockRepositoriesService,
         },
+        {
+          provide: RedisService,
+          useValue: mockRedisService,
+        },
       ],
     }).compile();
 
     service = module.get<ProjectsService>(ProjectsService);
-    prismaService = module.get<PrismaService>(PrismaService);
-    repositoriesService = module.get<RepositoriesService>(RepositoriesService);
 
     jest.clearAllMocks();
   });
@@ -120,6 +132,7 @@ describe('ProjectsService', () => {
       expect(mockPrismaService.project.create).toHaveBeenCalled();
       expect(mockRepositoriesService.createRepository).toHaveBeenCalledWith(
         createdProject.id,
+        mockUser,
       );
     });
   });
@@ -252,29 +265,8 @@ describe('ProjectsService', () => {
       );
     });
 
-    it('非成员不能访问私有项目', async () => {
-      const otherUser = { ...mockUser, id: '2' };
-      const privateProject = {
-        ...project,
-        members: [
-          {
-            id: 'member1',
-            userId: mockUser.id,
-            projectId: '1',
-            role: MemberRole.OWNER,
-            joinedAt: new Date(),
-          },
-        ],
-      };
-      mockPrismaService.project.findUnique.mockResolvedValue(privateProject);
-
-      await expect(service.findOne('1', otherUser)).rejects.toThrow(
-        ForbiddenException,
-      );
-      await expect(service.findOne('1', otherUser)).rejects.toThrow(
-        '您没有权限访问此项目',
-      );
-    });
+    // Note: 权限检查已由ProjectRoleGuard处理，服务层不再做权限检查
+    // 此测试移至 e2e 测试或 Guard 测试中
   });
 
   describe('update - 更新项目', () => {
@@ -316,17 +308,8 @@ describe('ProjectsService', () => {
       expect(mockPrismaService.project.update).toHaveBeenCalled();
     });
 
-    it('非所有者不能更新项目', async () => {
-      const otherUser = { ...mockUser, id: '2' };
-      mockPrismaService.project.findUnique.mockResolvedValue(project);
-
-      await expect(service.update('1', updateDto, otherUser)).rejects.toThrow(
-        ForbiddenException,
-      );
-      await expect(service.update('1', updateDto, otherUser)).rejects.toThrow(
-        '只有项目所有者可以更新项目',
-      );
-    });
+    // Note: 权限检查已由ProjectRoleGuard处理，服务层不再做权限检查
+    // 此测试移至 e2e 测试或 Guard 测试中
   });
 
   describe('remove - 删除项目', () => {
@@ -350,17 +333,8 @@ describe('ProjectsService', () => {
       });
     });
 
-    it('非所有者不能删除项目', async () => {
-      const otherUser = { ...mockUser, id: '2' };
-      mockPrismaService.project.findUnique.mockResolvedValue(project);
-
-      await expect(service.remove('1', otherUser)).rejects.toThrow(
-        ForbiddenException,
-      );
-      await expect(service.remove('1', otherUser)).rejects.toThrow(
-        '只有项目所有者可以删除项目',
-      );
-    });
+    // Note: 权限检查已由ProjectRoleGuard处理，服务层不再做权限检查
+    // 此测试移至 e2e 测试或 Guard 测试中
   });
 
   describe('addMember - 添加成员', () => {
@@ -409,17 +383,8 @@ describe('ProjectsService', () => {
       expect(mockPrismaService.projectMember.create).toHaveBeenCalled();
     });
 
-    it('非所有者不能添加成员', async () => {
-      const otherUser = { ...mockUser, id: '2' };
-      mockPrismaService.project.findUnique.mockResolvedValue(project);
-
-      await expect(
-        service.addMember('1', addMemberDto, otherUser),
-      ).rejects.toThrow(ForbiddenException);
-      await expect(
-        service.addMember('1', addMemberDto, otherUser),
-      ).rejects.toThrow('只有项目所有者可以添加成员');
-    });
+    // Note: 权限检查已由ProjectRoleGuard处理，服务层不再做权限检查
+    // 此测试移至 e2e 测试或 Guard 测试中
 
     it('不能添加已存在的成员', async () => {
       const projectWithExistingMember = {
@@ -498,17 +463,8 @@ describe('ProjectsService', () => {
       ).rejects.toThrow('不能移除项目所有者');
     });
 
-    it('非所有者不能移除成员', async () => {
-      const otherUser = { ...mockUser, id: '3' };
-      mockPrismaService.project.findUnique.mockResolvedValue(project);
-
-      await expect(service.removeMember('1', '2', otherUser)).rejects.toThrow(
-        ForbiddenException,
-      );
-      await expect(service.removeMember('1', '2', otherUser)).rejects.toThrow(
-        '只有项目所有者可以移除成员',
-      );
-    });
+    // Note: 权限检查已由ProjectRoleGuard处理，服务层不再做权限检查
+    // 此测试移至 e2e 测试或 Guard 测试中
   });
 
   describe('updateMemberRole - 更新成员角色', () => {

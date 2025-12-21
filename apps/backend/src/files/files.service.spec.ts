@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   PayloadTooLargeException,
-  NotFoundException,
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
@@ -270,8 +269,9 @@ describe('FilesService - Security Tests', () => {
       let uploadedPath: string = '';
       jest
         .spyOn(minioService, 'uploadFile')
-        .mockImplementation(async (objectName) => {
+        .mockImplementation((objectName) => {
           uploadedPath = objectName;
+          return Promise.resolve();
         });
 
       jest.spyOn(prismaService.projectFile, 'create').mockResolvedValue({

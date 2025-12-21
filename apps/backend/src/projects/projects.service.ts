@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  ForbiddenException,
   ConflictException,
   BadRequestException,
   Logger,
@@ -17,7 +16,7 @@ import {
   QueryProjectsDto,
 } from './dto';
 import type { User, Project, ProjectMember } from '@prisma/client';
-import { UserRole, MemberRole, ProjectVisibility } from '@prisma/client';
+import { ProjectVisibility } from '@prisma/client';
 
 export interface ProjectListResponse {
   projects: (Project & {
@@ -130,13 +129,16 @@ export class ProjectsService {
     const { search, visibility, page = 1, pageSize = 20 } = query;
 
     // 🔒 仅缓存无搜索、无过滤的首页查询（最常见场景）
-    const isDefaultQuery = !search && !visibility && page === 1 && pageSize === 20;
+    const isDefaultQuery =
+      !search && !visibility && page === 1 && pageSize === 20;
     const cacheKey = `user:${currentUser.id}:projects:default`;
 
     if (isDefaultQuery) {
       const cached = await this.redisService.get<ProjectListResponse>(cacheKey);
       if (cached) {
-        this.logger.debug(`✅ Cache hit for user ${currentUser.id} projects list`);
+        this.logger.debug(
+          `✅ Cache hit for user ${currentUser.id} projects list`,
+        );
         return cached;
       }
     }
@@ -205,7 +207,9 @@ export class ProjectsService {
     // 🔒 缓存默认查询结果 (TTL: 60秒)
     if (isDefaultQuery) {
       await this.redisService.set(cacheKey, response, 60);
-      this.logger.debug(`📝 Cached user ${currentUser.id} projects list for 60s`);
+      this.logger.debug(
+        `📝 Cached user ${currentUser.id} projects list for 60s`,
+      );
     }
 
     return response;

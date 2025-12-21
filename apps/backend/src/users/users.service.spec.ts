@@ -11,6 +11,8 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { MinioService } from '../minio/minio.service';
+import { RedisService } from '../redis/redis.service';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
@@ -22,7 +24,6 @@ jest.mock('bcrypt', () => ({
 
 describe('UsersService', () => {
   let service: UsersService;
-  let prismaService: PrismaService;
 
   const mockPrismaService = {
     user: {
@@ -34,6 +35,23 @@ describe('UsersService', () => {
     },
   };
 
+  const mockMinioService = {
+    uploadFile: jest.fn(),
+    deleteFile: jest.fn(),
+    getFileUrl: jest.fn(),
+    uploadAvatar: jest.fn(),
+    deleteAvatar: jest.fn(),
+  };
+
+  const mockRedisService = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+    setex: jest.fn(),
+    exists: jest.fn(),
+    keys: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -42,11 +60,18 @@ describe('UsersService', () => {
           provide: PrismaService,
           useValue: mockPrismaService,
         },
+        {
+          provide: MinioService,
+          useValue: mockMinioService,
+        },
+        {
+          provide: RedisService,
+          useValue: mockRedisService,
+        },
       ],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    prismaService = module.get<PrismaService>(PrismaService);
 
     jest.clearAllMocks();
   });
@@ -249,7 +274,7 @@ describe('UsersService', () => {
 
       // Mock bcrypt.compare to validate current password and reject new password
       (bcrypt.compare as jest.Mock).mockImplementation(
-        (pass: string, hash: string) => {
+        (pass: string, _hash: string) => {
           if (pass === changePasswordDto.currentPassword)
             return Promise.resolve(true);
           if (pass === changePasswordDto.newPassword)

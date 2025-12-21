@@ -19,6 +19,9 @@ out/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.docker
+.env.prod
+.env.staging
 
 # Credentials (敏感信息)
 .credentials.txt

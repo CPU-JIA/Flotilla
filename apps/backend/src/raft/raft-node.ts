@@ -21,7 +21,6 @@ import type {
   ClientResponse,
   NodeStateSnapshot,
   ClusterConfig,
-  PersistentState,
   RaftTransport,
   RaftRPCHandler,
   StateMachine,
@@ -378,14 +377,14 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
     // 检查是否获得多数票
     const majority = Math.floor(this.config.nodes.length / 2) + 1;
     if (this.state === States.CANDIDATE && this.votes >= majority) {
-      await this.becomeLeader();
+      this.becomeLeader();
     }
   }
 
   /**
    * 成为Leader
    */
-  private async becomeLeader(): Promise<void> {
+  private becomeLeader(): void {
     this.log(
       `Became LEADER for term ${this.currentTerm} with ${this.votes} votes`,
     );
@@ -460,7 +459,7 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
   private broadcastAppendEntries(): void {
     for (const nodeId of this.config.nodes) {
       if (nodeId !== this.config.nodeId) {
-        this.sendAppendEntriesToNode(nodeId);
+        void this.sendAppendEntriesToNode(nodeId);
       }
     }
   }
@@ -510,7 +509,7 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
         const newNextIndex = Math.max(1, nextIdx - 1);
         this.nextIndex.set(nodeId, newNextIndex);
       }
-    } catch (error) {
+    } catch (_error) {
       // RPC失败，稍后重试
     }
   }
@@ -536,7 +535,7 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
       const majority = Math.floor(this.config.nodes.length / 2) + 1;
       if (replicatedCount >= majority) {
         this.commitIndex = n;
-        this.applyLogEntry(this.logEntries[n - 1]);
+        void this.applyLogEntry(this.logEntries[n - 1]);
       }
     }
   }
@@ -671,7 +670,7 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
     this.clearElectionTimeout();
     const timeout = this.getRandomElectionTimeout();
     this.electionTimer = this.timer.setTimeout(() => {
-      this.handleElectionTimeout();
+      void this.handleElectionTimeout();
     }, timeout);
   }
 

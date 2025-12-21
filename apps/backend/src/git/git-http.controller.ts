@@ -24,7 +24,6 @@ import type { Request, Response } from 'express';
 import {
   ApiTags,
   ApiOperation,
-  ApiResponse,
   ApiBasicAuth,
   ApiExcludeEndpoint,
 } from '@nestjs/swagger';
@@ -32,7 +31,6 @@ import { HttpSmartService } from './protocols/http-smart.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { GitHttpAuthGuard } from './guards/git-http-auth.guard';
 import { getGitStoragePath, getRepoPath } from '../config/git.config';
-import * as path from 'path';
 
 @ApiTags('git-http')
 @Controller('repo')

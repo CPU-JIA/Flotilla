@@ -57,7 +57,7 @@ export class AuditInterceptor implements NestInterceptor {
     return next.handle().pipe(
       // 操作成功时记录
       tap(() => {
-        this.auditService.log({
+        void this.auditService.log({
           action: auditMetadata.action,
           entityType: auditMetadata.entityType,
           entityId,
@@ -71,7 +71,7 @@ export class AuditInterceptor implements NestInterceptor {
       }),
       // 操作失败时记录
       catchError((error) => {
-        this.auditService.log({
+        void this.auditService.log({
           action: auditMetadata.action,
           entityType: auditMetadata.entityType,
           entityId,

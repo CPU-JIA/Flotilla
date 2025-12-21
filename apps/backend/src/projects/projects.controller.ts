@@ -127,7 +127,11 @@ export class ProjectsController {
     @CurrentUser() currentUser: User,
   ): Promise<ProjectMember> {
     this.logger.log(`👥 Adding member to project: ${projectId}`);
-    return this.projectMembersService.addMember(projectId, addMemberDto, currentUser);
+    return this.projectMembersService.addMember(
+      projectId,
+      addMemberDto,
+      currentUser,
+    );
   }
 
   /**
@@ -143,7 +147,11 @@ export class ProjectsController {
     @CurrentUser() currentUser: User,
   ): Promise<{ message: string }> {
     this.logger.log(`👤 Removing member ${userId} from project: ${projectId}`);
-    return this.projectMembersService.removeMember(projectId, userId, currentUser);
+    return this.projectMembersService.removeMember(
+      projectId,
+      userId,
+      currentUser,
+    );
   }
 
   /**
@@ -177,7 +185,7 @@ export class ProjectsController {
   @RequireProjectRole('VIEWER')
   async getMembers(
     @Param('id') projectId: string,
-    @CurrentUser() currentUser: User,
+    @CurrentUser() _currentUser: User,
   ): Promise<
     (ProjectMember & {
       user: { id: string; username: string; email: string };

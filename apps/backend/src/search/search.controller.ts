@@ -10,7 +10,6 @@ import {
 import {
   ApiTags,
   ApiOperation,
-  ApiQuery,
   ApiParam,
   ApiOkResponse,
 } from '@nestjs/swagger';
@@ -131,7 +130,7 @@ export class SearchController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '删除项目索引' })
   @ApiParam({ name: 'projectId', description: '项目ID' })
-  async deleteIndex(@Param('projectId') projectId: string) {
+  deleteIndex(@Param('projectId') _projectId: string): never {
     throw new Error('Not implemented yet - Task 1.7');
   }
 }

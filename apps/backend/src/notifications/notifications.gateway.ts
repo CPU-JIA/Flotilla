@@ -8,7 +8,7 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseGuards } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 /**
@@ -64,7 +64,7 @@ export class NotificationsGateway
    *
    * ECP-C1: 防御性编程 - 验证失败立即断开，防止未授权访问
    */
-  async handleConnection(client: Socket) {
+  handleConnection(client: Socket) {
     try {
       // 支持两种token传递方式：
       // 1. Query参数：?token=JWT_TOKEN
@@ -202,7 +202,7 @@ export class NotificationsGateway
    * 服务器响应：当前未读通知数量
    */
   @SubscribeMessage('subscribe_notifications')
-  async handleSubscribe(@ConnectedSocket() client: Socket) {
+  handleSubscribe(@ConnectedSocket() client: Socket) {
     const userId = client.data.userId;
     this.logger.log(`📥 User ${userId} subscribed to notifications`);
 
@@ -223,7 +223,7 @@ export class NotificationsGateway
    * 服务器广播给用户的其他设备同步已读状态
    */
   @SubscribeMessage('mark_read')
-  async handleMarkRead(
+  handleMarkRead(
     @MessageBody() data: { notificationId: string },
     @ConnectedSocket() client: Socket,
   ) {
