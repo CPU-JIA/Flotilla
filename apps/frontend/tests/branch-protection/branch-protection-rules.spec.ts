@@ -196,7 +196,7 @@ test.describe('Branch Protection Rules E2E Tests', () => {
       },
     )
     expect(createResponse.ok()).toBeTruthy()
-    const ruleData = await createResponse.json()
+    const _ruleData = await createResponse.json()
 
     // Navigate to branch protection page
     await page.goto(`/projects/${projectId}/settings/branch-protection`)

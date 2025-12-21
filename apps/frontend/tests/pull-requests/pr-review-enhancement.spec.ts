@@ -88,7 +88,7 @@ async function createCommit(
   branch: string,
   files: Array<{ path: string; content: string }>,
   message: string,
-): Promise<any> {
+): Promise<Record<string, unknown>> {
   const response = await request.post(`http://localhost:4000/api/git/${projectId}/commit`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -190,7 +190,7 @@ async function getUserIdByUsername(
   })
   expect(response.ok()).toBeTruthy()
   const data = await response.json()
-  const user = data.users.find((u: any) => u.username === username)
+  const user = data.users.find((u: { username: string; id: string }) => u.username === username)
   expect(user).toBeDefined()
   return user.id
 }
@@ -491,7 +491,7 @@ test.describe('PR Review Enhancement E2E Tests', () => {
     await expect(page.getByRole('button', { name: /刷新|Refresh/i })).toBeVisible()
   })
 
-  test('should update PR approval settings in project settings page', async ({ page, request }) => {
+  test('should update PR approval settings in project settings page', async ({ page }) => {
     // Login as owner
     await loginViaUI(page, ownerUser.username, ownerUser.password)
 

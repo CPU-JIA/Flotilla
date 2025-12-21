@@ -5,7 +5,7 @@
  */
 
 import type { Project, ProjectsResponse, Branch, UpdateProjectRequest } from '@/types/project'
-import type { User, AuthResponse, RefreshTokenResponse } from '@/types/auth'
+import type { User, AuthResponse } from '@/types/auth'
 import type {
   AdminUsersResponse,
   AdminUserDetail,
@@ -101,7 +101,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/a
  */
 
 /** @deprecated Token 现在使用 HttpOnly Cookie，无需手动设置 */
-export const setTokens = (accessToken: string, refreshToken: string) => {
+export const setTokens = (_accessToken: string, _refreshToken: string) => {
   console.warn('setTokens() is deprecated. Tokens are now managed via HttpOnly cookies.')
 }
 

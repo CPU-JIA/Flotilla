@@ -2,11 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { IssuesService } from './issues.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
-import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 
 describe('IssuesService', () => {
   let service: IssuesService;
-  let prisma: PrismaService;
+  let _prisma: PrismaService;
 
   const mockPrisma = {
     issue: {

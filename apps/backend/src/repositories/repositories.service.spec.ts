@@ -6,9 +6,9 @@ import { GitService } from '../git/git.service';
 
 describe('RepositoriesService', () => {
   let service: RepositoriesService;
-  let prismaService: PrismaService;
-  let minioService: MinioService;
-  let gitService: GitService;
+  let _prismaService: PrismaService;
+  let _minioService: MinioService;
+  let _gitService: GitService;
 
   const mockPrismaService = {
     repository: {

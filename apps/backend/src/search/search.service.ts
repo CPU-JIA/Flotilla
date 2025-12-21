@@ -227,7 +227,7 @@ export class SearchService {
         },
       });
 
-      const indexingCount = await this.prisma.searchMetadata.count({
+      const _indexingCount = await this.prisma.searchMetadata.count({
         where: {
           projectId,
           status: 'INDEXING',

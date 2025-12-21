@@ -32,7 +32,7 @@ export class ProjectMembersService {
   async addMember(
     projectId: string,
     addMemberDto: AddMemberDto,
-    currentUser: User,
+    _currentUser: User,
   ): Promise<ProjectMember> {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
@@ -151,7 +151,7 @@ export class ProjectMembersService {
     projectId: string,
     userId: string,
     updateRoleDto: UpdateMemberRoleDto,
-    currentUser: User,
+    _currentUser: User,
   ): Promise<ProjectMember> {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },

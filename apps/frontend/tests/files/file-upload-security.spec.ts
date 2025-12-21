@@ -213,7 +213,7 @@ test.describe('文件上传安全测试', () => {
         await page.waitForTimeout(2000);
 
         // 验证错误消息或文件名被清理
-        const errorOrSanitized = await page
+        const _errorOrSanitized = await page
           .locator('text=/非法文件名|Invalid filename|文件名不合法/i')
           .isVisible({ timeout: 3000 })
           .catch(() => false);
@@ -430,7 +430,7 @@ test.describe('文件上传安全测试', () => {
     }
   });
 
-  test('🔒 应该验证上传权限（非项目成员禁止上传）', async ({ page, context }) => {
+  test('🔒 应该验证上传权限（非项目成员禁止上传）', async ({ page }) => {
     if (!projectId) {
       test.skip();
       return;

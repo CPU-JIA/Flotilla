@@ -8,7 +8,7 @@ import { PermissionService } from '../common/services/permission.service';
 
 describe('ProjectsController', () => {
   let controller: ProjectsController;
-  let service: ProjectsService;
+  let _service: ProjectsService;
 
   const mockProjectsService = {
     create: jest.fn(),

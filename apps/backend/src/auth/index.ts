@@ -8,9 +8,16 @@ export { AuthService, AuthResponse } from './auth.service';
 
 // Specialized Services
 export { TokenService, JwtPayload, TokenPair } from './token.service';
-export { SessionService, SessionInfo, ParsedUserAgent } from './session.service';
+export {
+  SessionService,
+  SessionInfo,
+  ParsedUserAgent,
+} from './session.service';
 export { PasswordService, TokenValidationResult } from './password.service';
-export { EmailVerificationService, VerificationResult } from './email-verification.service';
+export {
+  EmailVerificationService,
+  VerificationResult,
+} from './email-verification.service';
 
 // Guards
 export { JwtAuthGuard } from './guards/jwt-auth.guard';

@@ -20,8 +20,8 @@ import { PRState } from '@prisma/client';
 
 describe('PullRequestsService', () => {
   let service: PullRequestsService;
-  let prisma: PrismaService;
-  let gitService: GitService;
+  let _prisma: PrismaService;
+  let _gitService: GitService;
 
   const mockPrisma = {
     project: {

@@ -9,11 +9,7 @@
  * - Token Payload管理
  */
 
-import {
-  Injectable,
-  UnauthorizedException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { User } from '@prisma/client';
@@ -164,7 +160,7 @@ export class TokenService {
    */
   decodeToken(token: string): JwtPayload | null {
     try {
-      return this.jwtService.decode(token) as JwtPayload;
+      return this.jwtService.decode(token);
     } catch {
       return null;
     }

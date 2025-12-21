@@ -91,7 +91,7 @@ async function createCommit(
   branch: string,
   files: Array<{ path: string; content: string }>,
   message: string,
-): Promise<any> {
+): Promise<Record<string, unknown>> {
   const response = await request.post(`http://localhost:4000/api/git/${projectId}/commit`, {
     headers: {
       Authorization: `Bearer ${token}`,

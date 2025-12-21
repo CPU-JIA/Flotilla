@@ -232,7 +232,7 @@ describe('GitHttpAuthGuard', () => {
 
   describe('项目权限检查', () => {
     beforeEach(() => {
-      const validAuth =
+      const _validAuth =
         'Basic ' + Buffer.from('testuser:testpass123').toString('base64');
       jest
         .spyOn(prismaService.user, 'findUnique')

@@ -7,7 +7,7 @@
  * ECP-C1: 防御性编程 - 错误处理和用户友好提示
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
@@ -45,7 +45,7 @@ export default function DevicesPage() {
   const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null)
 
   // 加载设备列表
-  const loadSessions = async () => {
+  const loadSessions = useCallback(async () => {
     setIsLoading(true)
     try {
       const data = await api.auth.getSessions()
@@ -62,11 +62,11 @@ export default function DevicesPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [router])
 
   useEffect(() => {
     loadSessions()
-  }, [])
+  }, [loadSessions])
 
   // 撤销设备
   const handleRevokeSession = async (sessionId: string) => {

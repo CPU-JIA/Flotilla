@@ -27,7 +27,7 @@ test.describe('Issue CRUD Operations', () => {
   }
 
   let projectId: string
-  let issueNumber: number
+  let _issueNumber: number
 
   // Login before each test
   test.beforeEach(async ({ page }) => {

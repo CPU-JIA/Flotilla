@@ -125,10 +125,10 @@ export function sanitizeContent(content: string): string {
 
   // 敏感模式列表
   const SENSITIVE_PATTERNS = [
-    /password\s*[:=]\s*['"]?[\w\d@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/gi,
-    /api[_-]?key\s*[:=]\s*['"]?[\w\d\-]+/gi,
-    /secret\s*[:=]\s*['"]?[\w\d\-]+/gi,
-    /token\s*[:=]\s*['"]?[\w\d\-\.]+/gi,
+    /password\s*[:=]\s*['"]?[\w\d@#$%^&*()_+=[\]{};':"\\|,.<>/?-]+/gi,
+    /api[_-]?key\s*[:=]\s*['"]?[\w\d-]+/gi,
+    /secret\s*[:=]\s*['"]?[\w\d-]+/gi,
+    /token\s*[:=]\s*['"]?[\w\d.-]+/gi,
   ];
 
   // 替换敏感信息为[REDACTED]

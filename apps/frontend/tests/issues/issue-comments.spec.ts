@@ -27,7 +27,7 @@ test.describe('Issue Comments', () => {
 
   const timestamp = Date.now()
   let projectId: string
-  let issueNumber: number
+  let _issueNumber: number
 
   // Setup: Login and create project + issue before each test
   test.beforeEach(async ({ page }) => {

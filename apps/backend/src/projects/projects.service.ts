@@ -220,7 +220,10 @@ export class ProjectsService {
    * ECP-C2: 系统性错误处理
    * ECP-C3: 性能意识 - Redis缓存优化
    */
-  async findOne(id: string, currentUser: User): Promise<ProjectDetailResponse> {
+  async findOne(
+    id: string,
+    _currentUser: User,
+  ): Promise<ProjectDetailResponse> {
     // ✅ Cache-Aside模式: 先检查缓存
     const cacheKey = `project:${id}:detail`;
     const cachedProject =
@@ -346,7 +349,7 @@ export class ProjectsService {
   async addMember(
     projectId: string,
     addMemberDto: AddMemberDto,
-    currentUser: User,
+    _currentUser: User,
   ): Promise<ProjectMember> {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
@@ -406,7 +409,7 @@ export class ProjectsService {
   async removeMember(
     projectId: string,
     userId: string,
-    currentUser: User,
+    _currentUser: User,
   ): Promise<{ message: string }> {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
@@ -461,7 +464,7 @@ export class ProjectsService {
     projectId: string,
     userId: string,
     updateRoleDto: UpdateMemberRoleDto,
-    currentUser: User,
+    _currentUser: User,
   ): Promise<ProjectMember> {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
@@ -514,7 +517,7 @@ export class ProjectsService {
    */
   async getMembers(
     projectId: string,
-    currentUser: User,
+    _currentUser: User,
   ): Promise<
     (ProjectMember & {
       user: { id: string; username: string; email: string };

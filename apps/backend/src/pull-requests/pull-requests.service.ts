@@ -554,7 +554,7 @@ export class PullRequestsService {
           );
           break;
 
-        case MergeStrategy.SQUASH:
+        case MergeStrategy.SQUASH: {
           const squashMessage =
             dto.commitMessage ||
             `${pr.title}\n\n${pr.body || ''}\n\nSquashed commits from #${pr.number}`;
@@ -566,6 +566,7 @@ export class PullRequestsService {
             author,
           );
           break;
+        }
 
         case MergeStrategy.REBASE:
           mergeCommitOid = await this.gitService.rebaseMerge(

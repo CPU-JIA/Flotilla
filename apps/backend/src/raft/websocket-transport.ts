@@ -103,7 +103,7 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
       this.connections.clear();
 
       // 拒绝所有待处理的请求
-      for (const [requestId, pending] of this.pendingRequests) {
+      for (const [_requestId, pending] of this.pendingRequests) {
         clearTimeout(pending.timer);
         pending.reject(new Error('Server stopped'));
       }

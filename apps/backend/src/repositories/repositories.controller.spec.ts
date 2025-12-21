@@ -4,7 +4,7 @@ import { RepositoriesService } from './repositories.service';
 
 describe('RepositoriesController', () => {
   let controller: RepositoriesController;
-  let service: RepositoriesService;
+  let _service: RepositoriesService;
 
   const mockRepositoriesService = {
     findAll: jest.fn(),

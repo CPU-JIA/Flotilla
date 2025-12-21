@@ -61,7 +61,7 @@ async function createProjectViaAPI(
 /**
  * Initialize Git repository
  */
-async function initGitRepo(
+async function _initGitRepo(
   request: APIRequestContext,
   token: string,
   projectId: string,
@@ -80,8 +80,8 @@ async function initGitRepo(
 
   if (!response.ok()) {
     const errorBody = await response.text()
-    console.error(`[initGitRepo] FAILED: ${response.status()} ${response.statusText()}`)
-    console.error(`[initGitRepo] Response body: ${errorBody}`)
+    console.error(`[_initGitRepo] FAILED: ${response.status()} ${response.statusText()}`)
+    console.error(`[_initGitRepo] Response body: ${errorBody}`)
   }
 
   expect(response.ok()).toBeTruthy()
@@ -117,7 +117,7 @@ async function createCommit(
   branch: string,
   files: Array<{ path: string; content: string }>,
   message: string,
-): Promise<any> {
+): Promise<Record<string, unknown>> {
   const response = await request.post(`http://localhost:4000/api/git/${projectId}/commit`, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -328,7 +328,7 @@ test.describe('Pull Request E2E Workflow', () => {
     expect(createPRResponse.ok()).toBeTruthy()
     const prData = await createPRResponse.json()
     const prNumber = prData.number
-    const prId = prData.id
+    const _prId = prData.id
 
     // Navigate to PR detail page
     await page.goto(`/projects/${projectId}/pulls/${prNumber}`)

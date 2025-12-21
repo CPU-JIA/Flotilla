@@ -25,10 +25,13 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
-import { TokenService, TokenPair, JwtPayload } from './token.service';
+import { TokenService, TokenPair } from './token.service';
 import { SessionService } from './session.service';
 import { PasswordService, TokenValidationResult } from './password.service';
-import { EmailVerificationService, VerificationResult } from './email-verification.service';
+import {
+  EmailVerificationService,
+  VerificationResult,
+} from './email-verification.service';
 import {
   RegisterDto,
   LoginDto,
@@ -369,7 +372,9 @@ export class AuthService {
   /**
    * 验证邮箱Token（委托给 EmailVerificationService）
    */
-  async verifyEmailVerificationToken(token: string): Promise<VerificationResult> {
+  async verifyEmailVerificationToken(
+    token: string,
+  ): Promise<VerificationResult> {
     return this.emailVerificationService.verifyEmailToken(token);
   }
 

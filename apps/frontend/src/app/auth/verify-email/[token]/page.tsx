@@ -6,7 +6,7 @@
  * ECP-C1: 防御性编程 - 完整的状态机和错误处理
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -26,6 +26,26 @@ export default function VerifyEmailPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [expiresAt, setExpiresAt] = useState<string | null>(null)
   const [countdown, setCountdown] = useState(3)
+
+  /**
+   * Step 2: 执行实际验证（POST请求）
+   */
+  const performVerification = useCallback(async () => {
+    setState('VERIFYING')
+
+    try {
+      await api.auth.verifyEmail(token)
+      setState('SUCCESS')
+    } catch (err: unknown) {
+      setState('ERROR')
+      setErrorType('UNKNOWN')
+      if (err && typeof err === 'object' && 'message' in err && typeof err.message === 'string') {
+        setErrorMessage(err.message)
+      } else {
+        setErrorMessage('验证失败，请重试')
+      }
+    }
+  }, [token])
 
   /**
    * Step 1: Token预验证（GET请求，不执行验证操作）
@@ -70,27 +90,7 @@ export default function VerifyEmailPage() {
     }
 
     validateToken()
-  }, [token])
-
-  /**
-   * Step 2: 执行实际验证（POST请求）
-   */
-  const performVerification = async () => {
-    setState('VERIFYING')
-
-    try {
-      await api.auth.verifyEmail(token)
-      setState('SUCCESS')
-    } catch (err: unknown) {
-      setState('ERROR')
-      setErrorType('UNKNOWN')
-      if (err && typeof err === 'object' && 'message' in err && typeof err.message === 'string') {
-        setErrorMessage(err.message)
-      } else {
-        setErrorMessage('验证失败，请重试')
-      }
-    }
-  }
+  }, [token, performVerification])
 
   /**
    * Step 3: 成功后自动跳转倒计时

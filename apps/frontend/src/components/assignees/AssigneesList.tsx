@@ -10,7 +10,7 @@
 
 'use client'
 
-import { User, Users } from 'lucide-react'
+import { Users } from 'lucide-react'
 import type { IssueAssignee } from '@/types/issue'
 
 interface AssigneesListProps {
@@ -36,12 +36,6 @@ export function AssigneesList({
     sm: 'w-6 h-6 text-xs',
     md: 'w-8 h-8 text-sm',
     lg: 'w-10 h-10 text-base',
-  }
-
-  const iconSizes = {
-    sm: 'h-3 w-3',
-    md: 'h-4 w-4',
-    lg: 'h-5 w-5',
   }
 
   if (!hasAssignees) {

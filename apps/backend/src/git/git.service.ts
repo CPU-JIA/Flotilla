@@ -446,7 +446,7 @@ export class GitService {
             });
           },
         });
-      } catch (error) {
+      } catch (_error) {
         // Branch doesn't exist or no parent commit - will create new branch
         this.logger.debug(
           `Branch ${branch} doesn't exist, creating new branch`,

@@ -23,7 +23,7 @@ import { PrismaService } from '../prisma/prisma.service';
 describe('SearchService', () => {
   let service: SearchService;
   let prismaService: jest.Mocked<PrismaService>;
-  let meilisearchService: jest.Mocked<MeilisearchService>;
+  let _meilisearchService: jest.Mocked<MeilisearchService>;
   let indexService: jest.Mocked<IndexService>;
 
   // Mock MeiliSearch index

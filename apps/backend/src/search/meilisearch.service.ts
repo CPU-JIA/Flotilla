@@ -55,7 +55,7 @@ export class MeilisearchService implements OnModuleInit {
       // 尝试获取现有索引
       this.codeIndex = await this.client.getIndex(indexName);
       this.logger.log(`Code index already exists: ${indexName}`);
-    } catch (error) {
+    } catch (_error) {
       // 创建索引（异步操作）
       this.logger.log(`Creating new code index: ${indexName}`);
       await this.client.createIndex(indexName, {

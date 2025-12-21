@@ -84,16 +84,26 @@ describe('AuthService', () => {
   };
 
   const mockPasswordService = {
-    forgotPassword: jest.fn().mockResolvedValue({ message: '如果该邮箱已注册，您将收到密码重置邮件' }),
-    resetPassword: jest.fn().mockResolvedValue({ message: '密码重置成功，请使用新密码登录' }),
-    verifyResetToken: jest.fn().mockResolvedValue({ valid: true, message: '重置链接有效' }),
+    forgotPassword: jest
+      .fn()
+      .mockResolvedValue({ message: '如果该邮箱已注册，您将收到密码重置邮件' }),
+    resetPassword: jest
+      .fn()
+      .mockResolvedValue({ message: '密码重置成功，请使用新密码登录' }),
+    verifyResetToken: jest
+      .fn()
+      .mockResolvedValue({ valid: true, message: '重置链接有效' }),
     getResetTokenForTest: jest.fn(),
   };
 
   const mockEmailVerificationService = {
     verifyEmail: jest.fn().mockResolvedValue({ message: '邮箱验证成功！' }),
-    resendVerificationEmail: jest.fn().mockResolvedValue({ message: '验证邮件已发送，请检查您的邮箱' }),
-    verifyEmailToken: jest.fn().mockResolvedValue({ valid: true, message: '验证链接有效' }),
+    resendVerificationEmail: jest
+      .fn()
+      .mockResolvedValue({ message: '验证邮件已发送，请检查您的邮箱' }),
+    verifyEmailToken: jest
+      .fn()
+      .mockResolvedValue({ valid: true, message: '验证链接有效' }),
     getEmailTokenForTest: jest.fn(),
   };
 
