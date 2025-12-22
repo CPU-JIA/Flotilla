@@ -4,6 +4,7 @@ import './globals.css'
 import { AuthProvider } from '@/contexts/auth-context'
 import { ThemeProvider } from '@/providers/theme-provider'
 import { QueryProvider } from '@/providers/query-provider'
+import { ErrorBoundaryProvider } from '@/providers/error-boundary-provider'
 import { LanguageProvider } from '@/contexts/language-context'
 import { translations } from '@/locales'
 import { MantineProvider } from '@mantine/core'
@@ -51,7 +52,9 @@ export default function RootLayout({
             <Toaster position="top-right" richColors closeButton />
             <QueryProvider>
               <LanguageProvider translations={translations}>
-                <AuthProvider>{children}</AuthProvider>
+                <ErrorBoundaryProvider>
+                  <AuthProvider>{children}</AuthProvider>
+                </ErrorBoundaryProvider>
               </LanguageProvider>
             </QueryProvider>
           </MantineProvider>

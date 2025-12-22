@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { RaftNode } from '../raft/raft-node';
 import { WebSocketTransport } from '../raft/websocket-transport';
-import { MemoryPersistentStorage } from '../raft/storage';
+import { FilePersistentStorage } from '../raft/storage';
 import { GitStateMachine } from '../raft/git-state-machine';
 import { ClusterConfigService } from './cluster-config.service';
 import { CommandType, NodeState as States } from '../raft/types';
@@ -95,10 +95,27 @@ export class RaftClusterService implements OnModuleInit, OnModuleDestroy {
       const settings = this.configService.getClusterSettings();
       const config = this.configService.toRaftConfig(settings);
 
-      // 创建Raft组件
+      // 创建Raft组件（使用文件持久化存储）
       const transport = new WebSocketTransport(settings.nodeId, settings.ports);
-      const storage = new MemoryPersistentStorage(settings.nodeId);
-      const stateMachine = new GitStateMachine(settings.nodeId);
+      const storage = new FilePersistentStorage(
+        settings.nodeId,
+        settings.dataDir,
+      );
+      const stateMachine = new GitStateMachine(
+        settings.nodeId,
+        settings.dataDir,
+      );
+
+      // 从文件加载快照（如果存在）
+      try {
+        await stateMachine.loadSnapshotFromFile();
+        this.logger.log('Loaded state machine snapshot from file');
+      } catch (error) {
+        this.logger.warn(
+          `Failed to load snapshot: ${(error as Error).message}`,
+        );
+        // 继续启动，使用空状态
+      }
 
       // 创建Raft节点
       this.raftNode = new RaftNode(config, transport, stateMachine, storage);
@@ -111,7 +128,7 @@ export class RaftClusterService implements OnModuleInit, OnModuleDestroy {
 
       this.clusterStatus = 'running';
       this.logger.log(
-        `Raft cluster started successfully. Node ID: ${settings.nodeId}`,
+        `Raft cluster started successfully. Node ID: ${settings.nodeId}, Data Dir: ${settings.dataDir}`,
       );
     } catch (error) {
       this.clusterStatus = 'error';

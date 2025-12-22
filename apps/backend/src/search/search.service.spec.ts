@@ -3,6 +3,7 @@ import { SearchService } from './search.service';
 import { MeilisearchService } from './meilisearch.service';
 import { IndexService } from './index.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 
 /**
  * SearchService单元测试
@@ -16,6 +17,7 @@ import { PrismaService } from '../prisma/prisma.service';
  * - PrismaService: Mock所有数据库查询
  * - MeilisearchService: Mock MeiliSearch index.search()
  * - IndexService: Mock indexProject()
+ * - RedisService: Mock缓存操作
  *
  * ECP-C1 (数据安全): 重点测试权限过滤逻辑
  * ECP-D1 (可测试性): 使用NestJS TestingModule for DI
@@ -65,6 +67,13 @@ describe('SearchService', () => {
     indexFile: jest.fn(),
   };
 
+  const mockRedisService = {
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue(true),
+    del: jest.fn().mockResolvedValue(true),
+    delPattern: jest.fn().mockResolvedValue(0),
+  };
+
   beforeEach(async () => {
     // 清空所有mock
     jest.clearAllMocks();
@@ -83,6 +92,10 @@ describe('SearchService', () => {
         {
           provide: IndexService,
           useValue: mockIndexService,
+        },
+        {
+          provide: RedisService,
+          useValue: mockRedisService,
         },
       ],
     }).compile();

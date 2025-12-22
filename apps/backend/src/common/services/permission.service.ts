@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { RedisService } from '../../redis/redis.service';
 import {
   MemberRole,
   OrgRole,
@@ -18,10 +19,14 @@ import {
  * Centralized permission checking service
  * Implements three-layer permission hierarchy:
  * Platform (SUPER_ADMIN) → Organization (OWNER/ADMIN/MEMBER) → Team (MAINTAINER/MEMBER) → Project (OWNER/MAINTAINER/MEMBER/VIEWER)
+ * ECP-C3: Performance optimization - Redis caching for project permissions
  */
 @Injectable()
 export class PermissionService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
 
   // Role hierarchy definitions
   private readonly memberRoleHierarchy: Record<MemberRole, number> = {
@@ -52,11 +57,19 @@ export class PermissionService {
   /**
    * Get effective project role by merging direct membership and team permissions
    * Returns the highest role among all access paths
+   * ECP-C3: Performance optimization - Redis caching (TTL: 60s)
    */
   async getEffectiveProjectRole(
     userId: string,
     projectId: string,
   ): Promise<MemberRole | null> {
+    // Try cache first
+    const cacheKey = `user:${userId}:project:${projectId}:role`;
+    const cached = await this.redis.get<MemberRole | null>(cacheKey);
+    if (cached !== null) {
+      return cached;
+    }
+
     // Parallel queries for performance
     const [directMember, teamPermissions] = await Promise.all([
       // Direct project membership
@@ -90,18 +103,20 @@ export class PermissionService {
       ...teamPermissions.map((tp) => tp.role),
     ].filter((role): role is MemberRole => role !== undefined);
 
-    if (allRoles.length === 0) {
-      return null;
-    }
+    const effectiveRole =
+      allRoles.length === 0 ? null : this.getHighestMemberRole(allRoles);
 
-    // Return highest role
-    return this.getHighestMemberRole(allRoles);
+    // Cache result (TTL: 60 seconds)
+    await this.redis.set(cacheKey, effectiveRole, 60);
+
+    return effectiveRole;
   }
 
   /**
    * Check project permission and return project if authorized
    * @throws ForbiddenException if insufficient permissions
    * @throws NotFoundException if project not found
+   * ECP-C3: Performance optimization - Single query with include
    */
   async checkProjectPermission(
     user: User,
@@ -119,15 +134,42 @@ export class PermissionService {
       return project;
     }
 
-    // Get effective role
-    const effectiveRole = await this.getEffectiveProjectRole(
-      user.id,
-      projectId,
-    );
+    // Single query with include to fetch project + members + teamPermissions
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        members: {
+          where: { userId: user.id },
+          select: { role: true },
+        },
+        teamPermissions: {
+          where: {
+            team: {
+              members: {
+                some: { userId: user.id },
+              },
+            },
+          },
+          select: { role: true },
+        },
+      },
+    });
 
-    if (!effectiveRole) {
+    if (!project) {
+      throw new NotFoundException('Project not found');
+    }
+
+    // Calculate effective role from included data
+    const allRoles: MemberRole[] = [
+      project.members[0]?.role,
+      ...project.teamPermissions.map((tp) => tp.role),
+    ].filter((role): role is MemberRole => role !== undefined);
+
+    if (allRoles.length === 0) {
       throw new ForbiddenException('Not a member of this project');
     }
+
+    const effectiveRole = this.getHighestMemberRole(allRoles);
 
     // Check role hierarchy
     if (
@@ -138,16 +180,13 @@ export class PermissionService {
       );
     }
 
-    // Return project to avoid duplicate query
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
-    });
-
-    if (!project) {
-      throw new NotFoundException('Project not found');
-    }
-
-    return project;
+    // Return project without extra included fields
+    const {
+      members: _members,
+      teamPermissions: _teamPermissions,
+      ...projectData
+    } = project;
+    return projectData as Project;
   }
 
   /**
@@ -285,5 +324,27 @@ export class PermissionService {
     hierarchy: Record<T, number>,
   ): boolean {
     return hierarchy[userRole] >= hierarchy[requiredRole];
+  }
+
+  /**
+   * Invalidate project permission cache for a specific user
+   * Call this when project permissions are modified
+   * ECP-C3: Performance optimization - Cache invalidation on permission changes
+   */
+  async invalidateProjectPermissionCache(
+    userId: string,
+    projectId: string,
+  ): Promise<void> {
+    const cacheKey = `user:${userId}:project:${projectId}:role`;
+    await this.redis.del(cacheKey);
+  }
+
+  /**
+   * Invalidate all project permission caches for a project
+   * Call this when team permissions or project settings change
+   */
+  async invalidateAllProjectPermissionCaches(projectId: string): Promise<void> {
+    const pattern = `user:*:project:${projectId}:role`;
+    await this.redis.delPattern(pattern);
   }
 }

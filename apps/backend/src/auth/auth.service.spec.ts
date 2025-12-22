@@ -432,4 +432,317 @@ describe('AuthService', () => {
       );
     });
   });
+
+  describe('logout - 用户登出', () => {
+    const userId = 'user-id-1';
+    const user = {
+      id: userId,
+      username: 'testuser',
+      email: 'test@example.com',
+      passwordHash: 'hashedPassword',
+      role: UserRole.USER,
+      avatar: null,
+      bio: null,
+      isActive: true,
+      tokenVersion: 0,
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    it('应该成功登出并撤销所有令牌', async () => {
+      mockPrismaService.user.update.mockResolvedValue({
+        ...user,
+        tokenVersion: 1,
+      });
+      mockSessionService.revokeAllSessions.mockResolvedValue(3);
+
+      const result = await service.logout(userId);
+
+      expect(result).toEqual({
+        message: '登出成功，所有设备的登录状态已失效',
+      });
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: userId },
+        data: { tokenVersion: { increment: 1 } },
+      });
+      expect(mockSessionService.revokeAllSessions).toHaveBeenCalledWith(userId);
+    });
+
+    it('应该增加tokenVersion以撤销所有现有令牌', async () => {
+      mockPrismaService.user.update.mockResolvedValue({
+        ...user,
+        tokenVersion: 5,
+      });
+      mockSessionService.revokeAllSessions.mockResolvedValue(0);
+
+      await service.logout(userId);
+
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: userId },
+        data: { tokenVersion: { increment: 1 } },
+      });
+    });
+  });
+
+  describe('login - 账户状态检查', () => {
+    const loginDto = {
+      usernameOrEmail: 'testuser',
+      password: 'password123',
+    };
+
+    it('应该在账户被禁用时抛出 UnauthorizedException', async () => {
+      const inactiveUser = {
+        id: '1',
+        username: 'testuser',
+        email: 'test@example.com',
+        passwordHash: 'hashedPassword',
+        role: UserRole.USER,
+        avatar: null,
+        bio: null,
+        isActive: false, // 账户已禁用
+        tokenVersion: 0,
+        emailVerified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockPrismaService.user.findFirst.mockResolvedValue(inactiveUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      await expect(service.login(loginDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+      await expect(service.login(loginDto)).rejects.toThrow(
+        '账户已被禁用，请联系管理员',
+      );
+    });
+
+    it('应该在邮箱未验证时抛出 UnauthorizedException（需要验证时）', async () => {
+      process.env.REQUIRE_EMAIL_VERIFICATION = 'true';
+      const unverifiedUser = {
+        id: '1',
+        username: 'testuser',
+        email: 'test@example.com',
+        passwordHash: 'hashedPassword',
+        role: UserRole.USER,
+        avatar: null,
+        bio: null,
+        isActive: true,
+        tokenVersion: 0,
+        emailVerified: false, // 邮箱未验证
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockPrismaService.user.findFirst.mockResolvedValue(unverifiedUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      await expect(service.login(loginDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+      await expect(service.login(loginDto)).rejects.toThrow('邮箱未验证');
+    });
+
+    it('应该在邮箱未验证时允许登录（不需要验证时）', async () => {
+      process.env.REQUIRE_EMAIL_VERIFICATION = 'false';
+      const unverifiedUser = {
+        id: '1',
+        username: 'testuser',
+        email: 'test@example.com',
+        passwordHash: 'hashedPassword',
+        role: UserRole.USER,
+        avatar: null,
+        bio: null,
+        isActive: true,
+        tokenVersion: 0,
+        emailVerified: false, // 邮箱未验证
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockPrismaService.user.findFirst.mockResolvedValue(unverifiedUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      mockTokenService.generateTokens.mockResolvedValue({
+        accessToken: 'accessToken',
+        refreshToken: 'refreshToken',
+      });
+
+      const result = await service.login(loginDto);
+
+      expect(result).toHaveProperty('accessToken');
+      expect(result).toHaveProperty('refreshToken');
+      expect(result.user.emailVerified).toBe(false);
+    });
+  });
+
+  describe('register - INITIAL_ADMIN_EMAIL 环境变量', () => {
+    const registerDto = {
+      username: 'admin',
+      email: 'admin@example.com',
+      password: 'admin123',
+    };
+
+    beforeEach(() => {
+      process.env.NODE_ENV = 'production';
+    });
+
+    afterEach(() => {
+      delete process.env.INITIAL_ADMIN_EMAIL;
+      process.env.NODE_ENV = 'test';
+    });
+
+    it('应该在生产环境首个用户注册时要求设置 INITIAL_ADMIN_EMAIL', async () => {
+      delete process.env.INITIAL_ADMIN_EMAIL;
+
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+      mockPrismaService.user.count.mockResolvedValue(0); // First user
+
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        const tx = {
+          user: {
+            count: jest.fn().mockResolvedValue(0),
+          },
+        };
+        return callback(tx);
+      });
+
+      await expect(service.register(registerDto)).rejects.toThrow(
+        'INITIAL_ADMIN_EMAIL environment variable must be set in production environment.',
+      );
+    });
+
+    it('应该在匹配 INITIAL_ADMIN_EMAIL 时提升为 SUPER_ADMIN', async () => {
+      process.env.INITIAL_ADMIN_EMAIL = 'admin@example.com';
+      const hashedPassword = 'hashedPassword123';
+
+      const superAdminUser = {
+        id: '1',
+        username: registerDto.username,
+        email: registerDto.email,
+        passwordHash: hashedPassword,
+        role: UserRole.SUPER_ADMIN,
+        avatar: null,
+        bio: null,
+        isActive: true,
+        tokenVersion: 0,
+        emailVerified: false,
+        emailVerifyToken: 'verify-token-123',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+      mockPrismaService.user.count.mockResolvedValue(5); // Not first user
+      mockPrismaService.user.create.mockResolvedValue(superAdminUser);
+      mockPrismaService.organization.create.mockResolvedValue({
+        id: 'org-1',
+        name: `${superAdminUser.username}'s Organization`,
+        slug: `user-${superAdminUser.username}`,
+      });
+      mockPrismaService.organizationMember.create.mockResolvedValue({});
+      mockTokenService.generateTokens.mockResolvedValue({
+        accessToken: 'accessToken',
+        refreshToken: 'refreshToken',
+      });
+      (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
+
+      const result = await service.register(registerDto);
+
+      expect(result.user.role).toBe(UserRole.SUPER_ADMIN);
+      expect(mockPrismaService.user.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          role: UserRole.SUPER_ADMIN,
+        }),
+      });
+    });
+  });
+
+  describe('委托方法测试', () => {
+    it('getUserSessions 应该委托给 SessionService', async () => {
+      const userId = 'user-id-1';
+      const mockSessions = [
+        { id: 'session-1', userId, ipAddress: '127.0.0.1' },
+        { id: 'session-2', userId, ipAddress: '192.168.1.1' },
+      ];
+      mockSessionService.getUserSessions.mockResolvedValue(mockSessions);
+
+      const result = await service.getUserSessions(userId);
+
+      expect(result).toEqual(mockSessions);
+      expect(mockSessionService.getUserSessions).toHaveBeenCalledWith(userId);
+    });
+
+    it('revokeSession 应该委托给 SessionService', async () => {
+      const userId = 'user-id-1';
+      const sessionId = 'session-id-1';
+      mockSessionService.revokeSession.mockResolvedValue({
+        message: '设备已登出成功',
+      });
+
+      const result = await service.revokeSession(userId, sessionId);
+
+      expect(result).toEqual({ message: '设备已登出成功' });
+      expect(mockSessionService.revokeSession).toHaveBeenCalledWith(
+        userId,
+        sessionId,
+      );
+    });
+
+    it('forgotPassword 应该委托给 PasswordService', async () => {
+      const email = 'test@example.com';
+      mockPasswordService.forgotPassword.mockResolvedValue({
+        message: '如果该邮箱已注册，您将收到密码重置邮件',
+      });
+
+      const result = await service.forgotPassword({ email });
+
+      expect(result.message).toContain('密码重置邮件');
+      expect(mockPasswordService.forgotPassword).toHaveBeenCalledWith(email);
+    });
+
+    it('resetPassword 应该委托给 PasswordService', async () => {
+      const token = 'reset-token';
+      const newPassword = 'newPassword123';
+      mockPasswordService.resetPassword.mockResolvedValue({
+        message: '密码重置成功，请使用新密码登录',
+      });
+
+      const result = await service.resetPassword(token, { newPassword });
+
+      expect(result.message).toContain('密码重置成功');
+      expect(mockPasswordService.resetPassword).toHaveBeenCalledWith(
+        token,
+        newPassword,
+      );
+    });
+
+    it('verifyEmail 应该委托给 EmailVerificationService', async () => {
+      const token = 'verify-token';
+      mockEmailVerificationService.verifyEmail.mockResolvedValue({
+        message: '邮箱验证成功！',
+      });
+
+      const result = await service.verifyEmail(token);
+
+      expect(result.message).toContain('邮箱验证成功');
+      expect(mockEmailVerificationService.verifyEmail).toHaveBeenCalledWith(
+        token,
+      );
+    });
+
+    it('resendVerificationEmail 应该委托给 EmailVerificationService', async () => {
+      const email = 'test@example.com';
+      mockEmailVerificationService.resendVerificationEmail.mockResolvedValue({
+        message: '验证邮件已发送，请检查您的邮箱',
+      });
+
+      const result = await service.resendVerificationEmail({ email });
+
+      expect(result.message).toContain('验证邮件已发送');
+      expect(
+        mockEmailVerificationService.resendVerificationEmail,
+      ).toHaveBeenCalledWith(email);
+    });
+  });
 });

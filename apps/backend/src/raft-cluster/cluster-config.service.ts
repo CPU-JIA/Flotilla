@@ -18,16 +18,18 @@ export interface RaftClusterSettings {
   heartbeatInterval: number;
   rpcTimeout: number;
   autoStart: boolean;
+  dataDir: string; // 数据持久化目录
 }
 
 @Injectable()
 export class ClusterConfigService {
   private readonly defaultConfig: Partial<RaftClusterSettings> = {
     electionTimeoutMin: 150,
-    electionTimeoutMax: 300,
-    heartbeatInterval: 50,
+    electionTimeoutMax: 450, // 增加随机范围，防止选举活锁
+    heartbeatInterval: 100, // 心跳应小于选举超时最小值
     rpcTimeout: 100,
     autoStart: false,
+    dataDir: './data/raft', // 默认数据目录
   };
 
   /**
@@ -53,11 +55,12 @@ export class ClusterConfigService {
         process.env.RAFT_ELECTION_TIMEOUT_MIN || '150',
       ),
       electionTimeoutMax: parseInt(
-        process.env.RAFT_ELECTION_TIMEOUT_MAX || '300',
+        process.env.RAFT_ELECTION_TIMEOUT_MAX || '450',
       ),
-      heartbeatInterval: parseInt(process.env.RAFT_HEARTBEAT_INTERVAL || '50'),
+      heartbeatInterval: parseInt(process.env.RAFT_HEARTBEAT_INTERVAL || '100'),
       rpcTimeout: parseInt(process.env.RAFT_RPC_TIMEOUT || '100'),
       autoStart: process.env.RAFT_AUTO_START === 'true',
+      dataDir: process.env.RAFT_DATA_DIR || './data/raft',
       ...this.defaultConfig,
     };
   }

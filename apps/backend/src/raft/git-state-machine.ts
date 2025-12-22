@@ -11,6 +11,9 @@
 
 import { CommandType } from './types';
 import type { StateMachine, Command } from './types';
+import { promises as fs } from 'fs';
+import * as path from 'path';
+import { createHash } from 'crypto';
 
 // Git状态数据结构
 interface GitRepository {
@@ -67,14 +70,23 @@ interface GitStateMachineState {
 
 export class GitStateMachine implements StateMachine {
   private state: GitStateMachineState;
+  private snapshotFile: string | null = null;
 
-  constructor(private readonly nodeId: string) {
+  constructor(
+    private readonly nodeId: string,
+    private readonly dataDir?: string,
+  ) {
     this.state = {
       projects: new Map(),
       repositories: new Map(),
       users: new Map(),
       lastAppliedIndex: 0,
     };
+
+    // 如果提供了数据目录，设置快照文件路径
+    if (dataDir) {
+      this.snapshotFile = path.join(dataDir, nodeId, 'snapshot.json');
+    }
 
     this.debugLog('State machine initialized');
   }
@@ -159,7 +171,7 @@ export class GitStateMachine implements StateMachine {
   /**
    * 创建状态快照
    */
-  createSnapshot(): Promise<Buffer> {
+  async createSnapshot(): Promise<Buffer> {
     const snapshot = {
       projects: Object.fromEntries(this.state.projects),
       repositories: Object.fromEntries(
@@ -175,13 +187,28 @@ export class GitStateMachine implements StateMachine {
       lastAppliedIndex: this.state.lastAppliedIndex,
     };
 
-    return Promise.resolve(Buffer.from(JSON.stringify(snapshot)));
+    const buffer = Buffer.from(JSON.stringify(snapshot));
+
+    // 如果配置了数据目录，持久化快照到磁盘
+    if (this.snapshotFile) {
+      try {
+        await this.saveSnapshotToFile(snapshot);
+        this.debugLog('Snapshot saved to file');
+      } catch (error) {
+        this.debugLog(
+          `Failed to save snapshot to file: ${(error as Error).message}`,
+        );
+        // 不抛出错误，允许内存快照继续工作
+      }
+    }
+
+    return buffer;
   }
 
   /**
    * 从快照恢复状态
    */
-  restoreFromSnapshot(snapshot: Buffer): Promise<void> {
+  async restoreFromSnapshot(snapshot: Buffer): Promise<void> {
     try {
       const data = JSON.parse(snapshot.toString());
 
@@ -210,14 +237,99 @@ export class GitStateMachine implements StateMachine {
       this.debugLog(
         `Restored state from snapshot: ${this.state.projects.size} projects, ${this.state.repositories.size} repositories`,
       );
-      return Promise.resolve();
     } catch (error) {
-      return Promise.reject(
-        new Error(
-          `Failed to restore from snapshot: ${(error as Error).message}`,
-        ),
+      throw new Error(
+        `Failed to restore from snapshot: ${(error as Error).message}`,
       );
     }
+  }
+
+  /**
+   * 从文件加载快照（节点启动时调用）
+   */
+  async loadSnapshotFromFile(): Promise<void> {
+    if (!this.snapshotFile) {
+      this.debugLog('No snapshot file configured, skipping load');
+      return;
+    }
+
+    try {
+      // 检查快照文件是否存在
+      await fs.access(this.snapshotFile);
+
+      const content = await fs.readFile(this.snapshotFile, 'utf8');
+      const storedData = JSON.parse(content);
+
+      // 验证校验和
+      const dataJson = JSON.stringify(storedData.data);
+      const calculatedChecksum = this.calculateChecksum(dataJson);
+
+      if (calculatedChecksum !== storedData.checksum) {
+        throw new Error(
+          `Snapshot checksum mismatch: expected ${storedData.checksum}, got ${calculatedChecksum}`,
+        );
+      }
+
+      // 恢复快照
+      const buffer = Buffer.from(JSON.stringify(storedData.data));
+      await this.restoreFromSnapshot(buffer);
+
+      this.debugLog('Snapshot loaded from file successfully');
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        this.debugLog('Snapshot file not found, starting with empty state');
+      } else {
+        this.debugLog(
+          `Failed to load snapshot from file: ${(error as Error).message}`,
+        );
+        throw error;
+      }
+    }
+  }
+
+  /**
+   * 保存快照到文件
+   */
+  private async saveSnapshotToFile(snapshot: any): Promise<void> {
+    if (!this.snapshotFile) return;
+
+    const tempFile = `${this.snapshotFile}.tmp`;
+
+    try {
+      // 确保目录存在
+      await fs.mkdir(path.dirname(this.snapshotFile), { recursive: true });
+
+      // 计算校验和
+      const dataJson = JSON.stringify(snapshot);
+      const checksum = this.calculateChecksum(dataJson);
+
+      const storedData = {
+        data: snapshot,
+        checksum,
+        timestamp: Date.now(),
+      };
+
+      // 写入临时文件
+      await fs.writeFile(tempFile, JSON.stringify(storedData, null, 2), 'utf8');
+
+      // 原子性 rename
+      await fs.rename(tempFile, this.snapshotFile);
+    } catch (error) {
+      // 清理临时文件
+      try {
+        await fs.unlink(tempFile);
+      } catch {
+        // 忽略清理错误
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * 计算校验和
+   */
+  private calculateChecksum(data: string): string {
+    return createHash('sha256').update(data, 'utf8').digest('hex');
   }
 
   /**

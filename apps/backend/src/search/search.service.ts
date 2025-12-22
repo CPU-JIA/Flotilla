@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { MeilisearchService } from './meilisearch.service';
 import { IndexService } from './index.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 import { SearchQueryDto } from './dto/search-query.dto';
 import {
   SearchResultDto,
@@ -19,7 +20,7 @@ import {
  * - 索引状态查询
  *
  * ECP-A1 (SOLID): 单一职责 - 只负责搜索逻辑
- * ECP-C3 (性能): 搜索结果分页限制
+ * ECP-C3 (性能): 搜索结果分页限制 + Redis缓存
  */
 @Injectable()
 export class SearchService {
@@ -29,6 +30,7 @@ export class SearchService {
     private meilisearch: MeilisearchService,
     private indexService: IndexService,
     private prisma: PrismaService,
+    private redis: RedisService,
   ) {}
 
   /**
@@ -283,30 +285,32 @@ export class SearchService {
   }
 
   /**
-   * 获取用户有权限的项目ID列表
-   *
-   * @param userId - 用户ID
-   * @returns 项目ID数组
-   */
-  private async getUserProjectIds(userId: string): Promise<string[]> {
-    const projects = await this.prisma.projectMember.findMany({
-      where: { userId },
-      select: { projectId: true },
-    });
-    return projects.map((p) => p.projectId);
-  }
-
-  /**
-   * 获取所有公开项目ID列表
+   * 获取所有公开项目ID列表（带缓存）
    *
    * @returns 项目ID数组
+   * ECP-C3: Performance optimization - Redis caching (TTL: 5 minutes)
    */
   private async getPublicProjectIds(): Promise<string[]> {
+    const cacheKey = 'search:public_projects';
+
+    // Try cache first
+    const cached = await this.redis.get<string[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    // Query database
     const projects = await this.prisma.project.findMany({
       where: { visibility: 'PUBLIC' },
       select: { id: true },
     });
-    return projects.map((p) => p.id);
+
+    const projectIds = projects.map((p) => p.id);
+
+    // Cache result (TTL: 5 minutes = 300 seconds)
+    await this.redis.set(cacheKey, projectIds, 300);
+
+    return projectIds;
   }
 
   /**
@@ -322,6 +326,7 @@ export class SearchService {
    * @returns MeiliSearch过滤表达式
    *
    * ECP-C1 (数据安全): 严格的权限控制
+   * ECP-C3 (性能): 并行查询 + 缓存优化
    */
   private async buildProjectFilter(
     projectId?: string,
@@ -329,21 +334,21 @@ export class SearchService {
   ): Promise<string> {
     // 情况1：指定了projectId
     if (projectId) {
-      // 检查用户是否有权限访问该项目
-      const hasAccess = userId
-        ? await this.prisma.projectMember.findFirst({
-            where: {
-              projectId,
-              userId,
-            },
-          })
-        : null;
-
-      // 检查项目是否公开
-      const project = await this.prisma.project.findUnique({
-        where: { id: projectId },
-        select: { visibility: true },
-      });
+      // 并行检查用户权限和项目可见性
+      const [hasAccess, project] = await Promise.all([
+        userId
+          ? this.prisma.projectMember.findFirst({
+              where: {
+                projectId,
+                userId,
+              },
+            })
+          : Promise.resolve(null),
+        this.prisma.project.findUnique({
+          where: { id: projectId },
+          select: { visibility: true },
+        }),
+      ]);
 
       const isPublic = project?.visibility === 'PUBLIC';
 
@@ -359,14 +364,21 @@ export class SearchService {
     // 情况2：未指定projectId，根据用户权限过滤
     const projectIds: string[] = [];
 
-    if (userId) {
-      // 已登录用户：获取其有权限的项目
-      const userProjects = await this.getUserProjectIds(userId);
-      projectIds.push(...userProjects);
-    }
+    // 并行查询用户项目和公开项目
+    const [userProjects, publicProjects] = await Promise.all([
+      userId
+        ? this.prisma.projectMember.findMany({
+            where: { userId },
+            select: { projectId: true },
+          })
+        : Promise.resolve([]),
+      this.getPublicProjectIds(), // 使用带缓存的方法
+    ]);
 
-    // 添加公开项目（无论是否登录）
-    const publicProjects = await this.getPublicProjectIds();
+    // 合并结果
+    if (userId) {
+      projectIds.push(...userProjects.map((p) => p.projectId));
+    }
     projectIds.push(...publicProjects);
 
     // 去重

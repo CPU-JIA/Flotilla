@@ -7,7 +7,7 @@
  * ECP-D1: Testability - Follows E2E test requirements
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
@@ -41,10 +41,9 @@ export default function PullRequestsPage() {
 
   useEffect(() => {
     fetchPullRequests()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId])
+  }, [projectId, fetchPullRequests])
 
-  async function fetchPullRequests() {
+  const fetchPullRequests = useCallback(async () => {
     try {
       setLoading(true)
       const token = localStorage.getItem('accessToken')
@@ -68,7 +67,7 @@ export default function PullRequestsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [projectId])
 
   function getStateBadge(state: string) {
     const variants: Record<string, 'default' | 'secondary' | 'outline'> = {

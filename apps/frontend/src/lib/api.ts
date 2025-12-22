@@ -87,7 +87,7 @@ interface CommitDiff {
   }
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'
 
 /**
  * 🔒 SECURITY FIX: Token 已迁移到 HttpOnly Cookie

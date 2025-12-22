@@ -209,8 +209,8 @@ export interface RaftEventPayload {
 // 配置常量
 export const RAFT_CONSTANTS = {
   DEFAULT_ELECTION_TIMEOUT_MIN: 150, // 150ms
-  DEFAULT_ELECTION_TIMEOUT_MAX: 300, // 300ms
-  DEFAULT_HEARTBEAT_INTERVAL: 50, // 50ms
+  DEFAULT_ELECTION_TIMEOUT_MAX: 450, // 450ms（增加随机范围，防止活锁）
+  DEFAULT_HEARTBEAT_INTERVAL: 100, // 100ms（心跳应小于选举超时最小值）
   DEFAULT_RPC_TIMEOUT: 100, // 100ms
   MAX_BATCH_SIZE: 100, // 批量日志复制大小
   COMMIT_TIMEOUT: 5000, // 等待提交超时（ms）

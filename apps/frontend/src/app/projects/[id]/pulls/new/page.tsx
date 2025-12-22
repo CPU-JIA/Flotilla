@@ -5,7 +5,7 @@
  * ECP-D1: Testability - Form fields match E2E test selectors
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
@@ -38,10 +38,9 @@ export default function CreatePullRequestPage() {
 
   useEffect(() => {
     fetchBranches()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId])
+  }, [projectId, fetchBranches])
 
-  async function fetchBranches() {
+  const fetchBranches = useCallback(async () => {
     try {
       setLoading(true)
       const token = localStorage.getItem('accessToken')
@@ -78,7 +77,7 @@ export default function CreatePullRequestPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [projectId])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

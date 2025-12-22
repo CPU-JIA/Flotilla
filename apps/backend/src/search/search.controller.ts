@@ -6,6 +6,7 @@ import {
   Query,
   Param,
   UseGuards,
+  Version,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -37,6 +38,7 @@ import {
  * ECP-C1 (输入验证): 使用DTO验证请求参数
  */
 @Controller('search')
+@Version('1')
 @ApiTags('Code Search')
 export class SearchController {
   constructor(private readonly searchService: SearchService) {}

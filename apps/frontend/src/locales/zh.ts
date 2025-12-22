@@ -20,6 +20,22 @@ export const zh: Translations = {
   yes: '是',
   no: '否',
 
+  // 错误页面
+  errorBoundary: {
+    title: '糟糕，出错了',
+    subtitle: '应用程序遇到了意外错误',
+    description: '我们对此造成的不便深表歉意。您可以尝试刷新页面或返回首页。',
+    technicalDetails: '技术详情',
+    showDetails: '显示详情',
+    hideDetails: '隐藏详情',
+    retry: '重试',
+    goHome: '返回首页',
+    refresh: '刷新页面',
+    contactSupport: '联系支持',
+    errorCode: '错误代码',
+    timestamp: '时间戳',
+  },
+
   // 导航
   nav: {
     dashboard: '仪表盘',

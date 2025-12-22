@@ -6,7 +6,7 @@
  * ECP-C1: 防御性编程 - 文件类型和大小验证
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Progress } from '@/components/ui/progress'
 import { api, ApiError } from '@/lib/api'
@@ -24,6 +24,22 @@ export function FileUpload({ projectId, currentFolder, onSuccess }: FileUploadPr
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState('')
 
+  // ECP-C2: 防止内存泄漏 - 存储定时器引用以便清理
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const successTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // 组件卸载时清理所有定时器
+  useEffect(() => {
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current)
+      }
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current)
+      }
+    }
+  }, [])
+
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (acceptedFiles.length === 0) return
@@ -40,12 +56,21 @@ export function FileUpload({ projectId, currentFolder, onSuccess }: FileUploadPr
       setError('')
       setProgress(0)
 
+      // 清理之前的定时器（如果有）
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current)
+      }
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current)
+      }
+
+      let uploadSuccess = false
+
       try {
         // 模拟进度（实际应该使用xhr或fetch with progress）
-        const progressInterval = setInterval(() => {
+        progressIntervalRef.current = setInterval(() => {
           setProgress((prev) => {
             if (prev >= 90) {
-              clearInterval(progressInterval)
               return 90
             }
             return prev + 10
@@ -53,15 +78,9 @@ export function FileUpload({ projectId, currentFolder, onSuccess }: FileUploadPr
         }, 200)
 
         await api.files.uploadFile(projectId, file, currentFolder)
+        uploadSuccess = true
 
-        clearInterval(progressInterval)
-        setProgress(100)
-
-        setTimeout(() => {
-          setUploading(false)
-          setProgress(0)
-          onSuccess()
-        }, 500)
+        // ECP-C2: 使用 finally 确保清理，防止异常时泄漏
       } catch (err) {
         if (err instanceof ApiError) {
           setError(err.message || '上传失败')
@@ -70,6 +89,23 @@ export function FileUpload({ projectId, currentFolder, onSuccess }: FileUploadPr
         }
         setUploading(false)
         setProgress(0)
+      } finally {
+        // 清理进度定时器
+        if (progressIntervalRef.current) {
+          clearInterval(progressIntervalRef.current)
+          progressIntervalRef.current = null
+        }
+
+        // 如果上传成功，显示完成状态后重置
+        if (uploadSuccess) {
+          setProgress(100)
+          successTimeoutRef.current = setTimeout(() => {
+            setUploading(false)
+            setProgress(0)
+            onSuccess()
+            successTimeoutRef.current = null
+          }, 500)
+        }
       }
     },
     [projectId, currentFolder, onSuccess]

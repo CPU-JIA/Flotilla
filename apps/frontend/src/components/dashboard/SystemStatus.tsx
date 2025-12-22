@@ -108,10 +108,23 @@ export function SystemStatus() {
     // 初始检查
     checkSystemHealth()
 
-    // ECP-C3: 性能意识 - 每30秒自动刷新
+    // ECP-C3: 性能意识 - 每30秒自动刷新，页面可见时才轮询
     const intervalId = setInterval(checkSystemHealth, 30000)
 
-    return () => clearInterval(intervalId)
+    // 添加页面可见性检测，优化资源使用
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // 页面恢复可见时，立即检查一次
+        checkSystemHealth()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   /**

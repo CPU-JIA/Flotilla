@@ -95,8 +95,16 @@ export class GitHttpAuthGuard implements CanActivate {
 
   /**
    * 检查项目权限
-   * - git-upload-pack (clone/fetch): 需要 READ 权限 (任何角色)
+   *
+   * 🔒 SECURITY FIX (CWE-862): Enhanced permission checks
+   *
+   * - git-upload-pack (clone/fetch): 需要 READ 权限
    * - git-receive-pack (push): 需要 WRITE 权限 (MEMBER 及以上)
+   *
+   * 权限检查增强:
+   * - 验证项目未被删除/归档
+   * - 验证仓库已初始化
+   * - 公开仓库也要求用户已认证
    */
   private async checkProjectPermission(
     userId: string,
@@ -109,37 +117,67 @@ export class GitHttpAuthGuard implements CanActivate {
       return true;
     }
 
+    // 🔒 SECURITY FIX: Query project with repository to ensure repo exists
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
       include: {
         members: {
           where: { userId },
         },
+        repositories: true, // Verify repository exists
       },
     });
 
     if (!project) {
+      this.logger.warn(`Project not found: ${projectId}`);
       return false;
     }
 
-    // Public 项目，任何人都可以 read
+    // 🔒 SECURITY FIX: Check if repository is initialized
+    if (!project.repositories || project.repositories.length === 0) {
+      this.logger.warn(`Repository not initialized for project: ${projectId}`);
+      return false;
+    }
+
+    const repository = project.repositories[0];
+
+    // 🔒 SECURITY FIX: Check if repository is archived (read-only for archived repos)
+    if (operation === 'write' && repository.isArchived) {
+      this.logger.warn(
+        `Write operation denied - repository is archived: ${projectId}`,
+      );
+      return false;
+    }
+
+    // 🔒 SECURITY FIX: Public projects require authenticated user for read
+    // This prevents anonymous access and ensures audit trail
     if (operation === 'read' && project.visibility === 'PUBLIC') {
+      // User is authenticated (passed validateCredentials), allow read
+      this.logger.debug(
+        `Allowing read access to public project: ${projectId} by user: ${userId}`,
+      );
       return true;
     }
 
-    // 检查项目所有者
+    // Check if user is project owner
     if (project.ownerId === userId) {
       return true;
     }
 
-    // 检查项目成员
+    // Check project membership
     const member = project.members[0];
     if (!member) {
+      this.logger.debug(
+        `User ${userId} is not a member of project ${projectId}`,
+      );
       return false;
     }
 
-    // Write 操作需要 MEMBER 及以上角色 (VIEWER 只读)
+    // Write operations require MEMBER role or higher (VIEWER is read-only)
     if (operation === 'write' && member.role === MemberRole.VIEWER) {
+      this.logger.warn(
+        `Write operation denied - user has VIEWER role: ${userId}`,
+      );
       return false;
     }
 

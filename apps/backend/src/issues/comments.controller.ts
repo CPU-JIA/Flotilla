@@ -17,6 +17,7 @@ import {
   Delete,
   UseGuards,
   ParseIntPipe,
+  Version,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -37,6 +38,7 @@ import { RequireProjectRole } from '../projects/decorators/require-project-role.
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, ProjectRoleGuard)
 @Controller('projects/:projectId/issues/:number/comments')
+@Version('1')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 

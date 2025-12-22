@@ -1,11 +1,20 @@
-import { IsString, IsNotEmpty, MinLength, Matches } from 'class-validator';
+import { IsString, IsNotEmpty } from 'class-validator';
+import { IsStrongPassword } from '../validators/password-strength.validator';
 
+/**
+ * 密码重置DTO
+ * 🔒 SECURITY: CWE-521 - 强密码要求
+ */
 export class ResetPasswordDto {
   @IsString()
   @IsNotEmpty({ message: '新密码不能为空' })
-  @MinLength(8, { message: '密码至少8个字符' })
-  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
-    message: '密码必须包含大小写字母和数字',
+  @IsStrongPassword({
+    minLength: 12,
+    requireUppercase: true,
+    requireLowercase: true,
+    requireNumber: true,
+    requireSpecialChar: true,
+    message: '新密码必须至少12个字符，包含大写字母、小写字母、数字和特殊字符',
   })
   newPassword: string;
 }

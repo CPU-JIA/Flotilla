@@ -14,6 +14,7 @@ import {
   UnauthorizedException,
   Req,
   Res,
+  Version,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService, AuthResponse } from './auth.service';
@@ -40,6 +41,7 @@ import {
 
 @ApiTags('认证系统')
 @Controller('auth')
+@Version('1')
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
@@ -80,7 +82,7 @@ export class AuthController {
       secure: isProduction,
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7天
-      path: '/api/auth/refresh', // 仅刷新端点可用
+      path: '/api/v1/auth/refresh', // 仅刷新端点可用
     });
 
     this.logger.debug('🍪 Auth cookies set successfully');
@@ -91,7 +93,7 @@ export class AuthController {
    */
   private clearAuthCookies(response: Response): void {
     response.clearCookie('accessToken', { path: '/' });
-    response.clearCookie('refreshToken', { path: '/api/auth/refresh' });
+    response.clearCookie('refreshToken', { path: '/api/v1/auth/refresh' });
     this.logger.debug('🍪 Auth cookies cleared');
   }
 

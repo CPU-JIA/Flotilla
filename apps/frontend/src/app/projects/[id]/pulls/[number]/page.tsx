@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/language-context'
@@ -52,10 +52,9 @@ export default function PullRequestDetailPage() {
   useEffect(() => {
     fetchPR()
     fetchDiff()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId, prNumber])
+  }, [projectId, prNumber, fetchPR, fetchDiff])
 
-  const fetchPR = async () => {
+  const fetchPR = useCallback(async () => {
     try {
       setLoading(true)
       const data = await apiRequest<PullRequest>(
@@ -69,9 +68,9 @@ export default function PullRequestDetailPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [projectId, prNumber, t])
 
-  const fetchDiff = async () => {
+  const fetchDiff = useCallback(async () => {
     try {
       console.log('[fetchDiff] Starting - projectId:', projectId, 'prNumber:', prNumber)
       const prData = await apiRequest<PullRequest>(
@@ -89,9 +88,9 @@ export default function PullRequestDetailPage() {
         stack: (err as Error).stack
       })
     }
-  }
+  }, [projectId, prNumber])
 
-  const fetchMergeStatus = async () => {
+  const fetchMergeStatus = useCallback(async () => {
     if (!pr) return
 
     try {
@@ -105,7 +104,7 @@ export default function PullRequestDetailPage() {
     } finally {
       setLoadingMergeStatus(false)
     }
-  }
+  }, [pr])
 
   const handleReviewSummaryRefresh = () => {
     // This callback is called when ReviewSummaryCard refreshes
@@ -120,8 +119,7 @@ export default function PullRequestDetailPage() {
     if (pr && pr.state === PRState.OPEN) {
       fetchMergeStatus()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pr])
+  }, [pr, fetchMergeStatus])
 
   const handleSubmitReview = async () => {
     if (!pr) return

@@ -15,6 +15,10 @@ import type { FileEntity, FilesListResponse } from './entities/file.entity';
 import { UserRole } from '@prisma/client';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import {
+  validateFileUploadOrThrow,
+  FileCategory,
+} from '../common/utils/file-validator.util';
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
 const MAX_PROJECT_SIZE = 1024 * 1024 * 1024; // 1GB
@@ -146,6 +150,7 @@ export class FilesService {
    * 上传文件
    * ECP-C1: 防御性编程 - 文件大小和项目容量限制
    * ECP-C2: 系统化错误处理
+   * 🔒 SECURITY: CWE-434 防护 - 多层文件验证
    */
   async uploadFile(
     projectId: string,
@@ -153,16 +158,26 @@ export class FilesService {
     folder: string = '/',
     currentUser: User,
   ): Promise<FileEntity> {
-    // 修复文件名编码 - Multer默认使用Latin1解析，需转换为UTF-8
-    // ECP-C1: 防御性编程 - 正确处理非ASCII文件名
-    const originalFilename = Buffer.from(file.originalname, 'latin1').toString(
-      'utf8',
-    );
-
     // 权限验证
     await this.checkProjectAccess(projectId, currentUser);
 
-    // 文件大小验证
+    // 🔒 SECURITY: 文件安全验证（MIME魔数、类型白名单、可执行文件黑名单、文件名安全）
+    // 此验证会抛出 BadRequestException 如果文件不安全
+    const sanitizedFileName = await validateFileUploadOrThrow(file, {
+      maxFileSize: MAX_FILE_SIZE,
+      maxFileNameLength: 255,
+      allowedCategories: [
+        FileCategory.IMAGE,
+        FileCategory.DOCUMENT,
+        FileCategory.CODE,
+        FileCategory.ARCHIVE,
+        FileCategory.OTHER,
+      ],
+      strictMimeCheck: true,
+      allowArchives: true,
+    });
+
+    // 文件大小验证（已在验证器中检查，此处保留作为双重保障）
     if (file.size > MAX_FILE_SIZE) {
       throw new PayloadTooLargeException(
         `文件大小超过限制 ${MAX_FILE_SIZE / 1024 / 1024}MB`,
@@ -177,10 +192,10 @@ export class FilesService {
       );
     }
 
-    // 生成唯一文件名
+    // 生成唯一文件名（使用安全验证后的文件名）
     const objectName = this.generateObjectName(
       projectId,
-      originalFilename,
+      sanitizedFileName,
       folder,
     );
 
@@ -188,7 +203,7 @@ export class FilesService {
     try {
       await this.minioService.uploadFile(objectName, file.buffer, file.size, {
         'Content-Type': file.mimetype,
-        'Original-Filename': Buffer.from(originalFilename, 'utf8').toString(
+        'Original-Filename': Buffer.from(sanitizedFileName, 'utf8').toString(
           'base64',
         ),
       });
@@ -200,7 +215,7 @@ export class FilesService {
     // 保存文件记录到数据库
     const fileRecord = await this.prisma.projectFile.create({
       data: {
-        name: originalFilename,
+        name: sanitizedFileName,
         path: objectName,
         size: file.size,
         mimeType: file.mimetype,
@@ -217,7 +232,7 @@ export class FilesService {
     });
 
     this.logger.log(
-      `File uploaded: ${originalFilename} (${file.size} bytes) to project ${projectId}`,
+      `File uploaded: ${sanitizedFileName} (${file.size} bytes) to project ${projectId}`,
     );
 
     return {

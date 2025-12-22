@@ -76,8 +76,8 @@ describe('IssuesService', () => {
         body: createDto.body,
         state: 'OPEN',
         authorId,
-        assigneeIds: [],
-        labelIds: [],
+        assignees: [],
+        labels: [],
         milestoneId: null,
         closedAt: null,
         createdAt: new Date(),
@@ -106,7 +106,7 @@ describe('IssuesService', () => {
         state: 'OPEN',
         authorId,
         body: null,
-        labelIds: [],
+        labels: [],
         milestoneId: null,
         closedAt: null,
         createdAt: new Date(),
@@ -138,7 +138,6 @@ describe('IssuesService', () => {
         body: null,
         state: 'OPEN',
         authorId,
-        labelIds: createDto.labelIds,
         milestoneId: null,
         closedAt: null,
         createdAt: new Date(),
@@ -153,12 +152,32 @@ describe('IssuesService', () => {
             user: { id: 'user-3', username: 'user3', email: 'user3@test.com' },
           },
         ],
+        labels: [
+          {
+            labelId: 'label-1',
+            label: {
+              id: 'label-1',
+              name: 'bug',
+              color: '#ff0000',
+              description: 'Bug report',
+            },
+          },
+          {
+            labelId: 'label-2',
+            label: {
+              id: 'label-2',
+              name: 'feature',
+              color: '#00ff00',
+              description: 'Feature request',
+            },
+          },
+        ],
       });
 
       const result = await service.create(projectId, authorId, createDto);
 
       expect((result as any).assignees).toHaveLength(2);
-      expect(result.labelIds).toEqual(['label-1', 'label-2']);
+      expect((result as any).labels).toHaveLength(2);
     });
   });
 

@@ -6,6 +6,7 @@ import { IndexService } from './index.service';
 import { MeilisearchService } from './meilisearch.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { MinioModule } from '../minio/minio.module';
+import { RedisModule } from '../redis/redis.module';
 
 /**
  * 代码搜索模块
@@ -14,12 +15,14 @@ import { MinioModule } from '../minio/minio.module';
  * - ConfigModule: 环境变量配置
  * - PrismaModule: 数据库访问
  * - MinioModule: 文件存储访问
+ * - RedisModule: 缓存服务（公开项目ID缓存）
  *
  * 导出服务：
  * - SearchService: 供其他模块使用搜索功能
  * - IndexService: 供其他模块触发索引
  *
  * ECP-A2 (高内聚低耦合): SearchModule独立封装，通过exports暴露接口
+ * ECP-C3 (性能优化): Redis缓存提升搜索性能
  * ECP-D1 (可测试性): 依赖注入便于单元测试
  */
 @Module({
@@ -27,6 +30,7 @@ import { MinioModule } from '../minio/minio.module';
     ConfigModule, // 环境变量配置
     PrismaModule, // 数据库访问
     MinioModule, // 文件存储
+    RedisModule, // Redis缓存
   ],
   controllers: [SearchController],
   providers: [

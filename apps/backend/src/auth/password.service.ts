@@ -20,6 +20,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
+import {
+  maskEmail,
+  maskUsername,
+  maskToken,
+} from '../common/utils/log-sanitizer';
 
 /**
  * 重置Token验证结果
@@ -59,7 +64,7 @@ export class PasswordService {
     // 为了安全，即使用户不存在也返回成功消息（防止邮箱枚举攻击）
     if (!user) {
       this.logger.warn(
-        `Password reset requested for non-existent email: ${email}`,
+        `Password reset requested for non-existent email: ${maskEmail(email)}`,
       );
       return { message: '如果该邮箱已注册，您将收到密码重置邮件' };
     }
@@ -84,11 +89,15 @@ export class PasswordService {
     );
 
     if (!result.success) {
-      this.logger.error(`Failed to send password reset email to ${user.email}`);
+      this.logger.error(
+        `Failed to send password reset email to ${maskEmail(user.email)}`,
+      );
       throw new BadRequestException('发送密码重置邮件失败，请稍后重试');
     }
 
-    this.logger.log(`📧 Password reset email sent to: ${user.email}`);
+    this.logger.log(
+      `📧 Password reset email sent to: ${maskEmail(user.email)}`,
+    );
 
     return { message: '如果该邮箱已注册，您将收到密码重置邮件' };
   }
@@ -150,7 +159,7 @@ export class PasswordService {
     });
 
     this.logger.log(
-      `✅ Password reset successful for user: ${user.username}, tokenVersion incremented`,
+      `✅ Password reset successful for user: ${maskUsername(user.username)}, tokenVersion incremented`,
     );
 
     return { message: '密码重置成功，请使用新密码登录' };
@@ -178,9 +187,7 @@ export class PasswordService {
     });
 
     if (!user) {
-      this.logger.warn(
-        `Invalid reset token attempted: ${token.substring(0, 10)}...`,
-      );
+      this.logger.warn(`Invalid reset token attempted: ${maskToken(token)}`);
       return {
         valid: false,
         message: '重置链接不存在或已被使用',
@@ -189,9 +196,7 @@ export class PasswordService {
 
     // 检查token是否过期
     if (user.passwordResetExpires && user.passwordResetExpires < new Date()) {
-      this.logger.warn(
-        `Expired reset token attempted: ${token.substring(0, 10)}...`,
-      );
+      this.logger.warn(`Expired reset token attempted: ${maskToken(token)}`);
       return {
         valid: false,
         message: '重置链接已过期（有效期1小时）',
@@ -199,9 +204,7 @@ export class PasswordService {
       };
     }
 
-    this.logger.log(
-      `✅ Valid reset token verified: ${token.substring(0, 10)}...`,
-    );
+    this.logger.log(`✅ Valid reset token verified: ${maskToken(token)}`);
     return {
       valid: true,
       message: '重置链接有效',
@@ -213,12 +216,20 @@ export class PasswordService {
    * 🧪 测试专用API - 获取密码重置token
    * ECP-D1: Design for Testability - E2E测试支持
    * 仅供测试环境使用，生产环境禁止调用
+   * 🔒 SECURITY: 生产环境禁用此API
    * @param email 用户邮箱
    */
   async getResetTokenForTest(email: string): Promise<{
     token: string | null;
     expiresAt: Date | null;
   }> {
+    // 🔒 SECURITY: 生产环境禁止调用此测试API
+    if (process.env.NODE_ENV === 'production') {
+      throw new BadRequestException(
+        'Test API is disabled in production environment',
+      );
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { email },
       select: {
@@ -228,10 +239,10 @@ export class PasswordService {
     });
 
     if (!user) {
-      throw new NotFoundException(`用户不存在: ${email}`);
+      throw new NotFoundException(`用户不存在: ${maskEmail(email)}`);
     }
 
-    this.logger.log(`🧪 [TEST] Retrieved reset token for: ${email}`);
+    this.logger.log(`🧪 [TEST] Retrieved reset token for: ${maskEmail(email)}`);
     return {
       token: user.passwordResetToken,
       expiresAt: user.passwordResetExpires,

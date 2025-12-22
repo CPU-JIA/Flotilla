@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Res,
+  Version,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { AuditService } from './audit.service';
@@ -32,6 +33,7 @@ import {
  */
 @ApiTags('审计日志')
 @Controller('audit')
+@Version('1')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('JWT-auth')
 export class AuditController {

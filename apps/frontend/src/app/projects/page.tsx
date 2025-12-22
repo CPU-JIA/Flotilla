@@ -81,8 +81,7 @@ export default function ProjectsPage() {
     if (isAuthenticated) {
       fetchProjects()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, page])
+  }, [isAuthenticated, page, fetchProjects])
 
   if (authLoading || !user) {
     return (

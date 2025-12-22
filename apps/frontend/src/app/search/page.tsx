@@ -14,7 +14,7 @@
  * ECP-C1: Defensive Programming - 错误处理和加载状态
  */
 
-import React, { useState, useCallback, useEffect, Suspense } from 'react'
+import React, { useState, useCallback, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { SearchBar } from '@/components/search/SearchBar'
 import { SearchResultItem } from '@/components/search/SearchResultItem'
@@ -42,6 +42,9 @@ function SearchPageContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(0)
+
+  // Track if initial search has been performed
+  const hasInitialized = useRef(false)
 
   const ITEMS_PER_PAGE = 20
 
@@ -130,15 +133,17 @@ function SearchPageContent() {
     }
   }, [query, performSearch])
 
-  // Initial search from URL params
+  // Initial search from URL params - only run once on mount
   useEffect(() => {
+    if (hasInitialized.current) return
+    hasInitialized.current = true
+
     const urlQuery = searchParams.get('q')
     if (urlQuery && urlQuery.trim()) {
       setQuery(urlQuery)
       performSearch(urlQuery, 0, false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // Only run on mount
+  }, [searchParams, performSearch])
 
   const hasMore = result && result.hits.length < result.totalHits
 

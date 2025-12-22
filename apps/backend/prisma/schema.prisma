@@ -267,6 +267,8 @@ model OrganizationMember {
   @@unique([organizationId, userId])
   @@index([userId])
   @@index([role])
+  // 性能优化索引 - 提升高频查询效率
+  @@index([organizationId, role]) // 优化成员角色查询（如 "组织的所有管理员"）
   @@map("organization_members")
 }
 
@@ -371,6 +373,11 @@ model Project {
   @@unique([ownerId, name])
   @@unique([organizationId, name])
   @@index([visibility])
+  // 性能优化索引 - 提升高频查询效率
+  @@index([ownerId, visibility]) // 优化所有者的项目查询（如 "我的公开项目"）
+  @@index([visibility, updatedAt]) // 优化公开项目列表查询（时间排序）
+  @@index([isArchived, updatedAt]) // 优化归档过滤查询（排除归档项目）
+  @@index([organizationId, visibility]) // 优化组织项目查询（如 "组织的公开项目"）
   @@map("projects")
 }
 
@@ -459,6 +466,9 @@ model Commit {
   @@index([authorId])
   @@index([hash])
   @@index([createdAt])
+  // 性能优化索引 - 提升高频查询效率
+  @@index([branchId, createdAt(sort: Desc)]) // 优化提交历史查询（分支的提交记录降序排列）
+  @@index([repositoryId, createdAt]) // 优化仓库提交统计（如 "仓库的最近提交"）
   @@map("commits")
 }
 
@@ -487,6 +497,8 @@ model File {
   @@index([branchId])
   @@index([commitId])
   @@index([path])
+  // 性能优化索引 - 提升高频查询效率
+  @@index([repositoryId, branchId, createdAt]) // 优化文件时间线查询（如 "仓库特定分支的最近文件变更"）
   @@map("files")
 }
 
@@ -607,9 +619,8 @@ model Issue {
   authorId  String
 
   // 🔒 REFACTOR: 使用关联表替代数组字段（符合关系型数据库范式）
-  // ❌ 旧实现: assigneeIds String[]
-  // ✅ 新实现: assignees IssueAssignee[]
-  labelIds    String[] // 标签ID数组 (暂时保留，下次重构)
+  // ❌ 旧实现: assigneeIds String[], labelIds String[]
+  // ✅ 新实现: assignees IssueAssignee[], labels IssueLabel[]
   milestoneId String?
 
   closedAt  DateTime?
@@ -620,7 +631,8 @@ model Issue {
   project   Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
   author    User            @relation("IssueAuthor", fields: [authorId], references: [id], onDelete: Cascade)
   milestone Milestone?      @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
-  assignees IssueAssignee[] // 🔒 新增: 被分配人关联表
+  assignees IssueAssignee[] // 🔒 被分配人关联表
+  labels    IssueLabel[]    // 🔒 标签关联表
   comments  IssueComment[]
   events    IssueEvent[]
 
@@ -629,6 +641,10 @@ model Issue {
   @@index([state])
   @@index([milestoneId])
   @@index([createdAt])
+  // 性能优化索引 - 提升高频查询效率
+  @@index([projectId, state, createdAt]) // 优化状态过滤+时间排序（如 "项目的开放Issue按时间排序"）
+  @@index([projectId, milestoneId]) // 优化里程碑过滤（如 "项目的特定里程碑下的Issue"）
+  @@index([projectId, number]) // 优化按编号查询（补充unique索引，提升特定查询场景）
   @@map("issues")
 }
 
@@ -643,10 +659,30 @@ model Label {
   updatedAt DateTime @updatedAt
 
   // 关系
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  issueLabels IssueLabel[] // 🔒 标签关联表
 
   @@unique([projectId, name])
   @@map("labels")
+}
+
+// 🔒 REFACTOR: Issue 标签关联表（替代 labelIds String[]）
+// ECP-A1: SOLID 原则 - 符合关系型数据库设计范式
+// ECP-C3: Performance Awareness - 优化查询性能，消除 N+1 查询风险
+model IssueLabel {
+  id        String   @id @default(cuid())
+  issueId   String
+  labelId   String
+  createdAt DateTime @default(now())
+
+  // 关系
+  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  label Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([issueId, labelId]) // 防止重复标签
+  @@index([labelId]) // 查询标签的所有Issue
+  @@index([issueId]) // 查询Issue的所有标签
+  @@map("issue_labels")
 }
 
 model Milestone {
@@ -767,6 +803,10 @@ model PullRequest {
   @@index([authorId])
   @@index([state])
   @@index([createdAt])
+  // 性能优化索引 - 提升高频查询效率
+  @@index([projectId, state, createdAt]) // 优化PR列表查询（如 "项目的开放PR按时间排序"）
+  @@index([authorId, state]) // 优化用户PR查询（如 "用户的开放PR"）
+  @@index([projectId, number]) // 优化按编号查询（补充unique索引）
   @@map("pull_requests")
 }
 
@@ -897,7 +937,8 @@ model Notification {
   @@index([userId])
   @@index([read])
   @@index([createdAt])
-  @@index([userId, read]) // 复合索引：查询特定用户的未读通知
+  // 性能优化索引 - 提升高频查询效率
+  @@index([userId, read, createdAt]) // 优化未读通知查询+时间排序（如 "用户的未读通知按时间排序"）
   @@map("notifications")
 }
 

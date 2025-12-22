@@ -19,9 +19,24 @@ export function NotificationBell({ className = '' }: NotificationBellProps) {
   useEffect(() => {
     if (isAuthenticated) {
       fetchUnreadCount()
+
       // Poll every 30 seconds for updates
       const interval = setInterval(fetchUnreadCount, 30000)
-      return () => clearInterval(interval)
+
+      // 添加页面可见性检测，优化资源使用
+      const handleVisibilityChange = () => {
+        if (!document.hidden) {
+          // 页面恢复可见时，立即检查一次
+          fetchUnreadCount()
+        }
+      }
+
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+
+      return () => {
+        clearInterval(interval)
+        document.removeEventListener('visibilitychange', handleVisibilityChange)
+      }
     }
   }, [isAuthenticated])
 

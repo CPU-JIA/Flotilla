@@ -166,7 +166,12 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
 
   /**
    * RequestVote RPC 处理器
-   * ECP-C1: 防御性编程 - 严格的参数检查
+   * ECP-C1: 防御性编程 - 严格的参数检查和原子性保证
+   *
+   * Raft论文5.2节和5.4节：
+   * - 每个任期最多投一票，先到先得
+   * - 只投给日志至少和自己一样新的候选人
+   * - 投票必须持久化
    */
   async handleRequestVote(
     request: RequestVoteRequest,
@@ -176,7 +181,7 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
     );
 
     try {
-      // 拒绝：任期太旧
+      // 1. 拒绝：任期太旧
       if (request.term < this.currentTerm) {
         this.log(
           `Rejecting vote: term ${request.term} < current term ${this.currentTerm}`,
@@ -184,23 +189,30 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
         return { term: this.currentTerm, voteGranted: false };
       }
 
-      // 发现更高任期，转为Follower
+      // 2. 发现更高任期，转为Follower并重置投票
       if (request.term > this.currentTerm) {
         await this.updateTerm(request.term);
         this.becomeFollower(null);
+        // updateTerm 已经将 votedFor 设为 null
       }
 
-      // 投票条件检查
-      const canVote =
-        this.votedFor === null || this.votedFor === request.candidateId;
+      // 3. 投票条件检查（原子性保证）
+      const hasNotVoted = this.votedFor === null;
+      const alreadyVotedForCandidate = this.votedFor === request.candidateId;
+      const canVote = hasNotVoted || alreadyVotedForCandidate;
+
       const isUpToDate = this.isLogUpToDate(
         request.lastLogIndex,
         request.lastLogTerm,
       );
 
+      // 4. 投票决策：必须同时满足两个条件
       if (canVote && isUpToDate) {
+        // 原子性保存投票信息（防止竞态条件）
         this.votedFor = request.candidateId;
         await this.storage.saveVotedFor(this.votedFor);
+
+        // 投票后重置选举超时（防止干扰当选的候选人）
         this.resetElectionTimeout();
 
         this.log(
@@ -209,8 +221,9 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
         return { term: this.currentTerm, voteGranted: true };
       }
 
+      // 5. 拒绝投票，记录原因
       this.log(
-        `Denied vote to ${request.candidateId}: canVote=${canVote}, isUpToDate=${isUpToDate}`,
+        `Denied vote to ${request.candidateId}: canVote=${canVote} (votedFor=${this.votedFor}), isUpToDate=${isUpToDate}`,
       );
       return { term: this.currentTerm, voteGranted: false };
     } catch (error) {
@@ -383,6 +396,12 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
 
   /**
    * 成为Leader
+   * ECP-C1: 防御性编程 - 完整初始化Leader状态
+   *
+   * Raft论文5.3节：Leader初始化时需要：
+   * - 将 nextIndex[] 初始化为日志最后索引+1
+   * - 将 matchIndex[] 初始化为0（除了自己）
+   * - Leader自己的 matchIndex 应该设为当前日志长度
    */
   private becomeLeader(): void {
     this.log(
@@ -394,10 +413,19 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
 
     // 初始化Leader状态
     const lastLogIndex = this.logEntries.length;
+
+    // 清空之前的状态
+    this.nextIndex.clear();
+    this.matchIndex.clear();
+
     for (const nodeId of this.config.nodes) {
       if (nodeId !== this.config.nodeId) {
+        // 其他节点：nextIndex = lastLogIndex + 1, matchIndex = 0
         this.nextIndex.set(nodeId, lastLogIndex + 1);
         this.matchIndex.set(nodeId, 0);
+      } else {
+        // Leader自己：matchIndex = lastLogIndex（已经拥有所有日志）
+        this.matchIndex.set(nodeId, lastLogIndex);
       }
     }
 
@@ -618,33 +646,78 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
     return false;
   }
 
+  /**
+   * 追加日志条目
+   * ECP-C1: 防御性编程 - 确保日志连续性，避免稀疏数组
+   *
+   * Raft论文5.3节：如果现有日志条目与新条目冲突（相同索引但不同任期），
+   * 删除现有条目及其后的所有条目，然后追加新条目
+   */
   private async appendEntries(
     prevLogIndex: number,
     entries: LogEntry[],
   ): Promise<void> {
-    const startIndex = prevLogIndex;
-    for (let i = 0; i < entries.length; i++) {
-      const newEntry = entries[i];
-      const existingEntry = this.logEntries[startIndex + i];
+    if (entries.length === 0) {
+      return; // 心跳，无需处理
+    }
 
+    // 检查是否存在冲突
+    let conflictIndex = -1;
+    for (let i = 0; i < entries.length; i++) {
+      const logIndex = prevLogIndex + i + 1;
+      const existingEntry = this.logEntries[logIndex - 1];
+      const newEntry = entries[i];
+
+      // 发现冲突：相同索引但不同任期
       if (existingEntry && existingEntry.term !== newEntry.term) {
-        // 删除冲突的日志
-        this.logEntries = this.logEntries.slice(0, startIndex + i);
-        await this.storage.truncateLogFrom(startIndex + i + 1);
+        conflictIndex = logIndex;
+        this.log(
+          `Log conflict at index ${logIndex}: existing term ${existingEntry.term} vs new term ${newEntry.term}`,
+        );
         break;
       }
     }
 
-    // 追加新日志
-    for (const entry of entries) {
-      if (
-        !this.logEntries[entry.index - 1] ||
-        this.logEntries[entry.index - 1].term !== entry.term
-      ) {
-        this.logEntries[entry.index - 1] = entry;
-        await this.storage.saveLogEntry(entry);
-      }
+    // 如果发现冲突，截断日志
+    if (conflictIndex > 0) {
+      const oldLength = this.logEntries.length;
+      this.logEntries = this.logEntries.slice(0, conflictIndex - 1);
+      await this.storage.truncateLogFrom(conflictIndex);
+      this.log(
+        `Truncated log from index ${conflictIndex}, old length: ${oldLength}, new length: ${this.logEntries.length}`,
+      );
     }
+
+    // 顺序追加新日志（避免稀疏数组）
+    for (const entry of entries) {
+      const expectedIndex = this.logEntries.length + 1;
+
+      // 验证索引连续性
+      if (entry.index !== expectedIndex) {
+        // 如果索引小于等于当前日志长度，说明已存在
+        if (entry.index <= this.logEntries.length) {
+          const existingEntry = this.logEntries[entry.index - 1];
+          if (existingEntry.term === entry.term) {
+            // 相同任期的重复条目，跳过
+            continue;
+          }
+        } else {
+          // 索引不连续，记录错误但继续执行（防御性编程）
+          this.logError(
+            `Non-consecutive log index: expected ${expectedIndex}, got ${entry.index}`,
+            new Error('Log index gap'),
+          );
+        }
+      }
+
+      // 使用push追加，确保数组连续
+      this.logEntries.push(entry);
+      await this.storage.saveLogEntry(entry);
+    }
+
+    this.log(
+      `Appended ${entries.length} entries, log length now: ${this.logEntries.length}`,
+    );
   }
 
   private async sendRequestVoteWithTimeout(

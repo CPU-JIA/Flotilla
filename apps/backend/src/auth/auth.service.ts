@@ -42,6 +42,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { User, UserRole } from '@prisma/client';
 import { randomBytes } from 'crypto';
+import { maskEmail, maskUsername } from '../common/utils/log-sanitizer';
 
 // Re-export for backward compatibility
 export type { JwtPayload } from './token.service';
@@ -94,7 +95,7 @@ export class AuthService {
       if (initialAdminEmail && dto.email === initialAdminEmail) {
         role = UserRole.SUPER_ADMIN;
         this.logger.warn(
-          `🔐 Creating INITIAL_ADMIN from INITIAL_ADMIN_EMAIL env: ${dto.email}`,
+          `🔐 Creating INITIAL_ADMIN from INITIAL_ADMIN_EMAIL env: ${maskEmail(dto.email)}`,
         );
       }
       // 生产环境必须设置 INITIAL_ADMIN_EMAIL
@@ -112,7 +113,7 @@ export class AuthService {
         if (userCount === 0) {
           role = UserRole.SUPER_ADMIN;
           this.logger.warn(
-            `🚨 FIRST USER AUTO-PROMOTED TO SUPER_ADMIN (${envMode} mode): ${dto.email}`,
+            `🚨 FIRST USER AUTO-PROMOTED TO SUPER_ADMIN (${envMode} mode): ${maskEmail(dto.email)}`,
           );
         }
       }
@@ -134,7 +135,7 @@ export class AuthService {
       });
 
       this.logger.log(
-        `✅ New user registered: ${user.username} (role: ${user.role})`,
+        `✅ New user registered: ${maskUsername(user.username)} (role: ${user.role})`,
       );
 
       // 2. 自动创建个人组织
@@ -162,8 +163,9 @@ export class AuthService {
       return user;
     });
 
-    // 生成 Token（委托给 TokenService）
-    const tokens = await this.tokenService.generateTokens(result);
+    // 生成 Token（委托给 TokenService），传递context用于fingerprint
+    const tokenContext = { userAgent, ipAddress };
+    const tokens = await this.tokenService.generateTokens(result, tokenContext);
 
     // 发送验证邮件（异步，不阻塞注册流程）
     this.emailService
@@ -174,10 +176,12 @@ export class AuthService {
       )
       .then((emailResult) => {
         if (emailResult.success) {
-          this.logger.log(`📧 Verification email sent to: ${result.email}`);
+          this.logger.log(
+            `📧 Verification email sent to: ${maskEmail(result.email)}`,
+          );
         } else {
           this.logger.error(
-            `❌ Failed to send verification email to ${result.email}: ${emailResult.error}`,
+            `❌ Failed to send verification email to ${maskEmail(result.email)}: ${emailResult.error}`,
           );
         }
       })
@@ -239,10 +243,11 @@ export class AuthService {
       );
     }
 
-    this.logger.log(`✅ User logged in: ${user.username}`);
+    this.logger.log(`✅ User logged in: ${maskUsername(user.username)}`);
 
-    // 生成 Token（委托给 TokenService）
-    const tokens = await this.tokenService.generateTokens(user);
+    // 生成 Token（委托给 TokenService），传递context用于fingerprint
+    const tokenContext = { userAgent, ipAddress };
+    const tokens = await this.tokenService.generateTokens(user, tokenContext);
 
     // 创建会话记录（委托给 SessionService）
     if (ipAddress && userAgent) {
@@ -307,9 +312,17 @@ export class AuthService {
 
   /**
    * 刷新Token（委托给 TokenService）
+   * @param refreshToken Refresh Token
+   * @param ipAddress 请求IP地址（用于fingerprint验证）
+   * @param userAgent 请求User-Agent（用于fingerprint验证）
    */
-  async refreshTokens(refreshToken: string): Promise<TokenPair> {
-    return this.tokenService.refreshTokens(refreshToken);
+  async refreshTokens(
+    refreshToken: string,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<TokenPair> {
+    const tokenContext = ipAddress && userAgent ? { ipAddress, userAgent } : undefined;
+    return this.tokenService.refreshTokens(refreshToken, tokenContext);
   }
 
   /**

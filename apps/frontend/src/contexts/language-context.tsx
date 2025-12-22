@@ -26,6 +26,22 @@ export interface Translations {
   yes: string
   no: string
 
+  // 错误页面
+  errorBoundary: {
+    title: string
+    subtitle: string
+    description: string
+    technicalDetails: string
+    showDetails: string
+    hideDetails: string
+    retry: string
+    goHome: string
+    refresh: string
+    contactSupport: string
+    errorCode: string
+    timestamp: string
+  }
+
   // 导航
   nav: {
     dashboard: string

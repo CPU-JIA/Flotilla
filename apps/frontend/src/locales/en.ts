@@ -20,6 +20,22 @@ export const en: Translations = {
   yes: 'Yes',
   no: 'No',
 
+  // Error Boundary
+  errorBoundary: {
+    title: 'Oops, Something Went Wrong',
+    subtitle: 'The application encountered an unexpected error',
+    description: 'We apologize for the inconvenience. You can try refreshing the page or returning to the homepage.',
+    technicalDetails: 'Technical Details',
+    showDetails: 'Show Details',
+    hideDetails: 'Hide Details',
+    retry: 'Retry',
+    goHome: 'Go Home',
+    refresh: 'Refresh Page',
+    contactSupport: 'Contact Support',
+    errorCode: 'Error Code',
+    timestamp: 'Timestamp',
+  },
+
   // Navigation
   nav: {
     dashboard: 'Dashboard',

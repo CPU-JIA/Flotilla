@@ -6,7 +6,7 @@
  * ECP-C2: 系统化错误处理
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
   Card,
@@ -32,7 +32,7 @@ export function TeamsTab({ organizationSlug, canManage }: TeamsTabProps) {
   const [teams, setTeams] = useState<Team[]>([])
   const [loading, setLoading] = useState(true)
 
-  const fetchTeams = async () => {
+  const fetchTeams = useCallback(async () => {
     setLoading(true)
     try {
       const data = await api.teams.getAll(organizationSlug)
@@ -43,12 +43,11 @@ export function TeamsTab({ organizationSlug, canManage }: TeamsTabProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [organizationSlug, t])
 
   useEffect(() => {
     fetchTeams()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [organizationSlug])
+  }, [organizationSlug, fetchTeams])
 
   return (
     <div>

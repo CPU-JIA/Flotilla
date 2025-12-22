@@ -137,7 +137,7 @@ export default function RaftClusterPage() {
     }
   }
 
-  // 自动刷新 - ECP-D1: 正确声明useEffect依赖
+  // 自动刷新 - ECP-D1: 正确声明useEffect依赖，添加页面可见性检测优化性能
   useEffect(() => {
     const fetchData = async () => {
       await Promise.all([fetchClusterStatus(), fetchClusterMetrics(), fetchClusterConfig()])
@@ -151,7 +151,20 @@ export default function RaftClusterPage() {
       fetchClusterMetrics()
     }, 5000)
 
-    return () => clearInterval(interval)
+    // 添加页面可见性检测，优化资源使用
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // 页面恢复可见时，立即刷新数据
+        fetchData()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
   }, [fetchClusterStatus, fetchClusterMetrics, fetchClusterConfig])
 
   // 状态颜色映射

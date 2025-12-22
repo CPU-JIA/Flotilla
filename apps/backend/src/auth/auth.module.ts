@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { TokenService } from './token.service';
+import { TokenBlacklistService } from './token-blacklist.service';
 import { SessionService } from './session.service';
 import { PasswordService } from './password.service';
 import { EmailVerificationService } from './email-verification.service';
@@ -78,6 +79,7 @@ import { EmailModule } from '../email/email.module';
     // Core Services (P1-2: SOLID - 职责分离)
     AuthService,
     TokenService,
+    TokenBlacklistService, // 🔒 SECURITY: Token黑名单服务（细粒度Token撤销）
     SessionService,
     PasswordService,
     EmailVerificationService,
@@ -92,6 +94,7 @@ import { EmailModule } from '../email/email.module';
   exports: [
     AuthService,
     TokenService,
+    TokenBlacklistService,
     SessionService,
     PasswordService,
     EmailVerificationService,

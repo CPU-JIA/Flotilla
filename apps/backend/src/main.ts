@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { ValidationPipe, Logger, VersioningType } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { validateEnvironmentVariables } from './config/env.validation';
@@ -29,15 +29,11 @@ async function bootstrap() {
   // 🔒 SECURITY FIX: 启用 Cookie 解析 (用于 HttpOnly Cookie 认证)
   app.use(cookieParser());
 
-  // Git HTTP Protocol 路由需要 raw body (不加 /api 前缀)
-  app.use(
-    '/repo/:projectId/git-upload-pack',
-    bodyParser.raw({ type: '*/*', limit: '50mb' }),
-  );
-  app.use(
-    '/repo/:projectId/git-receive-pack',
-    bodyParser.raw({ type: '*/*', limit: '50mb' }),
-  );
+  // Git HTTP Protocol 路由使用流式处理（不使用 body parser）
+  // 🔒 SECURITY: 流式处理避免大文件导致内存溢出
+  // Size limits enforced at controller level:
+  // - upload-pack (clone/fetch): 10MB
+  // - receive-pack (push): 500MB
 
   // 其他路由使用 JSON parser
   app.use(bodyParser.json({ limit: '10mb' }));
@@ -90,8 +86,16 @@ async function bootstrap() {
     maxAge: 3600, // 预检请求缓存 1 小时
   });
 
+  // 启用 URI 版本控制
+  // ECP-A3: YAGNI - 当前仅使用 v1，未来可扩展
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1',
+  });
+
   // 设置全局前缀，但排除 Git HTTP Protocol 路由
   // Git 客户端期望仓库 URL 为 http://host/repo/:id，不包含 /api 前缀
+  // 所有 API 路由格式：/api/v1/{resource}
   app.setGlobalPrefix('api', {
     exclude: [
       'repo/:projectId/info/refs',
@@ -106,6 +110,25 @@ async function bootstrap() {
     .setDescription(
       `
 基于云计算的开发协作平台 RESTful API 文档
+
+## API 版本控制
+
+本 API 使用 **URI 版本控制** 策略，所有端点均带有版本前缀：
+
+**格式**: \`/api/v{version}/{resource}\`
+
+**当前版本**: **v1**
+
+**示例**:
+- \`POST /api/v1/auth/login\` - 用户登录
+- \`GET /api/v1/projects\` - 获取项目列表
+- \`POST /api/v1/projects\` - 创建新项目
+
+### 版本策略
+- **向后兼容**: 小版本更新（bug 修复、性能优化）不会破坏现有集成
+- **破坏性变更**: 需要新的主版本号（v2, v3 等）
+- **版本生命周期**: 旧版本 API 将保持至少 6 个月的支持期
+- **弃用通知**: 通过响应头 \`X-API-Deprecated\` 标记即将弃用的端点
 
 ## Rate Limiting 限流策略
 

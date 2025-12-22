@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/auth-context'
@@ -40,10 +40,9 @@ export default function NotificationsPage() {
     if (isAuthenticated) {
       fetchNotifications()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, page, filter])
+  }, [isAuthenticated, page, filter, fetchNotifications])
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams({
@@ -65,7 +64,7 @@ export default function NotificationsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, pageSize, filter])
 
   const markAsRead = async (id: string) => {
     try {

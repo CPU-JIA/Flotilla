@@ -13,6 +13,22 @@ export interface IssueAssignee {
   };
 }
 
+/**
+ * 🔒 REFACTOR: Issue labels 关联表结构
+ */
+export interface IssueLabel {
+  id: string;
+  issueId: string;
+  labelId: string;
+  createdAt: string;
+  label: {
+    id: string;
+    name: string;
+    color: string;
+    description?: string;
+  };
+}
+
 export interface Issue {
   id: string;
   projectId: string;
@@ -24,7 +40,8 @@ export interface Issue {
   // 🔒 REFACTOR: 使用关联表替代数组字段
   assignees?: IssueAssignee[]; // 新格式
   assigneeIds?: string[]; // 向后兼容，客户端可从assignees提取
-  labelIds: string[];
+  labels?: IssueLabel[]; // 新格式（关联表）
+  labelIds?: string[]; // 向后兼容，客户端可从labels提取
   milestoneId?: string;
   closedAt?: string;
   createdAt: string;
@@ -44,7 +61,6 @@ export interface Issue {
     state: 'OPEN' | 'CLOSED';
     dueDate?: string;
   };
-  labels?: Label[];
   _count?: {
     comments: number;
   };

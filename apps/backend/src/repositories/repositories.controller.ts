@@ -13,6 +13,7 @@ import {
   Logger,
   Res,
   StreamableFile,
+  Version,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
@@ -23,6 +24,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { User } from '@prisma/client';
 
 @Controller('projects/:projectId/repository')
+@Version('1')
 @UseGuards(JwtAuthGuard)
 export class RepositoriesController {
   private readonly logger = new Logger(RepositoriesController.name);

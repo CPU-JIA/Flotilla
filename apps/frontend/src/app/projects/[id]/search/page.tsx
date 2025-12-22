@@ -13,7 +13,7 @@
  * ECP-B1: DRY - 复用全局搜索组件
  */
 
-import React, { useState, useCallback, useEffect, Suspense } from 'react'
+import React, { useState, useCallback, useEffect, useRef, Suspense } from 'react'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ChevronRight, Loader2, FileSearch } from 'lucide-react'
@@ -46,6 +46,9 @@ function ProjectSearchPageContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(0)
+
+  // Track if initial search has been performed
+  const hasInitialized = useRef(false)
 
   const ITEMS_PER_PAGE = 20
 
@@ -148,15 +151,17 @@ function ProjectSearchPageContent() {
     }
   }, [query, performSearch])
 
-  // Initial search from URL
+  // Initial search from URL - only run once on mount
   useEffect(() => {
+    if (hasInitialized.current) return
+    hasInitialized.current = true
+
     const urlQuery = searchParams.get('q')
     if (urlQuery && urlQuery.trim()) {
       setQuery(urlQuery)
       performSearch(urlQuery, 0, false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [searchParams, performSearch])
 
   const hasMore = result && result.hits.length < result.totalHits
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ReviewSummary, ReviewState } from '@/types/pull-request'
 import { apiRequest } from '@/lib/api'
 import { useLanguage } from '@/contexts/language-context'
@@ -16,7 +16,7 @@ export function ReviewSummaryCard({ prId, onRefresh }: ReviewSummaryCardProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const fetchReviewSummary = async () => {
+  const fetchReviewSummary = useCallback(async () => {
     try {
       setLoading(true)
       setError('')
@@ -31,12 +31,11 @@ export function ReviewSummaryCard({ prId, onRefresh }: ReviewSummaryCardProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [prId, onRefresh])
 
   useEffect(() => {
     fetchReviewSummary()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prId])
+  }, [prId, fetchReviewSummary])
 
   const getReviewStateIcon = (state: ReviewState): string => {
     switch (state) {

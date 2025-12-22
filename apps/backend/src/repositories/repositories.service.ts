@@ -490,6 +490,7 @@ export class RepositoriesService {
    * 获取提交间差异对比
    * US-009: 版本历史diff功能
    * ECP-B2: KISS原则 - 简化diff实现
+   * ECP-C3: Performance optimization - Parallel queries
    */
   async getCommitDiff(
     projectId: string,
@@ -500,6 +501,7 @@ export class RepositoriesService {
   ): Promise<any> {
     await this.checkProjectPermission(projectId, currentUser);
 
+    // Step 1: Fetch commit info first (need createdAt for subsequent queries)
     const commit = await this.prisma.commit.findUnique({
       where: { id: commitId },
       include: {
@@ -515,54 +517,40 @@ export class RepositoriesService {
       throw new NotFoundException('提交不存在');
     }
 
-    // 获取当前提交时的文件快照
-    const currentFiles = await this.prisma.file.findMany({
-      where: {
-        branchId: branchId,
-        createdAt: { lte: commit.createdAt },
-      },
-      orderBy: { path: 'asc' },
-    });
-
-    let previousFiles: File[] = [];
-
-    if (compareTo) {
-      // 与指定提交对比
-      const compareCommit = await this.prisma.commit.findUnique({
-        where: { id: compareTo },
-      });
-
-      if (!compareCommit) {
-        throw new NotFoundException('对比提交不存在');
-      }
-
-      previousFiles = await this.prisma.file.findMany({
+    // Step 2: Parallel queries - fetch compare commit and files for both commits
+    const [compareCommit, currentFiles] = await Promise.all([
+      // Determine compare target
+      compareTo
+        ? this.prisma.commit.findUnique({
+            where: { id: compareTo },
+          })
+        : this.prisma.commit.findFirst({
+            where: {
+              branchId: branchId,
+              createdAt: { lt: commit.createdAt },
+            },
+            orderBy: { createdAt: 'desc' },
+          }),
+      // Current commit files
+      this.prisma.file.findMany({
         where: {
           branchId: branchId,
-          createdAt: { lte: compareCommit.createdAt },
+          createdAt: { lte: commit.createdAt },
         },
         orderBy: { path: 'asc' },
-      });
-    } else {
-      // 与上一个提交对比
-      const previousCommit = await this.prisma.commit.findFirst({
-        where: {
-          branchId: branchId,
-          createdAt: { lt: commit.createdAt },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
+      }),
+    ]);
 
-      if (previousCommit) {
-        previousFiles = await this.prisma.file.findMany({
+    // Step 3: Fetch previous files if compare commit exists
+    const previousFiles = compareCommit
+      ? await this.prisma.file.findMany({
           where: {
             branchId: branchId,
-            createdAt: { lte: previousCommit.createdAt },
+            createdAt: { lte: compareCommit.createdAt },
           },
           orderBy: { path: 'asc' },
-        });
-      }
-    }
+        })
+      : [];
 
     // 计算diff
     const currentFilesMap = new Map(currentFiles.map((f) => [f.path, f]));
