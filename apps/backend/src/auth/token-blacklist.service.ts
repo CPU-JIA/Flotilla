@@ -62,10 +62,14 @@ export class TokenBlacklistService {
 
       return value !== null && value !== undefined;
     } catch (error) {
-      // ECP-C2: 防御性编程 - 如果Redis不可用，默认允许通过（避免服务中断）
-      // 但记录错误日志以便排查
-      this.logger.error(`Failed to check blacklist for token ${jti}: ${error.message}`);
-      return false; // Fail-open策略
+      // 🔒 SECURITY: Fail-closed策略 - 如果Redis不可用，拒绝Token
+      // 这比fail-open更安全，因为已撤销的Token不会被错误地接受
+      // 权衡：可能导致用户需要重新登录，但比安全漏洞更可接受
+      this.logger.error(
+        `Failed to check blacklist for token ${jti}: ${error.message}. ` +
+          `Using fail-closed strategy - token rejected for safety.`,
+      );
+      return true; // Fail-closed策略：Redis故障时视为已撤销
     }
   }
 

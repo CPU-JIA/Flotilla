@@ -103,6 +103,7 @@ export class MilestonesController {
 
   @Delete(':id')
   @RequireProjectRole('MAINTAINER')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: '删除里程碑' })
   @ApiParam({ name: 'projectId', description: '项目ID' })
   @ApiParam({ name: 'id', description: '里程碑ID' })
@@ -112,8 +113,10 @@ export class MilestonesController {
     status: 403,
     description: '权限不足（需要MAINTAINER或更高权限）',
   })
-  async remove(@Param('projectId') projectId: string, @Param('id') id: string) {
+  async remove(
+    @Param('projectId') projectId: string,
+    @Param('id') id: string,
+  ): Promise<void> {
     await this.milestonesService.remove(projectId, id);
-    return { message: 'Milestone deleted successfully' };
   }
 }

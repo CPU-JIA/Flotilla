@@ -13,12 +13,37 @@ import { GitStorageAdapter, Stats } from './storage.interface';
 export class LocalFsAdapter implements GitStorageAdapter {
   constructor(private readonly baseDir: string) {}
 
+  /**
+   * Safely resolve a filepath within baseDir, preventing path traversal attacks.
+   * @throws Error if path attempts to escape baseDir (CWE-22 prevention)
+   */
   private resolvePath(filepath: string): string {
+    // Normalize and remove null bytes (CWE-158)
+    const sanitized = filepath.replace(/\0/g, '');
+
     // Remove leading slash to make it relative
-    const relativePath = filepath.startsWith('/')
-      ? filepath.slice(1)
-      : filepath;
-    return path.join(this.baseDir, relativePath);
+    const relativePath = sanitized.startsWith('/')
+      ? sanitized.slice(1)
+      : sanitized;
+
+    // Resolve to absolute path
+    const resolvedPath = path.resolve(this.baseDir, relativePath);
+
+    // Normalize both paths for comparison (handle Windows/Unix differences)
+    const normalizedBase = path.normalize(this.baseDir);
+    const normalizedResolved = path.normalize(resolvedPath);
+
+    // Security check: ensure resolved path is within baseDir
+    if (
+      !normalizedResolved.startsWith(normalizedBase + path.sep) &&
+      normalizedResolved !== normalizedBase
+    ) {
+      throw new Error(
+        `Path traversal detected: "${filepath}" attempts to escape base directory`,
+      );
+    }
+
+    return resolvedPath;
   }
 
   async readFile(

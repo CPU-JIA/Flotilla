@@ -146,6 +146,7 @@ export class IssuesController {
 
   @Delete(':number')
   @RequireProjectRole('MAINTAINER')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: '删除Issue' })
   @ApiParam({ name: 'projectId', description: '项目ID' })
   @ApiParam({ name: 'number', description: 'Issue编号' })
@@ -161,8 +162,7 @@ export class IssuesController {
   async remove(
     @Param('projectId') projectId: string,
     @Param('number', ParseIntPipe) number: number,
-  ) {
+  ): Promise<void> {
     await this.issuesService.remove(projectId, number);
-    return { message: 'Issue deleted successfully' };
   }
 }

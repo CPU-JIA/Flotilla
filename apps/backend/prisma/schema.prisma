@@ -396,6 +396,7 @@ model ProjectMember {
   @@unique([projectId, userId])
   @@index([projectId])
   @@index([userId])
+  @@index([projectId, role]) // 优化按项目和角色查询（如：查找所有MAINTAINER）
   @@map("project_members")
 }
 

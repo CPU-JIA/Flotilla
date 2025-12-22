@@ -134,6 +134,7 @@ export class CommentsController {
 
   @Delete(':commentId')
   @RequireProjectRole('MEMBER')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: '删除评论（仅作者）' })
   @ApiParam({ name: 'projectId', description: '项目ID' })
   @ApiParam({ name: 'number', description: 'Issue编号' })
@@ -147,8 +148,7 @@ export class CommentsController {
   async remove(
     @Param('commentId') commentId: string,
     @CurrentUser('id') userId: string,
-  ) {
+  ): Promise<void> {
     await this.commentsService.remove(commentId, userId);
-    return { message: 'Comment deleted successfully' };
   }
 }

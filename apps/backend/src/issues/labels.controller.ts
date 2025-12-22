@@ -92,6 +92,7 @@ export class LabelsController {
 
   @Delete(':id')
   @RequireProjectRole('MAINTAINER')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: '删除标签' })
   @ApiParam({ name: 'projectId', description: '项目ID' })
   @ApiParam({ name: 'id', description: '标签ID' })
@@ -101,8 +102,10 @@ export class LabelsController {
     status: 403,
     description: '权限不足（需要MAINTAINER或更高权限）',
   })
-  async remove(@Param('projectId') projectId: string, @Param('id') id: string) {
+  async remove(
+    @Param('projectId') projectId: string,
+    @Param('id') id: string,
+  ): Promise<void> {
     await this.labelsService.remove(projectId, id);
-    return { message: 'Label deleted successfully' };
   }
 }
