@@ -7,7 +7,6 @@ import {
   Body,
   Param,
   UseGuards,
-  Version,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -25,8 +24,7 @@ import { OrganizationRoleGuard } from './guards/organization-role.guard';
 import { RequireOrgRole } from './decorators/require-org-role.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
-@Controller('organizations')
-@Version('1')
+@Controller({ path: 'organizations', version: '1' })
 @ApiTags('Organizations')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)

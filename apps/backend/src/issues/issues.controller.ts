@@ -9,7 +9,8 @@ import {
   Query,
   UseGuards,
   ParseIntPipe,
-  Version,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -30,8 +31,7 @@ import { RequireProjectRole } from '../projects/decorators/require-project-role.
 @ApiTags('Issues')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, ProjectRoleGuard)
-@Controller('projects/:projectId/issues')
-@Version('1')
+@Controller({ path: 'projects/:projectId/issues', version: '1' })
 export class IssuesController {
   constructor(private readonly issuesService: IssuesService) {}
 

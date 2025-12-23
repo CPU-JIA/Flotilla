@@ -16,7 +16,6 @@ import {
   HttpStatus,
   Logger,
   UseGuards,
-  Version,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsArray, IsObject } from 'class-validator';
@@ -90,8 +89,7 @@ export class RaftExecuteCommandDto {
 }
 
 @ApiTags('Raft Cluster')
-@Controller('raft-cluster')
-@Version('1')
+@Controller({ path: 'raft-cluster', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SUPER_ADMIN)
 export class RaftClusterController {

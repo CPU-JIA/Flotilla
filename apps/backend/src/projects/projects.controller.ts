@@ -11,7 +11,6 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
-  Version,
 } from '@nestjs/common';
 import {
   ProjectsService,
@@ -33,8 +32,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { User, Project, ProjectMember } from '@prisma/client';
 import { GitService } from '../git/git.service';
 
-@Controller('projects')
-@Version('1')
+@Controller({ path: 'projects', version: '1' })
 @UseGuards(JwtAuthGuard)
 export class ProjectsController {
   private readonly logger = new Logger(ProjectsController.name);

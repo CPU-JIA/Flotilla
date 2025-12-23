@@ -9,7 +9,6 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-  Version,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -39,8 +38,7 @@ import { Public } from '../auth/decorators/public.decorator';
 @ApiTags('Branch Protection')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller()
-@Version('1')
+@Controller({ version: '1' })
 export class BranchProtectionController {
   constructor(
     private readonly branchProtectionService: BranchProtectionService,

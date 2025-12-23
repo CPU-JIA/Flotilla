@@ -13,7 +13,6 @@ import {
   Res,
   HttpStatus,
   BadRequestException,
-  Version,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -24,8 +23,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { CreateFolderDto, QueryFilesDto } from './dto';
 import type { User } from '@prisma/client';
 
-@Controller('files')
-@Version('1')
+@Controller({ path: 'files', version: '1' })
 @UseGuards(JwtAuthGuard)
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}

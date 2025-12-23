@@ -8,7 +8,6 @@ import {
   Query,
   UseGuards,
   ParseIntPipe,
-  Version,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -35,8 +34,7 @@ import { GitService } from '../git/git.service';
 @ApiTags('Pull Requests')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller('pull-requests')
-@Version('1')
+@Controller({ path: 'pull-requests', version: '1' })
 export class PullRequestsController {
   constructor(
     private readonly pullRequestsService: PullRequestsService,

@@ -13,7 +13,6 @@ import {
   HttpStatus,
   Logger,
   BadRequestException,
-  Version,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService, UserListResponse } from './users.service';
@@ -25,8 +24,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import type { User } from '@prisma/client';
 import { UserRole } from '@prisma/client';
 
-@Controller('users')
-@Version('1')
+@Controller({ path: 'users', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   private readonly logger = new Logger(UsersController.name);

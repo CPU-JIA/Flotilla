@@ -6,7 +6,6 @@ import {
   HttpCode,
   HttpStatus,
   Res,
-  Version,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { AuditService } from './audit.service';
@@ -32,8 +31,7 @@ import {
  * 权限要求：仅 SUPER_ADMIN 可访问审计日志
  */
 @ApiTags('审计日志')
-@Controller('audit')
-@Version('1')
+@Controller({ path: 'audit', version: '1' })
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth('JWT-auth')
 export class AuditController {

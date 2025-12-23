@@ -8,7 +8,8 @@ import {
   Delete,
   Query,
   UseGuards,
-  Version,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -28,8 +29,7 @@ import { RequireProjectRole } from '../projects/decorators/require-project-role.
 @ApiTags('Milestones')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, ProjectRoleGuard)
-@Controller('projects/:projectId/milestones')
-@Version('1')
+@Controller({ path: 'projects/:projectId/milestones', version: '1' })
 export class MilestonesController {
   constructor(private readonly milestonesService: MilestonesService) {}
 

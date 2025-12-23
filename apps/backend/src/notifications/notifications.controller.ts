@@ -8,7 +8,6 @@ import {
   Delete,
   UseGuards,
   Query,
-  Version,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -39,8 +38,7 @@ import type { User } from '@prisma/client';
 @ApiTags('Notifications')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller('notifications')
-@Version('1')
+@Controller({ path: 'notifications', version: '1' })
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 

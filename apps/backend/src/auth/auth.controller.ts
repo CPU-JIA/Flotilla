@@ -14,7 +14,6 @@ import {
   UnauthorizedException,
   Req,
   Res,
-  Version,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService, AuthResponse } from './auth.service';
@@ -40,8 +39,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('认证系统')
-@Controller('auth')
-@Version('1')
+@Controller({ path: 'auth', version: '1' })
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 

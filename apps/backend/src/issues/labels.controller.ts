@@ -7,7 +7,8 @@ import {
   Param,
   Delete,
   UseGuards,
-  Version,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -26,8 +27,7 @@ import { RequireProjectRole } from '../projects/decorators/require-project-role.
 @ApiTags('Labels')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, ProjectRoleGuard)
-@Controller('projects/:projectId/labels')
-@Version('1')
+@Controller({ path: 'projects/:projectId/labels', version: '1' })
 export class LabelsController {
   constructor(private readonly labelsService: LabelsService) {}
 

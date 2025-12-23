@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Version } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Public } from '../auth/decorators/public.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -12,8 +12,7 @@ import { PerformanceMonitoringMiddleware } from '../common/middleware/performanc
  * ECP-A1: 单一职责 - 提供系统监控和健康检查接口
  */
 @ApiTags('monitoring')
-@Controller('monitoring')
-@Version('1')
+@Controller({ path: 'monitoring', version: '1' })
 export class MonitoringController {
   /**
    * 健康检查端点
