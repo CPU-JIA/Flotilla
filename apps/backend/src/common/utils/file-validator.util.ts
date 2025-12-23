@@ -10,8 +10,10 @@
  * ECP-C1: 防御性编程 - 多层验证机制
  */
 
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, Logger } from '@nestjs/common';
 import * as path from 'path';
+
+const logger = new Logger('FileValidator');
 
 /**
  * 文件类型分类
@@ -664,7 +666,7 @@ export async function validateFileUploadOrThrow(
 
   // 记录警告（如果有）
   if (result.warnings.length > 0) {
-    console.warn('File upload warnings:', result.warnings);
+    logger.warn(`File upload warnings: ${result.warnings.join(', ')}`);
   }
 
   return result.sanitizedFileName;

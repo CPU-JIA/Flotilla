@@ -22,6 +22,7 @@ describe('PermissionService', () => {
     passwordHash: 'hash',
     role: UserRole.SUPER_ADMIN,
     avatar: null,
+    bio: null,
     isActive: true,
     tokenVersion: 0,
     emailVerified: true,

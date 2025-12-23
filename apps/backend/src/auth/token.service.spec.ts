@@ -29,6 +29,7 @@ describe('TokenService', () => {
     passwordResetToken: null,
     passwordResetExpires: null,
     avatar: null,
+    bio: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
