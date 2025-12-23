@@ -8,6 +8,7 @@ import {
   SearchResultDto,
   IndexStatusDto,
   ReindexResponseDto,
+  DeleteIndexResponseDto,
 } from './dto/search-result.dto';
 
 /**
@@ -281,6 +282,74 @@ export class SearchService {
         error.stack,
       );
       throw new Error(`Failed to get index status: ${error.message}`);
+    }
+  }
+
+  /**
+   * 删除项目索引
+   *
+   * 逻辑：
+   * 1. 验证项目是否存在
+   * 2. 统计待删除的文档数
+   * 3. 从MeiliSearch删除所有该项目的文档
+   * 4. 删除数据库中的SearchMetadata记录
+   * 5. 清除相关缓存
+   *
+   * @param projectId - 项目ID
+   * @returns 删除结果
+   *
+   * ECP-C1 (输入验证): 验证项目存在性
+   * ECP-C2 (错误处理): 完善的异常处理
+   */
+  async deleteProjectIndex(projectId: string): Promise<DeleteIndexResponseDto> {
+    this.logger.log(`Deleting index for project: ${projectId}`);
+
+    try {
+      // 1. 验证项目存在
+      const project = await this.prisma.project.findUnique({
+        where: { id: projectId },
+        select: { id: true, name: true },
+      });
+
+      if (!project) {
+        throw new Error(`Project ${projectId} not found`);
+      }
+
+      // 2. 统计待删除的文档数
+      const documentCount = await this.prisma.searchMetadata.count({
+        where: { projectId },
+      });
+
+      // 3. 从MeiliSearch删除所有该项目的文档
+      const { taskUid } = await this.meilisearch.deleteDocumentsByFilter(
+        `projectId = "${projectId}"`,
+      );
+
+      // 4. 删除数据库中的SearchMetadata记录
+      await this.prisma.searchMetadata.deleteMany({
+        where: { projectId },
+      });
+
+      // 5. 清除相关缓存
+      await this.redis.del(`search:status:${projectId}`);
+      await this.redis.del('search:public_projects');
+
+      this.logger.log(
+        `Successfully deleted index for project ${projectId}, ${documentCount} documents removed`,
+      );
+
+      return {
+        projectId,
+        deletedDocuments: documentCount,
+        taskUid,
+        message: `项目索引删除成功，共删除 ${documentCount} 个文档`,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Delete project index failed: ${error.message}`,
+        error.stack,
+      );
+      throw new Error(`Failed to delete project index: ${error.message}`);
     }
   }
 

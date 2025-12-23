@@ -5,6 +5,7 @@ import { GitHttpController } from './git-http.controller';
 import { HttpSmartService } from './protocols/http-smart.service';
 import { GitHttpAuthGuard } from './guards/git-http-auth.guard';
 import { PrismaModule } from '../prisma/prisma.module';
+import { CommonModule } from '../common/common.module';
 
 // Specialized Git Services (ECP-A2: High cohesion, low coupling)
 import { GitRepositoryService } from './services/git-repository.service';
@@ -14,7 +15,7 @@ import { GitDiffService } from './services/git-diff.service';
 import { GitMergeService } from './services/git-merge.service';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, CommonModule],
   controllers: [GitController, GitHttpController],
   providers: [
     // Facade service (delegates to specialized services)

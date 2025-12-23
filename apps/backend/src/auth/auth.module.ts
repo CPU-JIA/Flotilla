@@ -16,6 +16,9 @@ import { APP_GUARD } from '@nestjs/core';
 import { UsersModule } from '../users/users.module';
 import { EmailModule } from '../email/email.module';
 import { RedisModule } from '../redis/redis.module';
+import { OAuthModule } from './oauth/oauth.module';
+import { TwoFactorModule } from './two-factor/two-factor.module';
+import { ApiTokenModule } from './api-tokens/api-token.module';
 
 @Module({
   imports: [
@@ -75,6 +78,9 @@ import { RedisModule } from '../redis/redis.module';
     UsersModule,
     EmailModule,
     RedisModule,
+    OAuthModule, // OAuth 单点登录模块
+    TwoFactorModule, // 双因素认证模块
+    ApiTokenModule, // API令牌模块
   ],
   controllers: [AuthController],
   providers: [

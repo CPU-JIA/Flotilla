@@ -177,4 +177,23 @@ export class MeilisearchService implements OnModuleInit {
       return false;
     }
   }
+
+  /**
+   * 按过滤条件删除文档
+   *
+   * @param filter - MeiliSearch过滤表达式 (e.g., 'projectId = "xxx"')
+   * @returns 删除任务ID
+   *
+   * ECP-C2: 错误处理 - 返回任务信息以便追踪
+   */
+  async deleteDocumentsByFilter(filter: string): Promise<{ taskUid: number }> {
+    this.logger.log(`Deleting documents with filter: ${filter}`);
+    try {
+      const task = await this.codeIndex.deleteDocuments({ filter });
+      return { taskUid: task.taskUid };
+    } catch (error) {
+      this.logger.error(`Failed to delete documents: ${error.message}`, error);
+      throw new Error(`Failed to delete documents: ${error.message}`);
+    }
+  }
 }

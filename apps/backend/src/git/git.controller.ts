@@ -26,7 +26,8 @@ import { GitService } from './git.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
-import type { User } from '@prisma/client';
+import { PermissionService } from '../common/services/permission.service';
+import { MemberRole, type User } from '@prisma/client';
 import { InitRepositoryDto } from './dto/init-repository.dto';
 import { GitCreateBranchDto } from './dto/create-branch.dto';
 import { GitCreateCommitDto } from './dto/create-commit.dto';
@@ -39,6 +40,7 @@ export class GitController {
   constructor(
     private readonly gitService: GitService,
     private readonly prisma: PrismaService,
+    private readonly permissionService: PermissionService,
   ) {}
 
   @Post(':projectId/init')
@@ -49,19 +51,12 @@ export class GitController {
     @Body() dto: InitRepositoryDto,
     @CurrentUser() user: User,
   ) {
-    // Verify project exists and user has access
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
-    });
-
-    if (!project) {
-      throw new NotFoundException('Project not found');
-    }
-
-    if (project.ownerId !== user.id) {
-      // TODO: Check team permissions
-      throw new BadRequestException('Insufficient permissions');
-    }
+    // Verify project exists and user has MAINTAINER+ permissions (team + direct)
+    const project = await this.permissionService.checkProjectPermission(
+      user,
+      projectId,
+      MemberRole.MAINTAINER,
+    );
 
     // Check if repository already exists
     const existingRepo = await this.prisma.repository.findUnique({
@@ -103,7 +98,7 @@ export class GitController {
     @Param('projectId') projectId: string,
     @CurrentUser() user: User,
   ) {
-    await this.verifyProjectAccess(projectId, user.id);
+    await this.verifyProjectAccess(projectId, user, MemberRole.VIEWER);
 
     const branches = await this.gitService.listBranches(projectId);
 
@@ -118,7 +113,7 @@ export class GitController {
     @Body() dto: GitCreateBranchDto,
     @CurrentUser() user: User,
   ) {
-    await this.verifyProjectAccess(projectId, user.id);
+    await this.verifyProjectAccess(projectId, user, MemberRole.MEMBER);
 
     await this.gitService.createBranch(projectId, dto.name, dto.startPoint);
 
@@ -150,7 +145,7 @@ export class GitController {
     @Body() dto: GitCreateCommitDto,
     @CurrentUser() user: User,
   ) {
-    await this.verifyProjectAccess(projectId, user.id);
+    await this.verifyProjectAccess(projectId, user, MemberRole.MEMBER);
 
     // Use DTO author info if provided, otherwise use current user
     const author = {
@@ -181,7 +176,7 @@ export class GitController {
     @Param('branchName') branchName: string,
     @CurrentUser() user: User,
   ) {
-    await this.verifyProjectAccess(projectId, user.id);
+    await this.verifyProjectAccess(projectId, user, MemberRole.MAINTAINER);
 
     await this.gitService.deleteBranch(projectId, branchName);
 
@@ -210,9 +205,12 @@ export class GitController {
   @ApiResponse({ status: 200, description: 'Commit history' })
   async getLog(
     @Param('projectId') projectId: string,
+    @CurrentUser() user: User,
     @Query('depth') depth?: number,
     @Query('ref') ref?: string,
   ) {
+    await this.verifyProjectAccess(projectId, user, MemberRole.VIEWER);
+
     const commits = await this.gitService.log(projectId, {
       depth: depth ? parseInt(String(depth), 10) : undefined,
       ref,
@@ -226,8 +224,11 @@ export class GitController {
   @ApiResponse({ status: 200, description: 'Files list' })
   async listFiles(
     @Param('projectId') projectId: string,
+    @CurrentUser() user: User,
     @Query('ref') ref: string = 'HEAD',
   ) {
+    await this.verifyProjectAccess(projectId, user, MemberRole.VIEWER);
+
     const files = await this.gitService.listFiles(projectId, ref);
 
     return { files };
@@ -238,9 +239,12 @@ export class GitController {
   @ApiResponse({ status: 200, description: 'File content' })
   async readBlob(
     @Param('projectId') projectId: string,
+    @CurrentUser() user: User,
     @Query('filepath') filepath: string,
     @Query('ref') ref: string = 'HEAD',
   ) {
+    await this.verifyProjectAccess(projectId, user, MemberRole.VIEWER);
+
     if (!filepath) {
       throw new BadRequestException('filepath query parameter is required');
     }
@@ -254,21 +258,20 @@ export class GitController {
     };
   }
 
+  /**
+   * Verify user has at least VIEWER access to the project
+   * Uses PermissionService to check both direct membership and team permissions
+   */
   private async verifyProjectAccess(
     projectId: string,
-    userId: string,
+    user: User,
+    requiredRole: MemberRole = MemberRole.VIEWER,
   ): Promise<void> {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
-    });
-
-    if (!project) {
-      throw new NotFoundException('Project not found');
-    }
-
-    if (project.ownerId !== userId) {
-      // TODO: Check team permissions
-      throw new BadRequestException('Insufficient permissions');
-    }
+    // checkProjectPermission will throw NotFoundException or ForbiddenException
+    await this.permissionService.checkProjectPermission(
+      user,
+      projectId,
+      requiredRole,
+    );
   }
 }

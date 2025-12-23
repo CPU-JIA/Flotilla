@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Data Export is Ready - Flotilla</title>
+  <style>
+    /* Flotilla Brand Colors: Blue (#3b82f6) + Yellow (#eab308) */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f3f4f6;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      padding: 50px 30px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0 0 10px 0;
+      color: #ffffff;
+      font-size: 32px;
+      font-weight: 700;
+    }
+    .header p {
+      margin: 0;
+      color: #dbeafe;
+      font-size: 18px;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 20px;
+      color: #1f2937;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .message {
+      font-size: 16px;
+      color: #4b5563;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .info-box {
+      background-color: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      padding: 20px;
+      border-radius: 6px;
+      margin: 25px 0;
+    }
+    .info-box h3 {
+      margin: 0 0 10px 0;
+      color: #1e40af;
+      font-size: 18px;
+    }
+    .info-box p {
+      margin: 8px 0;
+      color: #1f2937;
+      font-size: 14px;
+    }
+    .warning-box {
+      background-color: #fef3c7;
+      border-left: 4px solid #eab308;
+      padding: 15px;
+      border-radius: 6px;
+      margin: 20px 0;
+    }
+    .warning-box p {
+      margin: 0;
+      color: #78350f;
+      font-size: 14px;
+    }
+    .button-container {
+      text-align: center;
+      margin: 30px 0;
+    }
+    .cta-button {
+      display: inline-block;
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #eab308 0%, #f59e0b 100%);
+      color: #1f2937;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 16px;
+      box-shadow: 0 2px 4px rgba(234, 179, 8, 0.3);
+      transition: all 0.3s ease;
+    }
+    .cta-button:hover {
+      box-shadow: 0 4px 8px rgba(234, 179, 8, 0.4);
+      transform: translateY(-1px);
+    }
+    .footer {
+      background-color: #f9fafb;
+      padding: 30px;
+      text-align: center;
+      font-size: 14px;
+      color: #6b7280;
+      border-top: 1px solid #e5e7eb;
+    }
+    .footer-brand {
+      font-weight: 600;
+      color: #3b82f6;
+    }
+    .divider {
+      height: 1px;
+      background-color: #e5e7eb;
+      margin: 30px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📦 Your Data Export is Ready!</h1>
+      <p>Your personal data is ready to download</p>
+    </div>
+
+    <div class="content">
+      <p class="greeting">Hello <strong>{{username}}</strong>! 👋</p>
+
+      <p class="message">
+        Your GDPR data export request has been processed successfully. Your personal data is now ready to download from a secure location.
+      </p>
+
+      <div class="info-box">
+        <h3>📋 Export Information</h3>
+        <p><strong>Status:</strong> Completed</p>
+        <p><strong>Format:</strong> Your data is available in the format you requested</p>
+        <p><strong>Expires:</strong> {{expiresAt}} (7 days from completion)</p>
+      </div>
+
+      <p class="message">
+        Your export includes:
+      </p>
+      <ul style="color: #4b5563; line-height: 1.8; margin: 15px 0;">
+        <li>User profile and account information</li>
+        <li>Organization and team memberships</li>
+        <li>Projects and repositories</li>
+        <li>Issues, pull requests, and code reviews</li>
+        <li>Comments and activity logs</li>
+        <li>Notifications and audit logs</li>
+      </ul>
+
+      <div class="button-container">
+        <a href="{{downloadUrl}}" class="cta-button">Download Your Data</a>
+      </div>
+
+      <div class="warning-box">
+        <p>
+          <strong>⚠️ Important:</strong> This download link will expire in 7 days for security reasons. Please download your data before {{expiresAt}}.
+        </p>
+      </div>
+
+      <div class="divider"></div>
+
+      <p class="message" style="font-size: 14px; color: #6b7280;">
+        <strong>🔒 Privacy & Security:</strong> Your data export is stored securely and will be automatically deleted after expiration. The download link is unique and can only be accessed by your account.
+      </p>
+
+      <p class="message" style="font-size: 14px; color: #6b7280;">
+        If you have any questions about your data export or need assistance, please contact our privacy team.
+      </p>
+    </div>
+
+    <div class="footer">
+      <p>
+        <span class="footer-brand">Flotilla</span> - We build consensus<br>
+        Distributed Code Hosting Platform
+      </p>
+      <p style="margin-top: 15px; font-size: 12px;">
+        © 2025 Flotilla. All rights reserved.<br>
+        GDPR Compliant Data Export
+      </p>
+    </div>
+  </div>
+</body>
+</html>

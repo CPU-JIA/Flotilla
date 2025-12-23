@@ -290,9 +290,9 @@ describe('FileValidator', () => {
       const result = await validateFileUpload(file, { strictMimeCheck: false });
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.includes('禁止上传可执行文件类型'))).toBe(
-        true,
-      );
+      expect(
+        result.errors.some((e) => e.includes('禁止上传可执行文件类型')),
+      ).toBe(true);
     });
 
     it('应该拒绝批处理文件', async () => {
@@ -307,9 +307,9 @@ describe('FileValidator', () => {
       const result = await validateFileUpload(file, { strictMimeCheck: false });
 
       expect(result.valid).toBe(false);
-      expect(result.errors.some((e) => e.includes('禁止上传可执行文件类型'))).toBe(
-        true,
-      );
+      expect(
+        result.errors.some((e) => e.includes('禁止上传可执行文件类型')),
+      ).toBe(true);
     });
 
     it('应该检测文件伪装攻击（EXE伪装成PNG）', async () => {
@@ -321,9 +321,9 @@ describe('FileValidator', () => {
 
       expect(result.valid).toBe(false);
       // 文件无法被识别为任何类型，MIME验证失败
-      expect(result.errors.some((e) => e.includes('MIME') || e.includes('无法检测'))).toBe(
-        true,
-      );
+      expect(
+        result.errors.some((e) => e.includes('MIME') || e.includes('无法检测')),
+      ).toBe(true);
     });
 
     it('应该检测文件伪装攻击（ZIP伪装成JPG）', async () => {

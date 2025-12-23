@@ -26,6 +26,11 @@ import { SearchModule } from './search/search.module';
 import { RedisModule } from './redis/redis.module';
 import { EmailModule } from './email/email.module';
 import { AuditModule } from './audit/audit.module';
+import { GdprModule } from './gdpr/gdpr.module';
+import { PipelinesModule } from './pipelines/pipelines.module';
+import { CollaborationModule } from './collaboration/collaboration.module';
+import { WikiModule } from './wiki/wiki.module';
+import { WebhookModule } from './webhooks/webhooks.module';
 import { PerformanceMonitoringMiddleware } from './common/middleware/performance-monitoring.middleware';
 import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
 import { HttpsRedirectMiddleware } from './common/middleware/https-redirect.middleware';
@@ -78,6 +83,11 @@ import { CsrfMiddleware } from './common/middleware/csrf.middleware';
     SearchModule,
     EmailModule,
     AuditModule, // Phase 4: 安全审计日志模块
+    GdprModule, // GDPR 数据导出模块
+    PipelinesModule, // CI/CD 流水线模块
+    CollaborationModule, // 实时协作编辑模块
+    WikiModule, // Wiki 文档系统模块
+    WebhookModule, // Webhook 事件推送模块
   ],
   controllers: [AppController],
   providers: [

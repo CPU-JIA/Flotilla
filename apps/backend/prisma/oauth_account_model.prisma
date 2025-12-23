@@ -1,0 +1,36 @@
+// ============================================
+// OAuth/SSO 单点登录模块
+// ============================================
+
+/**
+ * OAuth 关联账户表
+ * 存储第三方 OAuth 账户与本地用户的关联关系
+ * 支持 GitHub OAuth、Google OAuth、企业 SAML SSO
+ * ECP-A1: SOLID 原则 - 单一职责原则
+ * ECP-C1: Defensive Programming - 存储 token 用于 API 调用和刷新
+ */
+model OAuthAccount {
+  id           String   @id @default(cuid())
+  userId       String // 关联的用户 ID
+  provider     String   @db.VarChar(50) // OAuth 提供商：github, google, saml
+  providerId   String   @db.VarChar(255) // 第三方用户 ID
+  email        String?  @db.VarChar(255) // OAuth 账户邮箱（可能与本地邮箱不同）
+  displayName  String?  @db.VarChar(255) // OAuth 账户显示名称
+  accessToken  String?  @db.Text // 访问令牌（用于调用 OAuth API）
+  refreshToken String?  @db.Text // 刷新令牌（用于更新 accessToken）
+  expiresAt    DateTime? // 令牌过期时间
+  scope        String?  @db.Text // 授权范围
+  metadata     Json? // 额外元数据（头像、个人资料链接等）
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId]) // 防止同一 OAuth 账户重复绑定
+  @@index([userId]) // 查询用户的所有 OAuth 关联
+  @@index([provider]) // 按提供商查询
+  @@index([email]) // 按邮箱查询（用于账户关联）
+  @@map("oauth_accounts")
+}

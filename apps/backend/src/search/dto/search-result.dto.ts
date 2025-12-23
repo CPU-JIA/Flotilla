@@ -106,6 +106,35 @@ export class IndexStatusDto {
 }
 
 /**
+ * 删除索引响应DTO
+ */
+export class DeleteIndexResponseDto {
+  @ApiProperty({
+    description: '项目ID',
+    example: 'cm2x3y4z5',
+  })
+  projectId: string;
+
+  @ApiProperty({
+    description: '删除的文档数',
+    example: 1500,
+  })
+  deletedDocuments: number;
+
+  @ApiProperty({
+    description: 'MeiliSearch任务ID',
+    example: 42,
+  })
+  taskUid: number;
+
+  @ApiProperty({
+    description: '消息',
+    example: '项目索引删除成功',
+  })
+  message: string;
+}
+
+/**
  * 重索引响应DTO
  */
 export class ReindexResponseDto {

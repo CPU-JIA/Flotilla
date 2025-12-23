@@ -21,6 +21,7 @@ import {
   SearchResultDto,
   IndexStatusDto,
   ReindexResponseDto,
+  DeleteIndexResponseDto,
 } from './dto/search-result.dto';
 
 /**
@@ -123,14 +124,15 @@ export class SearchController {
    *
    * @param projectId - 项目ID
    * @returns 删除结果
-   *
-   * TODO: Task 1.7实现完整逻辑
    */
   @Delete('indexes/:projectId')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '删除项目索引' })
   @ApiParam({ name: 'projectId', description: '项目ID' })
-  deleteIndex(@Param('projectId') _projectId: string): never {
-    throw new Error('Not implemented yet - Task 1.7');
+  @ApiOkResponse({ type: DeleteIndexResponseDto })
+  async deleteIndex(
+    @Param('projectId') projectId: string,
+  ): Promise<DeleteIndexResponseDto> {
+    return this.searchService.deleteProjectIndex(projectId);
   }
 }

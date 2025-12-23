@@ -74,9 +74,9 @@ describe('Password Strength Validator', () => {
 
       it('should reject passwords with common weak words', () => {
         const weakPasswords = [
-          'XPassword!@#a1Y',  // 包含 "password"
-          'XAdmin!@#4a5bY',   // 包含 "admin"
-          'XQwerty!@#4a5bY',  // 包含 "qwerty"
+          'XPassword!@#a1Y', // 包含 "password"
+          'XAdmin!@#4a5bY', // 包含 "admin"
+          'XQwerty!@#4a5bY', // 包含 "qwerty"
         ];
 
         weakPasswords.forEach((password) => {
@@ -92,11 +92,11 @@ describe('Password Strength Validator', () => {
     describe('Valid strong passwords', () => {
       it('should accept strong passwords with all requirements', () => {
         const strongPasswords = [
-          'MyStr0ng!Passw',    // 14 chars, no weak patterns
-          'SecureP@ssw0rdX',   // 15 chars, no sequential
-          'C0mplex!Passwrd',   // 15 chars, no weak patterns
-          'Un!que$Pass9Xy',    // 14 chars, no sequential
-          'V3ry$ecure!X0Y',    // 14 chars, no weak patterns
+          'MyStr0ng!Passw', // 14 chars, no weak patterns
+          'SecureP@ssw0rdX', // 15 chars, no sequential
+          'C0mplex!Passwrd', // 15 chars, no weak patterns
+          'Un!que$Pass9Xy', // 14 chars, no sequential
+          'V3ry$ecure!X0Y', // 14 chars, no weak patterns
         ];
 
         strongPasswords.forEach((password) => {
@@ -119,7 +119,7 @@ describe('Password Strength Validator', () => {
 
     describe('Custom options', () => {
       it('should respect custom minLength', () => {
-        const password = 'Short1!Aa';  // 9 chars - fails default 12, passes custom 8
+        const password = 'Short1!Aa'; // 9 chars - fails default 12, passes custom 8
         const resultDefault = validatePasswordStrength(password);
         const resultCustom = validatePasswordStrength(password, {
           minLength: 8,
@@ -191,7 +191,7 @@ describe('Password Strength Validator', () => {
       // 需要一个只满足部分要求的密码: 12+字符, 大小写, 数字, 但无特殊字符 = 80分 -> strong
       // 或者：大小写+数字+特殊字符，但长度不够 = 80分
       // 要得到 medium (60-79分): 需要满足3-4项基本要求
-      const feedback = getPasswordStrengthFeedback('Mediumpass1');  // 11 chars, 无特殊字符 = 60分
+      const feedback = getPasswordStrengthFeedback('Mediumpass1'); // 11 chars, 无特殊字符 = 60分
       expect(feedback.strength).toBe('medium');
       expect(feedback.score).toBeGreaterThanOrEqual(60);
       expect(feedback.score).toBeLessThan(80);
@@ -200,7 +200,7 @@ describe('Password Strength Validator', () => {
     it('should rate strong passwords correctly', () => {
       // strong (80-99分): 满足4项基本要求 = 80分
       // 密码满足：大写、小写、数字、特殊字符（4项 x 20 = 80），但长度不足12字符
-      const feedback = getPasswordStrengthFeedback('StrongPa1!');  // 10 chars, 满足4项 = 80分
+      const feedback = getPasswordStrengthFeedback('StrongPa1!'); // 10 chars, 满足4项 = 80分
       expect(feedback.strength).toBe('strong');
       expect(feedback.score).toBeGreaterThanOrEqual(80);
       expect(feedback.score).toBeLessThan(100);
@@ -222,9 +222,9 @@ describe('Password Strength Validator', () => {
     });
 
     it('should give bonus points for extra security features', () => {
-      const basicStrong = getPasswordStrengthFeedback('Str0ng!PassX');  // 12 chars
+      const basicStrong = getPasswordStrengthFeedback('Str0ng!PassX'); // 12 chars
       const extraStrong = getPasswordStrengthFeedback(
-        'V3ry!!Str0ng@@PassXYZ',  // 21 chars, multiple specials, multiple digits
+        'V3ry!!Str0ng@@PassXYZ', // 21 chars, multiple specials, multiple digits
       );
 
       expect(extraStrong.score).toBeGreaterThan(basicStrong.score);
@@ -234,11 +234,11 @@ describe('Password Strength Validator', () => {
   describe('Real-world scenarios', () => {
     it('should accept realistic strong passwords', () => {
       const realPasswords = [
-        'MyC0mpany!XzWq',     // 14 chars, no weak patterns
-        'SecurPlatfm@9X',     // 14 chars, no sequential
-        'Fl0tilla#Qw7Xz',     // 14 chars, no sequential (Xz not xyz)
-        'RepoSecr!t9Xq',      // 13 chars, no sequential
-        'Entrprise@9XqW',     // 14 chars, no sequential
+        'MyC0mpany!XzWq', // 14 chars, no weak patterns
+        'SecurPlatfm@9X', // 14 chars, no sequential
+        'Fl0tilla#Qw7Xz', // 14 chars, no sequential (Xz not xyz)
+        'RepoSecr!t9Xq', // 13 chars, no sequential
+        'Entrprise@9XqW', // 14 chars, no sequential
       ];
 
       realPasswords.forEach((password) => {

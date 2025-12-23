@@ -139,8 +139,7 @@ export default function LabelsPage() {
                   <p className="text-sm text-muted-foreground mt-1">{label.description}</p>
                 )}
                 <p className="text-xs text-muted-foreground mt-2">
-                  {/* TODO: Add issue count from backend */}
-                  {t.issues.labels.usedBy.replace('{count}', '0')}
+                  {t.issues.labels.usedBy.replace('{count}', String(label._count?.issueLabels || 0))}
                 </p>
               </div>
 

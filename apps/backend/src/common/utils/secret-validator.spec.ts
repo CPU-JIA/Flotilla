@@ -163,7 +163,9 @@ describe('Secret Validator', () => {
     });
 
     it('should log warnings for valid but suboptimal secrets', () => {
-      const loggerWarnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+      const loggerWarnSpy = jest
+        .spyOn(Logger.prototype, 'warn')
+        .mockImplementation();
 
       const nonBase64Secret =
         'aB1$cD2@eF3#gH4!iJ5%kL6^mN7&oP8*qR9(sT0)uV1-wX2_yZ3+aB4=cD5';

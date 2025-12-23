@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { WebhookService } from '../webhooks/webhooks.service';
 import { CreateIssueDto } from './dto/create-issue.dto';
 import { UpdateIssueDto } from './dto/update-issue.dto';
 import { QueryIssueDto } from './dto/query-issue.dto';
@@ -18,6 +19,7 @@ export class IssuesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
+    private readonly webhookService: WebhookService,
   ) {}
 
   /**
@@ -134,6 +136,25 @@ export class IssuesService {
           this.logger.warn(
             `⚠️ Failed to send ISSUE_ASSIGNED notification: ${error.message}`,
           );
+        }
+
+        // 🪝 触发 Webhook 事件 - issue.opened
+        try {
+          await this.webhookService.triggerWebhook(projectId, 'issue.opened', {
+            action: 'opened',
+            issue: {
+              id: issue.id,
+              number: issue.number,
+              title: issue.title,
+              body: issue.body,
+              state: issue.state,
+              author: issue.author,
+              createdAt: issue.createdAt,
+            },
+            project: { id: projectId },
+          });
+        } catch (error) {
+          this.logger.warn(`⚠️ Failed to trigger webhook: ${error.message}`);
         }
 
         return issue;
@@ -460,9 +481,9 @@ export class IssuesService {
    * 关闭Issue
    */
   async close(projectId: string, number: number): Promise<Issue> {
-    await this.findOne(projectId, number); // 验证存在
+    const issue = await this.findOne(projectId, number); // 验证存在
 
-    return await this.prisma.issue.update({
+    const closedIssue = await this.prisma.issue.update({
       where: {
         projectId_number: {
           projectId,
@@ -474,6 +495,25 @@ export class IssuesService {
         closedAt: new Date(),
       },
     });
+
+    // 🪝 触发 Webhook 事件 - issue.closed
+    try {
+      await this.webhookService.triggerWebhook(projectId, 'issue.closed', {
+        action: 'closed',
+        issue: {
+          id: closedIssue.id,
+          number: closedIssue.number,
+          title: closedIssue.title,
+          state: closedIssue.state,
+          closedAt: closedIssue.closedAt,
+        },
+        project: { id: projectId },
+      });
+    } catch (error) {
+      this.logger.warn(`⚠️ Failed to trigger webhook: ${error.message}`);
+    }
+
+    return closedIssue;
   }
 
   /**

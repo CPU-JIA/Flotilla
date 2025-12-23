@@ -49,6 +49,13 @@ export class LabelsService {
     return await this.prisma.label.findMany({
       where: { projectId },
       orderBy: { name: 'asc' },
+      include: {
+        _count: {
+          select: {
+            issueLabels: true,
+          },
+        },
+      },
     });
   }
 

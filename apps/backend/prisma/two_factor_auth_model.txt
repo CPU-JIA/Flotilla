@@ -1,0 +1,20 @@
+
+// 🔒 SECURITY: 双因素认证（2FA/TOTP）模块
+// 基于 TOTP (Time-based One-Time Password) 标准
+// 支持 Google Authenticator / Authy 等应用
+model TwoFactorAuth {
+  id            String   @id @default(cuid())
+  userId        String   @unique // 用户ID（唯一）
+  secret        String   @db.VarChar(255) // TOTP密钥（加密存储）
+  recoveryCodes String[] // 备用恢复码（加密存储）
+  enabled       Boolean  @default(false) // 是否启用2FA
+  verifiedAt    DateTime? // 首次验证时间
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // 关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("two_factor_auth")
+}

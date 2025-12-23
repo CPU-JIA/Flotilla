@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useTheme } from 'next-themes'
+import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import 'github-markdown-css/github-markdown.css'
 
@@ -157,7 +158,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         onSave?.(newContent)
       } catch (error) {
         console.error('Failed to save file:', error)
-        // TODO: 显示错误提示 toast
+        toast.error('文件保存失败，请重试')
       } finally {
         setSaving(false)
       }

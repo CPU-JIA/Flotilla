@@ -74,6 +74,9 @@ export interface Label {
   description?: string;
   createdAt: string;
   updatedAt: string;
+  _count?: {
+    issueLabels: number;
+  };
 }
 
 export interface Milestone {

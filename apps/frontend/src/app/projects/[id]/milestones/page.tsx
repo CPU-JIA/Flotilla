@@ -228,8 +228,7 @@ export default function MilestonesPage() {
                   </span>
                 )}
                 <span>
-                  {/* TODO: Add issue count from backend */}
-                  {t.issues.milestones.usedBy.replace('{count}', '0')}
+                  {t.issues.milestones.usedBy.replace('{count}', String(milestone._count?.issues || 0))}
                 </span>
               </div>
 
