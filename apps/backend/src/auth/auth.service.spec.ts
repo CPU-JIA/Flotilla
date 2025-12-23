@@ -403,7 +403,10 @@ describe('AuthService', () => {
 
       expect(result).toHaveProperty('accessToken');
       expect(result.accessToken).toBe('newAccessToken');
-      expect(mockTokenService.refreshTokens).toHaveBeenCalledWith(refreshToken, undefined);
+      expect(mockTokenService.refreshTokens).toHaveBeenCalledWith(
+        refreshToken,
+        undefined,
+      );
     });
 
     it('应该在刷新令牌无效时抛出 UnauthorizedException', async () => {
@@ -659,7 +662,7 @@ describe('AuthService', () => {
             create: jest.fn().mockResolvedValue({}),
           },
         };
-        return callback(tx);
+        return await callback(tx);
       });
 
       const result = await service.register(registerDto);
