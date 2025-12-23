@@ -131,13 +131,13 @@ describe('TokenService', () => {
       // Act
       await service.generateTokens(mockUser);
 
-      // Assert
+      // Assert - JWT now includes fingerprint and jti for security
       expect(jwtService.signAsync).toHaveBeenCalledWith(
-        {
+        expect.objectContaining({
           sub: mockUser.id,
           role: mockUser.role,
           tokenVersion: mockUser.tokenVersion,
-        },
+        }),
         expect.any(Object),
       );
     });

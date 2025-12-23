@@ -10,6 +10,15 @@ import { MinioService } from '../minio/minio.service';
 import { RepositoriesService } from '../repositories/repositories.service';
 import { UserRole } from '@prisma/client';
 
+// Mock file-validator.util module
+jest.mock('../common/utils/file-validator.util', () => ({
+  ...jest.requireActual('../common/utils/file-validator.util'),
+  validateFileUploadOrThrow: jest.fn().mockImplementation((file) => {
+    // Return sanitized filename by default
+    return Promise.resolve(file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_'));
+  }),
+}));
+
 /**
  * FilesService Unit Tests
  *

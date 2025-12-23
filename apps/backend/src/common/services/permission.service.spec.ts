@@ -416,8 +416,8 @@ describe('PermissionService', () => {
         OrgRole.MEMBER,
       );
 
-      // Assert
-      expect(result).toEqual(mockOrganization);
+      // Assert - use toMatchObject since result includes members array
+      expect(result).toMatchObject(mockOrganization);
     });
 
     it('should throw ForbiddenException if user is not organization member', async () => {

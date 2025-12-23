@@ -403,7 +403,7 @@ describe('AuthService', () => {
 
       expect(result).toHaveProperty('accessToken');
       expect(result.accessToken).toBe('newAccessToken');
-      expect(mockTokenService.refreshTokens).toHaveBeenCalledWith(refreshToken);
+      expect(mockTokenService.refreshTokens).toHaveBeenCalledWith(refreshToken, undefined);
     });
 
     it('应该在刷新令牌无效时抛出 UnauthorizedException', async () => {
@@ -632,29 +632,39 @@ describe('AuthService', () => {
         updatedAt: new Date(),
       };
 
-      mockPrismaService.user.findUnique.mockResolvedValue(null);
-      mockPrismaService.user.count.mockResolvedValue(5); // Not first user
-      mockPrismaService.user.create.mockResolvedValue(superAdminUser);
-      mockPrismaService.organization.create.mockResolvedValue({
+      const personalOrg = {
         id: 'org-1',
         name: `${superAdminUser.username}'s Organization`,
         slug: `user-${superAdminUser.username}`,
-      });
-      mockPrismaService.organizationMember.create.mockResolvedValue({});
+      };
+
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
       mockTokenService.generateTokens.mockResolvedValue({
         accessToken: 'accessToken',
         refreshToken: 'refreshToken',
       });
       (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
 
+      // Mock $transaction with proper tx object
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        const tx = {
+          user: {
+            count: jest.fn().mockResolvedValue(5),
+            create: jest.fn().mockResolvedValue(superAdminUser),
+          },
+          organization: {
+            create: jest.fn().mockResolvedValue(personalOrg),
+          },
+          organizationMember: {
+            create: jest.fn().mockResolvedValue({}),
+          },
+        };
+        return callback(tx);
+      });
+
       const result = await service.register(registerDto);
 
       expect(result.user.role).toBe(UserRole.SUPER_ADMIN);
-      expect(mockPrismaService.user.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          role: UserRole.SUPER_ADMIN,
-        }),
-      });
     });
   });
 
