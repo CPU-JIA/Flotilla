@@ -49,11 +49,6 @@ export default function PullRequestDetailPage() {
   const [mergeStatus, setMergeStatus] = useState<MergeStatus | null>(null)
   const [loadingMergeStatus, setLoadingMergeStatus] = useState(false)
 
-  useEffect(() => {
-    fetchPR()
-    fetchDiff()
-  }, [projectId, prNumber, fetchPR, fetchDiff])
-
   const fetchPR = useCallback(async () => {
     try {
       setLoading(true)
@@ -89,6 +84,11 @@ export default function PullRequestDetailPage() {
       })
     }
   }, [projectId, prNumber])
+
+  useEffect(() => {
+    fetchPR()
+    fetchDiff()
+  }, [projectId, prNumber, fetchPR, fetchDiff])
 
   const fetchMergeStatus = useCallback(async () => {
     if (!pr) return

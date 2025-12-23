@@ -150,6 +150,7 @@ describe('GitHttpAuthGuard', () => {
         ...mockProject,
         ownerId: mockUser.id, // 用户是项目所有者
         members: [],
+        repository: { id: 'repo-1', projectId: 'project-1' },
       } as any);
 
       const result = await guard.canActivate(context);
@@ -176,6 +177,7 @@ describe('GitHttpAuthGuard', () => {
         ...mockProject,
         ownerId: mockUser.id,
         members: [],
+        repository: { id: 'repo-1', projectId: 'project-1' },
       } as any);
 
       const result = await guard.canActivate(context);
@@ -294,6 +296,7 @@ describe('GitHttpAuthGuard', () => {
         visibility: ProjectVisibility.PUBLIC, // Public项目
         ownerId: 'other-user',
         members: [],
+        repository: { id: 'repo-1', projectId: 'project-1' },
       } as any);
 
       const result = await guard.canActivate(context);
@@ -313,6 +316,7 @@ describe('GitHttpAuthGuard', () => {
         ...mockProject,
         ownerId: mockUser.id, // 用户是所有者
         members: [],
+        repository: { id: 'repo-1', projectId: 'project-1' },
       } as any);
 
       const result = await guard.canActivate(context);
@@ -337,6 +341,7 @@ describe('GitHttpAuthGuard', () => {
             role: MemberRole.MEMBER,
           },
         ],
+        repository: { id: 'repo-1', projectId: 'project-1' },
       } as any);
 
       const result = await guard.canActivate(context);
@@ -363,6 +368,7 @@ describe('GitHttpAuthGuard', () => {
             role: MemberRole.VIEWER,
           },
         ],
+        repository: { id: 'repo-1', projectId: 'project-1' },
       } as any);
 
       const readResult = await guard.canActivate(readContext);
@@ -428,6 +434,7 @@ describe('GitHttpAuthGuard', () => {
         ...mockProject,
         ownerId: mockUser.id,
         members: [],
+        repository: { id: 'repo-1', projectId: 'project-1' },
       } as any);
     });
 
@@ -484,6 +491,7 @@ describe('GitHttpAuthGuard', () => {
         ...mockProject,
         ownerId: mockUser.id,
         members: [],
+        repository: { id: 'repo-1', projectId: 'project-1' },
       } as any);
 
       await guard.canActivate(context);
@@ -516,6 +524,7 @@ describe('GitHttpAuthGuard', () => {
         ...mockProject,
         ownerId: mockUser.id,
         members: [],
+        repository: { id: 'repo-1', projectId: 'project-1' },
       } as any);
 
       const logSpy = jest.spyOn(guard['logger'], 'log');

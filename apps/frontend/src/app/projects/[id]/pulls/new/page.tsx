@@ -36,10 +36,6 @@ export default function CreatePullRequestPage() {
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchBranches()
-  }, [projectId, fetchBranches])
-
   const fetchBranches = useCallback(async () => {
     try {
       setLoading(true)
@@ -78,6 +74,10 @@ export default function CreatePullRequestPage() {
       setLoading(false)
     }
   }, [projectId])
+
+  useEffect(() => {
+    fetchBranches()
+  }, [projectId, fetchBranches])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()

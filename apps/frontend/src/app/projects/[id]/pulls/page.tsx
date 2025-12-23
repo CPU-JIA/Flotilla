@@ -39,10 +39,6 @@ export default function PullRequestsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchPullRequests()
-  }, [projectId, fetchPullRequests])
-
   const fetchPullRequests = useCallback(async () => {
     try {
       setLoading(true)
@@ -68,6 +64,10 @@ export default function PullRequestsPage() {
       setLoading(false)
     }
   }, [projectId])
+
+  useEffect(() => {
+    fetchPullRequests()
+  }, [projectId, fetchPullRequests])
 
   function getStateBadge(state: string) {
     const variants: Record<string, 'default' | 'secondary' | 'outline'> = {

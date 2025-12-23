@@ -137,18 +137,18 @@ export default function IssuesPage() {
                     {/* Labels */}
                     {issue.labels && issue.labels.length > 0 && (
                       <div className="flex items-center gap-1">
-                        {issue.labels.slice(0, 3).map((label) => (
+                        {issue.labels.slice(0, 3).map((issueLabel) => (
                           <Badge
-                            key={label.id}
+                            key={issueLabel.id}
                             variant="outline"
                             style={{
-                              backgroundColor: `${label.color}20`,
-                              borderColor: label.color,
-                              color: label.color,
+                              backgroundColor: `${issueLabel.label.color}20`,
+                              borderColor: issueLabel.label.color,
+                              color: issueLabel.label.color,
                             }}
                             className="text-xs"
                           >
-                            {label.name}
+                            {issueLabel.label.name}
                           </Badge>
                         ))}
                         {issue.labels.length > 3 && (

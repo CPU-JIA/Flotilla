@@ -36,12 +36,6 @@ export default function NotificationsPage() {
     }
   }, [isAuthenticated, authLoading, router])
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchNotifications()
-    }
-  }, [isAuthenticated, page, filter, fetchNotifications])
-
   const fetchNotifications = useCallback(async () => {
     try {
       setLoading(true)
@@ -65,6 +59,12 @@ export default function NotificationsPage() {
       setLoading(false)
     }
   }, [page, pageSize, filter])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchNotifications()
+    }
+  }, [isAuthenticated, page, filter, fetchNotifications])
 
   const markAsRead = async (id: string) => {
     try {
