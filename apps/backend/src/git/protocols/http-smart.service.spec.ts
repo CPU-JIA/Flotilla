@@ -147,7 +147,11 @@ describe('HttpSmartService - Security Tests', () => {
     });
 
     it('should only allow whitelisted pathInfo values', async () => {
-      const allowedPaths = ['/info/refs', '/git-upload-pack', '/git-receive-pack'];
+      const allowedPaths = [
+        '/info/refs',
+        '/git-upload-pack',
+        '/git-receive-pack',
+      ];
       const disallowedPaths = [
         '/etc/passwd',
         '/arbitrary/path',
@@ -163,9 +167,9 @@ describe('HttpSmartService - Security Tests', () => {
           pathInfo,
         };
 
-        await expect(service.executeGitHttpBackend(options)).rejects.not.toThrow(
-          BadRequestException,
-        );
+        await expect(
+          service.executeGitHttpBackend(options),
+        ).rejects.not.toThrow(BadRequestException);
       }
 
       // Disallowed paths should throw validation error
@@ -220,7 +224,11 @@ describe('HttpSmartService - Security Tests', () => {
 
       const requestBody = Buffer.from('test-request');
 
-      await service.handleUploadPack('test-project', '/tmp/repos/test', requestBody);
+      await service.handleUploadPack(
+        'test-project',
+        '/tmp/repos/test',
+        requestBody,
+      );
 
       expect(spy).toHaveBeenCalledWith({
         projectId: 'test-project',
@@ -243,7 +251,11 @@ describe('HttpSmartService - Security Tests', () => {
 
       const requestBody = Buffer.from('test-request');
 
-      await service.handleReceivePack('test-project', '/tmp/repos/test', requestBody);
+      await service.handleReceivePack(
+        'test-project',
+        '/tmp/repos/test',
+        requestBody,
+      );
 
       expect(spy).toHaveBeenCalledWith({
         projectId: 'test-project',

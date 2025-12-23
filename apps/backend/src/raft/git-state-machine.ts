@@ -208,6 +208,7 @@ export class GitStateMachine implements StateMachine {
   /**
    * 从快照恢复状态
    */
+  // eslint-disable-next-line @typescript-eslint/require-await -- Interface requires Promise return type
   async restoreFromSnapshot(snapshot: Buffer): Promise<void> {
     try {
       const data = JSON.parse(snapshot.toString());

@@ -67,9 +67,13 @@ describe('TokenBlacklistService', () => {
       const jti = 'test-jti-error';
       const expiresIn = 3600;
 
-      cacheManager.set = jest.fn().mockRejectedValue(new Error('Redis connection failed'));
+      cacheManager.set = jest
+        .fn()
+        .mockRejectedValue(new Error('Redis connection failed'));
 
-      await expect(service.addToBlacklist(jti, expiresIn)).rejects.toThrow('Redis connection failed');
+      await expect(service.addToBlacklist(jti, expiresIn)).rejects.toThrow(
+        'Redis connection failed',
+      );
     });
   });
 
@@ -81,7 +85,9 @@ describe('TokenBlacklistService', () => {
       const result = await service.isBlacklisted(jti);
 
       expect(result).toBe(true);
-      expect(cacheManager.get).toHaveBeenCalledWith('token:blacklist:blacklisted-token');
+      expect(cacheManager.get).toHaveBeenCalledWith(
+        'token:blacklist:blacklisted-token',
+      );
     });
 
     it('should return false for non-blacklisted token', async () => {
@@ -109,15 +115,21 @@ describe('TokenBlacklistService', () => {
 
       await service.removeFromBlacklist(jti);
 
-      expect(cacheManager.del).toHaveBeenCalledWith('token:blacklist:to-remove-token');
+      expect(cacheManager.del).toHaveBeenCalledWith(
+        'token:blacklist:to-remove-token',
+      );
       expect(cacheStore.has('token:blacklist:to-remove-token')).toBe(false);
     });
 
     it('should handle deletion errors', async () => {
       const jti = 'error-token';
-      cacheManager.del = jest.fn().mockRejectedValue(new Error('Delete failed'));
+      cacheManager.del = jest
+        .fn()
+        .mockRejectedValue(new Error('Delete failed'));
 
-      await expect(service.removeFromBlacklist(jti)).rejects.toThrow('Delete failed');
+      await expect(service.removeFromBlacklist(jti)).rejects.toThrow(
+        'Delete failed',
+      );
     });
   });
 
@@ -142,11 +154,14 @@ describe('TokenBlacklistService', () => {
 
     it('should propagate errors from individual adds', async () => {
       const jtis = ['token1', 'token2'];
-      cacheManager.set = jest.fn()
+      cacheManager.set = jest
+        .fn()
         .mockResolvedValueOnce(undefined)
         .mockRejectedValueOnce(new Error('Batch failed'));
 
-      await expect(service.addManyToBlacklist(jtis, 3600)).rejects.toThrow('Batch failed');
+      await expect(service.addManyToBlacklist(jtis, 3600)).rejects.toThrow(
+        'Batch failed',
+      );
     });
   });
 
@@ -168,15 +183,22 @@ describe('TokenBlacklistService', () => {
     });
 
     it('should handle concurrent blacklist operations', async () => {
-      const jtis = Array.from({ length: 10 }, (_, i) => `concurrent-token-${i}`);
+      const jtis = Array.from(
+        { length: 10 },
+        (_, i) => `concurrent-token-${i}`,
+      );
       const expiresIn = 3600;
 
       // 并发添加
-      await Promise.all(jtis.map(jti => service.addToBlacklist(jti, expiresIn)));
+      await Promise.all(
+        jtis.map((jti) => service.addToBlacklist(jti, expiresIn)),
+      );
 
       // 验证所有Token都已加入黑名单
-      const results = await Promise.all(jtis.map(jti => service.isBlacklisted(jti)));
-      expect(results.every(r => r === true)).toBe(true);
+      const results = await Promise.all(
+        jtis.map((jti) => service.isBlacklisted(jti)),
+      );
+      expect(results.every((r) => r === true)).toBe(true);
     });
 
     it('should use correct TTL for expiring tokens', async () => {

@@ -38,7 +38,10 @@ import { RequireProjectRole } from '../projects/decorators/require-project-role.
 @ApiTags('Issue Comments')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, ProjectRoleGuard)
-@Controller({ path: 'projects/:projectId/issues/:number/comments', version: '1' })
+@Controller({
+  path: 'projects/:projectId/issues/:number/comments',
+  version: '1',
+})
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 

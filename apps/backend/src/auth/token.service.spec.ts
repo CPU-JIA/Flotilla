@@ -35,8 +35,10 @@ describe('TokenService', () => {
 
   beforeEach(async () => {
     // Set environment variables with cryptographically strong secrets
-    process.env.JWT_SECRET = 'kL9mN2pQ5rT8vW1xZ4aC7bD0eF3gH6iJ9jK2lM5nO8pR1sT4uV7wX0yZ3aB6cC9dE2fG5hI8jK1lN4mP7qR0sT';
-    process.env.JWT_REFRESH_SECRET = 'zY9wX6vU3tS0rQ7pO4nM1lK8jI5hG2fE9dC6bA3aZ0yX7wV4uT1sR8qP5oN2mL9kJ6iH3gF0eD7cB4aC1bD8eF5gH';
+    process.env.JWT_SECRET =
+      'kL9mN2pQ5rT8vW1xZ4aC7bD0eF3gH6iJ9jK2lM5nO8pR1sT4uV7wX0yZ3aB6cC9dE2fG5hI8jK1lN4mP7qR0sT';
+    process.env.JWT_REFRESH_SECRET =
+      'zY9wX6vU3tS0rQ7pO4nM1lK8jI5hG2fE9dC6bA3aZ0yX7wV4uT1sR8qP5oN2mL9kJ6iH3gF0eD7cB4aC1bD8eF5gH';
     process.env.JWT_EXPIRATION = '7d';
     process.env.JWT_REFRESH_EXPIRATION = '30d';
 
@@ -511,9 +513,9 @@ describe('TokenService', () => {
       });
 
       // Act & Assert
-      await expect(
-        service.refreshTokens('old-refresh-token'),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshTokens('old-refresh-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should use different secrets for access and refresh tokens', async () => {

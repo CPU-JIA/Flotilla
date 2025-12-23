@@ -26,7 +26,11 @@ import { PrismaModule } from '../prisma/prisma.module';
     }),
   ],
   controllers: [NotificationsController],
-  providers: [NotificationEventsService, NotificationsService, NotificationsGateway],
+  providers: [
+    NotificationEventsService,
+    NotificationsService,
+    NotificationsGateway,
+  ],
   exports: [NotificationsService, NotificationEventsService], // 导出服务供其他模块使用
 })
 export class NotificationsModule {}

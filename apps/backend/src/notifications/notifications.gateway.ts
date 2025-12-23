@@ -37,7 +37,11 @@ import { Subscription } from 'rxjs';
   },
 })
 export class NotificationsGateway
-  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit, OnModuleDestroy
+  implements
+    OnGatewayConnection,
+    OnGatewayDisconnect,
+    OnModuleInit,
+    OnModuleDestroy
 {
   @WebSocketServer()
   server: Server;
@@ -77,7 +81,10 @@ export class NotificationsGateway
           'notification',
           event.payload.notification,
         );
-      } else if (event.type === 'NOTIFICATION_READ' && event.payload.notificationIds) {
+      } else if (
+        event.type === 'NOTIFICATION_READ' &&
+        event.payload.notificationIds
+      ) {
         this.sendToUser(event.payload.userId, 'notifications_read', {
           notificationIds: event.payload.notificationIds,
         });
@@ -86,7 +93,9 @@ export class NotificationsGateway
       }
     });
 
-    this.logger.log('📡 NotificationsGateway subscribed to notification events');
+    this.logger.log(
+      '📡 NotificationsGateway subscribed to notification events',
+    );
   }
 
   /**
@@ -308,7 +317,9 @@ export class NotificationsGateway
     if (this.eventSubscription) {
       this.eventSubscription.unsubscribe();
       this.eventSubscription = undefined;
-      this.logger.log('📡 NotificationsGateway unsubscribed from notification events');
+      this.logger.log(
+        '📡 NotificationsGateway unsubscribed from notification events',
+      );
     }
   }
 }

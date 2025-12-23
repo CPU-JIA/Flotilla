@@ -325,7 +325,8 @@ export class AuthService {
     ipAddress?: string,
     userAgent?: string,
   ): Promise<TokenPair> {
-    const tokenContext = ipAddress && userAgent ? { ipAddress, userAgent } : undefined;
+    const tokenContext =
+      ipAddress && userAgent ? { ipAddress, userAgent } : undefined;
     return this.tokenService.refreshTokens(refreshToken, tokenContext);
   }
 

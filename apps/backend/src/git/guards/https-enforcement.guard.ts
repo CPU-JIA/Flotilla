@@ -16,13 +16,13 @@ import {
   ExecutionContext,
   ForbiddenException,
   Logger,
-} from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
-import type { Request } from 'express'
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import type { Request } from 'express';
 
 @Injectable()
 export class HttpsEnforcementGuard implements CanActivate {
-  private readonly logger = new Logger(HttpsEnforcementGuard.name)
+  private readonly logger = new Logger(HttpsEnforcementGuard.name);
 
   constructor(private configService: ConfigService) {}
 
@@ -35,21 +35,21 @@ export class HttpsEnforcementGuard implements CanActivate {
   private isHttps(request: Request): boolean {
     // Check request protocol
     if (request.protocol === 'https') {
-      return true
+      return true;
     }
 
     // Check X-Forwarded-Proto header (for reverse proxies like nginx)
-    const forwardedProto = request.get('x-forwarded-proto')
+    const forwardedProto = request.get('x-forwarded-proto');
     if (forwardedProto === 'https') {
-      return true
+      return true;
     }
 
     // Check if connection is encrypted (TLS)
     if (request.secure) {
-      return true
+      return true;
     }
 
-    return false
+    return false;
   }
 
   /**
@@ -62,43 +62,44 @@ export class HttpsEnforcementGuard implements CanActivate {
    * - Can be overridden via ENFORCE_HTTPS=true env var
    */
   private shouldEnforceHttps(): boolean {
-    const nodeEnv = this.configService.get<string>('NODE_ENV', 'development')
-    const enforceHttps = this.configService.get<string>('ENFORCE_HTTPS')
+    const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
+    const enforceHttps = this.configService.get<string>('ENFORCE_HTTPS');
 
     // Explicit override
     if (enforceHttps !== undefined) {
-      return enforceHttps === 'true'
+      return enforceHttps === 'true';
     }
 
     // Default: enforce in production only
-    return nodeEnv === 'production'
+    return nodeEnv === 'production';
   }
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest<Request>()
+  canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest<Request>();
 
     // Skip HTTPS check if not enforced
     if (!this.shouldEnforceHttps()) {
-      this.logger.debug('HTTPS enforcement disabled (development/test mode)')
-      return true
+      this.logger.debug('HTTPS enforcement disabled (development/test mode)');
+      return true;
     }
 
     // Check if request is HTTPS
     if (this.isHttps(request)) {
-      this.logger.debug('✅ HTTPS request verified')
-      return true
+      this.logger.debug('✅ HTTPS request verified');
+      return true;
     }
 
     // Reject HTTP requests in production
     this.logger.warn(
       `🔒 HTTPS enforcement: Rejecting HTTP request to ${request.method} ${request.path}`,
-    )
+    );
 
     throw new ForbiddenException({
       statusCode: 403,
       message: 'HTTPS required',
       error: 'Forbidden',
-      details: 'Git HTTP operations require HTTPS in production to protect credentials. Please use: git clone https://...',
-    })
+      details:
+        'Git HTTP operations require HTTPS in production to protect credentials. Please use: git clone https://...',
+    });
   }
 }

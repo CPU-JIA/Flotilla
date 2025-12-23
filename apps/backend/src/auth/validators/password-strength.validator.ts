@@ -77,16 +77,31 @@ export function validatePasswordStrength(
   }
 
   // 5. 检查特殊字符
-  if (requireSpecialChar && !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+  if (
+    requireSpecialChar &&
+    !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
+  ) {
     errors.push('密码必须包含至少一个特殊字符 (!@#$%^&*等)');
   }
 
   // 6. 检查常见弱密码模式
   const weakPatterns = [
     { pattern: /^(.)\1+$/, message: '密码不能全是相同字符' },
-    { pattern: /(012|123|234|345|456|567|678|789|890|987|876|765|654|543|432|321|210)/, message: '密码不能包含连续数字' },
-    { pattern: /(abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i, message: '密码不能包含连续字母' },
-    { pattern: /(password|passwd|pass123|admin|root|user|test|demo|qwerty|asdfgh|zxcvbn|111111|123456|654321)/i, message: '密码不能包含常见弱密码词汇' },
+    {
+      pattern:
+        /(012|123|234|345|456|567|678|789|890|987|876|765|654|543|432|321|210)/,
+      message: '密码不能包含连续数字',
+    },
+    {
+      pattern:
+        /(abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)/i,
+      message: '密码不能包含连续字母',
+    },
+    {
+      pattern:
+        /(password|passwd|pass123|admin|root|user|test|demo|qwerty|asdfgh|zxcvbn|111111|123456|654321)/i,
+      message: '密码不能包含常见弱密码词汇',
+    },
   ];
 
   for (const { pattern, message } of weakPatterns) {
@@ -119,14 +134,14 @@ export function validatePasswordStrength(
  * @returns 装饰器函数
  */
 export function IsStrongPassword(options?: PasswordStrengthOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       name: 'isStrongPassword',
       target: object.constructor,
       propertyName: propertyName,
       options: options,
       validator: {
-        validate(value: any, args: ValidationArguments) {
+        validate(value: unknown, _args: ValidationArguments) {
           if (typeof value !== 'string') {
             return false;
           }
@@ -177,13 +192,16 @@ export function getPasswordStrengthFeedback(password: string): {
   if (/[A-Z]/.test(password)) score += 20;
   if (/[a-z]/.test(password)) score += 20;
   if (/[0-9]/.test(password)) score += 20;
-  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score += 20;
+  if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) score += 20;
 
   // 额外加分项
   if (password && password.length >= 16) score += 10; // 长度超过16
   if ((password.match(/[A-Z]/g) || []).length >= 2) score += 5; // 多个大写
   if ((password.match(/[0-9]/g) || []).length >= 2) score += 5; // 多个数字
-  if ((password.match(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g) || []).length >= 2) score += 5; // 多个特殊字符
+  if (
+    (password.match(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g) || []).length >= 2
+  )
+    score += 5; // 多个特殊字符
 
   // 根据验证结果生成建议
   if (!result.valid) {
@@ -195,7 +213,9 @@ export function getPasswordStrengthFeedback(password: string): {
     if ((password.match(/[0-9]/g) || []).length < 2) {
       suggestions.push('建议：使用多个数字增强安全性');
     }
-    if ((password.match(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g) || []).length < 2) {
+    if (
+      (password.match(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g) || []).length < 2
+    ) {
       suggestions.push('建议：使用多个特殊字符增强安全性');
     }
   }

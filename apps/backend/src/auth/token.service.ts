@@ -122,8 +122,12 @@ export class TokenService {
 
     // 提取User-Agent的关键部分（浏览器名称和主版本号）
     // 例如: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0" -> "Chrome/120"
-    const uaMatch = userAgent.match(/(Chrome|Firefox|Safari|Edge|Opera)\/(\d+)/);
-    const browserSignature = uaMatch ? `${uaMatch[1]}/${uaMatch[2]}` : userAgent.substring(0, 20);
+    const uaMatch = userAgent.match(
+      /(Chrome|Firefox|Safari|Edge|Opera)\/(\d+)/,
+    );
+    const browserSignature = uaMatch
+      ? `${uaMatch[1]}/${uaMatch[2]}`
+      : userAgent.substring(0, 20);
 
     // 提取IP地址的网段（IPv4前3段，IPv6前4段）
     const ipSignature = ipAddress.includes(':')
@@ -189,7 +193,10 @@ export class TokenService {
    * @param context Token上下文（用于验证fingerprint）
    * @returns 新的Token对
    */
-  async refreshTokens(refreshToken: string, context?: TokenContext): Promise<TokenPair> {
+  async refreshTokens(
+    refreshToken: string,
+    context?: TokenContext,
+  ): Promise<TokenPair> {
     try {
       // 验证Refresh Token
       const payload = this.jwtService.verify<JwtPayload>(refreshToken, {

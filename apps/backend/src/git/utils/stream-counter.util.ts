@@ -8,13 +8,13 @@
  * ECP-C2: Systematic Error Handling - Gracefully handle size limit violations
  */
 
-import { Transform, TransformCallback } from 'stream'
-import { Logger } from '@nestjs/common'
+import { Transform, TransformCallback } from 'stream';
+import { Logger } from '@nestjs/common';
 
 export interface StreamCounterOptions {
-  maxSize: number // Maximum allowed size in bytes
-  operationName: string // For logging/error messages
-  onLimitExceeded?: (bytesReceived: number) => void // Callback when limit exceeded
+  maxSize: number; // Maximum allowed size in bytes
+  operationName: string; // For logging/error messages
+  onLimitExceeded?: (bytesReceived: number) => void; // Callback when limit exceeded
 }
 
 /**
@@ -34,59 +34,64 @@ export interface StreamCounterOptions {
  * ```
  */
 export class StreamSizeCounter extends Transform {
-  private bytesReceived = 0
-  private readonly logger = new Logger(StreamSizeCounter.name)
+  private bytesReceived = 0;
+  private readonly logger = new Logger(StreamSizeCounter.name);
 
   constructor(private readonly options: StreamCounterOptions) {
-    super()
+    super();
   }
 
-  _transform(chunk: Buffer, encoding: BufferEncoding, callback: TransformCallback): void {
-    this.bytesReceived += chunk.length
+  _transform(
+    chunk: Buffer,
+    encoding: BufferEncoding,
+    callback: TransformCallback,
+  ): void {
+    this.bytesReceived += chunk.length;
 
     // Check if size limit exceeded
     if (this.bytesReceived > this.options.maxSize) {
       const error = new Error(
         `${this.options.operationName}: Stream size limit exceeded. ` +
-        `Received ${this.formatBytes(this.bytesReceived)}, ` +
-        `maximum allowed is ${this.formatBytes(this.options.maxSize)}`,
-      )
-      error.name = 'PayloadTooLargeError'
+          `Received ${this.formatBytes(this.bytesReceived)}, ` +
+          `maximum allowed is ${this.formatBytes(this.options.maxSize)}`,
+      );
+      error.name = 'PayloadTooLargeError';
 
       this.logger.warn(
         `🔒 ${this.options.operationName}: Size limit exceeded - ` +
-        `${this.formatBytes(this.bytesReceived)} > ${this.formatBytes(this.options.maxSize)}`,
-      )
+          `${this.formatBytes(this.bytesReceived)} > ${this.formatBytes(this.options.maxSize)}`,
+      );
 
       // Call callback if provided
       if (this.options.onLimitExceeded) {
-        this.options.onLimitExceeded(this.bytesReceived)
+        this.options.onLimitExceeded(this.bytesReceived);
       }
 
       // Emit error and stop processing
-      callback(error)
-      return
+      callback(error);
+      return;
     }
 
     // Pass chunk through
-    callback(null, chunk)
+    callback(null, chunk);
   }
 
   /**
    * Get current bytes received
    */
   getBytesReceived(): number {
-    return this.bytesReceived
+    return this.bytesReceived;
   }
 
   /**
    * Format bytes for human-readable output
    */
   private formatBytes(bytes: number): string {
-    if (bytes < 1024) return bytes + ' B'
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB'
-    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
-    return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB'
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+    if (bytes < 1024 * 1024 * 1024)
+      return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
   }
 }
 
@@ -101,12 +106,12 @@ export function createStreamSizeCounter(
   options: StreamCounterOptions,
   onError?: (error: Error) => void,
 ): StreamSizeCounter {
-  const counter = new StreamSizeCounter(options)
+  const counter = new StreamSizeCounter(options);
 
   // Attach error handler if provided
   if (onError) {
-    counter.on('error', onError)
+    counter.on('error', onError);
   }
 
-  return counter
+  return counter;
 }

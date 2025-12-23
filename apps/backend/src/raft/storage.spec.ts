@@ -13,6 +13,9 @@
  * ECP-D1: 可测试性 - 独立的存储层测试
  */
 
+/* eslint-disable @typescript-eslint/require-await -- Some test callbacks don't need await */
+/* eslint-disable @typescript-eslint/await-thenable -- Storage methods return synchronously in memory implementation */
+
 import { MemoryPersistentStorage, FilePersistentStorage } from './storage';
 import { CommandType, type LogEntry } from './types';
 import { promises as fs } from 'fs';
@@ -633,7 +636,7 @@ describe.skip('FilePersistentStorage - 文件持久化存储测试', () => {
     // 清理测试目录
     try {
       await fs.rm(testDir, { recursive: true, force: true });
-    } catch (error) {
+    } catch (_error) {
       // 忽略清理错误
     }
   });

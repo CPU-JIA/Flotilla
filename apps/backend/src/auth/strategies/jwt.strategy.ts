@@ -52,7 +52,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       'unknown';
 
     // 提取User-Agent的关键部分
-    const uaMatch = userAgent.match(/(Chrome|Firefox|Safari|Edge|Opera)\/(\d+)/);
+    const uaMatch = userAgent.match(
+      /(Chrome|Firefox|Safari|Edge|Opera)\/(\d+)/,
+    );
     const browserSignature = uaMatch
       ? `${uaMatch[1]}/${uaMatch[2]}`
       : userAgent.substring(0, 20);
@@ -70,7 +72,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     try {
       // 🔒 SECURITY: 1. 检查Token是否在黑名单中
       if (payload.jti) {
-        const isBlacklisted = await this.tokenBlacklistService.isBlacklisted(payload.jti);
+        const isBlacklisted = await this.tokenBlacklistService.isBlacklisted(
+          payload.jti,
+        );
         if (isBlacklisted) {
           throw new UnauthorizedException('Token已被撤销，请重新登录');
         }

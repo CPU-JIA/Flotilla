@@ -11,7 +11,11 @@ import {
   QueryNotificationsDto,
   UpdateNotificationPreferenceDto,
 } from './dto';
-import type { Notification, NotificationPreference, Prisma } from '@prisma/client';
+import type {
+  Notification,
+  NotificationPreference,
+  Prisma,
+} from '@prisma/client';
 
 /**
  * 通知列表响应接口

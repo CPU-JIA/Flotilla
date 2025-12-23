@@ -19,7 +19,7 @@ import {
 } from '@nestjs/common';
 import { spawn } from 'child_process';
 import * as path from 'path';
-import { Readable, Writable } from 'stream';
+import { Readable } from 'stream';
 import { Request, Response } from 'express';
 import {
   validatePath,
@@ -145,9 +145,11 @@ export class HttpSmartService {
           );
 
           // Return generic error to client (don't leak internal details)
-          reject(new InternalServerErrorException(
-            'Git operation failed. Please check your request and try again.',
-          ));
+          reject(
+            new InternalServerErrorException(
+              'Git operation failed. Please check your request and try again.',
+            ),
+          );
           return;
         }
 
@@ -160,9 +162,11 @@ export class HttpSmartService {
         // 🔒 SECURITY FIX (CWE-755): Log detailed error but return generic message
         this.logger.error('Failed to spawn git http-backend', error);
 
-        reject(new InternalServerErrorException(
-          'Git operation failed. Please try again later.',
-        ));
+        reject(
+          new InternalServerErrorException(
+            'Git operation failed. Please try again later.',
+          ),
+        );
       });
 
       // Write request body if present
@@ -468,9 +472,11 @@ export class HttpSmartService {
             });
           }
 
-          reject(new InternalServerErrorException(
-            'Git operation failed. Please check your request and try again.',
-          ));
+          reject(
+            new InternalServerErrorException(
+              'Git operation failed. Please check your request and try again.',
+            ),
+          );
           return;
         }
 
@@ -488,9 +494,11 @@ export class HttpSmartService {
           });
         }
 
-        reject(new InternalServerErrorException(
-          'Git operation failed. Please try again later.',
-        ));
+        reject(
+          new InternalServerErrorException(
+            'Git operation failed. Please try again later.',
+          ),
+        );
       });
 
       // 🔒 SECURITY FIX (CWE-400): Stream request through size counter, then to git stdin

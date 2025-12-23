@@ -139,6 +139,7 @@ export class GitHttpAuthGuard implements CanActivate {
       return false;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- repository used for future expansion
     const repository = project.repository;
 
     // 🔒 SECURITY FIX: Check if project is archived (read-only for archived projects)

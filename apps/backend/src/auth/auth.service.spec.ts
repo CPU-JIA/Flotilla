@@ -598,7 +598,7 @@ describe('AuthService', () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
       mockPrismaService.user.count.mockResolvedValue(0); // First user
 
-      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+      mockPrismaService.$transaction.mockImplementation((callback) => {
         const tx = {
           user: {
             count: jest.fn().mockResolvedValue(0),

@@ -6,7 +6,6 @@
 import {
   validatePasswordStrength,
   getPasswordStrengthFeedback,
-  PasswordStrengthResult,
 } from './password-strength.validator';
 
 describe('Password Strength Validator', () => {
@@ -39,7 +38,9 @@ describe('Password Strength Validator', () => {
       it('should reject passwords without special characters', () => {
         const result = validatePasswordStrength('NoSpecialChar123');
         expect(result.valid).toBe(false);
-        expect(result.errors).toContain('密码必须包含至少一个特殊字符 (!@#$%^&*等)');
+        expect(result.errors).toContain(
+          '密码必须包含至少一个特殊字符 (!@#$%^&*等)',
+        );
       });
     });
 
@@ -47,7 +48,7 @@ describe('Password Strength Validator', () => {
       it('should reject passwords with all same characters', () => {
         const result = validatePasswordStrength('aaaaaaaaaaaa');
         expect(result.valid).toBe(false);
-        expect(result.errors.some(e => e.includes('相同字符'))).toBe(true);
+        expect(result.errors.some((e) => e.includes('相同字符'))).toBe(true);
       });
 
       it('should reject passwords with sequential numbers', () => {
@@ -57,17 +58,17 @@ describe('Password Strength Validator', () => {
           'Pass987654321!',
         ];
 
-        weakPasswords.forEach(password => {
+        weakPasswords.forEach((password) => {
           const result = validatePasswordStrength(password);
           expect(result.valid).toBe(false);
-          expect(result.errors.some(e => e.includes('连续数字'))).toBe(true);
+          expect(result.errors.some((e) => e.includes('连续数字'))).toBe(true);
         });
       });
 
       it('should reject passwords with sequential letters', () => {
         const result = validatePasswordStrength('abcdefghijk123!');
         expect(result.valid).toBe(false);
-        expect(result.errors.some(e => e.includes('连续字母'))).toBe(true);
+        expect(result.errors.some((e) => e.includes('连续字母'))).toBe(true);
       });
 
       it('should reject passwords with common weak words', () => {
@@ -78,10 +79,12 @@ describe('Password Strength Validator', () => {
           'Test123456789!',
         ];
 
-        weakPasswords.forEach(password => {
+        weakPasswords.forEach((password) => {
           const result = validatePasswordStrength(password);
           expect(result.valid).toBe(false);
-          expect(result.errors.some(e => e.includes('常见弱密码'))).toBe(true);
+          expect(result.errors.some((e) => e.includes('常见弱密码'))).toBe(
+            true,
+          );
         });
       });
     });
@@ -96,7 +99,7 @@ describe('Password Strength Validator', () => {
           'V3ry$ecure!2024',
         ];
 
-        strongPasswords.forEach(password => {
+        strongPasswords.forEach((password) => {
           const result = validatePasswordStrength(password);
           expect(result.valid).toBe(true);
           expect(result.errors).toHaveLength(0);
@@ -117,10 +120,12 @@ describe('Password Strength Validator', () => {
       it('should respect custom minLength', () => {
         const password = 'Short1!Aa';
         const resultDefault = validatePasswordStrength(password);
-        const resultCustom = validatePasswordStrength(password, { minLength: 8 });
+        const resultCustom = validatePasswordStrength(password, {
+          minLength: 8,
+        });
 
         expect(resultDefault.valid).toBe(false); // 默认12字符
-        expect(resultCustom.valid).toBe(true);   // 自定义8字符
+        expect(resultCustom.valid).toBe(true); // 自定义8字符
       });
 
       it('should respect requireUppercase option', () => {
@@ -209,7 +214,9 @@ describe('Password Strength Validator', () => {
 
     it('should give bonus points for extra security features', () => {
       const basicStrong = getPasswordStrengthFeedback('Str0ng!Pass1');
-      const extraStrong = getPasswordStrengthFeedback('V3ry!!Str0ng@@Pass123456');
+      const extraStrong = getPasswordStrengthFeedback(
+        'V3ry!!Str0ng@@Pass123456',
+      );
 
       expect(extraStrong.score).toBeGreaterThan(basicStrong.score);
     });
@@ -225,7 +232,7 @@ describe('Password Strength Validator', () => {
         'Enterprise@Pass123',
       ];
 
-      realPasswords.forEach(password => {
+      realPasswords.forEach((password) => {
         const result = validatePasswordStrength(password);
         expect(result.valid).toBe(true);
       });
@@ -240,7 +247,7 @@ describe('Password Strength Validator', () => {
         'Test123456!@',
       ];
 
-      commonWeak.forEach(password => {
+      commonWeak.forEach((password) => {
         const result = validatePasswordStrength(password);
         expect(result.valid).toBe(false);
       });
@@ -253,7 +260,9 @@ describe('Password Strength Validator', () => {
       expect(result.errors).toContain('密码至少需要12个字符');
       expect(result.errors).toContain('密码必须包含至少一个大写字母');
       expect(result.errors).toContain('密码必须包含至少一个数字');
-      expect(result.errors).toContain('密码必须包含至少一个特殊字符 (!@#$%^&*等)');
+      expect(result.errors).toContain(
+        '密码必须包含至少一个特殊字符 (!@#$%^&*等)',
+      );
     });
   });
 });

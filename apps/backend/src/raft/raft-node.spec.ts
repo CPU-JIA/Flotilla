@@ -13,6 +13,8 @@
  * ECP-D1: 可测试性 - 使用 Mock 隔离依赖
  */
 
+/* eslint-disable @typescript-eslint/await-thenable -- Mock timer callbacks are synchronous but tests await them for clarity */
+
 import { RaftNode } from './raft-node';
 import {
   NodeState,

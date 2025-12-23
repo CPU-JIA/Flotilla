@@ -158,9 +158,19 @@ export function validateJwtSecret(
   // 6. 检查常见弱密钥模式
   const weakPatterns = [
     { pattern: /^(.)\1+$/, name: 'repeated characters' },
-    { pattern: /^(012|123|234|345|456|567|678|789|890)+$/, name: 'sequential numbers' },
-    { pattern: /^(abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)+$/i, name: 'sequential letters' },
-    { pattern: /^(password|secret|admin|test|demo|default|changeme)/i, name: 'common weak words' },
+    {
+      pattern: /^(012|123|234|345|456|567|678|789|890)+$/,
+      name: 'sequential numbers',
+    },
+    {
+      pattern:
+        /^(abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz)+$/i,
+      name: 'sequential letters',
+    },
+    {
+      pattern: /^(password|secret|admin|test|demo|default|changeme)/i,
+      name: 'common weak words',
+    },
   ];
 
   for (const { pattern, name: patternName } of weakPatterns) {
