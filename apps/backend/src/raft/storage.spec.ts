@@ -613,8 +613,8 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
   });
 });
 
-// ECP注释: FilePersistentStorage 实现未完成，暂时跳过这些测试
-describe.skip('FilePersistentStorage - 文件持久化存储测试', () => {
+// FilePersistentStorage 实现已完成，启用文件持久化测试
+describe('FilePersistentStorage - 文件持久化存储测试', () => {
   let storage: FilePersistentStorage;
   let testDir: string;
 
