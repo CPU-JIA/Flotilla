@@ -108,10 +108,20 @@ export class AuthController {
   })
   async register(
     @Body() dto: RegisterDto,
+    @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ): Promise<Omit<AuthResponse, 'accessToken' | 'refreshToken'>> {
     this.logger.log(`📝 Registration attempt for username: ${dto.username}`);
-    const result = await this.authService.register(dto);
+
+    // Extract IP and User-Agent for token fingerprinting
+    const ipAddress =
+      (request.headers['x-forwarded-for'] as string)?.split(',')[0] ||
+      request.ip ||
+      request.socket.remoteAddress ||
+      'unknown';
+    const userAgent = request.headers['user-agent'] || 'unknown';
+
+    const result = await this.authService.register(dto, ipAddress, userAgent);
 
     // 🔒 SECURITY FIX: 使用 HttpOnly Cookie 存储 Token (防止 XSS 攻击)
     // CWE-79: Cross-site Scripting (XSS)

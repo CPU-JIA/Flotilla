@@ -160,7 +160,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
         count: 100,
       });
 
-      const deletedCount = 0;
       const keys: string[] = [];
 
       return new Promise((resolve, reject) => {
@@ -185,7 +184,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
                 );
               });
           } else {
-            resolve(deletedCount);
+            resolve(0);
           }
         });
 

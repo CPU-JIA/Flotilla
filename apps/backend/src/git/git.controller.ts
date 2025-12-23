@@ -26,6 +26,7 @@ import { GitService } from './git.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
+import type { User } from '@prisma/client';
 import { InitRepositoryDto } from './dto/init-repository.dto';
 import { GitCreateBranchDto } from './dto/create-branch.dto';
 import { GitCreateCommitDto } from './dto/create-commit.dto';
@@ -46,7 +47,7 @@ export class GitController {
   async initRepository(
     @Param('projectId') projectId: string,
     @Body() dto: InitRepositoryDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     // Verify project exists and user has access
     const project = await this.prisma.project.findUnique({
@@ -100,7 +101,7 @@ export class GitController {
   @ApiResponse({ status: 200, description: 'Branches list' })
   async listBranches(
     @Param('projectId') projectId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     await this.verifyProjectAccess(projectId, user.id);
 
@@ -115,7 +116,7 @@ export class GitController {
   async createBranch(
     @Param('projectId') projectId: string,
     @Body() dto: GitCreateBranchDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     await this.verifyProjectAccess(projectId, user.id);
 
@@ -147,7 +148,7 @@ export class GitController {
   async createCommit(
     @Param('projectId') projectId: string,
     @Body() dto: GitCreateCommitDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     await this.verifyProjectAccess(projectId, user.id);
 
@@ -178,7 +179,7 @@ export class GitController {
   async deleteBranch(
     @Param('projectId') projectId: string,
     @Param('branchName') branchName: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     await this.verifyProjectAccess(projectId, user.id);
 

@@ -124,7 +124,7 @@ export class GitHttpAuthGuard implements CanActivate {
         members: {
           where: { userId },
         },
-        repositories: true, // Verify repository exists
+        repository: true, // Verify repository exists
       },
     });
 
@@ -134,17 +134,17 @@ export class GitHttpAuthGuard implements CanActivate {
     }
 
     // 🔒 SECURITY FIX: Check if repository is initialized
-    if (!project.repositories || project.repositories.length === 0) {
+    if (!project.repository) {
       this.logger.warn(`Repository not initialized for project: ${projectId}`);
       return false;
     }
 
-    const repository = project.repositories[0];
+    const repository = project.repository;
 
-    // 🔒 SECURITY FIX: Check if repository is archived (read-only for archived repos)
-    if (operation === 'write' && repository.isArchived) {
+    // 🔒 SECURITY FIX: Check if project is archived (read-only for archived projects)
+    if (operation === 'write' && project.isArchived) {
       this.logger.warn(
-        `Write operation denied - repository is archived: ${projectId}`,
+        `Write operation denied - project is archived: ${projectId}`,
       );
       return false;
     }

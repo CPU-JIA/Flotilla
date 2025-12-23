@@ -134,7 +134,7 @@ export function IsStrongPassword(options?: PasswordStrengthOptions) {
           const result = validatePasswordStrength(value, options);
           return result.valid;
         },
-        defaultMessage(args: ValidationArguments) {
+        defaultMessage(args: ValidationArguments): string {
           const value = args.value;
           if (typeof value !== 'string') {
             return '密码必须是字符串';
@@ -143,7 +143,11 @@ export function IsStrongPassword(options?: PasswordStrengthOptions) {
           const result = validatePasswordStrength(value, options);
           if (!result.valid) {
             // 返回第一个错误，或者自定义消息
-            return options?.message || result.errors[0] || '密码不符合安全要求';
+            const customMessage = options?.message;
+            if (typeof customMessage === 'function') {
+              return customMessage(args);
+            }
+            return customMessage || result.errors[0] || '密码不符合安全要求';
           }
 
           return '密码不符合安全要求';

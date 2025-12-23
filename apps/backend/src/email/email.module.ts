@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Logger } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
@@ -22,12 +22,13 @@ import { SMTPProvider } from './providers/smtp.provider';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
+        const logger = new Logger('EmailModule');
         const port = configService.get<number>('SMTP_PORT') || 587;
         // Auto-detect secure mode based on port: 465 uses SSL, 587 uses STARTTLS
         const secure = port === 465;
 
-        console.log(
-          `[EmailModule] SMTP Configuration: host=${configService.get('SMTP_HOST')}, port=${port}, secure=${secure}`,
+        logger.log(
+          `SMTP Configuration: host=${configService.get('SMTP_HOST')}, port=${port}, secure=${secure}`,
         );
 
         return {

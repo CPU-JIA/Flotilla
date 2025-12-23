@@ -197,6 +197,7 @@ async function bootstrap() {
 }
 
 bootstrap().catch((err) => {
-  console.error('Failed to start application:', err);
+  // Use stderr for bootstrap failures (Logger may not be available)
+  process.stderr.write(`Failed to start application: ${err}\n`);
   process.exit(1);
 });

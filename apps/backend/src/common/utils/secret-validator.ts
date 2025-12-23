@@ -11,6 +11,10 @@
  * - 检测弱密钥并提供安全建议
  */
 
+import { Logger } from '@nestjs/common';
+
+const logger = new Logger('SecretValidator');
+
 /**
  * 密钥验证结果
  */
@@ -206,8 +210,7 @@ export function validateJwtSecretOrThrow(
 
   // 打印警告（如果有）
   if (result.suggestions && result.suggestions.length > 0) {
-    console.warn('\n🔐 JWT Security Warnings:');
-    result.suggestions.forEach((s) => console.warn(`   ${s}`));
-    console.warn('');
+    logger.warn('🔐 JWT Security Warnings:');
+    result.suggestions.forEach((s) => logger.warn(`   ${s}`));
   }
 }

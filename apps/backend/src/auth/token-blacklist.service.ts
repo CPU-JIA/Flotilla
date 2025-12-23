@@ -9,9 +9,8 @@
  * - 自动过期清理（Redis TTL）
  */
 
-import { Injectable, Logger, Inject } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import { Injectable, Logger } from '@nestjs/common';
+import { RedisService } from '../redis/redis.service';
 
 /**
  * Token黑名单键前缀
@@ -22,10 +21,7 @@ const TOKEN_BLACKLIST_PREFIX = 'token:blacklist:';
 export class TokenBlacklistService {
   private readonly logger = new Logger(TokenBlacklistService.name);
 
-  constructor(
-    @Inject(CACHE_MANAGER)
-    private readonly cacheManager: Cache,
-  ) {}
+  constructor(private readonly redisService: RedisService) {}
 
   /**
    * 将Token加入黑名单
@@ -40,11 +36,16 @@ export class TokenBlacklistService {
 
       // 将Token加入黑名单，设置TTL为Token的剩余有效期
       // ECP-C3: 性能优化 - Redis会自动清理过期数据，无需手动清理
-      await this.cacheManager.set(key, '1', expiresIn * 1000); // 转换为毫秒
+      const success = await this.redisService.set(key, '1', expiresIn);
 
-      this.logger.debug(`Token ${jti} added to blacklist (TTL: ${expiresIn}s)`);
+      if (success) {
+        this.logger.debug(`Token ${jti} added to blacklist (TTL: ${expiresIn}s)`);
+      } else {
+        this.logger.warn(`Failed to add token ${jti} to blacklist - Redis unavailable`);
+      }
     } catch (error) {
-      this.logger.error(`Failed to add token ${jti} to blacklist: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to add token ${jti} to blacklist: ${errorMessage}`);
       throw error;
     }
   }
@@ -58,15 +59,16 @@ export class TokenBlacklistService {
   async isBlacklisted(jti: string): Promise<boolean> {
     try {
       const key = this.getBlacklistKey(jti);
-      const value = await this.cacheManager.get<string>(key);
+      const value = await this.redisService.get<string>(key);
 
       return value !== null && value !== undefined;
     } catch (error) {
       // 🔒 SECURITY: Fail-closed策略 - 如果Redis不可用，拒绝Token
       // 这比fail-open更安全，因为已撤销的Token不会被错误地接受
       // 权衡：可能导致用户需要重新登录，但比安全漏洞更可接受
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `Failed to check blacklist for token ${jti}: ${error.message}. ` +
+        `Failed to check blacklist for token ${jti}: ${errorMessage}. ` +
           `Using fail-closed strategy - token rejected for safety.`,
       );
       return true; // Fail-closed策略：Redis故障时视为已撤销
@@ -81,11 +83,12 @@ export class TokenBlacklistService {
   async removeFromBlacklist(jti: string): Promise<void> {
     try {
       const key = this.getBlacklistKey(jti);
-      await this.cacheManager.del(key);
+      await this.redisService.del(key);
 
       this.logger.debug(`Token ${jti} removed from blacklist`);
     } catch (error) {
-      this.logger.error(`Failed to remove token ${jti} from blacklist: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to remove token ${jti} from blacklist: ${errorMessage}`);
       throw error;
     }
   }
@@ -99,13 +102,12 @@ export class TokenBlacklistService {
    */
   async addManyToBlacklist(jtis: string[], expiresIn: number): Promise<void> {
     try {
-      await Promise.all(
-        jtis.map(jti => this.addToBlacklist(jti, expiresIn)),
-      );
+      await Promise.all(jtis.map((jti) => this.addToBlacklist(jti, expiresIn)));
 
       this.logger.log(`Batch blacklisted ${jtis.length} tokens`);
     } catch (error) {
-      this.logger.error(`Failed to batch blacklist tokens: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to batch blacklist tokens: ${errorMessage}`);
       throw error;
     }
   }
@@ -128,13 +130,14 @@ export class TokenBlacklistService {
     count: number;
   }> {
     try {
-      // 注意：cache-manager可能不支持keys扫描，这取决于底层实现
-      // 这里提供一个基本实现，实际使用时可能需要根据具体的cache store调整
+      // 注意：需要使用Redis SCAN来统计，这里返回基本值
+      // 实际监控可以通过Redis的INFO命令获取
       return {
-        count: 0, // 需要根据实际Redis store实现
+        count: 0, // 需要根据实际Redis SCAN实现
       };
     } catch (error) {
-      this.logger.error(`Failed to get blacklist stats: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to get blacklist stats: ${errorMessage}`);
       return { count: 0 };
     }
   }

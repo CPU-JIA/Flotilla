@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { ExtractJwt, Strategy, StrategyOptionsWithRequest } from 'passport-jwt';
 import { AuthService, JwtPayload } from '../auth.service';
 import { TokenBlacklistService } from '../token-blacklist.service';
 import { ConfigService } from '@nestjs/config';
@@ -21,7 +21,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     validateJwtSecretOrThrow(jwtSecret, 'JWT_SECRET');
 
-    super({
+    const options: StrategyOptionsWithRequest = {
       // 🔒 SECURITY FIX: 从 Cookie 读取 JWT Token (优先)
       // 兼容 Authorization Header (用于 API 调用和 Swagger 测试)
       jwtFromRequest: ExtractJwt.fromExtractors([
@@ -33,10 +33,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       ignoreExpiration: false,
-      secretOrKey: jwtSecret,
+      secretOrKey: jwtSecret!,
       // 传递请求对象，用于获取IP和User-Agent验证fingerprint
       passReqToCallback: true,
-    });
+    };
+    super(options);
   }
 
   /**

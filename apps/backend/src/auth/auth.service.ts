@@ -69,7 +69,11 @@ export class AuthService {
   /**
    * 用户注册
    */
-  async register(dto: RegisterDto): Promise<AuthResponse> {
+  async register(
+    dto: RegisterDto,
+    ipAddress?: string,
+    userAgent?: string,
+  ): Promise<AuthResponse> {
     // 🔒 SECURITY FIX: 并行查询用户名和邮箱（防止时序攻击）
     const [existingUsername, existingEmail] = await Promise.all([
       this.prisma.user.findUnique({ where: { username: dto.username } }),
