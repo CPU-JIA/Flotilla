@@ -10,7 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
 import { RedisService } from '../redis/redis.service';
 import { UpdateUserDto, ChangePasswordDto, QueryUsersDto } from './dto';
-import type { User } from '@prisma/client';
+import type { User, Prisma } from '@prisma/client';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
@@ -40,7 +40,7 @@ export class UsersService {
     const { search, role, page = 1, pageSize = 10 } = query;
     const skip = (page - 1) * pageSize;
 
-    const where: any = {};
+    const where: Prisma.UserWhereInput = {};
 
     if (search) {
       where.OR = [

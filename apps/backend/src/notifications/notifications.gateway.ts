@@ -8,8 +8,10 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger } from '@nestjs/common';
+import { Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { NotificationEventsService } from './notification-events.service';
+import { Subscription } from 'rxjs';
 
 /**
  * 通知WebSocket Gateway
@@ -17,6 +19,7 @@ import { JwtService } from '@nestjs/jwt';
  * 提供实时通知推送功能
  *
  * ECP-A1: SOLID原则 - Gateway仅负责WebSocket通信
+ * ECP-A2: 高内聚低耦合 - 使用事件总线订阅通知事件，避免循环依赖
  * ECP-C1: 防御性编程 - JWT验证失败立即断开连接
  * ECP-C2: 系统性错误处理 - 所有关键操作都有try-catch
  *
@@ -34,7 +37,7 @@ import { JwtService } from '@nestjs/jwt';
   },
 })
 export class NotificationsGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
+  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit, OnModuleDestroy
 {
   @WebSocketServer()
   server: Server;
@@ -51,7 +54,40 @@ export class NotificationsGateway
    */
   private userSockets = new Map<string, Set<string>>();
 
-  constructor(private jwtService: JwtService) {}
+  /**
+   * 事件订阅引用（用于清理）
+   */
+  private eventSubscription?: Subscription;
+
+  constructor(
+    private jwtService: JwtService,
+    private notificationEvents: NotificationEventsService,
+  ) {}
+
+  /**
+   * 模块初始化时订阅通知事件
+   *
+   * ECP-A2: 高内聚低耦合 - 通过事件总线接收通知，解耦Service与Gateway
+   */
+  onModuleInit(): void {
+    this.eventSubscription = this.notificationEvents.subscribe((event) => {
+      if (event.type === 'NOTIFICATION_CREATED' && event.payload.notification) {
+        this.sendToUser(
+          event.payload.userId,
+          'notification',
+          event.payload.notification,
+        );
+      } else if (event.type === 'NOTIFICATION_READ' && event.payload.notificationIds) {
+        this.sendToUser(event.payload.userId, 'notifications_read', {
+          notificationIds: event.payload.notificationIds,
+        });
+      } else if (event.type === 'NOTIFICATIONS_CLEARED') {
+        this.sendToUser(event.payload.userId, 'notifications_cleared', {});
+      }
+    });
+
+    this.logger.log('📡 NotificationsGateway subscribed to notification events');
+  }
 
   /**
    * 客户端连接时触发
@@ -261,5 +297,18 @@ export class NotificationsGateway
    */
   getUserConnectionCount(userId: string): number {
     return this.userSockets.get(userId)?.size || 0;
+  }
+
+  /**
+   * 模块销毁时清理事件订阅
+   *
+   * ECP-C3: Performance Awareness - 防止内存泄漏
+   */
+  onModuleDestroy(): void {
+    if (this.eventSubscription) {
+      this.eventSubscription.unsubscribe();
+      this.eventSubscription = undefined;
+      this.logger.log('📡 NotificationsGateway unsubscribed from notification events');
+    }
   }
 }

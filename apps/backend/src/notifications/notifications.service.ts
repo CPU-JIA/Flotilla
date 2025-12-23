@@ -3,17 +3,15 @@ import {
   NotFoundException,
   BadRequestException,
   Logger,
-  forwardRef,
-  Inject,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { NotificationsGateway } from './notifications.gateway';
+import { NotificationEventsService } from './notification-events.service';
 import {
   CreateNotificationDto,
   QueryNotificationsDto,
   UpdateNotificationPreferenceDto,
 } from './dto';
-import type { Notification, NotificationPreference } from '@prisma/client';
+import type { Notification, NotificationPreference, Prisma } from '@prisma/client';
 
 /**
  * 通知列表响应接口
@@ -30,6 +28,7 @@ export interface NotificationListResponse {
  * 通知服务
  *
  * ECP-A1: SOLID原则 - 单一职责，仅处理通知业务逻辑
+ * ECP-A2: 高内聚低耦合 - 使用事件总线与Gateway解耦，避免循环依赖
  * ECP-C2: 系统性错误处理 - 所有数据库操作都有错误处理
  */
 @Injectable()
@@ -38,8 +37,7 @@ export class NotificationsService {
 
   constructor(
     private prisma: PrismaService,
-    @Inject(forwardRef(() => NotificationsGateway))
-    private gateway: NotificationsGateway,
+    private notificationEvents: NotificationEventsService,
   ) {}
 
   /**
@@ -74,19 +72,12 @@ export class NotificationsService {
       `🔔 Notification created: ${notification.type} for user ${notification.userId}`,
     );
 
-    // 🚀 WebSocket实时推送通知给在线用户
-    try {
-      this.gateway.sendToUser(
-        notification.userId,
-        'notification',
-        notification,
-      );
-    } catch (error) {
-      // WebSocket推送失败不影响通知创建
-      this.logger.warn(
-        `⚠️ Failed to push notification via WebSocket: ${error.message}`,
-      );
-    }
+    // 🚀 通过事件总线发布通知，由Gateway订阅并实时推送给在线用户
+    // ECP-A2: 高内聚低耦合 - 使用事件解耦，避免循环依赖
+    this.notificationEvents.emitNotificationCreated(
+      notification.userId,
+      notification,
+    );
 
     return notification;
   }
@@ -118,7 +109,7 @@ export class NotificationsService {
     const { read, page = 1, pageSize = 20 } = query;
     const skip = (page - 1) * pageSize;
 
-    const where: any = { userId };
+    const where: Prisma.NotificationWhereInput = { userId };
     if (read !== undefined) {
       where.read = read;
     }
@@ -198,7 +189,7 @@ export class NotificationsService {
     userId: string,
     notificationIds?: string[],
   ): Promise<{ count: number }> {
-    const where: any = { userId, read: false };
+    const where: Prisma.NotificationWhereInput = { userId, read: false };
 
     if (notificationIds && notificationIds.length > 0) {
       where.id = { in: notificationIds };

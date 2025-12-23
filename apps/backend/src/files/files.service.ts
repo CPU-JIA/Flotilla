@@ -10,7 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
 import { RepositoriesService } from '../repositories/repositories.service';
 import { CreateFolderDto, QueryFilesDto } from './dto';
-import type { User } from '@prisma/client';
+import type { User, Prisma } from '@prisma/client';
 import type { FileEntity, FilesListResponse } from './entities/file.entity';
 import { UserRole } from '@prisma/client';
 import * as path from 'path';
@@ -324,7 +324,7 @@ export class FilesService {
 
     const skip = (page - 1) * pageSize;
 
-    const where: any = {
+    const where: Prisma.ProjectFileWhereInput = {
       projectId,
       folder: folder === '/' ? null : folder,
     };

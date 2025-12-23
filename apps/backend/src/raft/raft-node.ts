@@ -118,6 +118,8 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
   async stop(): Promise<void> {
     this.clearAllTimers();
     await this.transport.stopServer();
+    // ECP-C3: Performance Awareness - 清理EventEmitter监听器防止内存泄漏
+    this.removeAllListeners();
     this.log('Node stopped');
   }
 

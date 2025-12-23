@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { NotificationsService } from './notifications.service';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsGateway } from './notifications.gateway';
+import { NotificationEventsService } from './notification-events.service';
 import { PrismaModule } from '../prisma/prisma.module';
 
 /**
@@ -14,6 +15,7 @@ import { PrismaModule } from '../prisma/prisma.module';
  * - WebSocket实时推送
  *
  * ECP-A1: SOLID原则 - 模块化设计，清晰的职责边界
+ * ECP-A2: 高内聚低耦合 - 使用事件总线解耦Service与Gateway
  */
 @Module({
   imports: [
@@ -24,7 +26,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     }),
   ],
   controllers: [NotificationsController],
-  providers: [NotificationsService, NotificationsGateway],
-  exports: [NotificationsService, NotificationsGateway], // 导出服务和Gateway供其他模块使用
+  providers: [NotificationEventsService, NotificationsService, NotificationsGateway],
+  exports: [NotificationsService, NotificationEventsService], // 导出服务供其他模块使用
 })
 export class NotificationsModule {}

@@ -117,15 +117,21 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
         // 设置强制超时
         const forceTimeout = setTimeout(() => {
           console.log(`[${this.nodeId}] WebSocket server force stopped`);
+          // ECP-C3: Performance Awareness - 清理EventEmitter监听器防止内存泄漏
+          this.removeAllListeners();
           resolve();
         }, 1000);
 
         server.close(() => {
           clearTimeout(forceTimeout);
           console.log(`[${this.nodeId}] WebSocket server stopped`);
+          // ECP-C3: Performance Awareness - 清理EventEmitter监听器防止内存泄漏
+          this.removeAllListeners();
           resolve();
         });
       } else {
+        // ECP-C3: Performance Awareness - 即使没有服务器也要清理监听器
+        this.removeAllListeners();
         resolve();
       }
     });
