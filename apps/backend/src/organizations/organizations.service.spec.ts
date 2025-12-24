@@ -18,6 +18,7 @@ describe('OrganizationsService', () => {
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      count: jest.fn(),
     },
     organizationMember: {
       findUnique: jest.fn(),
@@ -73,6 +74,11 @@ describe('OrganizationsService', () => {
           description: 'Test org',
           members: [{ role: 'OWNER' }],
           _count: { members: 10, teams: 3, projects: 5 },
+          maxMembers: 50,
+          maxProjects: 100,
+          storageQuota: 10737418240,
+          storageUsed: 0,
+          isPersonal: false,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -86,15 +92,30 @@ describe('OrganizationsService', () => {
       expect(result[0].name).toBe('Org Alpha');
       expect(result[0].myRole).toBe('OWNER');
       expect(result[0].memberCount).toBe(10);
-      expect(prismaService.organization.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: {
-            members: {
-              some: { userId },
+      expect(prismaService.organization.findMany).toHaveBeenCalledWith({
+        where: {
+          deletedAt: null,
+          members: {
+            some: { userId },
+          },
+        },
+        include: {
+          members: {
+            where: { userId },
+            select: { role: true },
+          },
+          _count: {
+            select: {
+              members: true,
+              projects: true,
+              teams: true,
             },
           },
-        }),
-      );
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
     });
 
     it('should return empty array when user has no organizations', async () => {
@@ -122,17 +143,31 @@ describe('OrganizationsService', () => {
         name: createDto.name,
         slug: createDto.slug,
         description: createDto.description,
+        avatar: null,
+        website: null,
+        maxMembers: 50,
+        maxProjects: 100,
+        storageQuota: 10737418240,
+        storageUsed: 0,
+        isPersonal: false,
+        deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       mockPrismaService.organizationMember.count.mockResolvedValue(2);
-      mockPrismaService.organization.findFirst.mockResolvedValue(null);
+      mockPrismaService.organization.count.mockResolvedValue(2);
+      mockPrismaService.organization.findUnique.mockResolvedValue(null);
       mockPrismaService.organization.create.mockResolvedValue(mockCreatedOrg);
 
       const result = await service.create(userId, createDto);
 
-      expect(result).toEqual(mockCreatedOrg);
+      expect(result.id).toBe('org-1');
+      expect(result.name).toBe('New Org');
+      expect(result.slug).toBe('new-org');
+      expect(result.myRole).toBe('OWNER');
+      expect(result.memberCount).toBe(1);
+      expect(result.projectCount).toBe(0);
       expect(prismaService.organization.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
@@ -159,8 +194,9 @@ describe('OrganizationsService', () => {
 
       const mockExistingOrg = { id: 'org-1', slug: 'existing-org' };
 
+      mockPrismaService.organization.count.mockResolvedValue(2);
       mockPrismaService.organizationMember.count.mockResolvedValue(2);
-      mockPrismaService.organization.findFirst.mockResolvedValue(
+      mockPrismaService.organization.findUnique.mockResolvedValue(
         mockExistingOrg,
       );
 
@@ -178,13 +214,48 @@ describe('OrganizationsService', () => {
         id: 'org-1',
         name: 'Org Alpha',
         slug,
+        description: 'Test org',
+        avatar: null,
+        website: null,
+        maxMembers: 50,
+        maxProjects: 100,
+        storageQuota: 10737418240,
+        storageUsed: 0,
+        isPersonal: false,
+        deletedAt: null,
+        members: [
+          {
+            id: 'member-1',
+            role: 'OWNER',
+            joinedAt: new Date(),
+            user: {
+              id: 'user-1',
+              username: 'alice',
+              email: 'alice@example.com',
+              avatar: null,
+            },
+          },
+        ],
+        _count: {
+          projects: 5,
+          teams: 3,
+        },
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
-      mockRedisService.get.mockResolvedValue(JSON.stringify(cachedOrg));
+      mockRedisService.get.mockResolvedValue(cachedOrg);
 
       const result = await service.findBySlug(slug);
 
-      expect(result).toEqual(cachedOrg);
+      expect(result.id).toBe('org-1');
+      expect(result.name).toBe('Org Alpha');
+      expect(result.slug).toBe(slug);
+      expect(result.myRole).toBeNull();
+      expect(result.memberCount).toBe(1);
+      expect(result.projectCount).toBe(5);
+      expect(result.teamCount).toBe(3);
+      expect(result.members).toHaveLength(1);
       expect(redisService.get).toHaveBeenCalled();
       expect(prismaService.organization.findUnique).not.toHaveBeenCalled();
     });
@@ -223,33 +294,43 @@ describe('OrganizationsService', () => {
     });
   });
 
-  describe('delete', () => {
-    it('should delete an organization', async () => {
+  describe('remove', () => {
+    it('should soft delete an organization', async () => {
       const slug = 'org-alpha';
+      const userId = 'user-123';
 
       const mockOrg = {
         id: 'org-1',
         slug,
+        members: [{ userId, role: 'OWNER' }],
       };
 
       mockPrismaService.organization.findUnique.mockResolvedValue(mockOrg);
-      mockPrismaService.organization.delete.mockResolvedValue(mockOrg);
-
-      const result = await service.delete(slug);
-
-      expect(result).toEqual({ message: 'Organization deleted successfully' });
-      expect(prismaService.organization.delete).toHaveBeenCalledWith({
-        where: { id: 'org-1' },
+      mockPrismaService.organization.update.mockResolvedValue({
+        ...mockOrg,
+        deletedAt: new Date(),
       });
-      expect(redisService.del).toHaveBeenCalled();
+
+      const result = await service.remove(slug, userId);
+
+      expect(result.message).toBe('Organization deleted successfully');
+      expect(result.slug).toBe(slug);
+      expect(prismaService.organization.update).toHaveBeenCalledWith({
+        where: { id: 'org-1' },
+        data: { deletedAt: expect.any(Date) },
+      });
+      expect(redisService.del).not.toHaveBeenCalled();
     });
 
     it('should throw NotFoundException if organization not found', async () => {
       const slug = 'non-existent';
+      const userId = 'user-123';
 
       mockPrismaService.organization.findUnique.mockResolvedValue(null);
 
-      await expect(service.delete(slug)).rejects.toThrow(NotFoundException);
+      await expect(service.remove(slug, userId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -257,16 +338,29 @@ describe('OrganizationsService', () => {
     it('should add a member to organization', async () => {
       const slug = 'org-alpha';
       const addMemberDto = {
-        userId: 'user-456',
+        email: 'bob@example.com',
         role: 'MEMBER' as const,
       };
 
-      const mockOrg = { id: 'org-1', slug };
-      const mockUser = { id: 'user-456', username: 'bob' };
+      const mockOrg = {
+        id: 'org-1',
+        slug,
+        _count: { members: 5 },
+        maxMembers: 50,
+      };
+      const mockUser = { id: 'user-456', username: 'bob', email: 'bob@example.com', avatar: null };
       const mockMember = {
+        id: 'member-1',
         organizationId: 'org-1',
         userId: 'user-456',
         role: 'MEMBER',
+        joinedAt: new Date(),
+        user: {
+          id: 'user-456',
+          username: 'bob',
+          email: 'bob@example.com',
+          avatar: null,
+        },
       };
 
       mockPrismaService.organization.findUnique.mockResolvedValue(mockOrg);
@@ -276,12 +370,24 @@ describe('OrganizationsService', () => {
 
       const result = await service.addMember(slug, addMemberDto);
 
-      expect(result).toEqual(mockMember);
+      expect(result.id).toBe('member-1');
+      expect(result.role).toBe('MEMBER');
+      expect(result.user.id).toBe('user-456');
       expect(prismaService.organizationMember.create).toHaveBeenCalledWith({
         data: {
           organizationId: 'org-1',
           userId: 'user-456',
           role: 'MEMBER',
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+              avatar: true,
+            },
+          },
         },
       });
     });
@@ -289,11 +395,16 @@ describe('OrganizationsService', () => {
     it('should throw ConflictException if user is already a member', async () => {
       const slug = 'org-alpha';
       const addMemberDto = {
-        userId: 'user-456',
+        email: 'bob@example.com',
         role: 'MEMBER' as const,
       };
 
-      const mockOrg = { id: 'org-1', slug };
+      const mockOrg = {
+        id: 'org-1',
+        slug,
+        _count: { members: 5 },
+        maxMembers: 50,
+      };
       const mockUser = { id: 'user-456', username: 'bob' };
       const existingMember = {
         organizationId: 'org-1',
@@ -319,8 +430,20 @@ describe('OrganizationsService', () => {
       const userId = 'user-123';
       const updateDto = { name: 'Updated Org', description: 'New desc' };
 
-      const mockOrg = { id: 'org-1', slug, name: 'Old Org' };
-      const mockUpdated = { ...mockOrg, name: 'Updated Org', description: 'New desc', updatedAt: new Date() };
+      const mockOrg = {
+        id: 'org-1',
+        slug,
+        name: 'Old Org',
+        maxMembers: 50,
+        maxProjects: 100,
+        storageQuota: 10737418240,
+      };
+      const mockUpdated = {
+        ...mockOrg,
+        name: 'Updated Org',
+        description: 'New desc',
+        updatedAt: new Date(),
+      };
 
       mockPrismaService.organization.findUnique.mockResolvedValue(mockOrg);
       mockPrismaService.organization.update.mockResolvedValue(mockUpdated);
@@ -385,7 +508,11 @@ describe('OrganizationsService', () => {
       const targetUserId = 'user-456';
       const roleDto = { role: 'ADMIN' as const };
 
-      const mockOrg = { id: 'org-1', slug };
+      const mockOrg = {
+        id: 'org-1',
+        slug,
+        _count: { members: 5 },
+      };
       const mockMember = {
         id: 'member-1',
         organizationId: 'org-1',
@@ -411,7 +538,11 @@ describe('OrganizationsService', () => {
       const targetUserId = 'non-existent';
       const roleDto = { role: 'ADMIN' as const };
 
-      const mockOrg = { id: 'org-1', slug };
+      const mockOrg = {
+        id: 'org-1',
+        slug,
+        _count: { members: 5 },
+      };
 
       mockPrismaService.organization.findUnique.mockResolvedValue(mockOrg);
       mockPrismaService.organizationMember.findUnique.mockResolvedValue(null);
@@ -427,8 +558,17 @@ describe('OrganizationsService', () => {
       const slug = 'org-alpha';
       const targetUserId = 'user-456';
 
-      const mockOrg = { id: 'org-1', slug };
-      const mockMember = { id: 'member-1', organizationId: 'org-1', userId: targetUserId, role: 'MEMBER' };
+      const mockOrg = {
+        id: 'org-1',
+        slug,
+        _count: { members: 5 },
+      };
+      const mockMember = {
+        id: 'member-1',
+        organizationId: 'org-1',
+        userId: targetUserId,
+        role: 'MEMBER',
+      };
 
       mockPrismaService.organization.findUnique.mockResolvedValue(mockOrg);
       mockPrismaService.organizationMember.findUnique.mockResolvedValue(mockMember);
@@ -445,7 +585,11 @@ describe('OrganizationsService', () => {
       const slug = 'org-alpha';
       const targetUserId = 'non-existent';
 
-      const mockOrg = { id: 'org-1', slug };
+      const mockOrg = {
+        id: 'org-1',
+        slug,
+        _count: { members: 5 },
+      };
 
       mockPrismaService.organization.findUnique.mockResolvedValue(mockOrg);
       mockPrismaService.organizationMember.findUnique.mockResolvedValue(null);
