@@ -80,6 +80,7 @@ export class WikiService {
         parentId: dto.parentId,
         order: dto.order ?? 0,
         createdById: userId,
+        lastEditedById: userId, // 创建者同时也是最后编辑者
       },
       include: {
         createdBy: {
@@ -100,7 +101,7 @@ export class WikiService {
         title: page.title,
         content: page.content,
         editedById: userId,
-        message: 'Initial version',
+        version: 1, // 初始版本号
       },
     });
 
@@ -241,13 +242,22 @@ export class WikiService {
 
     // 如果内容有变化，创建历史记录
     if (dto.content && dto.content !== page.content) {
+      // 获取最新版本号
+      const latestHistory = await this.prisma.wikiPageHistory.findFirst({
+        where: { pageId: updated.id },
+        orderBy: { version: 'desc' },
+        select: { version: true },
+      });
+
+      const nextVersion = (latestHistory?.version ?? 0) + 1;
+
       await this.prisma.wikiPageHistory.create({
         data: {
           pageId: updated.id,
           title: updated.title,
           content: updated.content,
           editedById: userId,
-          message: dto.message ?? 'Content updated',
+          version: nextVersion,
         },
       });
     }
@@ -322,10 +332,10 @@ export class WikiService {
       pageId: h.pageId,
       title: h.title,
       content: h.content,
+      version: h.version,
       editedById: h.editedById,
       editedBy: h.editedBy,
       editedAt: h.editedAt,
-      message: h.message,
     }));
   }
 

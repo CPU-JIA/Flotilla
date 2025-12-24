@@ -19,6 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { User } from '@prisma/client';
 import { WikiService } from './wiki.service';
 import { CreateWikiPageDto } from './dto/create-wiki-page.dto';
 import { UpdateWikiPageDto } from './dto/update-wiki-page.dto';
@@ -63,17 +64,17 @@ export class WikiController {
   @ApiResponse({ status: HttpStatus.FORBIDDEN, description: '权限不足' })
   async createPage(
     @Param('projectId') projectId: string,
-    @CurrentUser('id') userId: string,
+    @CurrentUser() user: User,
     @Body() dto: CreateWikiPageDto,
   ): Promise<WikiPageResponseDto> {
     // 检查权限：至少需要 MEMBER 权限才能创建页面
     await this.permissionService.checkProjectPermission(
-      userId,
+      user,
       projectId,
       'MEMBER',
     );
 
-    return this.wikiService.createPage(projectId, userId, dto);
+    return this.wikiService.createPage(projectId, user.id, dto);
   }
 
   /**
@@ -90,11 +91,11 @@ export class WikiController {
   })
   async getWikiTree(
     @Param('projectId') projectId: string,
-    @CurrentUser('id') userId: string,
+    @CurrentUser() user: User,
   ): Promise<WikiTreeNodeDto[]> {
     // 检查权限：至少需要 VIEWER 权限才能查看
     await this.permissionService.checkProjectPermission(
-      userId,
+      user,
       projectId,
       'VIEWER',
     );
@@ -119,11 +120,11 @@ export class WikiController {
   async getPage(
     @Param('projectId') projectId: string,
     @Param('slug') slug: string,
-    @CurrentUser('id') userId: string,
+    @CurrentUser() user: User,
   ): Promise<WikiPageResponseDto> {
     // 检查权限：至少需要 VIEWER 权限才能查看
     await this.permissionService.checkProjectPermission(
-      userId,
+      user,
       projectId,
       'VIEWER',
     );
@@ -149,17 +150,17 @@ export class WikiController {
   async updatePage(
     @Param('projectId') projectId: string,
     @Param('slug') slug: string,
-    @CurrentUser('id') userId: string,
+    @CurrentUser() user: User,
     @Body() dto: UpdateWikiPageDto,
   ): Promise<WikiPageResponseDto> {
     // 检查权限：至少需要 MEMBER 权限才能编辑
     await this.permissionService.checkProjectPermission(
-      userId,
+      user,
       projectId,
       'MEMBER',
     );
 
-    return this.wikiService.updatePage(projectId, slug, userId, dto);
+    return this.wikiService.updatePage(projectId, slug, user.id, dto);
   }
 
   /**
@@ -177,11 +178,11 @@ export class WikiController {
   async deletePage(
     @Param('projectId') projectId: string,
     @Param('slug') slug: string,
-    @CurrentUser('id') userId: string,
+    @CurrentUser() user: User,
   ): Promise<void> {
     // 检查权限：至少需要 MAINTAINER 权限才能删除
     await this.permissionService.checkProjectPermission(
-      userId,
+      user,
       projectId,
       'MAINTAINER',
     );
@@ -206,11 +207,11 @@ export class WikiController {
   async getPageHistory(
     @Param('projectId') projectId: string,
     @Param('slug') slug: string,
-    @CurrentUser('id') userId: string,
+    @CurrentUser() user: User,
   ): Promise<WikiPageHistoryResponseDto[]> {
     // 检查权限：至少需要 VIEWER 权限才能查看历史
     await this.permissionService.checkProjectPermission(
-      userId,
+      user,
       projectId,
       'VIEWER',
     );

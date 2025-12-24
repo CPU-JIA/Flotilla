@@ -143,10 +143,9 @@ export class WikiPageHistoryResponseDto {
   })
   editedAt: Date;
 
-  @ApiPropertyOptional({
-    description: '编辑说明',
-    example: 'Updated installation instructions',
-    nullable: true,
+  @ApiProperty({
+    description: '版本号',
+    example: 1,
   })
-  message: string | null;
+  version: number;
 }

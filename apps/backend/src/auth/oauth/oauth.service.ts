@@ -266,15 +266,7 @@ export class OAuthService {
    */
   private async generateAuthTokens(user: any) {
     const { accessToken, refreshToken } =
-      await this.tokenService.generateTokens(
-        {
-          userId: user.id,
-          username: user.username,
-          email: user.email,
-          role: user.role,
-        },
-        user.tokenVersion,
-      );
+      await this.tokenService.generateTokens(user, user.tokenVersion);
 
     return {
       user: {

@@ -13,8 +13,8 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
-import { CurrentUser } from '../../decorators/current-user.decorator';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { CurrentUser } from '../decorators/current-user.decorator';
 import { ApiTokenService } from './api-token.service';
 import { CreateApiTokenDto } from './dto/create-api-token.dto';
 import {

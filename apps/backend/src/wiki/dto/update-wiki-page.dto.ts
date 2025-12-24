@@ -63,14 +63,4 @@ export class UpdateWikiPageDto {
   @IsInt()
   @Min(0)
   order?: number;
-
-  @ApiPropertyOptional({
-    description: '编辑说明（类似 Git commit message）',
-    example: 'Updated installation instructions',
-    maxLength: 500,
-  })
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
-  message?: string;
 }

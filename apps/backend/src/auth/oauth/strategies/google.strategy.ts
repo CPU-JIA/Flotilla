@@ -14,9 +14,9 @@ import { OAuthProfileDto } from '../dto/oauth-profile.dto';
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(private readonly configService: ConfigService) {
     super({
-      clientID: configService.get<string>('GOOGLE_CLIENT_ID'),
-      clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET'),
-      callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL'),
+      clientID: configService.get<string>('GOOGLE_CLIENT_ID')!,
+      clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET')!,
+      callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL')!,
       scope: ['email', 'profile'], // 请求邮箱和基本资料
     });
 
@@ -79,13 +79,13 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         scope: 'email profile',
         metadata: {
           locale: profile._json.locale,
-          verified_email: profile._json.verified_email,
+          email_verified: profile._json.email_verified,
         },
       };
 
       done(null, oauthProfile);
     } catch (error) {
-      done(error, null);
+      done(error, false);
     }
   }
 }

@@ -164,6 +164,12 @@ model User {
   passwordHistories      PasswordHistory[] // 🔒 密码历史记录（防止重用旧密码）
   sessions               UserSession[] // 🔒 Phase 4: 用户会话记录（设备管理）
   apiTokens              ApiToken[] // API 令牌（Personal Access Token）
+  createdWikiPages       WikiPage[]        @relation("WikiPageCreator") // 创建的 Wiki 页面
+  editedWikiPages        WikiPage[]        @relation("WikiPageEditor") // 最后编辑的 Wiki 页面
+  wikiPageEdits          WikiPageHistory[] @relation("WikiHistoryEditor") // Wiki 编辑历史
+  oauthAccounts          OAuthAccount[] // OAuth 账户关联
+  twoFactorAuth          TwoFactorAuth? // 两步验证配置
+  collaborationSessions  CollaborationParticipant[] // 参与的协作会话
 
   @@index([email])
   @@index([username])
@@ -370,6 +376,10 @@ model Project {
   pullRequests          PullRequest[]
   branchProtectionRules BranchProtectionRule[]
   searchMetadata        SearchMetadata[] // Code Search索引元数据
+  wikiPages             WikiPage[] // Wiki 文档页面
+  pipelines             Pipeline[] // CI/CD 流水线
+  webhooks              Webhook[] // Webhooks
+  collaborationSessions CollaborationSession[] // 协作会话
 
   @@unique([ownerId, name])
   @@unique([organizationId, name])
@@ -1141,4 +1151,298 @@ model NewsletterSubscriber {
   @@index([confirmed]) // 查询已确认/未确认订阅
   @@index([createdAt(sort: Desc)]) // 按时间排序
   @@map("newsletter_subscribers")
+}
+
+// ============================================
+// Wiki 文档模块
+// ============================================
+
+/**
+ * Wiki 页面模型
+ * 支持层级结构、版本历史、Markdown 内容
+ * ECP-A1: SOLID - 清晰的数据模型结构
+ * ECP-C1: 防御性编程 - slug 唯一性约束
+ */
+model WikiPage {
+  id    String @id @default(cuid())
+  slug  String @db.VarChar(200) // URL 友好标识符
+  title String @db.VarChar(500) // 页面标题
+  content String @db.Text // Markdown 内容
+  order Int    @default(0) // 同级排序
+
+  // 所属项目
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // 层级结构（自引用）
+  parentId String?
+  parent   WikiPage?  @relation("WikiPageHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
+  children WikiPage[] @relation("WikiPageHierarchy")
+
+  // 作者和编辑者
+  createdById    String
+  createdBy      User   @relation("WikiPageCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  lastEditedById String
+  lastEditedBy   User   @relation("WikiPageEditor", fields: [lastEditedById], references: [id], onDelete: Restrict)
+
+  // 时间戳
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 版本历史
+  history WikiPageHistory[]
+
+  @@unique([projectId, slug]) // 项目内 slug 唯一
+  @@index([projectId]) // 按项目查询
+  @@index([parentId]) // 树形结构查询
+  @@index([order]) // 排序查询
+  @@map("wiki_pages")
+}
+
+/**
+ * Wiki 页面历史记录模型
+ * 保存每次编辑的历史版本
+ * ECP-C1: 防御性编程 - 完整的版本追溯
+ */
+model WikiPageHistory {
+  id       String @id @default(cuid())
+  pageId   String // 所属页面
+  page     WikiPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  title    String @db.VarChar(500) // 历史版本标题
+  content  String @db.Text // 历史版本内容
+  version  Int // 版本号（递增）
+
+  // 编辑者
+  editedById String
+  editedBy   User   @relation("WikiHistoryEditor", fields: [editedById], references: [id], onDelete: Restrict)
+
+  // 编辑时间
+  editedAt DateTime @default(now())
+
+  @@index([pageId, version]) // 查询特定版本
+  @@index([editedAt(sort: Desc)]) // 按时间排序
+  @@map("wiki_page_history")
+}
+
+// ============================================
+// OAuth 集成模块
+// ============================================
+
+/**
+ * OAuth 账户关联表
+ * 支持第三方 OAuth 登录（GitHub、Google 等）
+ * ECP-C1: 防御性编程 - 令牌加密存储
+ */
+model OAuthAccount {
+  id           String   @id @default(cuid())
+  userId       String
+  provider     String   @db.VarChar(50) // github, google, etc.
+  providerId   String   @db.VarChar(255) // OAuth provider's user ID
+  email        String?  @db.VarChar(255)
+  displayName  String?  @db.VarChar(255)
+  accessToken  String?  @db.Text
+  refreshToken String?  @db.Text
+  expiresAt    DateTime?
+  scope        String?  @db.Text
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // 关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@index([provider])
+  @@index([email])
+  @@map("oauth_accounts")
+}
+
+// ============================================
+// CI/CD Pipeline 模块
+// ============================================
+
+enum PipelineStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILURE
+  CANCELLED
+}
+
+/**
+ * Pipeline 配置表
+ * 定义 CI/CD 流水线配置
+ */
+model Pipeline {
+  id        String   @id @default(cuid())
+  projectId String
+  name      String   @db.VarChar(100)
+  config    Json // YAML/JSON 配置
+  triggers  String[] // push, pull_request, schedule
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  project Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  runs    PipelineRun[]
+
+  @@unique([projectId, name])
+  @@index([projectId])
+  @@index([active])
+  @@map("pipelines")
+}
+
+/**
+ * Pipeline 运行记录表
+ * 记录每次流水线执行情况
+ */
+model PipelineRun {
+  id         String         @id @default(cuid())
+  pipelineId String
+  commitSha  String         @db.VarChar(64)
+  branch     String         @db.VarChar(100)
+  status     PipelineStatus @default(PENDING)
+  startedAt  DateTime       @default(now())
+  finishedAt DateTime?
+  duration   Int? // milliseconds
+  logs       String?        @db.Text
+  metadata   Json?
+
+  // 关系
+  pipeline Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+
+  @@index([pipelineId])
+  @@index([status])
+  @@index([commitSha])
+  @@index([startedAt])
+  @@index([pipelineId, startedAt(sort: Desc)])
+  @@map("pipeline_runs")
+}
+
+// ============================================
+// Webhook 模块
+// ============================================
+
+/**
+ * Webhook 配置表
+ * 支持事件推送到外部 URL
+ */
+model Webhook {
+  id        String   @id @default(cuid())
+  projectId String
+  url       String   @db.VarChar(500)
+  secret    String   @db.VarChar(255) // HMAC 签名密钥
+  events    String[] // push, pull_request.opened, issue.closed
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 关系
+  project    Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  deliveries WebhookDelivery[]
+
+  @@index([projectId])
+  @@index([active])
+  @@map("webhooks")
+}
+
+/**
+ * Webhook 投递记录表
+ * 记录每次 Webhook 发送结果
+ */
+model WebhookDelivery {
+  id             String   @id @default(cuid())
+  webhookId      String
+  event          String   @db.VarChar(100)
+  payload        Json
+  requestHeaders Json?
+  response       Json?
+  statusCode     Int?
+  success        Boolean  @default(false)
+  retryCount     Int      @default(0)
+  deliveredAt    DateTime @default(now())
+
+  // 关系
+  webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@index([webhookId])
+  @@index([event])
+  @@index([success])
+  @@index([deliveredAt(sort: Desc)])
+  @@map("webhook_deliveries")
+}
+
+// ============================================
+// Two-Factor Authentication 模块
+// ============================================
+
+/**
+ * 两步验证配置表
+ * 支持TOTP（Time-based One-Time Password）
+ */
+model TwoFactorAuth {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  secret        String    @db.VarChar(255) // TOTP secret
+  recoveryCodes String[] // 恢复代码数组
+  enabled       Boolean   @default(false)
+  verifiedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // 关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("two_factor_auth")
+}
+
+// ============================================
+// Real-time Collaboration 模块
+// ============================================
+
+/**
+ * 协作会话表
+ * 管理实时协作编辑会话
+ */
+model CollaborationSession {
+  id           String   @id @default(cuid())
+  documentId   String   @db.VarChar(500) // 文档ID（文件路径或Wiki页面ID）
+  documentType String   @db.VarChar(20) // file, wiki
+  projectId    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // 关系
+  project      Project                    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  participants CollaborationParticipant[]
+
+  @@index([documentId])
+  @@index([projectId])
+  @@map("collaboration_sessions")
+}
+
+/**
+ * 协作参与者表
+ * 记录每个会话的参与用户
+ */
+model CollaborationParticipant {
+  id           String   @id @default(cuid())
+  sessionId    String
+  userId       String
+  color        String   @db.VarChar(20) // 用户光标颜色
+  lastActiveAt DateTime @default(now()) // 最后活跃时间
+  joinedAt     DateTime @default(now()) // 加入时间
+
+  // 关系
+  session CollaborationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+  @@index([sessionId])
+  @@index([userId])
+  @@map("collaboration_participants")
 }
