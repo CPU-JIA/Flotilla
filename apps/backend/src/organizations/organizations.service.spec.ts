@@ -312,4 +312,147 @@ describe('OrganizationsService', () => {
       );
     });
   });
+
+  describe('update', () => {
+    it('should update organization information', async () => {
+      const slug = 'org-alpha';
+      const userId = 'user-123';
+      const updateDto = { name: 'Updated Org', description: 'New desc' };
+
+      const mockOrg = { id: 'org-1', slug, name: 'Old Org' };
+      const mockUpdated = { ...mockOrg, name: 'Updated Org', description: 'New desc', updatedAt: new Date() };
+
+      mockPrismaService.organization.findUnique.mockResolvedValue(mockOrg);
+      mockPrismaService.organization.update.mockResolvedValue(mockUpdated);
+
+      const result = await service.update(slug, userId, updateDto);
+
+      expect(result.name).toBe('Updated Org');
+      expect(redisService.del).toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException if organization not found', async () => {
+      const slug = 'non-existent';
+      const userId = 'user-123';
+      const updateDto = { name: 'Updated' };
+
+      mockPrismaService.organization.findUnique.mockResolvedValue(null);
+
+      await expect(service.update(slug, userId, updateDto)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('findMembers', () => {
+    it('should return all organization members', async () => {
+      const slug = 'org-alpha';
+
+      const mockOrg = {
+        id: 'org-1',
+        members: [
+          {
+            id: 'member-1',
+            role: 'OWNER',
+            joinedAt: new Date(),
+            user: { id: 'user-1', username: 'alice', email: 'alice@example.com', avatar: null },
+          },
+        ],
+      };
+
+      mockPrismaService.organization.findUnique.mockResolvedValue(mockOrg);
+
+      const result = await service.findMembers(slug);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].role).toBe('OWNER');
+    });
+
+    it('should throw NotFoundException if organization not found', async () => {
+      const slug = 'non-existent';
+
+      mockPrismaService.organization.findUnique.mockResolvedValue(null);
+
+      await expect(service.findMembers(slug)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('updateMemberRole', () => {
+    it('should update member role', async () => {
+      const slug = 'org-alpha';
+      const targetUserId = 'user-456';
+      const roleDto = { role: 'ADMIN' as const };
+
+      const mockOrg = { id: 'org-1', slug };
+      const mockMember = {
+        id: 'member-1',
+        organizationId: 'org-1',
+        userId: targetUserId,
+        role: 'MEMBER',
+        user: { id: targetUserId, username: 'bob', email: 'bob@example.com', avatar: null },
+      };
+
+      const mockUpdated = { ...mockMember, role: 'ADMIN', joinedAt: new Date() };
+
+      mockPrismaService.organization.findUnique.mockResolvedValue(mockOrg);
+      mockPrismaService.organizationMember.findUnique.mockResolvedValue(mockMember);
+      mockPrismaService.organizationMember.update.mockResolvedValue(mockUpdated);
+
+      const result = await service.updateMemberRole(slug, targetUserId, roleDto);
+
+      expect(result.role).toBe('ADMIN');
+      expect(redisService.del).toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException if member not found', async () => {
+      const slug = 'org-alpha';
+      const targetUserId = 'non-existent';
+      const roleDto = { role: 'ADMIN' as const };
+
+      const mockOrg = { id: 'org-1', slug };
+
+      mockPrismaService.organization.findUnique.mockResolvedValue(mockOrg);
+      mockPrismaService.organizationMember.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.updateMemberRole(slug, targetUserId, roleDto),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('removeMember', () => {
+    it('should remove a member from organization', async () => {
+      const slug = 'org-alpha';
+      const targetUserId = 'user-456';
+
+      const mockOrg = { id: 'org-1', slug };
+      const mockMember = { id: 'member-1', organizationId: 'org-1', userId: targetUserId, role: 'MEMBER' };
+
+      mockPrismaService.organization.findUnique.mockResolvedValue(mockOrg);
+      mockPrismaService.organizationMember.findUnique.mockResolvedValue(mockMember);
+      mockPrismaService.organizationMember.count.mockResolvedValue(3);
+      mockPrismaService.organizationMember.delete.mockResolvedValue(mockMember);
+
+      const result = await service.removeMember(slug, targetUserId);
+
+      expect(result.message).toBe('Member removed successfully');
+      expect(redisService.del).toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException if member not found', async () => {
+      const slug = 'org-alpha';
+      const targetUserId = 'non-existent';
+
+      const mockOrg = { id: 'org-1', slug };
+
+      mockPrismaService.organization.findUnique.mockResolvedValue(mockOrg);
+      mockPrismaService.organizationMember.findUnique.mockResolvedValue(null);
+
+      await expect(service.removeMember(slug, targetUserId)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
 });
