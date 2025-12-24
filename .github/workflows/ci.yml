@@ -47,7 +47,9 @@ jobs:
         run: cd apps/backend && pnpm test:cov --verbose
 
       - name: Check coverage threshold
-        run: cd apps/backend && node -e "const coverage = require('./coverage/coverage-summary.json'); const total = coverage.total; const pct = total.lines.pct; console.log('Coverage:', pct + '%'); if (pct < 70) { console.error('❌ Coverage below 70% threshold (current: ' + pct + '%)'); process.exit(1); } else { console.log('✅ Coverage meets 70% threshold'); }"
+        run: |
+          cd apps/backend
+          node -e "const coverage = require('./coverage/coverage-summary.json'); const total = coverage.total; const pct = total.lines.pct; console.log('Coverage:', pct + '%'); if (pct < 70) { console.error('Coverage below 70% threshold (current: ' + pct + '%'); process.exit(1); } else { console.log('Coverage meets 70% threshold'); }"
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
