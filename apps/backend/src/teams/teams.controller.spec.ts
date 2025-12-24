@@ -4,6 +4,8 @@ import { TeamsService } from './teams.service';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
 import { AddTeamMemberDto } from './dto/add-team-member.dto';
+import { TeamRoleGuard } from './guards/team-role.guard';
+import { OrganizationRoleGuard } from '../organizations/guards/organization-role.guard';
 
 describe('TeamsController', () => {
   let controller: TeamsController;
@@ -14,11 +16,11 @@ describe('TeamsController', () => {
     create: jest.fn(),
     findBySlug: jest.fn(),
     update: jest.fn(),
-    delete: jest.fn(),
+    remove: jest.fn(),
     addMember: jest.fn(),
     removeMember: jest.fn(),
     updateMemberRole: jest.fn(),
-    getMembers: jest.fn(),
+    findMembers: jest.fn(),
     assignProjectPermission: jest.fn(),
     updateProjectPermission: jest.fn(),
     removeProjectPermission: jest.fn(),
@@ -34,7 +36,12 @@ describe('TeamsController', () => {
           useValue: mockTeamsService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(TeamRoleGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(OrganizationRoleGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<TeamsController>(TeamsController);
     service = module.get<TeamsService>(TeamsService);
@@ -166,12 +173,12 @@ describe('TeamsController', () => {
       const organizationSlug = 'org-1';
       const teamSlug = 'team-alpha';
 
-      mockTeamsService.delete.mockResolvedValue({ message: 'Team deleted' });
+      mockTeamsService.remove.mockResolvedValue({ message: 'Team deleted' });
 
-      const result = await controller.delete(organizationSlug, teamSlug);
+      const result = await controller.remove(organizationSlug, teamSlug);
 
       expect(result).toEqual({ message: 'Team deleted' });
-      expect(service.delete).toHaveBeenCalledWith(organizationSlug, teamSlug);
+      expect(service.remove).toHaveBeenCalledWith(organizationSlug, teamSlug);
     });
   });
 
@@ -180,14 +187,14 @@ describe('TeamsController', () => {
       const organizationSlug = 'org-1';
       const teamSlug = 'team-alpha';
       const addMemberDto: AddTeamMemberDto = {
-        userId: 'user-456',
-        role: 'DEVELOPER',
+        email: 'user@example.com',
+        role: 'MEMBER',
       };
 
       const mockMember = {
         teamId: 'team-1',
         userId: 'user-456',
-        role: 'DEVELOPER',
+        role: 'MEMBER',
       };
 
       mockTeamsService.addMember.mockResolvedValue(mockMember);
@@ -250,16 +257,16 @@ describe('TeamsController', () => {
         {
           userId: 'user-456',
           user: { id: 'user-456', username: 'bob', email: 'bob@example.com' },
-          role: 'DEVELOPER',
+          role: 'MEMBER',
         },
       ];
 
-      mockTeamsService.getMembers.mockResolvedValue(mockMembers);
+      mockTeamsService.findMembers.mockResolvedValue(mockMembers);
 
-      const result = await controller.getMembers(organizationSlug, teamSlug);
+      const result = await controller.findMembers(organizationSlug, teamSlug);
 
       expect(result).toEqual(mockMembers);
-      expect(service.getMembers).toHaveBeenCalledWith(
+      expect(service.findMembers).toHaveBeenCalledWith(
         organizationSlug,
         teamSlug,
       );

@@ -348,7 +348,12 @@ describe('OrganizationsService', () => {
         _count: { members: 5 },
         maxMembers: 50,
       };
-      const mockUser = { id: 'user-456', username: 'bob', email: 'bob@example.com', avatar: null };
+      const mockUser = {
+        id: 'user-456',
+        username: 'bob',
+        email: 'bob@example.com',
+        avatar: null,
+      };
       const mockMember = {
         id: 'member-1',
         organizationId: 'org-1',
@@ -478,7 +483,12 @@ describe('OrganizationsService', () => {
             id: 'member-1',
             role: 'OWNER',
             joinedAt: new Date(),
-            user: { id: 'user-1', username: 'alice', email: 'alice@example.com', avatar: null },
+            user: {
+              id: 'user-1',
+              username: 'alice',
+              email: 'alice@example.com',
+              avatar: null,
+            },
           },
         ],
       };
@@ -518,16 +528,33 @@ describe('OrganizationsService', () => {
         organizationId: 'org-1',
         userId: targetUserId,
         role: 'MEMBER',
-        user: { id: targetUserId, username: 'bob', email: 'bob@example.com', avatar: null },
+        user: {
+          id: targetUserId,
+          username: 'bob',
+          email: 'bob@example.com',
+          avatar: null,
+        },
       };
 
-      const mockUpdated = { ...mockMember, role: 'ADMIN', joinedAt: new Date() };
+      const mockUpdated = {
+        ...mockMember,
+        role: 'ADMIN',
+        joinedAt: new Date(),
+      };
 
       mockPrismaService.organization.findUnique.mockResolvedValue(mockOrg);
-      mockPrismaService.organizationMember.findUnique.mockResolvedValue(mockMember);
-      mockPrismaService.organizationMember.update.mockResolvedValue(mockUpdated);
+      mockPrismaService.organizationMember.findUnique.mockResolvedValue(
+        mockMember,
+      );
+      mockPrismaService.organizationMember.update.mockResolvedValue(
+        mockUpdated,
+      );
 
-      const result = await service.updateMemberRole(slug, targetUserId, roleDto);
+      const result = await service.updateMemberRole(
+        slug,
+        targetUserId,
+        roleDto,
+      );
 
       expect(result.role).toBe('ADMIN');
       expect(redisService.del).toHaveBeenCalled();
@@ -571,7 +598,9 @@ describe('OrganizationsService', () => {
       };
 
       mockPrismaService.organization.findUnique.mockResolvedValue(mockOrg);
-      mockPrismaService.organizationMember.findUnique.mockResolvedValue(mockMember);
+      mockPrismaService.organizationMember.findUnique.mockResolvedValue(
+        mockMember,
+      );
       mockPrismaService.organizationMember.count.mockResolvedValue(3);
       mockPrismaService.organizationMember.delete.mockResolvedValue(mockMember);
 

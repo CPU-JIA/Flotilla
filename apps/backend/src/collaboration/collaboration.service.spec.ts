@@ -165,6 +165,15 @@ describe('CollaborationService', () => {
           userId: 'user-1',
           color: '#FF6B6B',
         },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              avatar: true,
+            },
+          },
+        },
       });
     });
 

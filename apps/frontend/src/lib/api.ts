@@ -284,6 +284,34 @@ export async function apiRequest<T = unknown>(
  * ECP-B1: DRY原则 - 避免重复的API调用代码
  */
 export const api = {
+  // Generic request methods for custom endpoints
+  get: <T = unknown>(endpoint: string, options?: RequestInit) =>
+    apiRequest<T>(endpoint, { ...options, method: 'GET' }),
+
+  post: <T = unknown>(endpoint: string, body?: unknown, options?: RequestInit) =>
+    apiRequest<T>(endpoint, {
+      ...options,
+      method: 'POST',
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    }),
+
+  put: <T = unknown>(endpoint: string, body?: unknown, options?: RequestInit) =>
+    apiRequest<T>(endpoint, {
+      ...options,
+      method: 'PUT',
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    }),
+
+  patch: <T = unknown>(endpoint: string, body?: unknown, options?: RequestInit) =>
+    apiRequest<T>(endpoint, {
+      ...options,
+      method: 'PATCH',
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    }),
+
+  delete: <T = unknown>(endpoint: string, options?: RequestInit) =>
+    apiRequest<T>(endpoint, { ...options, method: 'DELETE' }),
+
   /**
    * 认证相关 API
    */
@@ -1374,6 +1402,52 @@ export const api = {
       apiRequest<{ message: string }>(`/pipelines/runs/${runId}/cancel`, {
         method: 'POST',
       }),
+  },
+
+  // ============================================
+  // Audit Logs API
+  // ============================================
+  audit: {
+    // 获取用户个人审计日志
+    getUserLogs: (params?: { page?: number; limit?: number }) => {
+      const searchParams = new URLSearchParams()
+      if (params?.page) searchParams.append('page', params.page.toString())
+      if (params?.limit) searchParams.append('limit', params.limit.toString())
+      const query = searchParams.toString()
+      return apiRequest<Array<{
+        id: string
+        action: string
+        entityType: string
+        entityId: string | null
+        username: string | null
+        description: string
+        ipAddress: string | null
+        userAgent: string | null
+        success: boolean
+        createdAt: string
+      }>>(`/audit/user-logs${query ? `?${query}` : ''}`)
+    },
+
+    // 管理员获取系统审计日志
+    getAdminLogs: (params?: { page?: number; limit?: number; userId?: string }) => {
+      const searchParams = new URLSearchParams()
+      if (params?.page) searchParams.append('page', params.page.toString())
+      if (params?.limit) searchParams.append('limit', params.limit.toString())
+      if (params?.userId) searchParams.append('userId', params.userId)
+      const query = searchParams.toString()
+      return apiRequest<Array<{
+        id: string
+        action: string
+        entityType: string
+        entityId: string | null
+        username: string | null
+        description: string
+        ipAddress: string | null
+        userAgent: string | null
+        success: boolean
+        createdAt: string
+      }>>(`/admin/audit${query ? `?${query}` : ''}`)
+    },
   },
 
   // ============================================

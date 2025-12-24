@@ -35,10 +35,12 @@ export interface TeamMember {
   }
 }
 
+export type MemberRole = 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER'
+
 export interface TeamProjectPermission {
   teamId: string
   projectId: string
-  permission: 'READ' | 'WRITE' | 'ADMIN'
+  role: MemberRole
   grantedAt: string
   project: {
     id: string
@@ -70,11 +72,11 @@ export interface UpdateTeamMemberRoleRequest {
 
 export interface AssignProjectPermissionRequest {
   projectId: string
-  permission: 'READ' | 'WRITE' | 'ADMIN'
+  role: MemberRole
 }
 
 export interface UpdateProjectPermissionRequest {
-  permission: 'READ' | 'WRITE' | 'ADMIN'
+  role: MemberRole
 }
 
 export interface TeamsResponse {

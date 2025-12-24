@@ -155,10 +155,12 @@ describe('PermissionService', () => {
       const userId = 'user-id-1';
       const projectId = 'project-id-1';
       redisService.get.mockResolvedValue(null);
-      prismaService.projectMember.findUnique.mockResolvedValue({
+      (prismaService.projectMember.findUnique as jest.Mock).mockResolvedValue({
         role: MemberRole.MAINTAINER,
       });
-      prismaService.teamProjectPermission.findMany.mockResolvedValue([]);
+      (
+        prismaService.teamProjectPermission.findMany as jest.Mock
+      ).mockResolvedValue([]);
 
       // Act
       const result = await service.getEffectiveProjectRole(userId, projectId);
@@ -177,10 +179,12 @@ describe('PermissionService', () => {
       const userId = 'user-id-1';
       const projectId = 'project-id-1';
       redisService.get.mockResolvedValue(null);
-      prismaService.projectMember.findUnique.mockResolvedValue({
+      (prismaService.projectMember.findUnique as jest.Mock).mockResolvedValue({
         role: MemberRole.MEMBER,
       });
-      prismaService.teamProjectPermission.findMany.mockResolvedValue([
+      (
+        prismaService.teamProjectPermission.findMany as jest.Mock
+      ).mockResolvedValue([
         { role: MemberRole.MAINTAINER },
         { role: MemberRole.VIEWER },
       ]);
@@ -197,8 +201,12 @@ describe('PermissionService', () => {
       const userId = 'user-id-1';
       const projectId = 'project-id-1';
       redisService.get.mockResolvedValue(null);
-      prismaService.projectMember.findUnique.mockResolvedValue(null);
-      prismaService.teamProjectPermission.findMany.mockResolvedValue([]);
+      (prismaService.projectMember.findUnique as jest.Mock).mockResolvedValue(
+        null,
+      );
+      (
+        prismaService.teamProjectPermission.findMany as jest.Mock
+      ).mockResolvedValue([]);
 
       // Act
       const result = await service.getEffectiveProjectRole(userId, projectId);
@@ -212,8 +220,12 @@ describe('PermissionService', () => {
       const userId = 'user-id-1';
       const projectId = 'project-id-1';
       redisService.get.mockResolvedValue(null);
-      prismaService.projectMember.findUnique.mockResolvedValue(null);
-      prismaService.teamProjectPermission.findMany.mockResolvedValue([]);
+      (prismaService.projectMember.findUnique as jest.Mock).mockResolvedValue(
+        null,
+      );
+      (
+        prismaService.teamProjectPermission.findMany as jest.Mock
+      ).mockResolvedValue([]);
 
       // Act
       await service.getEffectiveProjectRole(userId, projectId);
@@ -228,7 +240,9 @@ describe('PermissionService', () => {
   describe('checkProjectPermission', () => {
     it('should allow SUPER_ADMIN to access any project', async () => {
       // Arrange
-      prismaService.project.findUnique.mockResolvedValue(mockProject);
+      (prismaService.project.findUnique as jest.Mock).mockResolvedValue(
+        mockProject,
+      );
 
       // Act
       const result = await service.checkProjectPermission(
@@ -246,7 +260,7 @@ describe('PermissionService', () => {
 
     it('should throw NotFoundException if project not found', async () => {
       // Arrange
-      prismaService.project.findUnique.mockResolvedValue(null);
+      (prismaService.project.findUnique as jest.Mock).mockResolvedValue(null);
 
       // Act & Assert
       await expect(
@@ -260,7 +274,7 @@ describe('PermissionService', () => {
 
     it('should grant access if user has sufficient permissions', async () => {
       // Arrange
-      prismaService.project.findUnique.mockResolvedValue({
+      (prismaService.project.findUnique as jest.Mock).mockResolvedValue({
         ...mockProject,
         members: [{ role: MemberRole.MAINTAINER }],
         teamPermissions: [],
@@ -279,7 +293,7 @@ describe('PermissionService', () => {
 
     it('should throw ForbiddenException if user is not a project member', async () => {
       // Arrange
-      prismaService.project.findUnique.mockResolvedValue({
+      (prismaService.project.findUnique as jest.Mock).mockResolvedValue({
         ...mockProject,
         members: [],
         teamPermissions: [],
@@ -304,7 +318,7 @@ describe('PermissionService', () => {
 
     it('should throw ForbiddenException if user has insufficient permissions', async () => {
       // Arrange
-      prismaService.project.findUnique.mockResolvedValue({
+      (prismaService.project.findUnique as jest.Mock).mockResolvedValue({
         ...mockProject,
         members: [{ role: MemberRole.VIEWER }],
         teamPermissions: [],
@@ -329,7 +343,7 @@ describe('PermissionService', () => {
 
     it('should consider team permissions when checking access', async () => {
       // Arrange
-      prismaService.project.findUnique.mockResolvedValue({
+      (prismaService.project.findUnique as jest.Mock).mockResolvedValue({
         ...mockProject,
         members: [],
         teamPermissions: [{ role: MemberRole.MAINTAINER }],
@@ -348,7 +362,7 @@ describe('PermissionService', () => {
 
     it('should use single query optimization with include', async () => {
       // Arrange
-      prismaService.project.findUnique.mockResolvedValue({
+      (prismaService.project.findUnique as jest.Mock).mockResolvedValue({
         ...mockProject,
         members: [{ role: MemberRole.OWNER }],
         teamPermissions: [],
@@ -375,7 +389,9 @@ describe('PermissionService', () => {
   describe('checkOrganizationPermission', () => {
     it('should allow SUPER_ADMIN to access any organization', async () => {
       // Arrange
-      prismaService.organization.findUnique.mockResolvedValue(mockOrganization);
+      (prismaService.organization.findUnique as jest.Mock).mockResolvedValue(
+        mockOrganization,
+      );
 
       // Act
       const result = await service.checkOrganizationPermission(
@@ -390,7 +406,9 @@ describe('PermissionService', () => {
 
     it('should throw NotFoundException if organization not found', async () => {
       // Arrange
-      prismaService.organization.findUnique.mockResolvedValue(null);
+      (prismaService.organization.findUnique as jest.Mock).mockResolvedValue(
+        null,
+      );
 
       // Act & Assert
       await expect(
@@ -404,7 +422,7 @@ describe('PermissionService', () => {
 
     it('should grant access if user has sufficient organization permissions', async () => {
       // Arrange
-      prismaService.organization.findUnique.mockResolvedValue({
+      (prismaService.organization.findUnique as jest.Mock).mockResolvedValue({
         ...mockOrganization,
         members: [{ userId: mockRegularUser.id, role: OrgRole.ADMIN }],
       });
@@ -422,7 +440,7 @@ describe('PermissionService', () => {
 
     it('should throw ForbiddenException if user is not organization member', async () => {
       // Arrange
-      prismaService.organization.findUnique.mockResolvedValue({
+      (prismaService.organization.findUnique as jest.Mock).mockResolvedValue({
         ...mockOrganization,
         members: [],
       });
@@ -446,7 +464,7 @@ describe('PermissionService', () => {
 
     it('should throw ForbiddenException if user has insufficient permissions', async () => {
       // Arrange
-      prismaService.organization.findUnique.mockResolvedValue({
+      (prismaService.organization.findUnique as jest.Mock).mockResolvedValue({
         ...mockOrganization,
         members: [{ userId: mockRegularUser.id, role: OrgRole.MEMBER }],
       });
@@ -472,7 +490,7 @@ describe('PermissionService', () => {
   describe('checkTeamPermission', () => {
     it('should allow SUPER_ADMIN to access any team', async () => {
       // Arrange
-      prismaService.team.findFirst.mockResolvedValue(mockTeam);
+      (prismaService.team.findFirst as jest.Mock).mockResolvedValue(mockTeam);
 
       // Act
       const result = await service.checkTeamPermission(
@@ -488,7 +506,7 @@ describe('PermissionService', () => {
 
     it('should throw NotFoundException if team not found', async () => {
       // Arrange
-      prismaService.team.findFirst.mockResolvedValue(null);
+      (prismaService.team.findFirst as jest.Mock).mockResolvedValue(null);
 
       // Act & Assert
       await expect(
@@ -503,7 +521,7 @@ describe('PermissionService', () => {
 
     it('should grant access if user has sufficient team permissions', async () => {
       // Arrange
-      prismaService.team.findFirst.mockResolvedValue({
+      (prismaService.team.findFirst as jest.Mock).mockResolvedValue({
         ...mockTeam,
         members: [{ userId: mockRegularUser.id, role: TeamRole.MAINTAINER }],
       });
@@ -522,7 +540,7 @@ describe('PermissionService', () => {
 
     it('should throw ForbiddenException if user is not team member', async () => {
       // Arrange
-      prismaService.team.findFirst.mockResolvedValue({
+      (prismaService.team.findFirst as jest.Mock).mockResolvedValue({
         ...mockTeam,
         members: [],
       });
@@ -548,7 +566,7 @@ describe('PermissionService', () => {
 
     it('should throw ForbiddenException if user has insufficient permissions', async () => {
       // Arrange
-      prismaService.team.findFirst.mockResolvedValue({
+      (prismaService.team.findFirst as jest.Mock).mockResolvedValue({
         ...mockTeam,
         members: [{ userId: mockRegularUser.id, role: TeamRole.MEMBER }],
       });
@@ -597,7 +615,7 @@ describe('PermissionService', () => {
   describe('Role hierarchy', () => {
     it('OWNER should have higher permissions than MAINTAINER', async () => {
       // Arrange
-      prismaService.project.findUnique.mockResolvedValue({
+      (prismaService.project.findUnique as jest.Mock).mockResolvedValue({
         ...mockProject,
         members: [{ role: MemberRole.OWNER }],
         teamPermissions: [],
@@ -615,7 +633,7 @@ describe('PermissionService', () => {
 
     it('MAINTAINER should have higher permissions than MEMBER', async () => {
       // Arrange
-      prismaService.project.findUnique.mockResolvedValue({
+      (prismaService.project.findUnique as jest.Mock).mockResolvedValue({
         ...mockProject,
         members: [{ role: MemberRole.MAINTAINER }],
         teamPermissions: [],
@@ -633,7 +651,7 @@ describe('PermissionService', () => {
 
     it('MEMBER should have higher permissions than VIEWER', async () => {
       // Arrange
-      prismaService.project.findUnique.mockResolvedValue({
+      (prismaService.project.findUnique as jest.Mock).mockResolvedValue({
         ...mockProject,
         members: [{ role: MemberRole.MEMBER }],
         teamPermissions: [],
@@ -651,7 +669,7 @@ describe('PermissionService', () => {
 
     it('VIEWER should not have MEMBER permissions', async () => {
       // Arrange
-      prismaService.project.findUnique.mockResolvedValue({
+      (prismaService.project.findUnique as jest.Mock).mockResolvedValue({
         ...mockProject,
         members: [{ role: MemberRole.VIEWER }],
         teamPermissions: [],

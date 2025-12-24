@@ -188,7 +188,11 @@ describe('TeamsService', () => {
         organizationSlug: 'org-1',
       };
 
-      const mockOrg = { id: 'org-1', slug: 'org-1', members: [{ userId, role: 'ADMIN' }] };
+      const mockOrg = {
+        id: 'org-1',
+        slug: 'org-1',
+        members: [{ userId, role: 'ADMIN' }],
+      };
       const mockExistingTeam = { id: 'team-1', slug: 'existing-team' };
 
       mockPrismaService.organization.findUnique.mockResolvedValue(mockOrg);
@@ -231,7 +235,12 @@ describe('TeamsService', () => {
             id: 'member-1',
             role: 'MAINTAINER',
             joinedAt: new Date(),
-            user: { id: 'user-1', username: 'alice', email: 'alice@example.com', avatar: null },
+            user: {
+              id: 'user-1',
+              username: 'alice',
+              email: 'alice@example.com',
+              avatar: null,
+            },
           },
         ],
         _count: { projectPermissions: 2 },
@@ -262,9 +271,14 @@ describe('TeamsService', () => {
         members: [
           {
             id: 'member-1',
-            role: 'DEVELOPER',
+            role: 'MEMBER',
             joinedAt: new Date(),
-            user: { id: 'user-1', username: 'alice', email: 'alice@example.com', avatar: null },
+            user: {
+              id: 'user-1',
+              username: 'alice',
+              email: 'alice@example.com',
+              avatar: null,
+            },
           },
         ],
         _count: { members: 3, projectPermissions: 2 },
@@ -313,7 +327,10 @@ describe('TeamsService', () => {
 
       const result = await service.remove(organizationSlug, teamSlug);
 
-      expect(result).toEqual({ message: 'Team deleted successfully', slug: teamSlug });
+      expect(result).toEqual({
+        message: 'Team deleted successfully',
+        slug: teamSlug,
+      });
       expect(prismaService.team.delete).toHaveBeenCalledWith({
         where: { id: 'team-1' },
       });
@@ -338,7 +355,7 @@ describe('TeamsService', () => {
       const teamSlug = 'team-alpha';
       const addMemberDto = {
         email: 'bob@example.com',
-        role: 'DEVELOPER' as const,
+        role: 'MEMBER' as const,
       };
 
       const mockTeam = {
@@ -353,7 +370,7 @@ describe('TeamsService', () => {
         id: 'member-1',
         teamId: 'team-1',
         userId: 'user-456',
-        role: 'DEVELOPER',
+        role: 'MEMBER',
         joinedAt: new Date(),
         user: mockUser,
       };
@@ -369,7 +386,7 @@ describe('TeamsService', () => {
         addMemberDto,
       );
 
-      expect(result.role).toBe('DEVELOPER');
+      expect(result.role).toBe('MEMBER');
       expect(result.user.id).toBe('user-456');
       expect(prismaService.teamMember.create).toHaveBeenCalled();
       expect(redisService.del).toHaveBeenCalled();
@@ -380,7 +397,7 @@ describe('TeamsService', () => {
       const teamSlug = 'team-alpha';
       const addMemberDto = {
         email: 'bob@example.com',
-        role: 'DEVELOPER' as const,
+        role: 'MEMBER' as const,
       };
 
       const mockTeam = {
@@ -394,7 +411,7 @@ describe('TeamsService', () => {
       const existingMember = {
         teamId: 'team-1',
         userId: 'user-456',
-        role: 'DEVELOPER',
+        role: 'MEMBER',
       };
 
       mockPrismaService.team.findFirst.mockResolvedValue(mockTeam);
@@ -411,7 +428,7 @@ describe('TeamsService', () => {
       const teamSlug = 'team-alpha';
       const addMemberDto = {
         email: 'nonexistent@example.com',
-        role: 'DEVELOPER' as const,
+        role: 'MEMBER' as const,
       };
 
       const mockTeam = {
@@ -456,7 +473,11 @@ describe('TeamsService', () => {
       mockPrismaService.team.findFirst.mockResolvedValue(mockTeam);
       mockPrismaService.team.update.mockResolvedValue(mockUpdated);
 
-      const result = await service.update(organizationSlug, teamSlug, updateDto);
+      const result = await service.update(
+        organizationSlug,
+        teamSlug,
+        updateDto,
+      );
 
       expect(result.name).toBe('Updated Team');
       expect(redisService.del).toHaveBeenCalledWith(
@@ -499,7 +520,7 @@ describe('TeamsService', () => {
           },
           {
             id: 'member-2',
-            role: 'DEVELOPER',
+            role: 'MEMBER',
             joinedAt: new Date(),
             user: {
               id: 'user-2',
@@ -518,7 +539,7 @@ describe('TeamsService', () => {
 
       expect(result).toHaveLength(2);
       expect(result[0].role).toBe('MAINTAINER');
-      expect(result[1].role).toBe('DEVELOPER');
+      expect(result[1].role).toBe('MEMBER');
     });
 
     it('should throw NotFoundException if team not found', async () => {
@@ -545,8 +566,13 @@ describe('TeamsService', () => {
         id: 'member-1',
         teamId: 'team-1',
         userId: targetUserId,
-        role: 'DEVELOPER',
-        user: { id: targetUserId, username: 'bob', email: 'bob@example.com', avatar: null },
+        role: 'MEMBER',
+        user: {
+          id: targetUserId,
+          username: 'bob',
+          email: 'bob@example.com',
+          avatar: null,
+        },
       };
 
       const mockUpdated = {
@@ -611,7 +637,7 @@ describe('TeamsService', () => {
         id: 'member-1',
         teamId: 'team-1',
         userId: targetUserId,
-        role: 'DEVELOPER',
+        role: 'MEMBER',
       };
 
       mockPrismaService.team.findFirst.mockResolvedValue(mockTeam);
@@ -682,7 +708,7 @@ describe('TeamsService', () => {
     it('should assign project permission to team', async () => {
       const organizationSlug = 'org-1';
       const teamSlug = 'team-alpha';
-      const permDto = { projectId: 'proj-1', role: 'DEVELOPER' as const };
+      const permDto = { projectId: 'proj-1', role: 'MEMBER' as const };
 
       const mockTeam = { id: 'team-1', organizationId: 'org-1' };
       const mockProject = { id: 'proj-1', organizationId: 'org-1' };
@@ -690,15 +716,19 @@ describe('TeamsService', () => {
         id: 'perm-1',
         teamId: 'team-1',
         projectId: 'proj-1',
-        role: 'DEVELOPER',
+        role: 'MEMBER',
         createdAt: new Date(),
         project: { id: 'proj-1', name: 'Project 1', description: '' },
       };
 
       mockPrismaService.team.findFirst.mockResolvedValue(mockTeam);
       mockPrismaService.project.findUnique.mockResolvedValue(mockProject);
-      mockPrismaService.teamProjectPermission.findUnique.mockResolvedValue(null);
-      mockPrismaService.teamProjectPermission.create.mockResolvedValue(mockPermission);
+      mockPrismaService.teamProjectPermission.findUnique.mockResolvedValue(
+        null,
+      );
+      mockPrismaService.teamProjectPermission.create.mockResolvedValue(
+        mockPermission,
+      );
 
       const result = await service.assignPermission(
         organizationSlug,
@@ -706,14 +736,14 @@ describe('TeamsService', () => {
         permDto,
       );
 
-      expect(result.role).toBe('DEVELOPER');
+      expect(result.role).toBe('MEMBER');
       expect(redisService.del).toHaveBeenCalled();
     });
 
     it('should throw ConflictException if permission exists', async () => {
       const organizationSlug = 'org-1';
       const teamSlug = 'team-alpha';
-      const permDto = { projectId: 'proj-1', role: 'DEVELOPER' as const };
+      const permDto = { projectId: 'proj-1', role: 'MEMBER' as const };
 
       const mockTeam = { id: 'team-1', organizationId: 'org-1' };
       const mockProject = { id: 'proj-1', organizationId: 'org-1' };
@@ -721,7 +751,9 @@ describe('TeamsService', () => {
 
       mockPrismaService.team.findFirst.mockResolvedValue(mockTeam);
       mockPrismaService.project.findUnique.mockResolvedValue(mockProject);
-      mockPrismaService.teamProjectPermission.findUnique.mockResolvedValue(existingPerm);
+      mockPrismaService.teamProjectPermission.findUnique.mockResolvedValue(
+        existingPerm,
+      );
 
       await expect(
         service.assignPermission(organizationSlug, teamSlug, permDto),
@@ -741,7 +773,7 @@ describe('TeamsService', () => {
         id: 'perm-1',
         teamId: 'team-1',
         projectId,
-        role: 'DEVELOPER',
+        role: 'MEMBER',
         project: { id: 'proj-1', name: 'Project 1', description: '' },
       };
 
@@ -752,8 +784,12 @@ describe('TeamsService', () => {
       };
 
       mockPrismaService.team.findFirst.mockResolvedValue(mockTeam);
-      mockPrismaService.teamProjectPermission.findUnique.mockResolvedValue(mockPermission);
-      mockPrismaService.teamProjectPermission.update.mockResolvedValue(mockUpdated);
+      mockPrismaService.teamProjectPermission.findUnique.mockResolvedValue(
+        mockPermission,
+      );
+      mockPrismaService.teamProjectPermission.update.mockResolvedValue(
+        mockUpdated,
+      );
 
       const result = await service.updatePermission(
         organizationSlug,
@@ -775,10 +811,17 @@ describe('TeamsService', () => {
       const mockTeam = { id: 'team-1' };
 
       mockPrismaService.team.findFirst.mockResolvedValue(mockTeam);
-      mockPrismaService.teamProjectPermission.findUnique.mockResolvedValue(null);
+      mockPrismaService.teamProjectPermission.findUnique.mockResolvedValue(
+        null,
+      );
 
       await expect(
-        service.updatePermission(organizationSlug, teamSlug, projectId, permDto),
+        service.updatePermission(
+          organizationSlug,
+          teamSlug,
+          projectId,
+          permDto,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -794,12 +837,16 @@ describe('TeamsService', () => {
         id: 'perm-1',
         teamId: 'team-1',
         projectId,
-        role: 'DEVELOPER',
+        role: 'MEMBER',
       };
 
       mockPrismaService.team.findFirst.mockResolvedValue(mockTeam);
-      mockPrismaService.teamProjectPermission.findUnique.mockResolvedValue(mockPermission);
-      mockPrismaService.teamProjectPermission.delete.mockResolvedValue(mockPermission);
+      mockPrismaService.teamProjectPermission.findUnique.mockResolvedValue(
+        mockPermission,
+      );
+      mockPrismaService.teamProjectPermission.delete.mockResolvedValue(
+        mockPermission,
+      );
 
       const result = await service.revokePermission(
         organizationSlug,
@@ -819,7 +866,9 @@ describe('TeamsService', () => {
       const mockTeam = { id: 'team-1' };
 
       mockPrismaService.team.findFirst.mockResolvedValue(mockTeam);
-      mockPrismaService.teamProjectPermission.findUnique.mockResolvedValue(null);
+      mockPrismaService.teamProjectPermission.findUnique.mockResolvedValue(
+        null,
+      );
 
       await expect(
         service.revokePermission(organizationSlug, teamSlug, projectId),

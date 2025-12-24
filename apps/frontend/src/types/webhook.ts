@@ -35,7 +35,7 @@ export interface WebhookDelivery {
   id: string
   webhookId: string
   event: string
-  payload: Record<string, any>
+  payload: Record<string, unknown>
   responseStatus?: number
   responseBody?: string
   deliveredAt: string

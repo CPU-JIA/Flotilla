@@ -41,8 +41,8 @@ export default function WikiPage() {
   const fetchWikiTree = async () => {
     try {
       setLoading(true)
-      const response = await api.get(`/projects/${projectId}/wiki`)
-      setTree(response.data)
+      const data = await api.get<WikiTreeNode[]>(`/projects/${projectId}/wiki`)
+      setTree(data)
       // 默认展开所有节点
       const allIds = new Set<string>()
       const collectIds = (nodes: WikiTreeNode[]) => {
@@ -53,7 +53,7 @@ export default function WikiPage() {
           }
         })
       }
-      collectIds(response.data)
+      collectIds(data)
       setExpandedNodes(allIds)
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load wiki tree')

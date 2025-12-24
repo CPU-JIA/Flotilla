@@ -27,6 +27,7 @@ describe('WikiService', () => {
     wikiPageHistory: {
       create: jest.fn(),
       findMany: jest.fn(),
+      findFirst: jest.fn(),
     },
   };
 
@@ -95,6 +96,7 @@ describe('WikiService', () => {
           parentId: undefined,
           order: 0,
           createdById: userId,
+          lastEditedById: userId,
         },
         include: {
           createdBy: {
@@ -113,7 +115,7 @@ describe('WikiService', () => {
           title: mockPage.title,
           content: mockPage.content,
           editedById: userId,
-          message: 'Initial version',
+          version: 1,
         },
       });
     });
@@ -307,6 +309,7 @@ describe('WikiService', () => {
 
       mockPrismaService.wikiPage.findUnique.mockResolvedValue(existingPage);
       mockPrismaService.wikiPage.update.mockResolvedValue(updatedPage);
+      mockPrismaService.wikiPageHistory.findFirst.mockResolvedValue({ version: 1 });
       mockPrismaService.wikiPageHistory.create.mockResolvedValue({});
 
       const result = await service.updatePage(

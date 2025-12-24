@@ -32,7 +32,7 @@ import * as Y from 'yjs';
 @WebSocketGateway({
   namespace: 'collaboration',
   cors: {
-    origin: '*', // 生产环境应限制具体域名
+    origin: process.env.FRONTEND_URL?.split(',') || 'http://localhost:3000',
     credentials: true,
   },
 })

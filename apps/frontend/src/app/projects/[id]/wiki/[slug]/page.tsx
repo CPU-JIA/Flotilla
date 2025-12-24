@@ -50,8 +50,8 @@ export default function WikiPageView() {
   const fetchPage = async () => {
     try {
       setLoading(true)
-      const response = await api.get(`/projects/${projectId}/wiki/${slug}`)
-      setPage(response.data)
+      const data = await api.get<WikiPage>(`/projects/${projectId}/wiki/${slug}`)
+      setPage(data)
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load page')
     } finally {

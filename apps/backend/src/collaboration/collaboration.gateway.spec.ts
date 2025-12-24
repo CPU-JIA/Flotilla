@@ -29,10 +29,10 @@ describe('CollaborationGateway', () => {
   // Mock Socket
   const mockSocket = {
     id: 'socket-123',
-    data: {},
+    data: {} as { userId?: string; token?: string },
     handshake: {
-      query: {},
-      headers: {},
+      query: {} as { token?: string },
+      headers: {} as { authorization?: string },
     },
     emit: jest.fn(),
     to: jest.fn().mockReturnThis(),

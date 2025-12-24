@@ -46,7 +46,6 @@ describe('WebhookController', () => {
         url: 'https://example.com/webhook',
         events: ['push', 'pull_request'],
         active: true,
-        secret: 'webhook-secret',
       };
 
       const mockWebhook = {
@@ -117,10 +116,10 @@ describe('WebhookController', () => {
 
       mockWebhookService.getWebhook.mockResolvedValue(mockWebhook);
 
-      const result = await controller.getWebhook(projectId, webhookId);
+      const result = await controller.getWebhook(webhookId);
 
       expect(result).toEqual(mockWebhook);
-      expect(service.getWebhook).toHaveBeenCalledWith(projectId, webhookId);
+      expect(service.getWebhook).toHaveBeenCalledWith(webhookId);
     });
   });
 
@@ -144,63 +143,28 @@ describe('WebhookController', () => {
 
       mockWebhookService.updateWebhook.mockResolvedValue(mockUpdatedWebhook);
 
-      const result = await controller.updateWebhook(
-        projectId,
-        webhookId,
-        updateDto,
-      );
+      const result = await controller.updateWebhook(webhookId, updateDto);
 
       expect(result).toEqual(mockUpdatedWebhook);
-      expect(service.updateWebhook).toHaveBeenCalledWith(
-        projectId,
-        webhookId,
-        updateDto,
-      );
+      expect(service.updateWebhook).toHaveBeenCalledWith(webhookId, updateDto);
     });
   });
 
   describe('deleteWebhook', () => {
     it('should delete a webhook', async () => {
-      const projectId = 'project-1';
       const webhookId = 'webhook-1';
 
-      mockWebhookService.deleteWebhook.mockResolvedValue({
-        message: 'Webhook deleted successfully',
-      });
+      mockWebhookService.deleteWebhook.mockResolvedValue(undefined);
 
-      const result = await controller.deleteWebhook(projectId, webhookId);
+      await controller.deleteWebhook(webhookId);
 
-      expect(result).toEqual({ message: 'Webhook deleted successfully' });
-      expect(service.deleteWebhook).toHaveBeenCalledWith(projectId, webhookId);
+      expect(service.deleteWebhook).toHaveBeenCalledWith(webhookId);
     });
   });
 
-  describe('testWebhook', () => {
-    it('should test a webhook', async () => {
-      const projectId = 'project-1';
-      const webhookId = 'webhook-1';
-
-      const mockDelivery = {
-        id: 'delivery-1',
-        webhookId,
-        success: true,
-        statusCode: 200,
-        response: 'OK',
-        createdAt: new Date(),
-      };
-
-      mockWebhookService.testWebhook.mockResolvedValue(mockDelivery);
-
-      const result = await controller.testWebhook(projectId, webhookId);
-
-      expect(result).toEqual(mockDelivery);
-      expect(service.testWebhook).toHaveBeenCalledWith(projectId, webhookId);
-    });
-  });
 
   describe('listDeliveries', () => {
     it('should list webhook deliveries', async () => {
-      const projectId = 'project-1';
       const webhookId = 'webhook-1';
 
       const mockDeliveries = [
@@ -222,75 +186,13 @@ describe('WebhookController', () => {
 
       mockWebhookService.listDeliveries.mockResolvedValue(mockDeliveries);
 
-      const result = await controller.listDeliveries(projectId, webhookId);
+      const result = await controller.listDeliveries(webhookId, '50', '0');
 
       expect(result).toEqual(mockDeliveries);
       expect(result).toHaveLength(2);
-      expect(service.listDeliveries).toHaveBeenCalledWith(projectId, webhookId);
+      expect(service.listDeliveries).toHaveBeenCalledWith(webhookId, 50, 0);
     });
   });
 
-  describe('getDelivery', () => {
-    it('should get a webhook delivery', async () => {
-      const projectId = 'project-1';
-      const webhookId = 'webhook-1';
-      const deliveryId = 'delivery-1';
 
-      const mockDelivery = {
-        id: deliveryId,
-        webhookId,
-        success: true,
-        statusCode: 200,
-        request: { body: {}, headers: {} },
-        response: 'OK',
-        createdAt: new Date(),
-      };
-
-      mockWebhookService.getDelivery.mockResolvedValue(mockDelivery);
-
-      const result = await controller.getDelivery(
-        projectId,
-        webhookId,
-        deliveryId,
-      );
-
-      expect(result).toEqual(mockDelivery);
-      expect(service.getDelivery).toHaveBeenCalledWith(
-        projectId,
-        webhookId,
-        deliveryId,
-      );
-    });
-  });
-
-  describe('redeliverWebhook', () => {
-    it('should redeliver a webhook', async () => {
-      const projectId = 'project-1';
-      const webhookId = 'webhook-1';
-      const deliveryId = 'delivery-1';
-
-      const mockNewDelivery = {
-        id: 'delivery-2',
-        webhookId,
-        success: true,
-        statusCode: 200,
-        createdAt: new Date(),
-      };
-
-      mockWebhookService.redeliverWebhook.mockResolvedValue(mockNewDelivery);
-
-      const result = await controller.redeliverWebhook(
-        projectId,
-        webhookId,
-        deliveryId,
-      );
-
-      expect(result).toEqual(mockNewDelivery);
-      expect(service.redeliverWebhook).toHaveBeenCalledWith(
-        projectId,
-        webhookId,
-        deliveryId,
-      );
-    });
-  });
 });

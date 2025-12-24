@@ -29,7 +29,26 @@ import {
   XCircle,
   Loader2,
 } from 'lucide-react'
-import type { Pipeline, PipelineRun, PipelineRunStatus } from '@/types/pipeline'
+import type { Pipeline, PipelineRunStatus } from '@/types/pipeline'
+
+// Local type matching API response
+interface PipelineRunItem {
+  id: string
+  pipelineId: string
+  status: string
+  startedAt: string
+  finishedAt?: string
+  logs?: string
+  triggeredBy: {
+    id: string
+    username: string
+    email: string
+  }
+  pipeline?: {
+    id: string
+    name: string
+  }
+}
 
 const STATUS_CONFIG = {
   PENDING: {
@@ -66,7 +85,7 @@ export default function PipelineDetailPage() {
   const pipelineId = params.pipelineId as string
 
   const [pipeline, setPipeline] = useState<Pipeline | null>(null)
-  const [runs, setRuns] = useState<PipelineRun[]>([])
+  const [runs, setRuns] = useState<PipelineRunItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [triggeringRun, setTriggeringRun] = useState(false)

@@ -24,11 +24,10 @@ export function PipelineStatusBadge({
   const loadLatestRun = async () => {
     try {
       setLoading(true)
-      const response = await api.get(`/projects/${projectId}/pipeline-runs`, {
-        params: { limit: 1 },
-      })
-      if (response.data.runs.length > 0) {
-        setLatestRun(response.data.runs[0])
+      // Use api.get with type parameter
+      const data = await api.get<{ runs: Array<{ status: string }> }>(`/projects/${projectId}/pipeline-runs?limit=1`)
+      if (data.runs && data.runs.length > 0) {
+        setLatestRun(data.runs[0])
       }
     } catch (error) {
       console.error('Failed to load pipeline status:', error)

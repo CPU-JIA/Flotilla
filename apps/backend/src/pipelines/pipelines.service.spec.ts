@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PipelinesService } from './pipelines.service';
-import { PrismaService } from '../common/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { PipelineStatus } from '@prisma/client';
 

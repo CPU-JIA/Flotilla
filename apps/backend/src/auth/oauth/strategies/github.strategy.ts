@@ -67,7 +67,7 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
       const oauthProfile: OAuthProfileDto = {
         provider: 'github',
         providerId: profile.id,
-        email: primaryEmail || firstEmail!,
+        email: primaryEmail || firstEmail,
         displayName: profile.displayName || profile.username || 'Unknown',
         username: profile.username || undefined,
         avatar: profile.photos?.[0]?.value,

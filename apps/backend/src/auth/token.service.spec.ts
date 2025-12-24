@@ -192,7 +192,7 @@ describe('TokenService', () => {
     it('should successfully refresh tokens with valid refresh token', async () => {
       // Arrange
       jwtService.verify.mockReturnValue(jwtPayload);
-      prismaService.user.findUnique.mockResolvedValue(mockUser);
+      (prismaService.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
       jwtService.signAsync
         .mockResolvedValueOnce('new-access-token')
         .mockResolvedValueOnce('new-refresh-token');
@@ -231,7 +231,7 @@ describe('TokenService', () => {
     it('should throw UnauthorizedException if user not found', async () => {
       // Arrange
       jwtService.verify.mockReturnValue(jwtPayload);
-      prismaService.user.findUnique.mockResolvedValue(null);
+      (prismaService.user.findUnique as jest.Mock).mockResolvedValue(null);
 
       // Act & Assert
       await expect(service.refreshTokens(refreshToken)).rejects.toThrow(
@@ -245,7 +245,7 @@ describe('TokenService', () => {
     it('should throw UnauthorizedException if tokenVersion mismatch', async () => {
       // Arrange
       jwtService.verify.mockReturnValue(jwtPayload);
-      prismaService.user.findUnique.mockResolvedValue({
+      (prismaService.user.findUnique as jest.Mock).mockResolvedValue({
         ...mockUser,
         tokenVersion: 1, // Different from payload
       });
@@ -262,7 +262,7 @@ describe('TokenService', () => {
     it('should throw UnauthorizedException if user account is inactive', async () => {
       // Arrange
       jwtService.verify.mockReturnValue(jwtPayload);
-      prismaService.user.findUnique.mockResolvedValue({
+      (prismaService.user.findUnique as jest.Mock).mockResolvedValue({
         ...mockUser,
         isActive: false,
       });
@@ -279,7 +279,7 @@ describe('TokenService', () => {
     it('should implement refresh token rotation', async () => {
       // Arrange
       jwtService.verify.mockReturnValue(jwtPayload);
-      prismaService.user.findUnique.mockResolvedValue(mockUser);
+      (prismaService.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
       jwtService.signAsync
         .mockResolvedValueOnce('new-access-token')
         .mockResolvedValueOnce('new-refresh-token');
@@ -508,7 +508,7 @@ describe('TokenService', () => {
         tokenVersion: 0,
       };
       jwtService.verify.mockReturnValue(payload);
-      prismaService.user.findUnique.mockResolvedValue({
+      (prismaService.user.findUnique as jest.Mock).mockResolvedValue({
         ...mockUser,
         tokenVersion: 1, // User has logged out (tokenVersion incremented)
       });

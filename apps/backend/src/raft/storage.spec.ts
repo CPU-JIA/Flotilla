@@ -14,7 +14,6 @@
  */
 
 /* eslint-disable @typescript-eslint/require-await -- Some test callbacks don't need await */
-/* eslint-disable @typescript-eslint/await-thenable -- Storage methods return synchronously in memory implementation */
 
 import { MemoryPersistentStorage, FilePersistentStorage } from './storage';
 import { CommandType, type LogEntry } from './types';
@@ -434,7 +433,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
 
   describe('并发和性能', () => {
     it('应能处理快速连续保存', async () => {
-      const promises = [];
+      const promises: Promise<void>[] = [];
       for (let i = 1; i <= 100; i++) {
         promises.push(
           storage.saveLogEntry({

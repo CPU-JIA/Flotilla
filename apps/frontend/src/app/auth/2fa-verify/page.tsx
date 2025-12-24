@@ -11,19 +11,18 @@
  * - 支持恢复码作为备用验证方式
  */
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ApiError, api } from '@/lib/api'
 import { toast } from 'sonner'
 import { Loader2, Shield, Key } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 
-export default function TwoFactorVerifyPage() {
+function TwoFactorVerifyContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
@@ -50,7 +49,7 @@ export default function TwoFactorVerifyPage() {
    */
   useEffect(() => {
     if (!useRecoveryCode && code.length === 6) {
-      handleSubmit(new Event('submit') as any)
+      handleSubmit(new Event('submit') as unknown as React.FormEvent)
     }
   }, [code, useRecoveryCode])
 
@@ -123,8 +122,8 @@ export default function TwoFactorVerifyPage() {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Verification failed')
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Verification failed')
       }
 
       const data = await response.json()
@@ -142,8 +141,8 @@ export default function TwoFactorVerifyPage() {
 
       // 跳转到仪表板
       router.push('/dashboard')
-    } catch (err: any) {
-      setError(err.message || 'Verification failed. Please try again.')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Verification failed. Please try again.')
       setCode('')
       setRecoveryCode('')
       setIsLoading(false)
@@ -269,5 +268,21 @@ export default function TwoFactorVerifyPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+    </div>
+  )
+}
+
+export default function TwoFactorVerifyPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <TwoFactorVerifyContent />
+    </Suspense>
   )
 }

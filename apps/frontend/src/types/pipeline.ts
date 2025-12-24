@@ -7,7 +7,7 @@ export interface Pipeline {
   id: string
   projectId: string
   name: string
-  config: Record<string, any>
+  config: Record<string, unknown>
   triggers: string[]
   active: boolean
   createdAt: string
@@ -24,7 +24,7 @@ export interface PipelineRun {
   finishedAt: string | null
   duration: number | null
   logs: string | null
-  metadata: Record<string, any> | null
+  metadata: Record<string, unknown> | null
   pipeline?: {
     id: string
     name: string
@@ -46,14 +46,14 @@ export enum PipelineRunStatus {
 
 export interface CreatePipelineDto {
   name: string
-  config: Record<string, any>
+  config: Record<string, unknown>
   triggers: string[]
   active?: boolean
 }
 
 export interface UpdatePipelineDto {
   name?: string
-  config?: Record<string, any>
+  config?: Record<string, unknown>
   triggers?: string[]
   active?: boolean
 }

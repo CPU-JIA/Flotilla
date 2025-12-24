@@ -1,11 +1,9 @@
 import { IsString, IsEnum, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { MergeStrategy } from '@prisma/client';
 
-export enum MergeStrategy {
-  MERGE = 'merge',
-  SQUASH = 'squash',
-  REBASE = 'rebase',
-}
+// 导出MergeStrategy供测试文件使用
+export { MergeStrategy };
 
 export class MergePullRequestDto {
   @ApiProperty({

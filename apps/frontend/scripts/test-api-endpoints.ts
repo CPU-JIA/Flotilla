@@ -36,12 +36,14 @@ async function testEndpoint(
       method,
       headers: {
         'Content-Type': 'application/json',
-        ...(requiresAuth && {
-          // Note: Replace with actual token for testing
-          Authorization: 'Bearer test-token-here',
-        }),
+        ...(requiresAuth
+          ? {
+              // Note: Replace with actual token for testing
+              Authorization: 'Bearer test-token-here',
+            }
+          : {}),
       },
-      ...(body && { body: JSON.stringify(body) }),
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     })
 
     const duration = Math.round(performance.now() - startTime)

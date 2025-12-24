@@ -33,7 +33,7 @@ export default function AdminAuditLogsPage() {
   const loadLogs = useCallback(async () => {
     try {
       setLoading(true)
-      const data = await api.get('/audit/user-logs')
+      const data = await api.audit.getAdminLogs()
       setLogs(data)
     } catch (error) {
       console.error('Failed to load audit logs:', error)

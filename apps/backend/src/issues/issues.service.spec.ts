@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { IssuesService } from './issues.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { WebhookService } from '../webhooks/webhooks.service';
 import { NotFoundException } from '@nestjs/common';
 
 describe('IssuesService', () => {
@@ -33,6 +34,11 @@ describe('IssuesService', () => {
     notifyIssueClosed: jest.fn(),
     notifyIssueAssigned: jest.fn(),
     notifyIssueCommented: jest.fn(),
+    createBatch: jest.fn(),
+  };
+
+  const mockWebhookService = {
+    triggerWebhook: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -46,6 +52,10 @@ describe('IssuesService', () => {
         {
           provide: NotificationsService,
           useValue: mockNotificationsService,
+        },
+        {
+          provide: WebhookService,
+          useValue: mockWebhookService,
         },
       ],
     }).compile();

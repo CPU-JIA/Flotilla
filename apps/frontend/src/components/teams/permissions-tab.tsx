@@ -21,9 +21,7 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { useLanguage } from '@/contexts/language-context'
 import { api, ApiError } from '@/lib/api'
-import type { TeamProjectPermission } from '@/types/team'
-
-type PermissionLevel = 'READ' | 'WRITE' | 'ADMIN'
+import type { TeamProjectPermission, MemberRole } from '@/types/team'
 
 interface PermissionsTabProps {
   organizationSlug: string
@@ -42,7 +40,7 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
   const [showAddForm, setShowAddForm] = useState(false)
   const [assigning, setAssigning] = useState(false)
   const [newProjectId, setNewProjectId] = useState('')
-  const [newPermission, setNewPermission] = useState<PermissionLevel>('READ')
+  const [newRole, setNewRole] = useState<MemberRole>('VIEWER')
   const [addError, setAddError] = useState('')
 
   const fetchPermissions = useCallback(async () => {
@@ -77,11 +75,11 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
     try {
       await api.teams.assignPermission(organizationSlug, teamSlug, {
         projectId: trimmedProjectId,
-        permission: newPermission,
+        role: newRole,
       })
       await fetchPermissions()
       setNewProjectId('')
-      setNewPermission('READ')
+      setNewRole('VIEWER')
       setShowAddForm(false)
       alert(t.loading === t.loading ? '权限分配成功' : 'Permission assigned successfully')
     } catch (err) {
@@ -95,11 +93,11 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
     }
   }
 
-  const handleUpdatePermission = async (projectId: string, newPermission: PermissionLevel) => {
+  const handleUpdatePermission = async (projectId: string, newRole: MemberRole) => {
     setUpdating(projectId)
     try {
       await api.teams.updatePermission(organizationSlug, teamSlug, projectId, {
-        permission: newPermission,
+        role: newRole,
       })
       await fetchPermissions()
       alert(t.teams.updateSuccess)
@@ -137,20 +135,33 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
     }
   }
 
-  const getPermissionBadge = (permission: PermissionLevel) => {
-    const permissionConfig = {
-      READ: { color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200', icon: '👁️' },
-      WRITE: { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', icon: '✏️' },
-      ADMIN: {
+  const getPermissionBadge = (role: MemberRole) => {
+    const roleConfig = {
+      OWNER: {
+        color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+        icon: '👑',
+      },
+      MAINTAINER: {
         color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
         icon: '🔑',
       },
+      MEMBER: { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', icon: '✏️' },
+      VIEWER: { color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200', icon: '👁️' },
     }
-    const config = permissionConfig[permission]
+
+    // 角色翻译映射
+    const roleLabelMap: Record<MemberRole, string> = {
+      OWNER: 'Owner',
+      MAINTAINER: 'Maintainer',
+      MEMBER: 'Member',
+      VIEWER: 'Viewer',
+    }
+
+    const config = roleConfig[role]
     return (
       <Badge variant="outline" className={config.color}>
         <span className="mr-1">{config.icon}</span>
-        {t.teams.permissionLevels[permission]}
+        {roleLabelMap[role]}
       </Badge>
     )
   }
@@ -207,25 +218,25 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
               <div>
                 <Label>{t.loading === t.loading ? '权限级别' : 'Permission Level'} *</Label>
                 <Select
-                  value={newPermission}
-                  onValueChange={(v) => setNewPermission(v as PermissionLevel)}
+                  value={newRole}
+                  onValueChange={(v) => setNewRole(v as MemberRole)}
                   disabled={assigning}
                 >
                   <SelectTrigger className="mt-2">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="READ">
-                      👁️ {t.teams.permissionLevels.READ} -{' '}
-                      {t.loading === t.loading ? '只读访问' : 'Read-only access'}
+                    <SelectItem value="VIEWER">
+                      👁️ Viewer - Read-only access
                     </SelectItem>
-                    <SelectItem value="WRITE">
-                      ✏️ {t.teams.permissionLevels.WRITE} -{' '}
-                      {t.loading === t.loading ? '读写访问' : 'Read and write access'}
+                    <SelectItem value="MEMBER">
+                      ✏️ Member - Read and write access
                     </SelectItem>
-                    <SelectItem value="ADMIN">
-                      🔑 {t.teams.permissionLevels.ADMIN} -{' '}
-                      {t.loading === t.loading ? '完全控制' : 'Full control'}
+                    <SelectItem value="MAINTAINER">
+                      🔑 Maintainer - Maintainer access
+                    </SelectItem>
+                    <SelectItem value="OWNER">
+                      👑 Owner - Full control
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -251,7 +262,7 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
                   onClick={() => {
                     setShowAddForm(false)
                     setNewProjectId('')
-                    setNewPermission('READ')
+                    setNewRole('VIEWER')
                     setAddError('')
                   }}
                   disabled={assigning}
@@ -304,7 +315,7 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
                           <p className="font-semibold text-gray-900 dark:text-gray-100">
                             {perm.project.name}
                           </p>
-                          {getPermissionBadge(perm.permission)}
+                          {getPermissionBadge(perm.role)}
                         </div>
                         {perm.project.description && (
                           <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">
@@ -323,9 +334,9 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
                     {canManage && (
                       <div className="flex items-center gap-3">
                         <Select
-                          value={perm.permission}
+                          value={perm.role}
                           onValueChange={(value) =>
-                            handleUpdatePermission(perm.projectId, value as PermissionLevel)
+                            handleUpdatePermission(perm.projectId, value as MemberRole)
                           }
                           disabled={updating === perm.projectId}
                         >
@@ -333,13 +344,10 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="READ">👁️ {t.teams.permissionLevels.READ}</SelectItem>
-                            <SelectItem value="WRITE">
-                              ✏️ {t.teams.permissionLevels.WRITE}
-                            </SelectItem>
-                            <SelectItem value="ADMIN">
-                              🔑 {t.teams.permissionLevels.ADMIN}
-                            </SelectItem>
+                            <SelectItem value="VIEWER">👁️ Viewer</SelectItem>
+                            <SelectItem value="MEMBER">✏️ Member</SelectItem>
+                            <SelectItem value="MAINTAINER">🔑 Maintainer</SelectItem>
+                            <SelectItem value="OWNER">👑 Owner</SelectItem>
                           </SelectContent>
                         </Select>
                         <Button

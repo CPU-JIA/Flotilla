@@ -48,12 +48,12 @@ export default function WikiPageHistory() {
   const fetchHistory = async () => {
     try {
       setLoading(true)
-      const response = await api.get(
+      const data = await api.get<WikiPageHistory[]>(
         `/projects/${projectId}/wiki/${slug}/history`,
       )
-      setHistory(response.data)
-      if (response.data.length > 0) {
-        setSelectedVersion(response.data[0])
+      setHistory(data)
+      if (data.length > 0) {
+        setSelectedVersion(data[0])
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load history')

@@ -67,8 +67,7 @@ export default function TokensPage() {
   const { data: tokens, isLoading } = useQuery({
     queryKey: ['api-tokens'],
     queryFn: async () => {
-      const response = await api.get<ApiToken[]>('/api-tokens')
-      return response.data
+      return await api.get<ApiToken[]>('/api-tokens')
     },
   })
 
@@ -79,8 +78,7 @@ export default function TokensPage() {
         ...data,
         expiresAt: data.expiresAt ? new Date(data.expiresAt).toISOString() : undefined,
       }
-      const response = await api.post<CreateTokenResponse>('/api-tokens', payload)
-      return response.data
+      return await api.post<CreateTokenResponse>('/api-tokens', payload)
     },
     onSuccess: (data) => {
       setCreatedToken(data)

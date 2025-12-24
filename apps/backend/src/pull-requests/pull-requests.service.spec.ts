@@ -43,6 +43,7 @@ describe('PullRequestsService', () => {
     pRReview: {
       create: jest.fn(),
       findMany: jest.fn(),
+      count: jest.fn(),
     },
     pRComment: {
       create: jest.fn(),
@@ -1390,10 +1391,7 @@ describe('PullRequestsService', () => {
       mockBranchProtectionService.findByBranch.mockResolvedValue(
         protectionRule,
       );
-      mockPrisma.pRReview = {
-        ...mockPrisma.pRReview,
-        count: jest.fn().mockResolvedValue(1), // Only 1 approval
-      };
+      mockPrisma.pRReview.count.mockResolvedValue(1); // Only 1 approval
 
       const dto: MergePullRequestDto = { strategy: MergeStrategy.MERGE };
 
@@ -1414,10 +1412,7 @@ describe('PullRequestsService', () => {
       mockBranchProtectionService.findByBranch.mockResolvedValue(
         protectionRule,
       );
-      mockPrisma.pRReview = {
-        ...mockPrisma.pRReview,
-        count: jest.fn().mockResolvedValue(2), // 2 approvals
-      };
+      mockPrisma.pRReview.count.mockResolvedValue(2); // 2 approvals
       mockGitService.mergeCommit.mockResolvedValue('abc123');
       mockPrisma.pullRequest.update.mockResolvedValue({
         ...mockPR,

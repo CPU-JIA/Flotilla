@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -14,6 +14,22 @@ import {
   ChevronLeft,
 } from 'lucide-react'
 import Link from 'next/link'
+
+interface PipelineRunDetail {
+  id: string
+  pipelineId: string
+  commitSha: string
+  branch: string
+  status: string
+  startedAt: string
+  finishedAt: string | null
+  duration: number | null
+  logs: string | null
+  pipeline: {
+    id: string
+    name: string
+  }
+}
 
 const statusConfig = {
   PENDING: { icon: Clock, color: 'text-gray-500', bg: 'bg-gray-100', label: '等待中' },
@@ -43,24 +59,24 @@ export default function PipelineRunDetailPage() {
   const projectId = params.id as string
   const runId = params.runId as string
 
-  const [run, setRun] = useState<any>(null)
+  const [run, setRun] = useState<PipelineRunDetail | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadRunDetails()
-  }, [runId])
-
-  const loadRunDetails = async () => {
+  const loadRunDetails = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await api.get(`/pipeline-runs/${runId}`)
-      setRun(response.data)
+      const data = await api.pipelines.getRun(runId)
+      setRun(data)
     } catch (error) {
       console.error('Failed to load run details:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [runId])
+
+  useEffect(() => {
+    loadRunDetails()
+  }, [loadRunDetails])
 
   const formatDuration = (seconds: number | null) => {
     if (!seconds) return '-'

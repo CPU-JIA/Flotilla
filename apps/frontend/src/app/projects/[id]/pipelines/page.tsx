@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useState, useCallback } from 'react'
+import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -20,33 +20,32 @@ interface Pipeline {
 
 export default function PipelinesPage() {
   const params = useParams()
-  const router = useRouter()
   const projectId = params.id as string
 
   const [pipelines, setPipelines] = useState<Pipeline[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadPipelines()
-  }, [projectId])
-
-  const loadPipelines = async () => {
+  const loadPipelines = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await api.get(`/projects/${projectId}/pipelines`)
-      setPipelines(response.data.pipelines)
+      const data = await api.pipelines.list(projectId)
+      setPipelines(data)
     } catch (error) {
       console.error('Failed to load pipelines:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [projectId])
+
+  useEffect(() => {
+    loadPipelines()
+  }, [loadPipelines])
 
   const handleDelete = async (pipelineId: string) => {
     if (!confirm('确定要删除此流水线吗？')) return
 
     try {
-      await api.delete(`/pipelines/${pipelineId}`)
+      await api.pipelines.delete(pipelineId)
       loadPipelines()
     } catch (error) {
       console.error('Failed to delete pipeline:', error)

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { ApiTokenService } from './api-token.service';
-import { PrismaService } from '../prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { CreateApiTokenDto } from './dto/create-api-token.dto';
 
 describe('ApiTokenService', () => {

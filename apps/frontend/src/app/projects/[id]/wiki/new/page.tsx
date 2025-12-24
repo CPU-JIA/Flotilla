@@ -37,12 +37,12 @@ export default function WikiPageNew() {
 
     try {
       setCreating(true)
-      const response = await api.post(`/projects/${projectId}/wiki`, {
+      const data = await api.post<{ slug: string }>(`/projects/${projectId}/wiki`, {
         slug,
         title,
         content,
       })
-      router.push(`/projects/${projectId}/wiki/${response.data.slug}`)
+      router.push(`/projects/${projectId}/wiki/${data.slug}`)
     } catch (err: any) {
       alert(err.response?.data?.message || 'Failed to create page')
     } finally {

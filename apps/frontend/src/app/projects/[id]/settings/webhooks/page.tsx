@@ -206,9 +206,9 @@ URL: ${webhook.url}`)) return
       <WebhookDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+        mode={editingWebhook ? 'edit' : 'create'}
         webhook={editingWebhook || undefined}
         onSubmit={handleSubmit}
-        isLoading={submitting}
       />
     </>
   )

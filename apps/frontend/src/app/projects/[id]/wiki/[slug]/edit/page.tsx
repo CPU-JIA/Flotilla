@@ -35,8 +35,7 @@ export default function WikiPageEdit() {
   const fetchPage = async () => {
     try {
       setLoading(true)
-      const response = await api.get(`/projects/${projectId}/wiki/${slug}`)
-      const page = response.data
+      const page = await api.get<{ title: string; content: string; slug: string }>(`/projects/${projectId}/wiki/${slug}`)
       setTitle(page.title)
       setContent(page.content)
       setNewSlug(page.slug)

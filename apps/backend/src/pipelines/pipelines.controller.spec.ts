@@ -3,6 +3,7 @@ import { PipelinesController } from './pipelines.controller';
 import { PipelinesService } from './pipelines.service';
 import { PermissionService } from '../common/services/permission.service';
 import { PipelineStatus } from '@prisma/client';
+import { WebhookSignatureGuard } from './guards/webhook-signature.guard';
 
 describe('PipelinesController', () => {
   let controller: PipelinesController;
@@ -41,7 +42,10 @@ describe('PipelinesController', () => {
           useValue: mockPermissionService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(WebhookSignatureGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<PipelinesController>(PipelinesController);
     pipelinesService = module.get<PipelinesService>(PipelinesService);

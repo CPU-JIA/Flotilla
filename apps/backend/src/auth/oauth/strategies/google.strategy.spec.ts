@@ -1,35 +1,25 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { GoogleStrategy } from './google.strategy';
 
 describe('GoogleStrategy', () => {
   let strategy: GoogleStrategy;
-  let configService: ConfigService;
+  let mockConfigService: ConfigService;
 
-  const mockConfigService = {
-    get: jest.fn((key: string) => {
-      const config = {
-        GOOGLE_CLIENT_ID: 'test_client_id',
-        GOOGLE_CLIENT_SECRET: 'test_client_secret',
-        GOOGLE_CALLBACK_URL: 'http://localhost:4000/auth/oauth/google/callback',
-      };
-      return config[key];
-    }),
+  const createMockConfigService = (overrides: Record<string, any> = {}) => {
+    const config: Record<string, string> = {
+      GOOGLE_CLIENT_ID: 'test_client_id',
+      GOOGLE_CLIENT_SECRET: 'test_client_secret',
+      GOOGLE_CALLBACK_URL: 'http://localhost:4000/auth/oauth/google/callback',
+      ...overrides,
+    };
+    return {
+      get: jest.fn((key: string) => config[key]),
+    } as unknown as ConfigService;
   };
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        GoogleStrategy,
-        {
-          provide: ConfigService,
-          useValue: mockConfigService,
-        },
-      ],
-    }).compile();
-
-    strategy = module.get<GoogleStrategy>(GoogleStrategy);
-    configService = module.get<ConfigService>(ConfigService);
+  beforeEach(() => {
+    mockConfigService = createMockConfigService();
+    strategy = new GoogleStrategy(mockConfigService);
   });
 
   it('should be defined', () => {
@@ -37,20 +27,24 @@ describe('GoogleStrategy', () => {
   });
 
   it('should throw error if GOOGLE_CLIENT_ID is not set', () => {
-    mockConfigService.get.mockReturnValueOnce(null);
+    const configWithoutClientId = createMockConfigService({
+      GOOGLE_CLIENT_ID: undefined,
+    });
 
+    // Passport OAuth2Strategy validates clientID before our custom validation
     expect(() => {
-      new GoogleStrategy(configService);
-    }).toThrow('GOOGLE_CLIENT_ID must be set in environment variables');
+      new GoogleStrategy(configWithoutClientId);
+    }).toThrow('OAuth2Strategy requires a clientID option');
   });
 
   it('should throw error if GOOGLE_CLIENT_SECRET is not set', () => {
-    mockConfigService.get
-      .mockReturnValueOnce('test_client_id')
-      .mockReturnValueOnce(null);
+    const configWithoutClientSecret = createMockConfigService({
+      GOOGLE_CLIENT_SECRET: undefined,
+    });
 
+    // Our custom validation throws this error after super() succeeds
     expect(() => {
-      new GoogleStrategy(configService);
+      new GoogleStrategy(configWithoutClientSecret);
     }).toThrow('GOOGLE_CLIENT_SECRET must be set in environment variables');
   });
 
@@ -63,7 +57,7 @@ describe('GoogleStrategy', () => {
         photos: [{ value: 'https://avatar.url' }],
         _json: {
           locale: 'en',
-          verified_email: true,
+          email_verified: true,
         },
       };
 
@@ -71,7 +65,7 @@ describe('GoogleStrategy', () => {
       const accessToken = 'google_access_token';
       const refreshToken = 'google_refresh_token';
 
-      await strategy.validate(
+      strategy.validate(
         accessToken,
         refreshToken,
         mockProfile as any,
@@ -91,7 +85,7 @@ describe('GoogleStrategy', () => {
         scope: 'email profile',
         metadata: {
           locale: 'en',
-          verified_email: true,
+          email_verified: true,
         },
       });
     });
@@ -107,7 +101,7 @@ describe('GoogleStrategy', () => {
 
       const done = jest.fn();
 
-      await strategy.validate('token', 'refresh', mockProfile as any, done);
+      strategy.validate('token', 'refresh', mockProfile as any, done);
 
       expect(done).toHaveBeenCalledWith(
         null,
@@ -128,13 +122,13 @@ describe('GoogleStrategy', () => {
 
       const done = jest.fn();
 
-      await strategy.validate('token', 'refresh', mockProfile as any, done);
+      strategy.validate('token', 'refresh', mockProfile as any, done);
 
       expect(done).toHaveBeenCalledWith(
         expect.objectContaining({
           message: 'No verified email found in Google account',
         }),
-        null,
+        false,
       );
     });
 
@@ -150,7 +144,7 @@ describe('GoogleStrategy', () => {
       const done = jest.fn();
       const now = new Date();
 
-      await strategy.validate('token', 'refresh', mockProfile as any, done);
+      strategy.validate('token', 'refresh', mockProfile as any, done);
 
       const callArgs = done.mock.calls[0][1];
       const expiresAt = callArgs.expiresAt;

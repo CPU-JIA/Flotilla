@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -18,15 +18,30 @@ import Link from 'next/link'
 
 interface PipelineRun {
   id: string
+  pipelineId: string
   commitSha: string
   branch: string
-  status: 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILURE' | 'CANCELLED'
+  status: string
   startedAt: string
   finishedAt: string | null
   duration: number | null
+  logs?: string | null
+  metadata?: Record<string, unknown> | null
+  triggeredBy?: {
+    id: string
+    username: string
+    email: string
+  }
 }
 
-const statusConfig = {
+interface Pipeline {
+  id: string
+  name: string
+  active: boolean
+  triggers: string[]
+}
+
+const statusConfig: Record<string, { icon: typeof Clock; color: string; bg: string; label: string }> = {
   PENDING: { icon: Clock, color: 'text-gray-500', bg: 'bg-gray-100', label: '等待中' },
   RUNNING: {
     icon: PlayCircle,
@@ -55,28 +70,28 @@ export default function PipelineRunsPage() {
   const pipelineId = params.pipelineId as string
 
   const [runs, setRuns] = useState<PipelineRun[]>([])
-  const [pipeline, setPipeline] = useState<any>(null)
+  const [pipeline, setPipeline] = useState<Pipeline | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadData()
-  }, [pipelineId])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true)
       const [pipelineRes, runsRes] = await Promise.all([
-        api.get(`/pipelines/${pipelineId}`),
-        api.get(`/pipelines/${pipelineId}/runs`),
+        api.pipelines.getById(pipelineId),
+        api.pipelines.runs(pipelineId),
       ])
-      setPipeline(pipelineRes.data)
-      setRuns(runsRes.data.runs)
+      setPipeline(pipelineRes)
+      setRuns(runsRes.runs || [])
     } catch (error) {
       console.error('Failed to load data:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [pipelineId])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const formatDuration = (seconds: number | null) => {
     if (!seconds) return '-'

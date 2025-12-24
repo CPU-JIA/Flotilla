@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { WikiController } from './wiki.controller';
 import { WikiService } from './wiki.service';
 import { PermissionService } from '../common/services/permission.service';
+import { User, UserRole } from '@prisma/client';
 
 /**
  * WikiController Unit Tests
@@ -12,6 +13,7 @@ describe('WikiController', () => {
   let controller: WikiController;
   let wikiService: WikiService;
   let permissionService: PermissionService;
+  const mockUser: User = { id: 'user-1', username: 'testuser', email: 'test@example.com', passwordHash: 'hash', role: UserRole.USER, avatar: null, bio: null, isActive: true, emailVerified: true, emailVerifyToken: null, emailVerifyExpires: null, passwordResetToken: null, passwordResetExpires: null, tokenVersion: 0, createdAt: new Date(), updatedAt: new Date() };
 
   const mockWikiService = {
     createPage: jest.fn(),
@@ -82,17 +84,17 @@ describe('WikiController', () => {
       mockPermissionService.checkProjectPermission.mockResolvedValue(undefined);
       mockWikiService.createPage.mockResolvedValue(mockPage);
 
-      const result = await controller.createPage(projectId, userId, createDto);
+      const result = await controller.createPage(projectId, mockUser, createDto);
 
       expect(result).toEqual(mockPage);
       expect(permissionService.checkProjectPermission).toHaveBeenCalledWith(
-        userId,
+        mockUser,
         projectId,
         'MEMBER',
       );
       expect(wikiService.createPage).toHaveBeenCalledWith(
         projectId,
-        userId,
+        mockUser.id,
         createDto,
       );
     });
@@ -103,7 +105,7 @@ describe('WikiController', () => {
       );
 
       await expect(
-        controller.createPage(projectId, userId, createDto),
+        controller.createPage(projectId, mockUser, createDto),
       ).rejects.toThrow();
       expect(wikiService.createPage).not.toHaveBeenCalled();
     });
@@ -130,11 +132,11 @@ describe('WikiController', () => {
       mockPermissionService.checkProjectPermission.mockResolvedValue(undefined);
       mockWikiService.getWikiTree.mockResolvedValue(mockTree);
 
-      const result = await controller.getWikiTree(projectId, userId);
+      const result = await controller.getWikiTree(projectId, mockUser);
 
       expect(result).toEqual(mockTree);
       expect(permissionService.checkProjectPermission).toHaveBeenCalledWith(
-        userId,
+        mockUser,
         projectId,
         'VIEWER',
       );
@@ -146,7 +148,7 @@ describe('WikiController', () => {
         new Error('Forbidden'),
       );
 
-      await expect(controller.getWikiTree(projectId, userId)).rejects.toThrow();
+      await expect(controller.getWikiTree(projectId, mockUser)).rejects.toThrow();
       expect(wikiService.getWikiTree).not.toHaveBeenCalled();
     });
   });
@@ -179,11 +181,11 @@ describe('WikiController', () => {
       mockPermissionService.checkProjectPermission.mockResolvedValue(undefined);
       mockWikiService.getPage.mockResolvedValue(mockPage);
 
-      const result = await controller.getPage(projectId, slug, userId);
+      const result = await controller.getPage(projectId, slug, mockUser);
 
       expect(result).toEqual(mockPage);
       expect(permissionService.checkProjectPermission).toHaveBeenCalledWith(
-        userId,
+        mockUser,
         projectId,
         'VIEWER',
       );
@@ -222,23 +224,18 @@ describe('WikiController', () => {
       mockPermissionService.checkProjectPermission.mockResolvedValue(undefined);
       mockWikiService.updatePage.mockResolvedValue(mockPage);
 
-      const result = await controller.updatePage(
-        projectId,
-        slug,
-        userId,
-        updateDto,
-      );
+      const result = await controller.updatePage(projectId, slug, mockUser, updateDto);
 
       expect(result).toEqual(mockPage);
       expect(permissionService.checkProjectPermission).toHaveBeenCalledWith(
-        userId,
+        mockUser,
         projectId,
         'MEMBER',
       );
       expect(wikiService.updatePage).toHaveBeenCalledWith(
         projectId,
         slug,
-        userId,
+        mockUser.id,
         updateDto,
       );
     });
@@ -249,7 +246,7 @@ describe('WikiController', () => {
       );
 
       await expect(
-        controller.updatePage(projectId, slug, userId, updateDto),
+        controller.updatePage(projectId, slug, mockUser, updateDto),
       ).rejects.toThrow();
       expect(wikiService.updatePage).not.toHaveBeenCalled();
     });
@@ -264,10 +261,10 @@ describe('WikiController', () => {
       mockPermissionService.checkProjectPermission.mockResolvedValue(undefined);
       mockWikiService.deletePage.mockResolvedValue(undefined);
 
-      await controller.deletePage(projectId, slug, userId);
+      await controller.deletePage(projectId, slug, mockUser);
 
       expect(permissionService.checkProjectPermission).toHaveBeenCalledWith(
-        userId,
+        mockUser,
         projectId,
         'MAINTAINER',
       );
@@ -280,7 +277,7 @@ describe('WikiController', () => {
       );
 
       await expect(
-        controller.deletePage(projectId, slug, userId),
+        controller.deletePage(projectId, slug, mockUser),
       ).rejects.toThrow();
       expect(wikiService.deletePage).not.toHaveBeenCalled();
     });
@@ -313,11 +310,11 @@ describe('WikiController', () => {
       mockPermissionService.checkProjectPermission.mockResolvedValue(undefined);
       mockWikiService.getPageHistory.mockResolvedValue(mockHistory);
 
-      const result = await controller.getPageHistory(projectId, slug, userId);
+      const result = await controller.getPageHistory(projectId, slug, mockUser);
 
       expect(result).toEqual(mockHistory);
       expect(permissionService.checkProjectPermission).toHaveBeenCalledWith(
-        userId,
+        mockUser,
         projectId,
         'VIEWER',
       );

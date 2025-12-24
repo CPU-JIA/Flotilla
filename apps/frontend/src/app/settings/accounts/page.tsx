@@ -201,7 +201,7 @@ export default function AccountsPage() {
                   >
                     <div className="flex items-center gap-4">
                       <div className={`p-2 rounded ${config.color}`}>
-                        {typeof Icon === 'function' ? <Icon /> : <Icon className="w-5 h-5" />}
+                        <Icon className="w-5 h-5" />
                       </div>
                       <div>
                         <div className="font-medium">{config.name}</div>
@@ -247,7 +247,7 @@ export default function AccountsPage() {
                 >
                   <div className="flex items-center gap-4">
                     <div className={`p-2 rounded ${config.color}`}>
-                      {typeof Icon === 'function' ? <Icon /> : <Icon className="w-5 h-5" />}
+                      <Icon className="w-5 h-5" />
                     </div>
                     <div>
                       <div className="font-medium">{config.name}</div>

@@ -3,6 +3,7 @@ import { OrganizationsController } from './organizations.controller';
 import { OrganizationsService } from './organizations.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { OrganizationRoleGuard } from './guards/organization-role.guard';
 
 describe('OrganizationsController', () => {
   let controller: OrganizationsController;
@@ -13,11 +14,11 @@ describe('OrganizationsController', () => {
     create: jest.fn(),
     findBySlug: jest.fn(),
     update: jest.fn(),
-    delete: jest.fn(),
+    remove: jest.fn(),
     addMember: jest.fn(),
     removeMember: jest.fn(),
     updateMemberRole: jest.fn(),
-    getMembers: jest.fn(),
+    findMembers: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -29,7 +30,10 @@ describe('OrganizationsController', () => {
           useValue: mockOrganizationsService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(OrganizationRoleGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<OrganizationsController>(OrganizationsController);
     service = module.get<OrganizationsService>(OrganizationsService);
@@ -128,10 +132,10 @@ describe('OrganizationsController', () => {
 
       mockOrganizationsService.update.mockResolvedValue(mockUpdatedOrg);
 
-      const result = await controller.update(slug, updateDto);
+      const result = await controller.update(slug, "user-123", updateDto);
 
       expect(result).toEqual(mockUpdatedOrg);
-      expect(service.update).toHaveBeenCalledWith(slug, updateDto);
+      expect(service.update).toHaveBeenCalledWith(slug, "user-123", updateDto);
     });
   });
 
@@ -139,14 +143,14 @@ describe('OrganizationsController', () => {
     it('should delete an organization', async () => {
       const slug = 'org-alpha';
 
-      mockOrganizationsService.delete.mockResolvedValue({
+      mockOrganizationsService.remove.mockResolvedValue({
         message: 'Organization deleted',
       });
 
-      const result = await controller.delete(slug);
+      const result = await controller.remove(slug, "user-123");
 
       expect(result).toEqual({ message: 'Organization deleted' });
-      expect(service.delete).toHaveBeenCalledWith(slug);
+      expect(service.remove).toHaveBeenCalledWith(slug, "user-123");
     });
   });
 
@@ -154,7 +158,7 @@ describe('OrganizationsController', () => {
     it('should add a member to organization', async () => {
       const slug = 'org-alpha';
       const addMemberDto = {
-        userId: 'user-456',
+        email: 'dev@example.com',
         role: 'MEMBER' as const,
       };
 
@@ -210,12 +214,12 @@ describe('OrganizationsController', () => {
         },
       ];
 
-      mockOrganizationsService.getMembers.mockResolvedValue(mockMembers);
+      mockOrganizationsService.findMembers.mockResolvedValue(mockMembers);
 
-      const result = await controller.getMembers(slug);
+      const result = await controller.findMembers(slug);
 
       expect(result).toEqual(mockMembers);
-      expect(service.getMembers).toHaveBeenCalledWith(slug);
+      expect(service.findMembers).toHaveBeenCalledWith(slug);
     });
   });
 });

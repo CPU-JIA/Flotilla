@@ -244,9 +244,9 @@ export default function BranchProtectionPage() {
       <BranchProtectionDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
+        mode={editingRule ? 'edit' : 'create'}
         rule={editingRule || undefined}
         onSubmit={handleSubmit}
-        isLoading={submitting}
       />
     </>
   )
