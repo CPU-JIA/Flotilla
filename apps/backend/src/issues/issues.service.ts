@@ -481,7 +481,7 @@ export class IssuesService {
    * 关闭Issue
    */
   async close(projectId: string, number: number): Promise<Issue> {
-    const issue = await this.findOne(projectId, number); // 验证存在
+    const _issue = await this.findOne(projectId, number); // 验证存在
 
     const closedIssue = await this.prisma.issue.update({
       where: {

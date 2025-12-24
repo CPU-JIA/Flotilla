@@ -1,5 +1,5 @@
-import { PartialType } from '@nestjs/swagger'
-import { CreatePipelineDto } from './create-pipeline.dto'
+import { PartialType } from '@nestjs/swagger';
+import { CreatePipelineDto } from './create-pipeline.dto';
 
 /**
  * 更新流水线配置 DTO

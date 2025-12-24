@@ -1,5 +1,5 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator'
-import { ApiProperty } from '@nestjs/swagger'
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 /**
  * Link OAuth Account DTO
@@ -10,10 +10,10 @@ export class LinkOAuthDto {
   @ApiProperty({ description: 'OAuth provider', enum: ['github', 'google'] })
   @IsNotEmpty()
   @IsEnum(['github', 'google'])
-  provider: 'github' | 'google'
+  provider: 'github' | 'google';
 
   @ApiProperty({ description: 'OAuth authorization code' })
   @IsNotEmpty()
   @IsString()
-  code: string
+  code: string;
 }

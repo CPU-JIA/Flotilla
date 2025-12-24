@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common'
-import { TwoFactorService } from './two-factor.service'
-import { TwoFactorController } from './two-factor.controller'
-import { PrismaModule } from '../../prisma/prisma.module'
+import { Module } from '@nestjs/common';
+import { TwoFactorService } from './two-factor.service';
+import { TwoFactorController } from './two-factor.controller';
+import { PrismaModule } from '../../prisma/prisma.module';
 
 /**
  * 双因素认证模块

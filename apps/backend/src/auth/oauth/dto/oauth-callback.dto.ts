@@ -1,5 +1,5 @@
-import { IsNotEmpty, IsString } from 'class-validator'
-import { ApiProperty } from '@nestjs/swagger'
+import { IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 /**
  * OAuth Callback DTO
@@ -10,9 +10,12 @@ export class OAuthCallbackDto {
   @ApiProperty({ description: 'OAuth authorization code' })
   @IsNotEmpty()
   @IsString()
-  code: string
+  code: string;
 
-  @ApiProperty({ description: 'State parameter for CSRF protection', required: false })
+  @ApiProperty({
+    description: 'State parameter for CSRF protection',
+    required: false,
+  })
   @IsString()
-  state?: string
+  state?: string;
 }

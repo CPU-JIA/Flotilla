@@ -1,6 +1,6 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
-import { CollaborationSession, CollaborationParticipant } from '@prisma/client'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { CollaborationSession, CollaborationParticipant } from '@prisma/client';
 
 /**
  * 实时协作编辑服务
@@ -18,7 +18,7 @@ import { CollaborationSession, CollaborationParticipant } from '@prisma/client'
  */
 @Injectable()
 export class CollaborationService {
-  private readonly logger = new Logger(CollaborationService.name)
+  private readonly logger = new Logger(CollaborationService.name);
 
   constructor(private prisma: PrismaService) {}
 
@@ -38,7 +38,7 @@ export class CollaborationService {
     projectId: string,
   ): Promise<CollaborationSession> {
     if (!documentId || !projectId) {
-      throw new Error('documentId and projectId are required')
+      throw new Error('documentId and projectId are required');
     }
 
     // 检查是否已存在活跃会话
@@ -50,13 +50,13 @@ export class CollaborationService {
       include: {
         participants: true,
       },
-    })
+    });
 
     if (existingSession) {
       this.logger.log(
         `Reusing existing session for document ${documentId} in project ${projectId}`,
-      )
-      return existingSession
+      );
+      return existingSession;
     }
 
     const session = await this.prisma.collaborationSession.create({
@@ -68,13 +68,13 @@ export class CollaborationService {
       include: {
         participants: true,
       },
-    })
+    });
 
     this.logger.log(
       `Created collaboration session ${session.id} for document ${documentId}`,
-    )
+    );
 
-    return session
+    return session;
   }
 
   /**
@@ -93,16 +93,16 @@ export class CollaborationService {
     color: string,
   ): Promise<CollaborationParticipant> {
     if (!sessionId || !userId || !color) {
-      throw new Error('sessionId, userId, and color are required')
+      throw new Error('sessionId, userId, and color are required');
     }
 
     // 验证会话存在
     const session = await this.prisma.collaborationSession.findUnique({
       where: { id: sessionId },
-    })
+    });
 
     if (!session) {
-      throw new NotFoundException(`Session ${sessionId} not found`)
+      throw new NotFoundException(`Session ${sessionId} not found`);
     }
 
     // 检查用户是否已在会话中
@@ -114,7 +114,7 @@ export class CollaborationService {
             userId,
           },
         },
-      })
+      });
 
     if (existingParticipant) {
       // 更新最后活跃时间
@@ -124,10 +124,10 @@ export class CollaborationService {
           lastActiveAt: new Date(),
           color, // 允许更新颜色
         },
-      })
+      });
 
-      this.logger.log(`User ${userId} rejoined session ${sessionId}`)
-      return updated
+      this.logger.log(`User ${userId} rejoined session ${sessionId}`);
+      return updated;
     }
 
     // 创建新参与者
@@ -137,10 +137,10 @@ export class CollaborationService {
         userId,
         color,
       },
-    })
+    });
 
-    this.logger.log(`User ${userId} joined session ${sessionId}`)
-    return participant
+    this.logger.log(`User ${userId} joined session ${sessionId}`);
+    return participant;
   }
 
   /**
@@ -153,7 +153,7 @@ export class CollaborationService {
    */
   async leaveSession(sessionId: string, userId: string): Promise<void> {
     if (!sessionId || !userId) {
-      throw new Error('sessionId and userId are required')
+      throw new Error('sessionId and userId are required');
     }
 
     await this.prisma.collaborationParticipant.deleteMany({
@@ -161,23 +161,23 @@ export class CollaborationService {
         sessionId,
         userId,
       },
-    })
+    });
 
-    this.logger.log(`User ${userId} left session ${sessionId}`)
+    this.logger.log(`User ${userId} left session ${sessionId}`);
 
     // 检查会话是否还有参与者，如果没有则删除会话
     const remainingParticipants =
       await this.prisma.collaborationParticipant.count({
         where: { sessionId },
-      })
+      });
 
     if (remainingParticipants === 0) {
       await this.prisma.collaborationSession.delete({
         where: { id: sessionId },
-      })
+      });
       this.logger.log(
         `Session ${sessionId} deleted (no remaining participants)`,
-      )
+      );
     }
   }
 
@@ -189,19 +189,9 @@ export class CollaborationService {
    *
    * ECP-C3: Performance Awareness - 使用include优化查询
    */
-  async getActiveUsers(sessionId: string): Promise<
-    Array<
-      CollaborationParticipant & {
-        user: {
-          id: string
-          username: string
-          avatar: string | null
-        }
-      }
-    >
-  > {
+  async getActiveUsers(sessionId: string) {
     if (!sessionId) {
-      throw new Error('sessionId is required')
+      throw new Error('sessionId is required');
     }
 
     const participants = await this.prisma.collaborationParticipant.findMany({
@@ -218,9 +208,9 @@ export class CollaborationService {
       orderBy: {
         joinedAt: 'asc',
       },
-    })
+    });
 
-    return participants
+    return participants;
   }
 
   /**
@@ -233,7 +223,7 @@ export class CollaborationService {
    */
   async updateLastActive(sessionId: string, userId: string): Promise<void> {
     if (!sessionId || !userId) {
-      return
+      return;
     }
 
     await this.prisma.collaborationParticipant.updateMany({
@@ -244,7 +234,7 @@ export class CollaborationService {
       data: {
         lastActiveAt: new Date(),
       },
-    })
+    });
   }
 
   /**
@@ -261,19 +251,7 @@ export class CollaborationService {
     documentId: string,
     documentType: 'file' | 'wiki',
     projectId: string,
-  ): Promise<
-    CollaborationSession & {
-      participants: Array<
-        CollaborationParticipant & {
-          user: {
-            id: string
-            username: string
-            avatar: string | null
-          }
-        }
-      >
-    }
-  > {
+  ) {
     const existingSession = await this.prisma.collaborationSession.findFirst({
       where: {
         documentId,
@@ -292,10 +270,10 @@ export class CollaborationService {
           },
         },
       },
-    })
+    });
 
     if (existingSession) {
-      return existingSession
+      return existingSession;
     }
 
     return await this.prisma.collaborationSession.create({
@@ -317,7 +295,7 @@ export class CollaborationService {
           },
         },
       },
-    })
+    });
   }
 
   /**
@@ -330,7 +308,7 @@ export class CollaborationService {
    * ECP-C3: Performance Awareness - 批量删除优化性能
    */
   async cleanupInactiveSessions(inactiveMinutes = 30): Promise<number> {
-    const threshold = new Date(Date.now() - inactiveMinutes * 60 * 1000)
+    const threshold = new Date(Date.now() - inactiveMinutes * 60 * 1000);
 
     // 查找没有最近活跃参与者的会话
     const inactiveSessions = await this.prisma.collaborationSession.findMany({
@@ -348,12 +326,12 @@ export class CollaborationService {
           },
         },
       },
-    })
+    });
 
     // 过滤出真正不活跃的会话（没有任何活跃参与者）
     const sessionsToDelete = inactiveSessions
       .filter((session) => session.participants.length === 0)
-      .map((session) => session.id)
+      .map((session) => session.id);
 
     if (sessionsToDelete.length > 0) {
       await this.prisma.collaborationSession.deleteMany({
@@ -362,13 +340,13 @@ export class CollaborationService {
             in: sessionsToDelete,
           },
         },
-      })
+      });
 
       this.logger.log(
         `Cleaned up ${sessionsToDelete.length} inactive sessions`,
-      )
+      );
     }
 
-    return sessionsToDelete.length
+    return sessionsToDelete.length;
   }
 }

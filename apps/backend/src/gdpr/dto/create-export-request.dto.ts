@@ -1,5 +1,5 @@
-import { IsEnum } from 'class-validator'
-import { ApiProperty } from '@nestjs/swagger'
+import { IsEnum } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export enum ExportFormat {
   JSON = 'JSON',
@@ -13,5 +13,5 @@ export class CreateExportRequestDto {
     description: 'Export format (JSON or CSV)',
   })
   @IsEnum(ExportFormat)
-  format: ExportFormat = ExportFormat.JSON
+  format: ExportFormat = ExportFormat.JSON;
 }

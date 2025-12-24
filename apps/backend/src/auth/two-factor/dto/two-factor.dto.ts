@@ -1,5 +1,5 @@
-import { IsString, IsNotEmpty, Matches } from 'class-validator'
-import { ApiProperty } from '@nestjs/swagger'
+import { IsString, IsNotEmpty, Matches } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 /**
  * 启用 2FA DTO
@@ -11,7 +11,7 @@ export class Enable2FADto {
   })
   @IsString()
   @IsNotEmpty()
-  secret: string
+  secret: string;
 
   @ApiProperty({
     description: 'TOTP verification code (6 digits)',
@@ -21,7 +21,7 @@ export class Enable2FADto {
   @IsString()
   @IsNotEmpty()
   @Matches(/^\d{6}$/, { message: 'Token must be a 6-digit number' })
-  token: string
+  token: string;
 }
 
 /**
@@ -34,7 +34,7 @@ export class Verify2FADto {
   })
   @IsString()
   @IsNotEmpty()
-  token: string
+  token: string;
 }
 
 /**
@@ -47,5 +47,5 @@ export class Disable2FADto {
   })
   @IsString()
   @IsNotEmpty()
-  token: string
+  token: string;
 }

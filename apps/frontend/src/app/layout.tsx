@@ -10,7 +10,7 @@ import { translations } from '@/locales'
 import { MantineProvider } from '@mantine/core'
 import { Notifications } from '@mantine/notifications'
 import { mantineTheme } from '@/config/mantine-theme'
-import { Toaster } from 'sonner'
+import { Toaster } from '@/components/ui/sonner'
 
 // Mantine CSS imports
 import '@mantine/core/styles.css'

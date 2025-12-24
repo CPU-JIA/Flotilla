@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common'
-import { PassportStrategy } from '@nestjs/passport'
-import { Strategy, Profile } from 'passport-github2'
-import { ConfigService } from '@nestjs/config'
-import { OAuthProfileDto } from '../dto/oauth-profile.dto'
+import { Injectable } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { Strategy, Profile } from 'passport-github2';
+import { ConfigService } from '@nestjs/config';
+import { OAuthProfileDto } from '../dto/oauth-profile.dto';
 
 /**
  * GitHub OAuth Strategy
@@ -18,17 +18,21 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
       clientSecret: configService.get<string>('GITHUB_CLIENT_SECRET'),
       callbackURL: configService.get<string>('GITHUB_CALLBACK_URL'),
       scope: ['user:email'], // 请求用户邮箱权限
-    })
+    });
 
     // 🔒 SECURITY: 验证必需的环境变量
     if (!this.configService.get<string>('GITHUB_CLIENT_ID')) {
-      throw new Error('GITHUB_CLIENT_ID must be set in environment variables')
+      throw new Error('GITHUB_CLIENT_ID must be set in environment variables');
     }
     if (!this.configService.get<string>('GITHUB_CLIENT_SECRET')) {
-      throw new Error('GITHUB_CLIENT_SECRET must be set in environment variables')
+      throw new Error(
+        'GITHUB_CLIENT_SECRET must be set in environment variables',
+      );
     }
     if (!this.configService.get<string>('GITHUB_CALLBACK_URL')) {
-      throw new Error('GITHUB_CALLBACK_URL must be set in environment variables')
+      throw new Error(
+        'GITHUB_CALLBACK_URL must be set in environment variables',
+      );
     }
   }
 
@@ -41,20 +45,20 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
    * @param profile GitHub user profile
    * @param done Passport callback
    */
-  async validate(
+  validate(
     accessToken: string,
     refreshToken: string,
     profile: Profile,
     done: (error: any, user?: any) => void,
-  ): Promise<any> {
+  ): any {
     try {
       // 提取主要邮箱（已验证的邮箱）
-      const emails = profile.emails || []
-      const primaryEmail = emails.find((e) => e.primary && e.verified)?.value
-      const firstEmail = emails[0]?.value
+      const emails = profile.emails || [];
+      const primaryEmail = emails.find((e) => e.primary && e.verified)?.value;
+      const firstEmail = emails[0]?.value;
 
       if (!primaryEmail && !firstEmail) {
-        throw new Error('No verified email found in GitHub account')
+        throw new Error('No verified email found in GitHub account');
       }
 
       // 构造标准化 OAuth Profile
@@ -75,11 +79,11 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
           location: profile._json.location,
           bio: profile._json.bio,
         },
-      }
+      };
 
-      done(null, oauthProfile)
+      done(null, oauthProfile);
     } catch (error) {
-      done(error, null)
+      done(error, null);
     }
   }
 }

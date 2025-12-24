@@ -1,5 +1,5 @@
-import { IsString, IsNotEmpty } from 'class-validator'
-import { ApiProperty } from '@nestjs/swagger'
+import { IsString, IsNotEmpty } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 /**
  * 2FA 登录验证 DTO
@@ -11,7 +11,7 @@ export class Login2FADto {
   })
   @IsString()
   @IsNotEmpty()
-  pendingToken: string
+  pendingToken: string;
 
   @ApiProperty({
     description: 'TOTP verification code or recovery code',
@@ -19,5 +19,5 @@ export class Login2FADto {
   })
   @IsString()
   @IsNotEmpty()
-  token: string
+  token: string;
 }

@@ -1,4 +1,4 @@
-import { ApiPropertyOptional } from '@nestjs/swagger'
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsOptional,
@@ -6,7 +6,7 @@ import {
   Min,
   MaxLength,
   Matches,
-} from 'class-validator'
+} from 'class-validator';
 
 /**
  * 更新 Wiki 页面 DTO
@@ -26,7 +26,7 @@ export class UpdateWikiPageDto {
     message:
       'Slug must be lowercase alphanumeric with hyphens (e.g., "getting-started")',
   })
-  slug?: string
+  slug?: string;
 
   @ApiPropertyOptional({
     description: '新的页面标题',
@@ -36,7 +36,7 @@ export class UpdateWikiPageDto {
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  title?: string
+  title?: string;
 
   @ApiPropertyOptional({
     description: '新的 Markdown 内容',
@@ -44,7 +44,7 @@ export class UpdateWikiPageDto {
   })
   @IsOptional()
   @IsString()
-  content?: string
+  content?: string;
 
   @ApiPropertyOptional({
     description: '新的父页面 ID（null 表示移动到根级别）',
@@ -53,7 +53,7 @@ export class UpdateWikiPageDto {
   })
   @IsOptional()
   @IsString()
-  parentId?: string | null
+  parentId?: string | null;
 
   @ApiPropertyOptional({
     description: '新的排序顺序',
@@ -62,7 +62,7 @@ export class UpdateWikiPageDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  order?: number
+  order?: number;
 
   @ApiPropertyOptional({
     description: '编辑说明（类似 Git commit message）',
@@ -72,5 +72,5 @@ export class UpdateWikiPageDto {
   @IsOptional()
   @IsString()
   @MaxLength(500)
-  message?: string
+  message?: string;
 }

@@ -10,7 +10,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -18,15 +18,18 @@ import {
   ApiBearerAuth,
   ApiQuery,
   ApiParam,
-} from '@nestjs/swagger'
-import { PipelinesService } from './pipelines.service'
-import { CreatePipelineDto } from './dto/create-pipeline.dto'
-import { UpdatePipelineDto } from './dto/update-pipeline.dto'
-import { TriggerPipelineDto } from './dto/trigger-pipeline.dto'
-import { UpdatePipelineStatusDto } from './dto/update-pipeline-status.dto'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { CurrentUser } from '../auth/decorators/current-user.decorator'
-import { PermissionService } from '../common/services/permission.service'
+  ApiBody,
+  ApiHeader,
+} from '@nestjs/swagger';
+import { PipelinesService } from './pipelines.service';
+import { CreatePipelineDto } from './dto/create-pipeline.dto';
+import { UpdatePipelineDto } from './dto/update-pipeline.dto';
+import { TriggerPipelineDto } from './dto/trigger-pipeline.dto';
+import { UpdatePipelineStatusDto } from './dto/update-pipeline-status.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { PermissionService } from '../common/services/permission.service';
+import { WebhookSignatureGuard } from './guards/webhook-signature.guard';
 
 /**
  * Pipelines Controller
@@ -63,9 +66,9 @@ export class PipelinesController {
       user.id,
       projectId,
       'MAINTAINER',
-    )
+    );
 
-    return this.pipelinesService.createPipeline(projectId, createPipelineDto)
+    return this.pipelinesService.createPipeline(projectId, createPipelineDto);
   }
 
   /**
@@ -94,13 +97,13 @@ export class PipelinesController {
       user.id,
       projectId,
       'VIEWER',
-    )
+    );
 
     return this.pipelinesService.getPipelines(
       projectId,
       parseInt(page, 10),
       parseInt(limit, 10),
-    )
+    );
   }
 
   /**
@@ -115,16 +118,16 @@ export class PipelinesController {
     @Param('pipelineId') pipelineId: string,
     @CurrentUser() user: any,
   ) {
-    const pipeline = await this.pipelinesService.getPipeline(pipelineId)
+    const pipeline = await this.pipelinesService.getPipeline(pipelineId);
 
     // 权限检查
     await this.permissionService.checkProjectPermission(
       user.id,
       pipeline.projectId,
       'VIEWER',
-    )
+    );
 
-    return pipeline
+    return pipeline;
   }
 
   /**
@@ -142,16 +145,16 @@ export class PipelinesController {
     @Body() updatePipelineDto: UpdatePipelineDto,
     @CurrentUser() user: any,
   ) {
-    const pipeline = await this.pipelinesService.getPipeline(pipelineId)
+    const pipeline = await this.pipelinesService.getPipeline(pipelineId);
 
     // 权限检查：需要 MAINTAINER 或以上权限
     await this.permissionService.checkProjectPermission(
       user.id,
       pipeline.projectId,
       'MAINTAINER',
-    )
+    );
 
-    return this.pipelinesService.updatePipeline(pipelineId, updatePipelineDto)
+    return this.pipelinesService.updatePipeline(pipelineId, updatePipelineDto);
   }
 
   /**
@@ -168,16 +171,16 @@ export class PipelinesController {
     @Param('pipelineId') pipelineId: string,
     @CurrentUser() user: any,
   ) {
-    const pipeline = await this.pipelinesService.getPipeline(pipelineId)
+    const pipeline = await this.pipelinesService.getPipeline(pipelineId);
 
     // 权限检查：需要 MAINTAINER 或以上权限
     await this.permissionService.checkProjectPermission(
       user.id,
       pipeline.projectId,
       'MAINTAINER',
-    )
+    );
 
-    await this.pipelinesService.deletePipeline(pipelineId)
+    await this.pipelinesService.deletePipeline(pipelineId);
   }
 
   /**
@@ -195,16 +198,19 @@ export class PipelinesController {
     @Body() triggerPipelineDto: TriggerPipelineDto,
     @CurrentUser() user: any,
   ) {
-    const pipeline = await this.pipelinesService.getPipeline(pipelineId)
+    const pipeline = await this.pipelinesService.getPipeline(pipelineId);
 
     // 权限检查：需要 MEMBER 或以上权限
     await this.permissionService.checkProjectPermission(
       user.id,
       pipeline.projectId,
       'MEMBER',
-    )
+    );
 
-    return this.pipelinesService.triggerPipeline(pipelineId, triggerPipelineDto)
+    return this.pipelinesService.triggerPipeline(
+      pipelineId,
+      triggerPipelineDto,
+    );
   }
 
   /**
@@ -229,20 +235,20 @@ export class PipelinesController {
     @Query('limit') limit: string = '20',
     @CurrentUser() user: any,
   ) {
-    const pipeline = await this.pipelinesService.getPipeline(pipelineId)
+    const pipeline = await this.pipelinesService.getPipeline(pipelineId);
 
     // 权限检查
     await this.permissionService.checkProjectPermission(
       user.id,
       pipeline.projectId,
       'VIEWER',
-    )
+    );
 
     return this.pipelinesService.getPipelineRuns(
       pipelineId,
       parseInt(page, 10),
       parseInt(limit, 10),
-    )
+    );
   }
 
   /**
@@ -257,35 +263,46 @@ export class PipelinesController {
     @Param('runId') runId: string,
     @CurrentUser() user: any,
   ) {
-    const run = await this.pipelinesService.getPipelineRun(runId)
+    const run = await this.pipelinesService.getPipelineRun(runId);
 
     // 权限检查
     await this.permissionService.checkProjectPermission(
       user.id,
       run.pipeline.projectId,
       'VIEWER',
-    )
+    );
 
-    return run
+    return run;
   }
 
   /**
    * 外部CI系统回调接口
    * 更新流水线运行状态
-   * 注意：实际生产环境应该使用Webhook签名验证而非JWT
+   * ECP-C1: 使用Webhook签名验证保护回调端点
    */
   @Post('pipeline-runs/:runId/status')
-  @ApiOperation({ summary: '更新流水线运行状态（外部CI回调）' })
+  @UseGuards(WebhookSignatureGuard)
+  @ApiOperation({
+    summary: '更新流水线运行状态（外部CI回调）',
+    description:
+      '由外部CI系统回调更新状态。需要X-Webhook-Signature头进行HMAC-SHA256签名验证。',
+  })
   @ApiParam({ name: 'runId', description: '运行记录ID' })
+  @ApiBody({ type: UpdatePipelineStatusDto })
+  @ApiHeader({
+    name: 'X-Webhook-Signature',
+    description: 'HMAC-SHA256签名 (格式: sha256=<hex>)',
+    required: true,
+  })
   @ApiResponse({ status: 200, description: '更新成功' })
   @ApiResponse({ status: 400, description: '状态转换非法' })
+  @ApiResponse({ status: 401, description: '签名验证失败' })
   @ApiResponse({ status: 404, description: '运行记录不存在' })
   async updatePipelineStatus(
     @Param('runId') runId: string,
     @Body() updateStatusDto: UpdatePipelineStatusDto,
   ) {
-    // TODO: 添加 Webhook 签名验证（生产环境必须）
-    return this.pipelinesService.updatePipelineStatus(runId, updateStatusDto)
+    return this.pipelinesService.updatePipelineStatus(runId, updateStatusDto);
   }
 
   /**
@@ -314,12 +331,12 @@ export class PipelinesController {
       user.id,
       projectId,
       'VIEWER',
-    )
+    );
 
     return this.pipelinesService.getProjectPipelineRuns(
       projectId,
       parseInt(page, 10),
       parseInt(limit, 10),
-    )
+    );
   }
 }

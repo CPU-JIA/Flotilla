@@ -31,6 +31,7 @@ import { PipelinesModule } from './pipelines/pipelines.module';
 import { CollaborationModule } from './collaboration/collaboration.module';
 import { WikiModule } from './wiki/wiki.module';
 import { WebhookModule } from './webhooks/webhooks.module';
+import { NewsletterModule } from './newsletter/newsletter.module';
 import { PerformanceMonitoringMiddleware } from './common/middleware/performance-monitoring.middleware';
 import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
 import { HttpsRedirectMiddleware } from './common/middleware/https-redirect.middleware';
@@ -88,6 +89,7 @@ import { CsrfMiddleware } from './common/middleware/csrf.middleware';
     CollaborationModule, // 实时协作编辑模块
     WikiModule, // Wiki 文档系统模块
     WebhookModule, // Webhook 事件推送模块
+    NewsletterModule, // Newsletter 订阅模块
   ],
   controllers: [AppController],
   providers: [

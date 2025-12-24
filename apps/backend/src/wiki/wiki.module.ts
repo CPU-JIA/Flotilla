@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common'
-import { WikiController } from './wiki.controller'
-import { WikiService } from './wiki.service'
-import { CommonModule } from '../common/common.module'
-import { PrismaModule } from '../prisma/prisma.module'
+import { Module } from '@nestjs/common';
+import { WikiController } from './wiki.controller';
+import { WikiService } from './wiki.service';
+import { CommonModule } from '../common/common.module';
+import { PrismaModule } from '../prisma/prisma.module';
 
 /**
  * Wiki Module

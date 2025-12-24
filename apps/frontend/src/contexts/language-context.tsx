@@ -1217,6 +1217,207 @@ export interface Translations {
       nameInvalidDoubleSlash: string
     }
   }
+
+  // Webhooks
+  webhooks: {
+    title: string
+    createNew: string
+    noWebhooks: string
+    totalWebhooks: string
+    description: string
+    emptyStateTitle: string
+    emptyStateDesc: string
+    url: string
+    urlPlaceholder: string
+    events: string
+    eventsPlaceholder: string
+    secret: string
+    secretPlaceholder: string
+    secretHelper: string
+    active: string
+    activeLabel: string
+    deliveries: string
+    createDialog: {
+      title: string
+      description: string
+    }
+    editDialog: {
+      title: string
+      description: string
+    }
+    createButton: string
+    updateButton: string
+    createSuccess: string
+    updateSuccess: string
+    deleteSuccess: string
+    createFailed: string
+    updateFailed: string
+    deleteFailed: string
+    confirmDelete: string
+    loading: string
+  }
+
+  // Pipelines
+  pipelines: {
+    title: string
+    createNew: string
+    noPipelines: string
+    totalPipelines: string
+    description: string
+    emptyStateTitle: string
+    emptyStateDesc: string
+    name: string
+    namePlaceholder: string
+    config: string
+    triggers: string
+    triggersPlaceholder: string
+    runs: string
+    totalRuns: string
+    trigger: string
+    triggering: string
+    triggerSuccess: string
+    triggerFailed: string
+    status: {
+      PENDING: string
+      RUNNING: string
+      SUCCESS: string
+      FAILURE: string
+      CANCELLED: string
+    }
+    createDialog: {
+      title: string
+      description: string
+    }
+    editDialog: {
+      title: string
+      description: string
+    }
+    createButton: string
+    updateButton: string
+    createSuccess: string
+    updateSuccess: string
+    deleteSuccess: string
+    createFailed: string
+    updateFailed: string
+    deleteFailed: string
+    confirmDelete: string
+    loading: string
+    runDetails: {
+      title: string
+      commitSha: string
+      branch: string
+      startedAt: string
+      finishedAt: string
+      duration: string
+      logs: string
+      noLogs: string
+      triggeredBy: string
+      cancel: string
+      cancelling: string
+      cancelSuccess: string
+      cancelFailed: string
+    }
+  }
+
+  // Branch Protection
+  branchProtection: {
+    title: string
+    createNew: string
+    noRules: string
+    totalRules: string
+    description: string
+    emptyStateTitle: string
+    emptyStateDesc: string
+    branchPattern: string
+    branchPatternPlaceholder: string
+    branchPatternHelper: string
+    requirePullRequest: string
+    requirePullRequestDesc: string
+    requiredApprovals: string
+    requiredApprovalsDesc: string
+    dismissStaleReviews: string
+    dismissStaleReviewsDesc: string
+    requireCodeOwnerReview: string
+    requireCodeOwnerReviewDesc: string
+    allowForcePushes: string
+    allowForcePushesDesc: string
+    allowDeletions: string
+    allowDeletionsDesc: string
+    requireStatusChecks: string
+    requireStatusChecksDesc: string
+    createDialog: {
+      title: string
+      description: string
+    }
+    editDialog: {
+      title: string
+      description: string
+    }
+    pullRequestSettings: string
+    advancedSettings: string
+    createButton: string
+    updateButton: string
+    createSuccess: string
+    updateSuccess: string
+    deleteSuccess: string
+    createFailed: string
+    updateFailed: string
+    deleteFailed: string
+    confirmDelete: string
+    loading: string
+  }
+
+  // GDPR & Privacy
+  gdpr: {
+    title: string
+    description: string
+    exportData: {
+      title: string
+      description: string
+      button: string
+      exporting: string
+      success: string
+      failed: string
+      confirmExport: string
+    }
+    deleteAccount: {
+      title: string
+      description: string
+      warning: string
+      button: string
+      deleting: string
+      success: string
+      failed: string
+      confirmDelete: string
+      confirmPrompt: string
+    }
+  }
+
+  // Audit Logs
+  auditLogs: {
+    title: string
+    description: string
+    personalLogs: string
+    adminLogs: string
+    event: string
+    action: string
+    timestamp: string
+    ipAddress: string
+    userAgent: string
+    details: string
+    noLogs: string
+    noLogsDesc: string
+    loading: string
+    loadFailed: string
+    filters: {
+      title: string
+      eventType: string
+      dateRange: string
+      user: string
+      apply: string
+      clear: string
+    }
+  }
 }
 
 interface LanguageContextType {

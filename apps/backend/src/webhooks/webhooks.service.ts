@@ -1,10 +1,10 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
-import { CreateWebhookDto } from './dto/create-webhook.dto'
-import { UpdateWebhookDto } from './dto/update-webhook.dto'
-import { Webhook, WebhookDelivery } from '@prisma/client'
-import * as crypto from 'crypto'
-import axios, { AxiosError } from 'axios'
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateWebhookDto } from './dto/create-webhook.dto';
+import { UpdateWebhookDto } from './dto/update-webhook.dto';
+import { Webhook, WebhookDelivery } from '@prisma/client';
+import * as crypto from 'crypto';
+import axios, { AxiosError } from 'axios';
 
 /**
  * Webhook Service
@@ -14,9 +14,9 @@ import axios, { AxiosError } from 'axios'
  */
 @Injectable()
 export class WebhookService {
-  private readonly logger = new Logger(WebhookService.name)
-  private readonly MAX_RETRIES = 3
-  private readonly DELIVERY_TIMEOUT = 10000 // 10s timeout
+  private readonly logger = new Logger(WebhookService.name);
+  private readonly MAX_RETRIES = 3;
+  private readonly DELIVERY_TIMEOUT = 10000; // 10s timeout
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -24,12 +24,9 @@ export class WebhookService {
    * 创建 Webhook
    * ECP-C1: 生成安全的随机密钥用于 HMAC 签名
    */
-  async createWebhook(
-    projectId: string,
-    dto: CreateWebhookDto,
-  ): Promise<Webhook> {
+  createWebhook(projectId: string, dto: CreateWebhookDto): Promise<Webhook> {
     // 生成随机密钥（32 字节 = 256 bits）
-    const secret = crypto.randomBytes(32).toString('hex')
+    const secret = crypto.randomBytes(32).toString('hex');
 
     return this.prisma.webhook.create({
       data: {
@@ -39,20 +36,17 @@ export class WebhookService {
         events: dto.events,
         active: dto.active ?? true,
       },
-    })
+    });
   }
 
   /**
    * 更新 Webhook
    */
-  async updateWebhook(
-    webhookId: string,
-    dto: UpdateWebhookDto,
-  ): Promise<Webhook> {
+  updateWebhook(webhookId: string, dto: UpdateWebhookDto): Promise<Webhook> {
     return this.prisma.webhook.update({
       where: { id: webhookId },
       data: dto,
-    })
+    });
   }
 
   /**
@@ -61,7 +55,7 @@ export class WebhookService {
   async deleteWebhook(webhookId: string): Promise<void> {
     await this.prisma.webhook.delete({
       where: { id: webhookId },
-    })
+    });
   }
 
   /**
@@ -70,23 +64,23 @@ export class WebhookService {
   async getWebhook(webhookId: string): Promise<Webhook> {
     const webhook = await this.prisma.webhook.findUnique({
       where: { id: webhookId },
-    })
+    });
 
     if (!webhook) {
-      throw new NotFoundException(`Webhook ${webhookId} not found`)
+      throw new NotFoundException(`Webhook ${webhookId} not found`);
     }
 
-    return webhook
+    return webhook;
   }
 
   /**
    * 列出项目的所有 Webhooks
    */
-  async listWebhooks(projectId: string): Promise<Webhook[]> {
+  listWebhooks(projectId: string): Promise<Webhook[]> {
     return this.prisma.webhook.findMany({
       where: { projectId },
       orderBy: { createdAt: 'desc' },
-    })
+    });
   }
 
   /**
@@ -107,34 +101,34 @@ export class WebhookService {
         projectId,
         active: true,
       },
-    })
+    });
 
     // 过滤匹配的 webhooks
     const matchedWebhooks = webhooks.filter((webhook) => {
       // 支持精确匹配 (e.g., "push") 和前缀匹配 (e.g., "pull_request.*")
       return webhook.events.some((subscribedEvent) => {
         if (subscribedEvent.endsWith('.*')) {
-          const prefix = subscribedEvent.slice(0, -2)
-          return event.startsWith(prefix)
+          const prefix = subscribedEvent.slice(0, -2);
+          return event.startsWith(prefix);
         }
-        return subscribedEvent === event
-      })
-    })
+        return subscribedEvent === event;
+      });
+    });
 
     if (matchedWebhooks.length === 0) {
       this.logger.debug(
         `No webhooks subscribed to event "${event}" for project ${projectId}`,
-      )
-      return
+      );
+      return;
     }
 
     // 异步投递到所有匹配的 webhooks
     // ECP-C3: Performance Awareness - 并行投递，不阻塞
     const deliveries = matchedWebhooks.map((webhook) =>
       this.deliverWebhook(webhook, event, payload),
-    )
+    );
 
-    await Promise.allSettled(deliveries)
+    await Promise.allSettled(deliveries);
   }
 
   /**
@@ -147,11 +141,11 @@ export class WebhookService {
     event: string,
     payload: Record<string, any>,
   ): Promise<WebhookDelivery> {
-    const startTime = Date.now()
+    const startTime = Date.now();
 
     try {
       // 生成 HMAC-SHA256 签名
-      const signature = this.generateSignature(webhook.secret, payload)
+      const signature = this.generateSignature(webhook.secret, payload);
 
       // 发送 HTTP POST 请求
       const response = await axios.post(webhook.url, payload, {
@@ -162,9 +156,9 @@ export class WebhookService {
           'User-Agent': 'Flotilla-Webhook/1.0',
         },
         timeout: this.DELIVERY_TIMEOUT,
-      })
+      });
 
-      const duration = Date.now() - startTime
+      const duration = Date.now() - startTime;
 
       // 记录成功的投递
       return this.prisma.webhookDelivery.create({
@@ -177,23 +171,23 @@ export class WebhookService {
           success: true,
           duration,
         },
-      })
+      });
     } catch (error) {
-      const duration = Date.now() - startTime
-      let statusCode: number | null = null
-      let errorMessage = 'Unknown error'
+      const duration = Date.now() - startTime;
+      let statusCode: number | null = null;
+      let errorMessage = 'Unknown error';
 
       if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError
-        statusCode = axiosError.response?.status ?? null
-        errorMessage = axiosError.message
+        const axiosError = error as AxiosError;
+        statusCode = axiosError.response?.status ?? null;
+        errorMessage = axiosError.message;
       } else if (error instanceof Error) {
-        errorMessage = error.message
+        errorMessage = error.message;
       }
 
       this.logger.error(
         `Webhook delivery failed for ${webhook.url}: ${errorMessage}`,
-      )
+      );
 
       // 记录失败的投递
       return this.prisma.webhookDelivery.create({
@@ -206,7 +200,7 @@ export class WebhookService {
           duration,
           error: errorMessage,
         },
-      })
+      });
     }
   }
 
@@ -218,14 +212,14 @@ export class WebhookService {
     const delivery = await this.prisma.webhookDelivery.findUnique({
       where: { id: deliveryId },
       include: { webhook: true },
-    })
+    });
 
     if (!delivery) {
-      throw new NotFoundException(`Delivery ${deliveryId} not found`)
+      throw new NotFoundException(`Delivery ${deliveryId} not found`);
     }
 
     if (delivery.success) {
-      throw new Error('Cannot retry a successful delivery')
+      throw new Error('Cannot retry a successful delivery');
     }
 
     // 重新投递
@@ -233,7 +227,7 @@ export class WebhookService {
       delivery.webhook,
       delivery.event,
       delivery.payload as Record<string, any>,
-    )
+    );
   }
 
   /**
@@ -254,20 +248,23 @@ export class WebhookService {
       this.prisma.webhookDelivery.count({
         where: { webhookId },
       }),
-    ])
+    ]);
 
-    return { deliveries, total }
+    return { deliveries, total };
   }
 
   /**
    * 生成 HMAC-SHA256 签名
    * ECP-C1: Security - HMAC 签名防止伪造请求
    */
-  private generateSignature(secret: string, payload: Record<string, any>): string {
-    const payloadString = JSON.stringify(payload)
-    const hmac = crypto.createHmac('sha256', secret)
-    hmac.update(payloadString)
-    return `sha256=${hmac.digest('hex')}`
+  private generateSignature(
+    secret: string,
+    payload: Record<string, any>,
+  ): string {
+    const payloadString = JSON.stringify(payload);
+    const hmac = crypto.createHmac('sha256', secret);
+    hmac.update(payloadString);
+    return `sha256=${hmac.digest('hex')}`;
   }
 
   /**
@@ -275,11 +272,12 @@ export class WebhookService {
    * ECP-C3: Performance Awareness - 限制数据库存储大小
    */
   private truncateResponse(data: any): string {
-    const responseString = typeof data === 'string' ? data : JSON.stringify(data)
-    const MAX_LENGTH = 1000
+    const responseString =
+      typeof data === 'string' ? data : JSON.stringify(data);
+    const MAX_LENGTH = 1000;
     if (responseString.length > MAX_LENGTH) {
-      return responseString.substring(0, MAX_LENGTH) + '... (truncated)'
+      return responseString.substring(0, MAX_LENGTH) + '... (truncated)';
     }
-    return responseString
+    return responseString;
   }
 }

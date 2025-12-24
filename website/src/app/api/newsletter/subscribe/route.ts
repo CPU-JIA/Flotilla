@@ -1,61 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-// Simple in-memory storage for demo (replace with database in production)
-const subscribers = new Set<string>()
-
 /**
  * POST /api/newsletter/subscribe
  * Subscribe to newsletter
+ * 将订阅请求转发到后端API
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { email } = body
 
-    // Validation
-    if (!email || typeof email !== 'string') {
-      return NextResponse.json(
-        { message: 'Email is required' },
-        { status: 400 }
-      )
-    }
-
-    // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { message: 'Invalid email format' },
-        { status: 400 }
-      )
-    }
-
-    // Normalize email (lowercase)
-    const normalizedEmail = email.toLowerCase().trim()
-
-    // Check if already subscribed
-    if (subscribers.has(normalizedEmail)) {
-      return NextResponse.json(
-        { message: 'This email is already subscribed' },
-        { status: 409 }
-      )
-    }
-
-    // Add to subscribers (in production, save to database)
-    subscribers.add(normalizedEmail)
-
-    // TODO: Send confirmation email via Resend/SendGrid
-    // TODO: Store in PostgreSQL via backend API
-
-    console.log(`[Newsletter] New subscriber: ${normalizedEmail}`)
-    console.log(`[Newsletter] Total subscribers: ${subscribers.size}`)
-
-    return NextResponse.json(
-      {
-        message: 'Successfully subscribed',
-        email: normalizedEmail,
+    // 转发到后端API
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+    const response = await fetch(`${backendUrl}/newsletter/subscribe`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-      { status: 201 }
-    )
+      body: JSON.stringify({ email }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      return NextResponse.json(data, { status: response.status })
+    }
+
+    return NextResponse.json(data, { status: response.status })
   } catch (error) {
     console.error('[Newsletter] Subscription error:', error)
     return NextResponse.json(
@@ -67,11 +38,17 @@ export async function POST(request: NextRequest) {
 
 /**
  * GET /api/newsletter/subscribe
- * Get subscriber count (for admin/stats)
+ * Get subscriber stats (proxy to backend)
  */
 export async function GET() {
-  return NextResponse.json({
-    count: subscribers.size,
-    // Don't expose actual emails for privacy
-  })
+  try {
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+    const response = await fetch(`${backendUrl}/newsletter/stats`)
+    const data = await response.json()
+
+    return NextResponse.json(data)
+  } catch (error) {
+    console.error('[Newsletter] Stats error:', error)
+    return NextResponse.json({ count: 0 })
+  }
 }

@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common'
-import { ApiTokenController } from './api-token.controller'
-import { ApiTokenService } from './api-token.service'
-import { PrismaModule } from '../../prisma/prisma.module'
+import { Module } from '@nestjs/common';
+import { ApiTokenController } from './api-token.controller';
+import { ApiTokenService } from './api-token.service';
+import { PrismaModule } from '../../prisma/prisma.module';
 
 /**
  * API Token 模块

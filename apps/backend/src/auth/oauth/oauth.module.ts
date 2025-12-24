@@ -1,11 +1,11 @@
-import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
-import { OAuthController } from './oauth.controller'
-import { OAuthService } from './oauth.service'
-import { GithubStrategy } from './strategies/github.strategy'
-import { GoogleStrategy } from './strategies/google.strategy'
-import { TokenService } from '../token.service'
-import { PrismaModule } from '../../prisma/prisma.module'
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { OAuthController } from './oauth.controller';
+import { OAuthService } from './oauth.service';
+import { GithubStrategy } from './strategies/github.strategy';
+import { GoogleStrategy } from './strategies/google.strategy';
+import { TokenService } from '../token.service';
+import { PrismaModule } from '../../prisma/prisma.module';
 
 /**
  * OAuth Module

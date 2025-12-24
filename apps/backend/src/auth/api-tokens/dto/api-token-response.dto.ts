@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger'
+import { ApiProperty } from '@nestjs/swagger';
 
 /**
  * API Token 列表响应 DTO
@@ -6,25 +6,25 @@ import { ApiProperty } from '@nestjs/swagger'
  */
 export class ApiTokenListDto {
   @ApiProperty({ description: '令牌ID' })
-  id: string
+  id: string;
 
   @ApiProperty({ description: '令牌名称' })
-  name: string
+  name: string;
 
   @ApiProperty({ description: '令牌前缀（前8字符）', example: 'flo_1234' })
-  tokenPrefix: string
+  tokenPrefix: string;
 
   @ApiProperty({ description: '作用域', example: ['read', 'write'] })
-  scopes: string[]
+  scopes: string[];
 
   @ApiProperty({ description: '过期时间（可选）', nullable: true })
-  expiresAt: Date | null
+  expiresAt: Date | null;
 
   @ApiProperty({ description: '最后使用时间（可选）', nullable: true })
-  lastUsedAt: Date | null
+  lastUsedAt: Date | null;
 
   @ApiProperty({ description: '创建时间' })
-  createdAt: Date
+  createdAt: Date;
 }
 
 /**
@@ -34,7 +34,8 @@ export class ApiTokenListDto {
 export class CreateApiTokenResponseDto extends ApiTokenListDto {
   @ApiProperty({
     description: '完整令牌（只在创建时显示一次）',
-    example: 'flo_1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd',
+    example:
+      'flo_1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd',
   })
-  token: string
+  token: string;
 }

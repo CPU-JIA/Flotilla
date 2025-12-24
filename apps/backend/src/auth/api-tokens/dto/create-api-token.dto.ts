@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger'
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsArray,
@@ -8,8 +8,8 @@ import {
   MinLength,
   MaxLength,
   ArrayMinSize,
-} from 'class-validator'
-import { Type } from 'class-transformer'
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
 /**
  * 创建 API Token DTO
@@ -25,7 +25,7 @@ export class CreateApiTokenDto {
   @IsString()
   @MinLength(1)
   @MaxLength(100)
-  name: string
+  name: string;
 
   @ApiProperty({
     description: '令牌作用域',
@@ -36,7 +36,7 @@ export class CreateApiTokenDto {
   @IsArray()
   @ArrayMinSize(1, { message: '至少需要选择一个作用域' })
   @IsIn(['read', 'write', 'admin'], { each: true })
-  scopes: string[]
+  scopes: string[];
 
   @ApiProperty({
     description: '令牌过期时间（可选）',
@@ -46,5 +46,5 @@ export class CreateApiTokenDto {
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  expiresAt?: Date
+  expiresAt?: Date;
 }

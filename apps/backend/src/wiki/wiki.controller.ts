@@ -9,25 +9,25 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
   ApiParam,
-} from '@nestjs/swagger'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { CurrentUser } from '../auth/decorators/current-user.decorator'
-import { WikiService } from './wiki.service'
-import { CreateWikiPageDto } from './dto/create-wiki-page.dto'
-import { UpdateWikiPageDto } from './dto/update-wiki-page.dto'
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { WikiService } from './wiki.service';
+import { CreateWikiPageDto } from './dto/create-wiki-page.dto';
+import { UpdateWikiPageDto } from './dto/update-wiki-page.dto';
 import {
   WikiPageResponseDto,
   WikiTreeNodeDto,
   WikiPageHistoryResponseDto,
-} from './dto/wiki-page-response.dto'
-import { PermissionService } from '../common/services/permission.service'
+} from './dto/wiki-page-response.dto';
+import { PermissionService } from '../common/services/permission.service';
 
 /**
  * Wiki Controller
@@ -71,9 +71,9 @@ export class WikiController {
       userId,
       projectId,
       'MEMBER',
-    )
+    );
 
-    return this.wikiService.createPage(projectId, userId, dto)
+    return this.wikiService.createPage(projectId, userId, dto);
   }
 
   /**
@@ -97,9 +97,9 @@ export class WikiController {
       userId,
       projectId,
       'VIEWER',
-    )
+    );
 
-    return this.wikiService.getWikiTree(projectId)
+    return this.wikiService.getWikiTree(projectId);
   }
 
   /**
@@ -126,9 +126,9 @@ export class WikiController {
       userId,
       projectId,
       'VIEWER',
-    )
+    );
 
-    return this.wikiService.getPage(projectId, slug)
+    return this.wikiService.getPage(projectId, slug);
   }
 
   /**
@@ -157,9 +157,9 @@ export class WikiController {
       userId,
       projectId,
       'MEMBER',
-    )
+    );
 
-    return this.wikiService.updatePage(projectId, slug, userId, dto)
+    return this.wikiService.updatePage(projectId, slug, userId, dto);
   }
 
   /**
@@ -184,9 +184,9 @@ export class WikiController {
       userId,
       projectId,
       'MAINTAINER',
-    )
+    );
 
-    return this.wikiService.deletePage(projectId, slug)
+    return this.wikiService.deletePage(projectId, slug);
   }
 
   /**
@@ -213,8 +213,8 @@ export class WikiController {
       userId,
       projectId,
       'VIEWER',
-    )
+    );
 
-    return this.wikiService.getPageHistory(projectId, slug)
+    return this.wikiService.getPageHistory(projectId, slug);
   }
 }

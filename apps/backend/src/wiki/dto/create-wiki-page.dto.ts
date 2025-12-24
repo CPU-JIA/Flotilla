@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsOptional,
@@ -6,7 +6,7 @@ import {
   Min,
   MaxLength,
   Matches,
-} from 'class-validator'
+} from 'class-validator';
 
 /**
  * 创建 Wiki 页面 DTO
@@ -25,7 +25,7 @@ export class CreateWikiPageDto {
     message:
       'Slug must be lowercase alphanumeric with hyphens (e.g., "getting-started")',
   })
-  slug: string
+  slug: string;
 
   @ApiProperty({
     description: '页面标题',
@@ -34,14 +34,14 @@ export class CreateWikiPageDto {
   })
   @IsString()
   @MaxLength(500)
-  title: string
+  title: string;
 
   @ApiProperty({
     description: 'Markdown 格式的页面内容',
     example: '# Getting Started\n\nWelcome to our wiki!',
   })
   @IsString()
-  content: string
+  content: string;
 
   @ApiPropertyOptional({
     description: '父页面 ID（用于创建子页面）',
@@ -49,7 +49,7 @@ export class CreateWikiPageDto {
   })
   @IsOptional()
   @IsString()
-  parentId?: string
+  parentId?: string;
 
   @ApiPropertyOptional({
     description: '同级页面排序顺序',
@@ -59,5 +59,5 @@ export class CreateWikiPageDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  order?: number
+  order?: number;
 }

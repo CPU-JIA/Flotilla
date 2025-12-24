@@ -1114,3 +1114,31 @@ model ApiToken {
   @@index([userId, createdAt(sort: Desc)]) // 优化用户令牌列表查询
   @@map("api_tokens")
 }
+
+// ============================================
+// Newsletter 模块
+// ============================================
+
+/**
+ * Newsletter 订阅者表
+ * 用于营销网站的Newsletter订阅功能
+ * 核心功能：
+ * - 邮箱订阅
+ * - 双重确认（发送确认邮件）
+ * - 取消订阅
+ * ECP-C1: 防御性编程 - 邮箱唯一性、确认token安全
+ */
+model NewsletterSubscriber {
+  id           String    @id @default(cuid())
+  email        String    @unique @db.VarChar(255) // 订阅邮箱
+  confirmToken String    @unique @db.VarChar(64) // 确认token（SHA256）
+  confirmed    Boolean   @default(false) // 是否已确认
+  confirmedAt  DateTime? // 确认时间
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([email]) // 快速查询邮箱
+  @@index([confirmed]) // 查询已确认/未确认订阅
+  @@index([createdAt(sort: Desc)]) // 按时间排序
+  @@map("newsletter_subscribers")
+}

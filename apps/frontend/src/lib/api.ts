@@ -1151,6 +1151,232 @@ export const api = {
   },
 
   // ============================================
+  // Webhooks API
+  // ============================================
+  webhooks: {
+    // 获取项目的所有Webhook
+    list: (projectId: string) =>
+      apiRequest<Array<{
+        id: string
+        projectId: string
+        url: string
+        secret?: string
+        events: string[]
+        active: boolean
+        createdAt: string
+        updatedAt: string
+        _count?: { deliveries: number }
+      }>>(`/webhooks/projects/${projectId}`),
+
+    // 创建Webhook
+    create: (projectId: string, data: {
+      url: string
+      events: string[]
+      secret?: string
+      active?: boolean
+    }) =>
+      apiRequest<{ id: string }>(`/webhooks/projects/${projectId}`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    // 更新Webhook
+    update: (webhookId: string, data: {
+      url?: string
+      events?: string[]
+      secret?: string
+      active?: boolean
+    }) =>
+      apiRequest<{ id: string }>(`/webhooks/${webhookId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    // 删除Webhook
+    delete: (webhookId: string) =>
+      apiRequest<{ message: string }>(`/webhooks/${webhookId}`, {
+        method: 'DELETE',
+      }),
+
+    // 获取Webhook投递记录
+    deliveries: (webhookId: string) =>
+      apiRequest<Array<{
+        id: string
+        webhookId: string
+        event: string
+        payload: Record<string, any>
+        statusCode: number | null
+        response: string | null
+        success: boolean
+        duration: number | null
+        error: string | null
+        deliveredAt: string
+      }>>(`/webhooks/${webhookId}/deliveries`),
+  },
+
+  // ============================================
+  // Pipelines API
+  // ============================================
+  pipelines: {
+    // 获取项目的所有Pipeline
+    list: (projectId: string) =>
+      apiRequest<Array<{
+        id: string
+        projectId: string
+        name: string
+        config: Record<string, any>
+        triggers: string[]
+        active: boolean
+        createdAt: string
+        updatedAt: string
+        _count?: { runs: number }
+      }>>(`/pipelines/projects/${projectId}`),
+
+    // 获取Pipeline详情
+    get: (pipelineId: string) =>
+      apiRequest<{
+        id: string
+        projectId: string
+        name: string
+        config: Record<string, any>
+        triggers: string[]
+        active: boolean
+        createdAt: string
+        updatedAt: string
+      }>(`/pipelines/${pipelineId}`),
+
+    // Alias for get (for compatibility)
+    getById: (pipelineId: string) =>
+      apiRequest<{
+        id: string
+        projectId: string
+        name: string
+        config: Record<string, any>
+        triggers: string[]
+        active: boolean
+        createdAt: string
+        updatedAt: string
+      }>(`/pipelines/${pipelineId}`),
+
+    // 创建Pipeline
+    create: (projectId: string, data: {
+      name: string
+      config: Record<string, any>
+      triggers: string[]
+      active?: boolean
+    }) =>
+      apiRequest<{ id: string }>(`/pipelines/projects/${projectId}`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    // 更新Pipeline
+    update: (pipelineId: string, data: {
+      name?: string
+      config?: Record<string, any>
+      triggers?: string[]
+      active?: boolean
+    }) =>
+      apiRequest<{ id: string }>(`/pipelines/${pipelineId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    // 删除Pipeline
+    delete: (pipelineId: string) =>
+      apiRequest<{ message: string }>(`/pipelines/${pipelineId}`, {
+        method: 'DELETE',
+      }),
+
+    // 触发Pipeline
+    trigger: (pipelineId: string, data?: { branch?: string; commit?: string }) =>
+      apiRequest<{ runId: string }>(`/pipelines/${pipelineId}/trigger`, {
+        method: 'POST',
+        body: JSON.stringify(data || {}),
+      }),
+
+    // 获取Pipeline运行记录
+    runs: (pipelineId: string, params?: { page?: number; limit?: number }) => {
+      const searchParams = new URLSearchParams()
+      if (params?.page) searchParams.append('page', params.page.toString())
+      if (params?.limit) searchParams.append('limit', params.limit.toString())
+      const query = searchParams.toString()
+      return apiRequest<{
+        runs: Array<{
+          id: string
+          pipelineId: string
+          commitSha: string
+          branch: string
+          status: string
+          startedAt: string
+          finishedAt: string | null
+          duration: number | null
+          logs: string | null
+          metadata: Record<string, any> | null
+          triggeredBy: {
+            id: string
+            username: string
+            email: string
+          }
+        }>
+        total: number
+      }>(`/pipelines/${pipelineId}/runs${query ? `?${query}` : ''}`)
+    },
+
+    // Alias for runs (for compatibility)
+    getRuns: (pipelineId: string, params?: { page?: number; limit?: number }) => {
+      const searchParams = new URLSearchParams()
+      if (params?.page) searchParams.append('page', params.page.toString())
+      if (params?.limit) searchParams.append('limit', params.limit.toString())
+      const query = searchParams.toString()
+      return apiRequest<{
+        data: Array<{
+          id: string
+          pipelineId: string
+          status: string
+          startedAt: string
+          finishedAt?: string
+          logs?: string
+          triggeredBy: {
+            id: string
+            username: string
+            email: string
+          }
+          pipeline?: {
+            id: string
+            name: string
+          }
+        }>
+      }>(`/pipelines/${pipelineId}/runs${query ? `?${query}` : ''}`)
+    },
+
+    // 获取Pipeline Run详情
+    getRun: (runId: string) =>
+      apiRequest<{
+        id: string
+        pipelineId: string
+        commitSha: string
+        branch: string
+        status: string
+        startedAt: string
+        finishedAt: string | null
+        duration: number | null
+        logs: string | null
+        metadata: Record<string, any> | null
+        pipeline: {
+          id: string
+          name: string
+        }
+      }>(`/pipelines/runs/${runId}`),
+
+    // 取消Pipeline Run
+    cancelRun: (runId: string) =>
+      apiRequest<{ message: string }>(`/pipelines/runs/${runId}/cancel`, {
+        method: 'POST',
+      }),
+  },
+
+  // ============================================
   // Code Search API
   // ============================================
   search: {

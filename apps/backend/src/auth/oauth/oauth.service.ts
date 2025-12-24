@@ -1,7 +1,11 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common'
-import { PrismaService } from '../../prisma/prisma.service'
-import { TokenService } from '../token.service'
-import { OAuthProfileDto } from './dto/oauth-profile.dto'
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { TokenService } from '../token.service';
+import { OAuthProfileDto } from './dto/oauth-profile.dto';
 
 /**
  * OAuth Service
@@ -39,28 +43,28 @@ export class OAuthService {
       include: {
         user: true,
       },
-    })
+    });
 
     if (existingOAuth) {
       // 更新 OAuth token
-      await this.updateOAuthToken(existingOAuth.id, profile)
-      return this.generateAuthTokens(existingOAuth.user)
+      await this.updateOAuthToken(existingOAuth.id, profile);
+      return this.generateAuthTokens(existingOAuth.user);
     }
 
     // 2. 检查邮箱是否已存在
     const existingUser = await this.prisma.user.findUnique({
       where: { email: profile.email },
-    })
+    });
 
     if (existingUser) {
       throw new ConflictException(
         `Email ${profile.email} is already registered. Please link ${profile.provider} account from settings.`,
-      )
+      );
     }
 
     // 3. 创建新用户并关联 OAuth
-    const user = await this.createUserFromOAuth(profile)
-    return this.generateAuthTokens(user)
+    const user = await this.createUserFromOAuth(profile);
+    return this.generateAuthTokens(user);
   }
 
   /**
@@ -78,12 +82,12 @@ export class OAuthService {
           providerId: profile.providerId,
         },
       },
-    })
+    });
 
     if (existingOAuth) {
       throw new ConflictException(
         `This ${profile.provider} account is already linked to another user.`,
-      )
+      );
     }
 
     // 检查用户是否已绑定同一提供商的账户
@@ -92,12 +96,12 @@ export class OAuthService {
         userId,
         provider: profile.provider,
       },
-    })
+    });
 
     if (userOAuth) {
       throw new ConflictException(
         `You have already linked a ${profile.provider} account.`,
-      )
+      );
     }
 
     // 创建 OAuth 关联
@@ -114,7 +118,7 @@ export class OAuthService {
         scope: profile.scope,
         metadata: profile.metadata,
       },
-    })
+    });
   }
 
   /**
@@ -124,38 +128,38 @@ export class OAuthService {
   async unlinkOAuth(userId: string, provider: string) {
     const oauth = await this.prisma.oAuthAccount.findFirst({
       where: { userId, provider },
-    })
+    });
 
     if (!oauth) {
-      throw new NotFoundException(`No ${provider} account linked.`)
+      throw new NotFoundException(`No ${provider} account linked.`);
     }
 
     // 检查用户是否有密码（确保至少有一种登录方式）
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { passwordHash: true },
-    })
+    });
 
-    const hasPassword = user?.passwordHash && user.passwordHash.length > 0
+    const hasPassword = user?.passwordHash && user.passwordHash.length > 0;
     const oauthCount = await this.prisma.oAuthAccount.count({
       where: { userId },
-    })
+    });
 
     if (!hasPassword && oauthCount === 1) {
       throw new ConflictException(
         'Cannot unlink the last login method. Please set a password first.',
-      )
+      );
     }
 
     return this.prisma.oAuthAccount.delete({
       where: { id: oauth.id },
-    })
+    });
   }
 
   /**
    * 获取用户的所有 OAuth 关联
    */
-  async getUserOAuthAccounts(userId: string) {
+  getUserOAuthAccounts(userId: string) {
     return this.prisma.oAuthAccount.findMany({
       where: { userId },
       select: {
@@ -166,7 +170,7 @@ export class OAuthService {
         createdAt: true,
         // 安全考虑：不返回 token
       },
-    })
+    });
   }
 
   /**
@@ -177,7 +181,7 @@ export class OAuthService {
     // 生成唯一用户名
     const username = await this.generateUniqueUsername(
       profile.username || profile.displayName,
-    )
+    );
 
     return this.prisma.user.create({
       data: {
@@ -200,7 +204,7 @@ export class OAuthService {
           },
         },
       },
-    })
+    });
   }
 
   /**
@@ -209,35 +213,35 @@ export class OAuthService {
    */
   private async generateUniqueUsername(baseUsername: string): Promise<string> {
     // 清理用户名（移除特殊字符）
-    let username = baseUsername.replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase()
+    let username = baseUsername.replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase();
 
     // 确保用户名长度合法
     if (username.length < 3) {
-      username = `user_${username}`
+      username = `user_${username}`;
     }
     if (username.length > 50) {
-      username = username.substring(0, 50)
+      username = username.substring(0, 50);
     }
 
     // 检查唯一性，如果冲突则添加数字后缀
-    let counter = 0
-    let uniqueUsername = username
+    let counter = 0;
+    let uniqueUsername = username;
 
     while (true) {
       const existing = await this.prisma.user.findUnique({
         where: { username: uniqueUsername },
-      })
+      });
 
       if (!existing) {
-        return uniqueUsername
+        return uniqueUsername;
       }
 
-      counter++
-      uniqueUsername = `${username}${counter}`
+      counter++;
+      uniqueUsername = `${username}${counter}`;
 
       // 防止无限循环
       if (counter > 1000) {
-        throw new Error('Failed to generate unique username')
+        throw new Error('Failed to generate unique username');
       }
     }
   }
@@ -245,7 +249,7 @@ export class OAuthService {
   /**
    * 私有方法：更新 OAuth Token
    */
-  private async updateOAuthToken(oauthId: string, profile: OAuthProfileDto) {
+  private updateOAuthToken(oauthId: string, profile: OAuthProfileDto) {
     return this.prisma.oAuthAccount.update({
       where: { id: oauthId },
       data: {
@@ -254,22 +258,23 @@ export class OAuthService {
         expiresAt: profile.expiresAt,
         scope: profile.scope,
       },
-    })
+    });
   }
 
   /**
    * 私有方法：生成认证 Token
    */
   private async generateAuthTokens(user: any) {
-    const { accessToken, refreshToken } = await this.tokenService.generateTokens(
-      {
-        userId: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      },
-      user.tokenVersion,
-    )
+    const { accessToken, refreshToken } =
+      await this.tokenService.generateTokens(
+        {
+          userId: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        },
+        user.tokenVersion,
+      );
 
     return {
       user: {
@@ -281,6 +286,6 @@ export class OAuthService {
       },
       accessToken,
       refreshToken,
-    }
+    };
   }
 }

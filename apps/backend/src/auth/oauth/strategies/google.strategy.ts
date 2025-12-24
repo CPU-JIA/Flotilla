@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common'
-import { PassportStrategy } from '@nestjs/passport'
-import { Strategy, Profile, VerifyCallback } from 'passport-google-oauth20'
-import { ConfigService } from '@nestjs/config'
-import { OAuthProfileDto } from '../dto/oauth-profile.dto'
+import { Injectable } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { Strategy, Profile, VerifyCallback } from 'passport-google-oauth20';
+import { ConfigService } from '@nestjs/config';
+import { OAuthProfileDto } from '../dto/oauth-profile.dto';
 
 /**
  * Google OAuth Strategy
@@ -18,17 +18,21 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET'),
       callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL'),
       scope: ['email', 'profile'], // 请求邮箱和基本资料
-    })
+    });
 
     // 🔒 SECURITY: 验证必需的环境变量
     if (!this.configService.get<string>('GOOGLE_CLIENT_ID')) {
-      throw new Error('GOOGLE_CLIENT_ID must be set in environment variables')
+      throw new Error('GOOGLE_CLIENT_ID must be set in environment variables');
     }
     if (!this.configService.get<string>('GOOGLE_CLIENT_SECRET')) {
-      throw new Error('GOOGLE_CLIENT_SECRET must be set in environment variables')
+      throw new Error(
+        'GOOGLE_CLIENT_SECRET must be set in environment variables',
+      );
     }
     if (!this.configService.get<string>('GOOGLE_CALLBACK_URL')) {
-      throw new Error('GOOGLE_CALLBACK_URL must be set in environment variables')
+      throw new Error(
+        'GOOGLE_CALLBACK_URL must be set in environment variables',
+      );
     }
   }
 
@@ -41,25 +45,25 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
    * @param profile Google user profile
    * @param done Passport callback
    */
-  async validate(
+  validate(
     accessToken: string,
     refreshToken: string,
     profile: Profile,
     done: VerifyCallback,
-  ): Promise<any> {
+  ): any {
     try {
       // 提取主要邮箱
-      const emails = profile.emails || []
-      const primaryEmail = emails.find((e) => e.verified)?.value
-      const firstEmail = emails[0]?.value
+      const emails = profile.emails || [];
+      const primaryEmail = emails.find((e) => e.verified)?.value;
+      const firstEmail = emails[0]?.value;
 
       if (!primaryEmail && !firstEmail) {
-        throw new Error('No verified email found in Google account')
+        throw new Error('No verified email found in Google account');
       }
 
       // 计算 token 过期时间（Google access token 默认 1 小时）
-      const expiresAt = new Date()
-      expiresAt.setHours(expiresAt.getHours() + 1)
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 1);
 
       // 构造标准化 OAuth Profile
       const oauthProfile: OAuthProfileDto = {
@@ -77,11 +81,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
           locale: profile._json.locale,
           verified_email: profile._json.verified_email,
         },
-      }
+      };
 
-      done(null, oauthProfile)
+      done(null, oauthProfile);
     } catch (error) {
-      done(error, null)
+      done(error, null);
     }
   }
 }

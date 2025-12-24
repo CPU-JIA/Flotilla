@@ -219,9 +219,7 @@ describe('OrganizationsService', () => {
       mockRedisService.get.mockResolvedValue(null);
       mockPrismaService.organization.findUnique.mockResolvedValue(null);
 
-      await expect(service.findBySlug(slug)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.findBySlug(slug)).rejects.toThrow(NotFoundException);
     });
   });
 

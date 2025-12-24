@@ -6,21 +6,21 @@ import {
   Body,
   Param,
   UseGuards,
-} from '@nestjs/common'
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-} from '@nestjs/swagger'
-import { JwtAuthGuard } from '../../guards/jwt-auth.guard'
-import { CurrentUser } from '../../decorators/current-user.decorator'
-import { ApiTokenService } from './api-token.service'
-import { CreateApiTokenDto } from './dto/create-api-token.dto'
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
+import { CurrentUser } from '../../decorators/current-user.decorator';
+import { ApiTokenService } from './api-token.service';
+import { CreateApiTokenDto } from './dto/create-api-token.dto';
 import {
   ApiTokenListDto,
   CreateApiTokenResponseDto,
-} from './dto/api-token-response.dto'
+} from './dto/api-token-response.dto';
 
 /**
  * API Token 控制器
@@ -46,7 +46,7 @@ export class ApiTokenController {
     @CurrentUser() user: { id: string },
     @Body() dto: CreateApiTokenDto,
   ): Promise<CreateApiTokenResponseDto> {
-    return this.apiTokenService.createToken(user.id, dto)
+    return this.apiTokenService.createToken(user.id, dto);
   }
 
   @Get()
@@ -60,7 +60,7 @@ export class ApiTokenController {
   async listTokens(
     @CurrentUser() user: { id: string },
   ): Promise<ApiTokenListDto[]> {
-    return this.apiTokenService.listTokens(user.id)
+    return this.apiTokenService.listTokens(user.id);
   }
 
   @Delete(':id')
@@ -72,7 +72,7 @@ export class ApiTokenController {
     @CurrentUser() user: { id: string },
     @Param('id') tokenId: string,
   ): Promise<{ message: string }> {
-    await this.apiTokenService.revokeToken(user.id, tokenId)
-    return { message: '令牌已撤销' }
+    await this.apiTokenService.revokeToken(user.id, tokenId);
+    return { message: '令牌已撤销' };
   }
 }

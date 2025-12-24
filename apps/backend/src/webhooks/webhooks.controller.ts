@@ -10,12 +10,18 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common'
-import { ApiBearerAuth, ApiOperation, ApiTags, ApiQuery, ApiParam } from '@nestjs/swagger'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { WebhookService } from './webhooks.service'
-import { CreateWebhookDto } from './dto/create-webhook.dto'
-import { UpdateWebhookDto } from './dto/update-webhook.dto'
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiTags,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { WebhookService } from './webhooks.service';
+import { CreateWebhookDto } from './dto/create-webhook.dto';
+import { UpdateWebhookDto } from './dto/update-webhook.dto';
 
 /**
  * Webhook Controller
@@ -39,7 +45,7 @@ export class WebhookController {
     @Param('projectId') projectId: string,
     @Body() dto: CreateWebhookDto,
   ) {
-    return this.webhookService.createWebhook(projectId, dto)
+    return this.webhookService.createWebhook(projectId, dto);
   }
 
   /**
@@ -49,7 +55,7 @@ export class WebhookController {
   @ApiOperation({ summary: '列出项目的所有 Webhooks' })
   @ApiParam({ name: 'projectId', description: '项目 ID' })
   async listWebhooks(@Param('projectId') projectId: string) {
-    return this.webhookService.listWebhooks(projectId)
+    return this.webhookService.listWebhooks(projectId);
   }
 
   /**
@@ -60,7 +66,7 @@ export class WebhookController {
   @ApiParam({ name: 'projectId', description: '项目 ID' })
   @ApiParam({ name: 'webhookId', description: 'Webhook ID' })
   async getWebhook(@Param('webhookId') webhookId: string) {
-    return this.webhookService.getWebhook(webhookId)
+    return this.webhookService.getWebhook(webhookId);
   }
 
   /**
@@ -74,7 +80,7 @@ export class WebhookController {
     @Param('webhookId') webhookId: string,
     @Body() dto: UpdateWebhookDto,
   ) {
-    return this.webhookService.updateWebhook(webhookId, dto)
+    return this.webhookService.updateWebhook(webhookId, dto);
   }
 
   /**
@@ -86,7 +92,7 @@ export class WebhookController {
   @ApiParam({ name: 'projectId', description: '项目 ID' })
   @ApiParam({ name: 'webhookId', description: 'Webhook ID' })
   async deleteWebhook(@Param('webhookId') webhookId: string) {
-    await this.webhookService.deleteWebhook(webhookId)
+    await this.webhookService.deleteWebhook(webhookId);
   }
 
   /**
@@ -96,16 +102,26 @@ export class WebhookController {
   @ApiOperation({ summary: '查询 Webhook 投递历史' })
   @ApiParam({ name: 'projectId', description: '项目 ID' })
   @ApiParam({ name: 'webhookId', description: 'Webhook ID' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: '返回数量限制' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, description: '偏移量' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: '返回数量限制',
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: '偏移量',
+  })
   async listDeliveries(
     @Param('webhookId') webhookId: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
-    const limitNum = limit ? parseInt(limit, 10) : 50
-    const offsetNum = offset ? parseInt(offset, 10) : 0
-    return this.webhookService.listDeliveries(webhookId, limitNum, offsetNum)
+    const limitNum = limit ? parseInt(limit, 10) : 50;
+    const offsetNum = offset ? parseInt(offset, 10) : 0;
+    return this.webhookService.listDeliveries(webhookId, limitNum, offsetNum);
   }
 
   /**
@@ -117,6 +133,6 @@ export class WebhookController {
   @ApiParam({ name: 'webhookId', description: 'Webhook ID' })
   @ApiParam({ name: 'deliveryId', description: '投递记录 ID' })
   async retryDelivery(@Param('deliveryId') deliveryId: string) {
-    return this.webhookService.retryDelivery(deliveryId)
+    return this.webhookService.retryDelivery(deliveryId);
   }
 }

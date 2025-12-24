@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common'
-import { WebhookService } from './webhooks.service'
-import { WebhookController } from './webhooks.controller'
-import { PrismaModule } from '../prisma/prisma.module'
+import { Module } from '@nestjs/common';
+import { WebhookService } from './webhooks.service';
+import { WebhookController } from './webhooks.controller';
+import { PrismaModule } from '../prisma/prisma.module';
 
 /**
  * Webhook Module

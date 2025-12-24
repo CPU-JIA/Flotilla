@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common'
-import { PipelinesService } from './pipelines.service'
-import { PipelinesController } from './pipelines.controller'
-import { CommonModule } from '../common/common.module'
+import { Module } from '@nestjs/common';
+import { PipelinesService } from './pipelines.service';
+import { PipelinesController } from './pipelines.controller';
+import { CommonModule } from '../common/common.module';
 
 /**
  * Pipelines Module

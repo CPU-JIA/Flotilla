@@ -1,7 +1,6 @@
 import {
   Controller,
   Get,
-  Post,
   Delete,
   UseGuards,
   Req,
@@ -9,14 +8,19 @@ import {
   Param,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common'
-import { AuthGuard } from '@nestjs/passport'
-import { Request, Response } from 'express'
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger'
-import { OAuthService } from './oauth.service'
-import { OAuthProfileDto } from './dto/oauth-profile.dto'
-import { CurrentUser } from '../decorators/current-user.decorator'
-import { Public } from '../decorators/public.decorator'
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { Request, Response } from 'express';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { OAuthService } from './oauth.service';
+import { OAuthProfileDto } from './dto/oauth-profile.dto';
+import { CurrentUser } from '../decorators/current-user.decorator';
+import { Public } from '../decorators/public.decorator';
 
 /**
  * OAuth Controller
@@ -41,7 +45,10 @@ export class OAuthController {
   @Get('github')
   @UseGuards(AuthGuard('github'))
   @ApiOperation({ summary: 'Initiate GitHub OAuth login' })
-  @ApiResponse({ status: 302, description: 'Redirect to GitHub authorization page' })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirect to GitHub authorization page',
+  })
   githubLogin() {
     // Passport 自动处理重定向
   }
@@ -56,21 +63,21 @@ export class OAuthController {
   @ApiOperation({ summary: 'GitHub OAuth callback' })
   @ApiResponse({ status: 302, description: 'Redirect to frontend with tokens' })
   async githubCallback(@Req() req: Request, @Res() res: Response) {
-    const profile = req.user as OAuthProfileDto
+    const profile = req.user as OAuthProfileDto;
 
     try {
-      const result = await this.oauthService.loginWithOAuth(profile)
+      const result = await this.oauthService.loginWithOAuth(profile);
 
       // 重定向到前端，携带 token
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
-      const redirectUrl = `${frontendUrl}/auth/oauth/callback?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}`
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const redirectUrl = `${frontendUrl}/auth/oauth/callback?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}`;
 
-      return res.redirect(redirectUrl)
+      return res.redirect(redirectUrl);
     } catch (error) {
       // 错误重定向到前端错误页面
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
-      const errorUrl = `${frontendUrl}/auth/oauth/error?message=${encodeURIComponent(error.message)}`
-      return res.redirect(errorUrl)
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const errorUrl = `${frontendUrl}/auth/oauth/error?message=${encodeURIComponent(error.message)}`;
+      return res.redirect(errorUrl);
     }
   }
 
@@ -86,7 +93,10 @@ export class OAuthController {
   @Get('google')
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Initiate Google OAuth login' })
-  @ApiResponse({ status: 302, description: 'Redirect to Google authorization page' })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirect to Google authorization page',
+  })
   googleLogin() {
     // Passport 自动处理重定向
   }
@@ -101,21 +111,21 @@ export class OAuthController {
   @ApiOperation({ summary: 'Google OAuth callback' })
   @ApiResponse({ status: 302, description: 'Redirect to frontend with tokens' })
   async googleCallback(@Req() req: Request, @Res() res: Response) {
-    const profile = req.user as OAuthProfileDto
+    const profile = req.user as OAuthProfileDto;
 
     try {
-      const result = await this.oauthService.loginWithOAuth(profile)
+      const result = await this.oauthService.loginWithOAuth(profile);
 
       // 重定向到前端，携带 token
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
-      const redirectUrl = `${frontendUrl}/auth/oauth/callback?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}`
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const redirectUrl = `${frontendUrl}/auth/oauth/callback?accessToken=${result.accessToken}&refreshToken=${result.refreshToken}`;
 
-      return res.redirect(redirectUrl)
+      return res.redirect(redirectUrl);
     } catch (error) {
       // 错误重定向到前端错误页面
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
-      const errorUrl = `${frontendUrl}/auth/oauth/error?message=${encodeURIComponent(error.message)}`
-      return res.redirect(errorUrl)
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const errorUrl = `${frontendUrl}/auth/oauth/error?message=${encodeURIComponent(error.message)}`;
+      return res.redirect(errorUrl);
     }
   }
 
@@ -130,8 +140,8 @@ export class OAuthController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user OAuth accounts' })
   @ApiResponse({ status: 200, description: 'List of OAuth accounts' })
-  async getOAuthAccounts(@CurrentUser('userId') userId: string) {
-    return this.oauthService.getUserOAuthAccounts(userId)
+  getOAuthAccounts(@CurrentUser('userId') userId: string) {
+    return this.oauthService.getUserOAuthAccounts(userId);
   }
 
   /**
@@ -141,7 +151,10 @@ export class OAuthController {
   @UseGuards(AuthGuard('github'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Link GitHub account to existing user' })
-  @ApiResponse({ status: 200, description: 'GitHub account linked successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'GitHub account linked successfully',
+  })
   githubLink() {
     // Passport 自动处理重定向
   }
@@ -153,24 +166,27 @@ export class OAuthController {
   @UseGuards(AuthGuard('github'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'GitHub link callback' })
-  @ApiResponse({ status: 302, description: 'Redirect to frontend settings page' })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirect to frontend settings page',
+  })
   async githubLinkCallback(
     @CurrentUser('userId') userId: string,
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    const profile = req.user as OAuthProfileDto
+    const profile = req.user as OAuthProfileDto;
 
     try {
-      await this.oauthService.linkOAuthToUser(userId, profile)
+      await this.oauthService.linkOAuthToUser(userId, profile);
 
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
-      const redirectUrl = `${frontendUrl}/settings/accounts?linked=github`
-      return res.redirect(redirectUrl)
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const redirectUrl = `${frontendUrl}/settings/accounts?linked=github`;
+      return res.redirect(redirectUrl);
     } catch (error) {
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
-      const errorUrl = `${frontendUrl}/settings/accounts?error=${encodeURIComponent(error.message)}`
-      return res.redirect(errorUrl)
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const errorUrl = `${frontendUrl}/settings/accounts?error=${encodeURIComponent(error.message)}`;
+      return res.redirect(errorUrl);
     }
   }
 
@@ -181,7 +197,10 @@ export class OAuthController {
   @UseGuards(AuthGuard('google'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Link Google account to existing user' })
-  @ApiResponse({ status: 200, description: 'Google account linked successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Google account linked successfully',
+  })
   googleLink() {
     // Passport 自动处理重定向
   }
@@ -193,24 +212,27 @@ export class OAuthController {
   @UseGuards(AuthGuard('google'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Google link callback' })
-  @ApiResponse({ status: 302, description: 'Redirect to frontend settings page' })
+  @ApiResponse({
+    status: 302,
+    description: 'Redirect to frontend settings page',
+  })
   async googleLinkCallback(
     @CurrentUser('userId') userId: string,
     @Req() req: Request,
     @Res() res: Response,
   ) {
-    const profile = req.user as OAuthProfileDto
+    const profile = req.user as OAuthProfileDto;
 
     try {
-      await this.oauthService.linkOAuthToUser(userId, profile)
+      await this.oauthService.linkOAuthToUser(userId, profile);
 
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
-      const redirectUrl = `${frontendUrl}/settings/accounts?linked=google`
-      return res.redirect(redirectUrl)
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const redirectUrl = `${frontendUrl}/settings/accounts?linked=google`;
+      return res.redirect(redirectUrl);
     } catch (error) {
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000'
-      const errorUrl = `${frontendUrl}/settings/accounts?error=${encodeURIComponent(error.message)}`
-      return res.redirect(errorUrl)
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      const errorUrl = `${frontendUrl}/settings/accounts?error=${encodeURIComponent(error.message)}`;
+      return res.redirect(errorUrl);
     }
   }
 
@@ -221,13 +243,16 @@ export class OAuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Unlink OAuth account' })
-  @ApiResponse({ status: 204, description: 'OAuth account unlinked successfully' })
+  @ApiResponse({
+    status: 204,
+    description: 'OAuth account unlinked successfully',
+  })
   @ApiResponse({ status: 404, description: 'OAuth account not found' })
   @ApiResponse({ status: 409, description: 'Cannot unlink last login method' })
   async unlinkOAuth(
     @CurrentUser('userId') userId: string,
     @Param('provider') provider: string,
   ) {
-    await this.oauthService.unlinkOAuth(userId, provider)
+    await this.oauthService.unlinkOAuth(userId, provider);
   }
 }

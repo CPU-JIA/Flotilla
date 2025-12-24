@@ -6,13 +6,12 @@ import {
   OnGatewayDisconnect,
   MessageBody,
   ConnectedSocket,
-} from '@nestjs/websockets'
-import { Server, Socket } from 'socket.io'
-import { Logger } from '@nestjs/common'
-import { JwtService } from '@nestjs/jwt'
-import { CollaborationService } from './collaboration.service'
-import * as Y from 'yjs'
-import { encoding, decoding } from 'lib0'
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+import { Logger } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { CollaborationService } from './collaboration.service';
+import * as Y from 'yjs';
 
 /**
  * 实时协作编辑 WebSocket Gateway
@@ -41,9 +40,9 @@ export class CollaborationGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer()
-  server: Server
+  server: Server;
 
-  private readonly logger = new Logger(CollaborationGateway.name)
+  private readonly logger = new Logger(CollaborationGateway.name);
 
   /**
    * 每个文档的 Yjs 文档实例
@@ -51,7 +50,7 @@ export class CollaborationGateway
    *
    * ECP-C3: Performance Awareness - 内存中缓存避免重复创建
    */
-  private docs = new Map<string, Y.Doc>()
+  private docs = new Map<string, Y.Doc>();
 
   /**
    * 用户会话映射
@@ -60,12 +59,12 @@ export class CollaborationGateway
   private userSessions = new Map<
     string,
     {
-      userId: string
-      sessionId: string
-      documentId: string
-      projectId: string
+      userId: string;
+      sessionId: string;
+      documentId: string;
+      projectId: string;
     }
-  >()
+  >();
 
   /**
    * 生成随机用户颜色
@@ -82,7 +81,7 @@ export class CollaborationGateway
     '#85C1E2', // 浅蓝
     '#F8B195', // 粉色
     '#C7CEEA', // 淡紫
-  ]
+  ];
 
   constructor(
     private jwtService: JwtService,
@@ -105,35 +104,35 @@ export class CollaborationGateway
       // 支持两种token传递方式
       const token =
         (client.handshake.query.token as string) ||
-        client.handshake.headers.authorization?.split(' ')[1]
+        client.handshake.headers.authorization?.split(' ')[1];
 
       if (!token) {
         this.logger.warn(
           `❌ Connection rejected: No token provided (socket: ${client.id})`,
-        )
-        client.disconnect()
-        return
+        );
+        client.disconnect();
+        return;
       }
 
       // 验证JWT token
-      const payload = this.jwtService.verify(token)
-      const userId = payload.sub
+      const payload = this.jwtService.verify(token);
+      const userId = payload.sub;
 
       // 将userId存储到socket实例的data属性中
-      client.data.userId = userId
+      client.data.userId = userId;
 
-      this.logger.log(`✅ User ${userId} connected (socket: ${client.id})`)
+      this.logger.log(`✅ User ${userId} connected (socket: ${client.id})`);
 
       // 向客户端发送连接成功消息
       client.emit('connected', {
         message: 'Successfully connected to collaboration service',
         userId,
-      })
+      });
     } catch (error) {
       this.logger.error(
         `❌ Connection authentication failed (socket: ${client.id}): ${error.message}`,
-      )
-      client.disconnect()
+      );
+      client.disconnect();
     }
   }
 
@@ -143,8 +142,8 @@ export class CollaborationGateway
    * 清理用户会话和资源
    */
   async handleDisconnect(client: Socket) {
-    const userId = client.data.userId
-    const sessionInfo = this.userSessions.get(client.id)
+    const userId = client.data.userId;
+    const sessionInfo = this.userSessions.get(client.id);
 
     if (userId && sessionInfo) {
       try {
@@ -152,24 +151,24 @@ export class CollaborationGateway
         await this.collaborationService.leaveSession(
           sessionInfo.sessionId,
           userId,
-        )
+        );
 
         // 通知其他用户该用户离开
         client.to(sessionInfo.documentId).emit('user-left', {
           userId,
           sessionId: sessionInfo.sessionId,
-        })
+        });
 
         // 清理本地映射
-        this.userSessions.delete(client.id)
+        this.userSessions.delete(client.id);
 
         this.logger.log(
           `👋 User ${userId} disconnected from session ${sessionInfo.sessionId}`,
-        )
+        );
       } catch (error) {
         this.logger.error(
           `Error handling disconnect for user ${userId}: ${error.message}`,
-        )
+        );
       }
     }
   }
@@ -184,21 +183,21 @@ export class CollaborationGateway
   async handleJoinDocument(
     @MessageBody()
     data: {
-      documentId: string
-      projectId: string
-      documentType: 'file' | 'wiki'
+      documentId: string;
+      projectId: string;
+      documentType: 'file' | 'wiki';
     },
     @ConnectedSocket() client: Socket,
   ) {
     try {
-      const userId = client.data.userId
-      const { documentId, projectId, documentType } = data
+      const userId = client.data.userId;
+      const { documentId, projectId, documentType } = data;
 
       if (!documentId || !projectId) {
         return {
           event: 'error',
           data: { message: 'documentId and projectId are required' },
-        }
+        };
       }
 
       // 获取或创建会话
@@ -206,21 +205,20 @@ export class CollaborationGateway
         documentId,
         documentType,
         projectId,
-      )
+      );
 
       // 生成随机颜色
-      const color =
-        this.COLORS[Math.floor(Math.random() * this.COLORS.length)]
+      const color = this.COLORS[Math.floor(Math.random() * this.COLORS.length)];
 
       // 加入会话
       const participant = await this.collaborationService.joinSession(
         session.id,
         userId,
         color,
-      )
+      );
 
       // 加入Socket.IO房间
-      client.join(documentId)
+      void client.join(documentId);
 
       // 保存会话信息
       this.userSessions.set(client.id, {
@@ -228,17 +226,17 @@ export class CollaborationGateway
         sessionId: session.id,
         documentId,
         projectId,
-      })
+      });
 
       // 获取或创建 Yjs 文档
       if (!this.docs.has(documentId)) {
-        this.docs.set(documentId, new Y.Doc())
+        this.docs.set(documentId, new Y.Doc());
       }
 
       // 获取活跃用户列表
       const activeUsers = await this.collaborationService.getActiveUsers(
         session.id,
-      )
+      );
 
       // 通知其他用户有新用户加入
       client.to(documentId).emit('user-joined', {
@@ -249,11 +247,11 @@ export class CollaborationGateway
           color: participant.color,
         },
         sessionId: session.id,
-      })
+      });
 
       this.logger.log(
         `User ${userId} joined document ${documentId} in project ${projectId}`,
-      )
+      );
 
       // 返回会话状态
       return {
@@ -270,16 +268,16 @@ export class CollaborationGateway
           })),
           yourColor: color,
         },
-      }
+      };
     } catch (error) {
       this.logger.error(
         `Error in handleJoinDocument: ${error.message}`,
         error.stack,
-      )
+      );
       return {
         event: 'error',
         data: { message: error.message },
-      }
+      };
     }
   }
 
@@ -294,41 +292,44 @@ export class CollaborationGateway
     @ConnectedSocket() client: Socket,
   ) {
     try {
-      const userId = client.data.userId
-      const { documentId } = data
-      const sessionInfo = this.userSessions.get(client.id)
+      const userId = client.data.userId;
+      const { documentId } = data;
+      const sessionInfo = this.userSessions.get(client.id);
 
       if (!sessionInfo) {
-        return { event: 'error', data: { message: 'Not in any session' } }
+        return { event: 'error', data: { message: 'Not in any session' } };
       }
 
       // 离开会话
-      await this.collaborationService.leaveSession(sessionInfo.sessionId, userId)
+      await this.collaborationService.leaveSession(
+        sessionInfo.sessionId,
+        userId,
+      );
 
       // 离开Socket.IO房间
-      client.leave(documentId)
+      void client.leave(documentId);
 
       // 通知其他用户
       client.to(documentId).emit('user-left', {
         userId,
         sessionId: sessionInfo.sessionId,
-      })
+      });
 
       // 清理本地映射
-      this.userSessions.delete(client.id)
+      this.userSessions.delete(client.id);
 
-      this.logger.log(`User ${userId} left document ${documentId}`)
+      this.logger.log(`User ${userId} left document ${documentId}`);
 
       return {
         event: 'document-left',
         data: { documentId },
-      }
+      };
     } catch (error) {
-      this.logger.error(`Error in handleLeaveDocument: ${error.message}`)
+      this.logger.error(`Error in handleLeaveDocument: ${error.message}`);
       return {
         event: 'error',
         data: { message: error.message },
-      }
+      };
     }
   }
 
@@ -346,47 +347,47 @@ export class CollaborationGateway
     @ConnectedSocket() client: Socket,
   ) {
     try {
-      const userId = client.data.userId
-      const { documentId, update } = data
-      const sessionInfo = this.userSessions.get(client.id)
+      const userId = client.data.userId;
+      const { documentId, update } = data;
+      const sessionInfo = this.userSessions.get(client.id);
 
       if (!sessionInfo) {
-        return { event: 'error', data: { message: 'Not in any session' } }
+        return { event: 'error', data: { message: 'Not in any session' } };
       }
 
       // 更新最后活跃时间
       await this.collaborationService.updateLastActive(
         sessionInfo.sessionId,
         userId,
-      )
+      );
 
       // 获取 Yjs 文档
-      const doc = this.docs.get(documentId)
+      const doc = this.docs.get(documentId);
       if (!doc) {
-        return { event: 'error', data: { message: 'Document not found' } }
+        return { event: 'error', data: { message: 'Document not found' } };
       }
 
       // 应用更新到服务器的 Yjs 文档
       // 将 update 转换为 Uint8Array
-      const updateArray = new Uint8Array(update)
-      Y.applyUpdate(doc, updateArray)
+      const updateArray = new Uint8Array(update);
+      Y.applyUpdate(doc, updateArray);
 
       // 广播更新给房间内其他用户（不包括发送者）
       client.to(documentId).emit('sync-update', {
         update: Array.from(updateArray), // 转换为普通数组以便JSON传输
         senderId: userId,
-      })
+      });
 
       return {
         event: 'sync-update-ack',
         data: { success: true },
-      }
+      };
     } catch (error) {
-      this.logger.error(`Error in handleSyncUpdate: ${error.message}`)
+      this.logger.error(`Error in handleSyncUpdate: ${error.message}`);
       return {
         event: 'error',
         data: { message: error.message },
-      }
+      };
     }
   }
 
@@ -400,45 +401,45 @@ export class CollaborationGateway
   async handleAwarenessUpdate(
     @MessageBody()
     data: {
-      documentId: string
+      documentId: string;
       state: {
-        cursor?: { line: number; column: number }
-        selection?: { start: any; end: any }
-      }
+        cursor?: { line: number; column: number };
+        selection?: { start: any; end: any };
+      };
     },
     @ConnectedSocket() client: Socket,
   ) {
     try {
-      const userId = client.data.userId
-      const { documentId, state } = data
-      const sessionInfo = this.userSessions.get(client.id)
+      const userId = client.data.userId;
+      const { documentId, state } = data;
+      const sessionInfo = this.userSessions.get(client.id);
 
       if (!sessionInfo) {
-        return { event: 'error', data: { message: 'Not in any session' } }
+        return { event: 'error', data: { message: 'Not in any session' } };
       }
 
       // 更新最后活跃时间
       await this.collaborationService.updateLastActive(
         sessionInfo.sessionId,
         userId,
-      )
+      );
 
       // 广播给房间内其他用户
       client.to(documentId).emit('awareness-update', {
         userId,
         state,
-      })
+      });
 
       return {
         event: 'awareness-update-ack',
         data: { success: true },
-      }
+      };
     } catch (error) {
-      this.logger.error(`Error in handleAwarenessUpdate: ${error.message}`)
+      this.logger.error(`Error in handleAwarenessUpdate: ${error.message}`);
       return {
         event: 'error',
         data: { message: error.message },
-      }
+      };
     }
   }
 
@@ -446,19 +447,19 @@ export class CollaborationGateway
    * 获取在线用户数量（用于监控）
    */
   getOnlineSessionCount(): number {
-    return this.userSessions.size
+    return this.userSessions.size;
   }
 
   /**
    * 获取文档的活跃连接数
    */
   getDocumentConnectionCount(documentId: string): number {
-    let count = 0
+    let count = 0;
     this.userSessions.forEach((session) => {
       if (session.documentId === documentId) {
-        count++
+        count++;
       }
-    })
-    return count
+    });
+    return count;
   }
 }

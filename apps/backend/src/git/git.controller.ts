@@ -13,7 +13,6 @@ import {
   Param,
   Query,
   UseGuards,
-  NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
 import {
@@ -52,7 +51,7 @@ export class GitController {
     @CurrentUser() user: User,
   ) {
     // Verify project exists and user has MAINTAINER+ permissions (team + direct)
-    const project = await this.permissionService.checkProjectPermission(
+    const _project = await this.permissionService.checkProjectPermission(
       user,
       projectId,
       MemberRole.MAINTAINER,

@@ -1,9 +1,27 @@
-import { Controller, Post, Get, Delete, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common'
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger'
-import { TwoFactorService } from './two-factor.service'
-import { Enable2FADto, Verify2FADto, Disable2FADto } from './dto/two-factor.dto'
-import { JwtAuthGuard } from '../guards/jwt-auth.guard'
-import { CurrentUser } from '../decorators/current-user.decorator'
+import {
+  Controller,
+  Post,
+  Get,
+  Delete,
+  Body,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { TwoFactorService } from './two-factor.service';
+import {
+  Enable2FADto,
+  Verify2FADto,
+  Disable2FADto,
+} from './dto/two-factor.dto';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { CurrentUser } from '../decorators/current-user.decorator';
 
 /**
  * 双因素认证控制器
@@ -36,15 +54,16 @@ export class TwoFactorController {
   })
   async setup(@CurrentUser('id') userId: string) {
     // 1. 生成 TOTP 密钥
-    const { secret, otpauthUrl } = await this.twoFactorService.generateSecret(userId)
+    const { secret, otpauthUrl } =
+      await this.twoFactorService.generateSecret(userId);
 
     // 2. 生成二维码
-    const qrCode = await this.twoFactorService.generateQRCode(otpauthUrl)
+    const qrCode = await this.twoFactorService.generateQRCode(otpauthUrl);
 
     return {
       secret,
       qrCode,
-    }
+    };
   }
 
   /**
@@ -70,12 +89,17 @@ export class TwoFactorController {
   })
   @ApiResponse({ status: 400, description: 'Invalid verification code' })
   async enable(@CurrentUser('id') userId: string, @Body() dto: Enable2FADto) {
-    const recoveryCodes = await this.twoFactorService.enable2FA(userId, dto.secret, dto.token)
+    const recoveryCodes = await this.twoFactorService.enable2FA(
+      userId,
+      dto.secret,
+      dto.token,
+    );
 
     return {
-      message: '2FA enabled successfully. Please save your recovery codes in a safe place.',
+      message:
+        '2FA enabled successfully. Please save your recovery codes in a safe place.',
       recoveryCodes,
-    }
+    };
   }
 
   /**
@@ -88,16 +112,16 @@ export class TwoFactorController {
   @ApiResponse({ status: 200, description: 'Token verified successfully' })
   @ApiResponse({ status: 401, description: 'Invalid token' })
   async verify(@CurrentUser('id') userId: string, @Body() dto: Verify2FADto) {
-    const isValid = await this.twoFactorService.verify2FA(userId, dto.token)
+    const isValid = await this.twoFactorService.verify2FA(userId, dto.token);
 
     if (!isValid) {
-      throw new Error('Invalid verification code')
+      throw new Error('Invalid verification code');
     }
 
     return {
       message: 'Token verified successfully',
       verified: true,
-    }
+    };
   }
 
   /**
@@ -109,11 +133,11 @@ export class TwoFactorController {
   @ApiResponse({ status: 200, description: '2FA disabled successfully' })
   @ApiResponse({ status: 401, description: 'Invalid verification code' })
   async disable(@CurrentUser('id') userId: string, @Body() dto: Disable2FADto) {
-    await this.twoFactorService.disable2FA(userId, dto.token)
+    await this.twoFactorService.disable2FA(userId, dto.token);
 
     return {
       message: '2FA disabled successfully',
-    }
+    };
   }
 
   /**
@@ -136,12 +160,18 @@ export class TwoFactorController {
     },
   })
   @ApiResponse({ status: 401, description: 'Invalid verification code' })
-  async getRecoveryCodes(@CurrentUser('id') userId: string, @Body() dto: Verify2FADto) {
-    const recoveryCodes = await this.twoFactorService.getRecoveryCodes(userId, dto.token)
+  async getRecoveryCodes(
+    @CurrentUser('id') userId: string,
+    @Body() dto: Verify2FADto,
+  ) {
+    const recoveryCodes = await this.twoFactorService.getRecoveryCodes(
+      userId,
+      dto.token,
+    );
 
     return {
       recoveryCodes,
-    }
+    };
   }
 
   /**
@@ -160,10 +190,10 @@ export class TwoFactorController {
     },
   })
   async getStatus(@CurrentUser('id') userId: string) {
-    const enabled = await this.twoFactorService.is2FAEnabled(userId)
+    const enabled = await this.twoFactorService.is2FAEnabled(userId);
 
     return {
       enabled,
-    }
+    };
   }
 }

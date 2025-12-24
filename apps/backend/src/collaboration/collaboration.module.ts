@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common'
-import { JwtModule } from '@nestjs/jwt'
-import { CollaborationService } from './collaboration.service'
-import { CollaborationGateway } from './collaboration.gateway'
-import { PrismaModule } from '../prisma/prisma.module'
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { CollaborationService } from './collaboration.service';
+import { CollaborationGateway } from './collaboration.gateway';
+import { PrismaModule } from '../prisma/prisma.module';
 
 /**
  * 实时协作编辑模块

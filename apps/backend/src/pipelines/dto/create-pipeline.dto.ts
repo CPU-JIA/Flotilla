@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsString,
   IsArray,
@@ -7,7 +7,7 @@ import {
   IsObject,
   IsNotEmpty,
   MaxLength,
-} from 'class-validator'
+} from 'class-validator';
 
 /**
  * 创建流水线配置 DTO
@@ -18,7 +18,7 @@ export class CreatePipelineDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  name: string
+  name: string;
 
   @ApiProperty({
     description: '流水线配置（YAML转JSON）',
@@ -32,7 +32,7 @@ export class CreatePipelineDto {
   })
   @IsObject()
   @IsNotEmpty()
-  config: Record<string, any>
+  config: Record<string, any>;
 
   @ApiProperty({
     description: '触发条件',
@@ -41,7 +41,7 @@ export class CreatePipelineDto {
   })
   @IsArray()
   @IsString({ each: true })
-  triggers: string[]
+  triggers: string[];
 
   @ApiPropertyOptional({
     description: '是否激活',
@@ -49,5 +49,5 @@ export class CreatePipelineDto {
   })
   @IsBoolean()
   @IsOptional()
-  active?: boolean
+  active?: boolean;
 }

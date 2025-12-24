@@ -1,9 +1,9 @@
-import { Module } from '@nestjs/common'
-import { GdprController } from './gdpr.controller'
-import { GdprService } from './gdpr.service'
-import { PrismaModule } from '../prisma/prisma.module'
-import { MinioModule } from '../minio/minio.module'
-import { EmailModule } from '../email/email.module'
+import { Module } from '@nestjs/common';
+import { GdprController } from './gdpr.controller';
+import { GdprService } from './gdpr.service';
+import { PrismaModule } from '../prisma/prisma.module';
+import { MinioModule } from '../minio/minio.module';
+import { EmailModule } from '../email/email.module';
 
 /**
  * GDPR 数据导出模块

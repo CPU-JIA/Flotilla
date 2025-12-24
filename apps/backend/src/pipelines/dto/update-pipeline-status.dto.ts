@@ -1,6 +1,6 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { IsString, IsEnum, IsOptional, IsInt, Min } from 'class-validator'
-import { PipelineStatus } from '@prisma/client'
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsEnum, IsOptional, IsInt, Min } from 'class-validator';
+import { PipelineStatus } from '@prisma/client';
 
 /**
  * 更新流水线运行状态 DTO
@@ -13,7 +13,7 @@ export class UpdatePipelineStatusDto {
     example: 'SUCCESS',
   })
   @IsEnum(PipelineStatus)
-  status: PipelineStatus
+  status: PipelineStatus;
 
   @ApiPropertyOptional({
     description: '执行时长（秒）',
@@ -22,7 +22,7 @@ export class UpdatePipelineStatusDto {
   @IsInt()
   @Min(0)
   @IsOptional()
-  duration?: number
+  duration?: number;
 
   @ApiPropertyOptional({
     description: '构建日志',
@@ -30,5 +30,5 @@ export class UpdatePipelineStatusDto {
   })
   @IsString()
   @IsOptional()
-  logs?: string
+  logs?: string;
 }

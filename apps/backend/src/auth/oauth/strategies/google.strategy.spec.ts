@@ -1,10 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing'
-import { ConfigService } from '@nestjs/config'
-import { GoogleStrategy } from './google.strategy'
+import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
+import { GoogleStrategy } from './google.strategy';
 
 describe('GoogleStrategy', () => {
-  let strategy: GoogleStrategy
-  let configService: ConfigService
+  let strategy: GoogleStrategy;
+  let configService: ConfigService;
 
   const mockConfigService = {
     get: jest.fn((key: string) => {
@@ -12,10 +12,10 @@ describe('GoogleStrategy', () => {
         GOOGLE_CLIENT_ID: 'test_client_id',
         GOOGLE_CLIENT_SECRET: 'test_client_secret',
         GOOGLE_CALLBACK_URL: 'http://localhost:4000/auth/oauth/google/callback',
-      }
-      return config[key]
+      };
+      return config[key];
     }),
-  }
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -26,33 +26,33 @@ describe('GoogleStrategy', () => {
           useValue: mockConfigService,
         },
       ],
-    }).compile()
+    }).compile();
 
-    strategy = module.get<GoogleStrategy>(GoogleStrategy)
-    configService = module.get<ConfigService>(ConfigService)
-  })
+    strategy = module.get<GoogleStrategy>(GoogleStrategy);
+    configService = module.get<ConfigService>(ConfigService);
+  });
 
   it('should be defined', () => {
-    expect(strategy).toBeDefined()
-  })
+    expect(strategy).toBeDefined();
+  });
 
   it('should throw error if GOOGLE_CLIENT_ID is not set', () => {
-    mockConfigService.get.mockReturnValueOnce(null)
+    mockConfigService.get.mockReturnValueOnce(null);
 
     expect(() => {
-      new GoogleStrategy(configService)
-    }).toThrow('GOOGLE_CLIENT_ID must be set in environment variables')
-  })
+      new GoogleStrategy(configService);
+    }).toThrow('GOOGLE_CLIENT_ID must be set in environment variables');
+  });
 
   it('should throw error if GOOGLE_CLIENT_SECRET is not set', () => {
     mockConfigService.get
       .mockReturnValueOnce('test_client_id')
-      .mockReturnValueOnce(null)
+      .mockReturnValueOnce(null);
 
     expect(() => {
-      new GoogleStrategy(configService)
-    }).toThrow('GOOGLE_CLIENT_SECRET must be set in environment variables')
-  })
+      new GoogleStrategy(configService);
+    }).toThrow('GOOGLE_CLIENT_SECRET must be set in environment variables');
+  });
 
   describe('validate', () => {
     it('should return OAuthProfileDto with verified email', async () => {
@@ -65,13 +65,18 @@ describe('GoogleStrategy', () => {
           locale: 'en',
           verified_email: true,
         },
-      }
+      };
 
-      const done = jest.fn()
-      const accessToken = 'google_access_token'
-      const refreshToken = 'google_refresh_token'
+      const done = jest.fn();
+      const accessToken = 'google_access_token';
+      const refreshToken = 'google_refresh_token';
 
-      await strategy.validate(accessToken, refreshToken, mockProfile as any, done)
+      await strategy.validate(
+        accessToken,
+        refreshToken,
+        mockProfile as any,
+        done,
+      );
 
       expect(done).toHaveBeenCalledWith(null, {
         provider: 'google',
@@ -88,8 +93,8 @@ describe('GoogleStrategy', () => {
           locale: 'en',
           verified_email: true,
         },
-      })
-    })
+      });
+    });
 
     it('should use first email when no verified email', async () => {
       const mockProfile = {
@@ -98,19 +103,19 @@ describe('GoogleStrategy', () => {
         emails: [{ value: 'first@gmail.com', verified: false }],
         photos: [{ value: 'https://avatar.url' }],
         _json: {},
-      }
+      };
 
-      const done = jest.fn()
+      const done = jest.fn();
 
-      await strategy.validate('token', 'refresh', mockProfile as any, done)
+      await strategy.validate('token', 'refresh', mockProfile as any, done);
 
       expect(done).toHaveBeenCalledWith(
         null,
         expect.objectContaining({
           email: 'first@gmail.com',
         }),
-      )
-    })
+      );
+    });
 
     it('should call done with error when no email found', async () => {
       const mockProfile = {
@@ -119,19 +124,19 @@ describe('GoogleStrategy', () => {
         emails: [],
         photos: [],
         _json: {},
-      }
+      };
 
-      const done = jest.fn()
+      const done = jest.fn();
 
-      await strategy.validate('token', 'refresh', mockProfile as any, done)
+      await strategy.validate('token', 'refresh', mockProfile as any, done);
 
       expect(done).toHaveBeenCalledWith(
         expect.objectContaining({
           message: 'No verified email found in Google account',
         }),
         null,
-      )
-    })
+      );
+    });
 
     it('should set expiration time to 1 hour from now', async () => {
       const mockProfile = {
@@ -140,20 +145,20 @@ describe('GoogleStrategy', () => {
         emails: [{ value: 'test@gmail.com', verified: true }],
         photos: [],
         _json: {},
-      }
+      };
 
-      const done = jest.fn()
-      const now = new Date()
+      const done = jest.fn();
+      const now = new Date();
 
-      await strategy.validate('token', 'refresh', mockProfile as any, done)
+      await strategy.validate('token', 'refresh', mockProfile as any, done);
 
-      const callArgs = done.mock.calls[0][1]
-      const expiresAt = callArgs.expiresAt
+      const callArgs = done.mock.calls[0][1];
+      const expiresAt = callArgs.expiresAt;
 
       // Check expiration is approximately 1 hour from now
-      const diff = expiresAt.getTime() - now.getTime()
-      expect(diff).toBeGreaterThan(3500000) // ~58 minutes
-      expect(diff).toBeLessThan(3700000) // ~62 minutes
-    })
-  })
-})
+      const diff = expiresAt.getTime() - now.getTime();
+      expect(diff).toBeGreaterThan(3500000); // ~58 minutes
+      expect(diff).toBeLessThan(3700000); // ~62 minutes
+    });
+  });
+});

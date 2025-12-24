@@ -7,12 +7,17 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common'
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger'
-import { GdprService } from './gdpr.service'
-import { CreateExportRequestDto } from './dto/create-export-request.dto'
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
-import { CurrentUser } from '../auth/decorators/current-user.decorator'
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { GdprService } from './gdpr.service';
+import { CreateExportRequestDto } from './dto/create-export-request.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 /**
  * GDPR 数据导出控制器
@@ -35,23 +40,28 @@ export class GdprController {
   @ApiOperation({ summary: 'Request user data export (GDPR compliance)' })
   @ApiResponse({
     status: 202,
-    description: 'Export request created successfully. Processing will start immediately.',
+    description:
+      'Export request created successfully. Processing will start immediately.',
   })
-  @ApiResponse({ status: 400, description: 'Invalid request or pending export exists' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid request or pending export exists',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async requestExport(
     @CurrentUser() user: any,
     @Body() dto: CreateExportRequestDto,
   ) {
-    const exportRequest = await this.gdprService.requestExport(user.id, dto)
+    const exportRequest = await this.gdprService.requestExport(user.id, dto);
 
     return {
       id: exportRequest.id,
       format: exportRequest.format,
       status: exportRequest.status,
       createdAt: exportRequest.createdAt,
-      message: 'Export request created. You will receive an email when it is ready.',
-    }
+      message:
+        'Export request created. You will receive an email when it is ready.',
+    };
   }
 
   /**
@@ -60,14 +70,17 @@ export class GdprController {
    */
   @Get('export/:id/status')
   @ApiOperation({ summary: 'Get export request status' })
-  @ApiResponse({ status: 200, description: 'Export status retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Export status retrieved successfully',
+  })
   @ApiResponse({ status: 404, description: 'Export request not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getExportStatus(
     @CurrentUser() user: any,
     @Param('id') exportId: string,
   ) {
-    return this.gdprService.getExportStatus(exportId, user.id)
+    return this.gdprService.getExportStatus(exportId, user.id);
   }
 
   /**
@@ -76,10 +89,13 @@ export class GdprController {
    */
   @Get('exports')
   @ApiOperation({ summary: 'Get user export history' })
-  @ApiResponse({ status: 200, description: 'Export history retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Export history retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getUserExports(@CurrentUser() user: any) {
-    return this.gdprService.getUserExports(user.id)
+  getUserExports(@CurrentUser() user: any) {
+    return this.gdprService.getUserExports(user.id);
   }
 
   /**
@@ -99,6 +115,6 @@ export class GdprController {
     @CurrentUser() user: any,
     @Param('id') exportId: string,
   ) {
-    return this.gdprService.downloadExport(exportId, user.id)
+    return this.gdprService.downloadExport(exportId, user.id);
   }
 }

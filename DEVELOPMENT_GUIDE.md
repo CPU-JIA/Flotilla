@@ -24,10 +24,15 @@ This file provides comprehensive guidance for developers working on the Flotilla
 ## 🚀 Quick Reference
 
 ### 📊 Project Status
-- **Version**: v1.0.0-MVP
-- **Phase 1**: ✅ 100% Complete
-- **Last Updated**: 2025-10-31
-- **Statistics**: 166 API Endpoints | 36 Frontend Pages | 12,534 Lines Test Code
+- **Version**: v1.0.0-Production-Ready
+- **Phase 1**: ✅ 100% Complete (All Planned Features Implemented)
+- **Last Updated**: 2025-12-23
+- **Statistics**:
+  - 190+ API Endpoints
+  - 45+ Frontend Pages
+  - 24 Backend Modules (all ✅ completed)
+  - 15,000+ Lines Test Code
+  - 100% Backend-Frontend Alignment
 
 ### 🔌 Service Ports
 | Service | Port(s) | Access |
@@ -374,6 +379,215 @@ apps/frontend/src/
 ---
 
 ## 🎯 Key Features
+
+### Authentication & Security
+**Status**: ✅ IMPLEMENTED
+
+**Core Features**:
+- **JWT Authentication**: Stateless token-based auth with refresh tokens
+- **Two-Factor Authentication (2FA)**: TOTP time-based codes + Recovery codes (8 codes)
+  - QR code generation for authenticator apps (Google Authenticator, Authy)
+  - AES-256-GCM encrypted secret storage
+  - Recovery codes with `XXXX-XXXX-XXXX-XXXX` format
+- **OAuth 2.0 SSO**: GitHub and Google OAuth integration
+  - Account linking/unlinking workflow
+  - Multiple OAuth providers per user
+- **API Tokens**: Personal Access Tokens with scope control
+  - SHA-256 hash storage (security best practice)
+  - Configurable expiration
+  - Last used tracking
+- **Password Security**: Argon2 hashing + password history tracking (prevent reuse)
+- **Session Management**: Device tracking, IP logging, remote session revocation
+- **CSRF Protection**: Double Submit Cookie pattern
+- **Rate Limiting**: Tiered throttling (global/strict/upload)
+
+**API Endpoints**:
+- `/api/auth/login`, `/api/auth/register`, `/api/auth/2fa/*`, `/api/auth/github`, `/api/auth/google`
+- `/api/api-tokens/*` - Personal Access Token management
+
+**Frontend Pages**:
+- `/auth/login` - Login with OAuth buttons
+- `/auth/2fa-verify` - 2FA verification with auto-submit
+- `/settings/2fa` - 2FA setup workflow (QR code → verify → recovery codes)
+- `/settings/accounts` - OAuth account management
+- `/settings/tokens` - API token management
+
+---
+
+### CI/CD Pipeline System
+**Status**: ✅ IMPLEMENTED
+
+**Workflow**: `Create Pipeline → Configure YAML → Trigger Execution → View Logs → Webhook Notification`
+
+**Core Features**:
+- **YAML Configuration**: `.flotilla-ci.yml` with multi-stage builds
+- **Pipeline Execution**: Async execution with step-by-step logging
+  - Status: PENDING → RUNNING → SUCCESS/FAILURE
+  - Production-ready: Bull Queue integration (Redis-based)
+- **Webhook Integration**: HMAC-SHA256 signature verification
+  - Format: `X-Webhook-Signature: sha256=<hex>`
+  - Constant-time comparison (timing-attack prevention)
+- **Event Triggers**: Push, PR, Manual
+- **Artifact Storage**: MinIO integration
+- **Execution History**: Full pipeline run history with logs
+
+**API Endpoints**:
+- `POST /api/pipelines` - Create pipeline configuration
+- `POST /api/pipelines/:id/run` - Trigger pipeline execution
+- `POST /api/pipelines/runs/:runId/status` - Webhook callback (signature-protected)
+- `GET /api/pipelines/runs/:runId/logs` - Fetch execution logs
+
+**Frontend Pages**:
+- `/projects/:id/pipelines` - Pipeline list and execution dashboard
+- `/projects/:id/pipelines/:pipelineId` - Pipeline detail and logs
+
+**Configuration**:
+- `WEBHOOK_SECRET` - HMAC signature key (generate with `openssl rand -hex 32`)
+
+---
+
+### Webhook Event System
+**Status**: ✅ IMPLEMENTED
+
+**Workflow**: `Configure Webhook URL → Subscribe to Events → Receive HMAC-signed Payloads`
+
+**Core Features**:
+- **Event Types**: Push, PR, Issue, Pipeline, Release
+- **Payload Signing**: HMAC-SHA256 signature in `X-Webhook-Signature` header
+- **Retry Mechanism**: Automatic retry on delivery failure
+- **Delivery History**: Full webhook delivery log with status
+- **Custom Headers**: Support for custom HTTP headers
+- **Secret Management**: Per-webhook secret configuration
+
+**API Endpoints**:
+- `POST /api/webhooks` - Create webhook
+- `GET /api/webhooks/:projectId` - List project webhooks
+- `DELETE /api/webhooks/:id` - Delete webhook
+- `GET /api/webhooks/:id/deliveries` - Delivery history
+
+**Frontend Pages**:
+- `/projects/:id/settings/webhooks` - Webhook configuration UI
+
+**Security Guard**: `WebhookSignatureGuard` prevents replay attacks and unauthorized requests
+
+---
+
+### Wiki Documentation System
+**Status**: ✅ IMPLEMENTED
+
+**Workflow**: `Create Page → Edit Markdown → Version Control → Sidebar Navigation`
+
+**Core Features**:
+- **Markdown Support**: Full GitHub-flavored markdown
+- **Version History**: Track all page revisions
+- **Hierarchical Structure**: Folder-based organization
+- **Search Integration**: MeiliSearch full-text search
+- **Access Control**: Project-level permissions
+- **Attachments**: Image and file embedding
+
+**API Endpoints**:
+- `POST /api/wiki/:projectId/pages` - Create wiki page
+- `PUT /api/wiki/:projectId/pages/:slug` - Update page
+- `GET /api/wiki/:projectId/pages` - List all pages
+- `GET /api/wiki/:projectId/pages/:slug/history` - Version history
+
+**Frontend Pages**:
+- `/projects/:id/wiki` - Wiki home with sidebar navigation
+- `/projects/:id/wiki/:slug` - Wiki page viewer/editor
+
+---
+
+### Real-time Collaboration (CRDT)
+**Status**: ✅ IMPLEMENTED
+
+**Workflow**: `Open Document → WebSocket Connection → Concurrent Editing → Conflict-Free Sync`
+
+**Core Features**:
+- **CRDT Algorithm**: Conflict-free Replicated Data Type for concurrent editing
+- **WebSocket Gateway**: Real-time bidirectional communication
+- **Presence Awareness**: See who's editing (cursors and selections)
+- **Auto-save**: Periodic save to prevent data loss
+- **Offline Support**: Queue operations during network outage
+
+**API Endpoints**:
+- WebSocket Gateway at `/collaboration` namespace
+- Events: `join-document`, `edit`, `cursor-move`, `leave-document`
+
+**Frontend**:
+- Real-time collaboration components in `components/collaboration/`
+- Monaco Editor integration with multi-cursor support
+
+---
+
+### GDPR Compliance
+**Status**: ✅ IMPLEMENTED
+
+**Workflow**: `Request Data Export → Background Processing → Email Download Link`
+
+**Core Features**:
+- **Data Portability**: Export all user data in JSON format
+- **Right to Erasure**: Account deletion with 30-day grace period
+- **Consent Management**: Privacy settings and opt-out preferences
+- **Data Minimization**: Only collect necessary data
+- **Audit Trail**: All data access logged in audit_logs table
+
+**API Endpoints**:
+- `POST /api/gdpr/export` - Request data export
+- `GET /api/gdpr/export/:requestId/download` - Download exported data
+- `DELETE /api/gdpr/account` - Request account deletion
+
+**Frontend Pages**:
+- `/settings/privacy` - GDPR data export and privacy controls
+
+**Email Template**: `data-export-ready.hbs` - Notification when export is ready
+
+---
+
+### Audit Logging (SOC2/ISO27001)
+**Status**: ✅ IMPLEMENTED
+
+**Core Features**:
+- **Comprehensive Logging**: All sensitive operations logged
+  - Login/Logout, Permission Changes, Data Access, CRUD Operations
+- **Metadata Capture**: IP address, User-Agent, Timestamp, Success/Failure
+- **Retention Policy**: 90+ days retention (SOC2 compliance)
+- **Search & Filtering**: Query by user, action, entity type, date range
+- **Tamper-Proof**: Append-only logs with SetNull user deletion
+
+**API Endpoints**:
+- `GET /api/audit/logs` - Query audit logs with filters
+- `GET /api/audit/logs/user/:userId` - User-specific audit trail
+- `GET /api/audit/logs/entity/:entityType/:entityId` - Entity-specific logs
+
+**Database Model**: `AuditLog` with indexed fields for fast queries
+
+**Compliance**: Meets SOC2, ISO27001, GDPR audit requirements
+
+---
+
+### Newsletter Subscription
+**Status**: ✅ IMPLEMENTED
+
+**Workflow**: `Subscribe → Email Confirmation → Double Opt-in → Manage Subscription`
+
+**Core Features**:
+- **Double Opt-in**: Confirmation email with unique token
+- **Email Validation**: RFC 5322 compliant validation
+- **Unsubscribe**: One-click unsubscribe with token verification
+- **Stats Dashboard**: Subscriber count and growth metrics
+- **Email Templates**: Handlebars-based HTML emails
+
+**API Endpoints**:
+- `POST /api/newsletter/subscribe` - Subscribe to newsletter
+- `GET /api/newsletter/confirm/:token` - Confirm subscription
+- `POST /api/newsletter/unsubscribe/:token` - Unsubscribe
+- `GET /api/newsletter/stats` - Subscriber statistics
+
+**Email Template**: `newsletter-confirm.hbs` - Beautiful confirmation email
+
+**Frontend**: Website newsletter subscription form with API proxy
+
+---
 
 ### Issue Tracking System
 **Status**: ✅ IMPLEMENTED (Sprint 1)

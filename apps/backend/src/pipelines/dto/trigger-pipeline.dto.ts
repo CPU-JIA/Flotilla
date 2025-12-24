@@ -1,11 +1,11 @@
-import { ApiProperty } from '@nestjs/swagger'
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsNotEmpty,
   MaxLength,
   IsObject,
   IsOptional,
-} from 'class-validator'
+} from 'class-validator';
 
 /**
  * 触发流水线运行 DTO
@@ -19,7 +19,7 @@ export class TriggerPipelineDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(64)
-  commitSha: string
+  commitSha: string;
 
   @ApiProperty({
     description: '分支名称',
@@ -28,7 +28,7 @@ export class TriggerPipelineDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  branch: string
+  branch: string;
 
   @ApiProperty({
     description: '额外元数据',
@@ -37,5 +37,5 @@ export class TriggerPipelineDto {
   })
   @IsObject()
   @IsOptional()
-  metadata?: Record<string, any>
+  metadata?: Record<string, any>;
 }

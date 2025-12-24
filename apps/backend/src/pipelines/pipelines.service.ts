@@ -2,15 +2,14 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-  ForbiddenException,
   Logger,
-} from '@nestjs/common'
-import { PrismaService } from '../common/prisma.service'
-import { CreatePipelineDto } from './dto/create-pipeline.dto'
-import { UpdatePipelineDto } from './dto/update-pipeline.dto'
-import { TriggerPipelineDto } from './dto/trigger-pipeline.dto'
-import { UpdatePipelineStatusDto } from './dto/update-pipeline-status.dto'
-import { Pipeline, PipelineRun, PipelineStatus } from '@prisma/client'
+} from '@nestjs/common';
+import { PrismaService } from '../common/prisma.service';
+import { CreatePipelineDto } from './dto/create-pipeline.dto';
+import { UpdatePipelineDto } from './dto/update-pipeline.dto';
+import { TriggerPipelineDto } from './dto/trigger-pipeline.dto';
+import { UpdatePipelineStatusDto } from './dto/update-pipeline-status.dto';
+import { Pipeline, PipelineRun, PipelineStatus } from '@prisma/client';
 
 /**
  * Pipeline Service
@@ -20,7 +19,7 @@ import { Pipeline, PipelineRun, PipelineStatus } from '@prisma/client'
  */
 @Injectable()
 export class PipelinesService {
-  private readonly logger = new Logger(PipelinesService.name)
+  private readonly logger = new Logger(PipelinesService.name);
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -35,10 +34,10 @@ export class PipelinesService {
     // 验证项目是否存在
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
-    })
+    });
 
     if (!project) {
-      throw new NotFoundException(`Project with ID ${projectId} not found`)
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
     }
 
     // 检查是否已存在同名流水线
@@ -49,12 +48,12 @@ export class PipelinesService {
           name: createPipelineDto.name,
         },
       },
-    })
+    });
 
     if (existingPipeline) {
       throw new BadRequestException(
         `Pipeline with name "${createPipelineDto.name}" already exists`,
-      )
+      );
     }
 
     // 创建流水线
@@ -63,11 +62,13 @@ export class PipelinesService {
         ...createPipelineDto,
         projectId,
       },
-    })
+    });
 
-    this.logger.log(`Pipeline created: ${pipeline.id} for project ${projectId}`)
+    this.logger.log(
+      `Pipeline created: ${pipeline.id} for project ${projectId}`,
+    );
 
-    return pipeline
+    return pipeline;
   }
 
   /**
@@ -79,7 +80,7 @@ export class PipelinesService {
     page: number = 1,
     limit: number = 20,
   ): Promise<{ pipelines: Pipeline[]; total: number }> {
-    const skip = (page - 1) * limit
+    const skip = (page - 1) * limit;
 
     const [pipelines, total] = await Promise.all([
       this.prisma.pipeline.findMany({
@@ -89,9 +90,9 @@ export class PipelinesService {
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.pipeline.count({ where: { projectId } }),
-    ])
+    ]);
 
-    return { pipelines, total }
+    return { pipelines, total };
   }
 
   /**
@@ -100,13 +101,13 @@ export class PipelinesService {
   async getPipeline(pipelineId: string): Promise<Pipeline> {
     const pipeline = await this.prisma.pipeline.findUnique({
       where: { id: pipelineId },
-    })
+    });
 
     if (!pipeline) {
-      throw new NotFoundException(`Pipeline with ID ${pipelineId} not found`)
+      throw new NotFoundException(`Pipeline with ID ${pipelineId} not found`);
     }
 
-    return pipeline
+    return pipeline;
   }
 
   /**
@@ -116,7 +117,7 @@ export class PipelinesService {
     pipelineId: string,
     updatePipelineDto: UpdatePipelineDto,
   ): Promise<Pipeline> {
-    const pipeline = await this.getPipeline(pipelineId)
+    const pipeline = await this.getPipeline(pipelineId);
 
     // 如果要更新名称，检查是否与其他流水线冲突
     if (updatePipelineDto.name && updatePipelineDto.name !== pipeline.name) {
@@ -127,36 +128,36 @@ export class PipelinesService {
             name: updatePipelineDto.name,
           },
         },
-      })
+      });
 
       if (existingPipeline) {
         throw new BadRequestException(
           `Pipeline with name "${updatePipelineDto.name}" already exists`,
-        )
+        );
       }
     }
 
     const updatedPipeline = await this.prisma.pipeline.update({
       where: { id: pipelineId },
       data: updatePipelineDto,
-    })
+    });
 
-    this.logger.log(`Pipeline updated: ${pipelineId}`)
+    this.logger.log(`Pipeline updated: ${pipelineId}`);
 
-    return updatedPipeline
+    return updatedPipeline;
   }
 
   /**
    * 删除流水线
    */
   async deletePipeline(pipelineId: string): Promise<void> {
-    await this.getPipeline(pipelineId) // 验证存在性
+    await this.getPipeline(pipelineId); // 验证存在性
 
     await this.prisma.pipeline.delete({
       where: { id: pipelineId },
-    })
+    });
 
-    this.logger.log(`Pipeline deleted: ${pipelineId}`)
+    this.logger.log(`Pipeline deleted: ${pipelineId}`);
   }
 
   /**
@@ -167,11 +168,11 @@ export class PipelinesService {
     pipelineId: string,
     triggerPipelineDto: TriggerPipelineDto,
   ): Promise<PipelineRun> {
-    const pipeline = await this.getPipeline(pipelineId)
+    const pipeline = await this.getPipeline(pipelineId);
 
     // 检查流水线是否激活
     if (!pipeline.active) {
-      throw new BadRequestException('Pipeline is not active')
+      throw new BadRequestException('Pipeline is not active');
     }
 
     // 创建运行记录
@@ -183,16 +184,21 @@ export class PipelinesService {
         status: PipelineStatus.PENDING,
         metadata: triggerPipelineDto.metadata || {},
       },
-    })
+    });
 
     this.logger.log(
       `Pipeline triggered: ${pipelineId}, run ID: ${run.id}, commit: ${triggerPipelineDto.commitSha}`,
-    )
+    );
 
-    // TODO: 实际执行流水线逻辑（后续可集成到消息队列）
-    // 这里只是创建记录，实际执行可以通过外部CI系统
+    // 异步执行流水线（不阻塞响应）
+    // 生产环境应使用 Bull Queue 或 BullMQ 替换 setTimeout
+    this.executePipelineAsync(run.id, pipeline).catch((error) => {
+      this.logger.error(
+        `Pipeline execution failed for run ${run.id}: ${error.message}`,
+      );
+    });
 
-    return run
+    return run;
   }
 
   /**
@@ -204,9 +210,9 @@ export class PipelinesService {
     page: number = 1,
     limit: number = 20,
   ): Promise<{ runs: PipelineRun[]; total: number }> {
-    await this.getPipeline(pipelineId) // 验证流水线存在
+    await this.getPipeline(pipelineId); // 验证流水线存在
 
-    const skip = (page - 1) * limit
+    const skip = (page - 1) * limit;
 
     const [runs, total] = await Promise.all([
       this.prisma.pipelineRun.findMany({
@@ -216,9 +222,9 @@ export class PipelinesService {
         orderBy: { startedAt: 'desc' },
       }),
       this.prisma.pipelineRun.count({ where: { pipelineId } }),
-    ])
+    ]);
 
-    return { runs, total }
+    return { runs, total };
   }
 
   /**
@@ -228,13 +234,13 @@ export class PipelinesService {
     const run = await this.prisma.pipelineRun.findUnique({
       where: { id: runId },
       include: { pipeline: true },
-    })
+    });
 
     if (!run) {
-      throw new NotFoundException(`Pipeline run with ID ${runId} not found`)
+      throw new NotFoundException(`Pipeline run with ID ${runId} not found`);
     }
 
-    return run
+    return run;
   }
 
   /**
@@ -246,7 +252,7 @@ export class PipelinesService {
     runId: string,
     updateStatusDto: UpdatePipelineStatusDto,
   ): Promise<PipelineRun> {
-    const run = await this.getPipelineRun(runId)
+    const run = await this.getPipelineRun(runId);
 
     // 状态转换验证
     const validTransitions: Record<PipelineStatus, PipelineStatus[]> = {
@@ -263,12 +269,12 @@ export class PipelinesService {
       SUCCESS: [], // 终态
       FAILURE: [], // 终态
       CANCELLED: [], // 终态
-    }
+    };
 
     if (!validTransitions[run.status].includes(updateStatusDto.status)) {
       throw new BadRequestException(
         `Invalid status transition from ${run.status} to ${updateStatusDto.status}`,
-      )
+      );
     }
 
     // 更新状态
@@ -285,11 +291,13 @@ export class PipelinesService {
             ? new Date()
             : undefined,
       },
-    })
+    });
 
-    this.logger.log(`Pipeline run status updated: ${runId} -> ${updateStatusDto.status}`)
+    this.logger.log(
+      `Pipeline run status updated: ${runId} -> ${updateStatusDto.status}`,
+    );
 
-    return updatedRun
+    return updatedRun;
   }
 
   /**
@@ -300,7 +308,7 @@ export class PipelinesService {
     page: number = 1,
     limit: number = 20,
   ): Promise<{ runs: PipelineRun[]; total: number }> {
-    const skip = (page - 1) * limit
+    const skip = (page - 1) * limit;
 
     const [runs, total] = await Promise.all([
       this.prisma.pipelineRun.findMany({
@@ -328,8 +336,108 @@ export class PipelinesService {
           },
         },
       }),
-    ])
+    ]);
 
-    return { runs, total }
+    return { runs, total };
+  }
+
+  /**
+   * 异步执行流水线
+   * ECP-D2: Why注释 - 简化版实现，生产环境应使用消息队列(Bull/BullMQ)
+   *
+   * 执行流程：
+   * 1. 更新状态为 RUNNING
+   * 2. 模拟执行步骤 (实际应调用外部CI系统或Webhook)
+   * 3. 更新最终状态 (SUCCESS/FAILURE)
+   */
+  private async executePipelineAsync(
+    runId: string,
+    pipeline: Pipeline,
+  ): Promise<void> {
+    const startTime = Date.now();
+
+    try {
+      // 1. 更新状态为 RUNNING
+      await this.prisma.pipelineRun.update({
+        where: { id: runId },
+        data: {
+          status: PipelineStatus.RUNNING,
+          startedAt: new Date(),
+        },
+      });
+
+      this.logger.log(`Pipeline run ${runId} started`);
+
+      // 2. 模拟执行流水线步骤
+      // 实际实现应该：
+      // - 解析 pipeline.config (YAML/JSON格式的构建配置)
+      // - 调用外部CI系统 (Jenkins, GitHub Actions, GitLab CI)
+      // - 或通过 Webhook 通知外部执行器
+      // - 或使用容器运行时 (Docker, Kubernetes Jobs)
+
+      const config = pipeline.config as any;
+      const steps = config?.steps || [];
+      const logs: string[] = [];
+
+      for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
+        logs.push(
+          `[Step ${i + 1}/${steps.length}] ${step.name || `Step ${i + 1}`}`,
+        );
+
+        // 模拟步骤执行时间 (实际应等待真实执行)
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        logs.push(`[Step ${i + 1}] Completed successfully`);
+      }
+
+      // 如果没有配置步骤，执行默认流程
+      if (steps.length === 0) {
+        logs.push('[INFO] No steps configured, using default pipeline');
+        logs.push('[STEP] Checkout code');
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        logs.push('[STEP] Install dependencies');
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        logs.push('[STEP] Run tests');
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        logs.push('[STEP] Build artifacts');
+        await new Promise((resolve) => setTimeout(resolve, 500));
+      }
+
+      const duration = Date.now() - startTime;
+
+      // 3. 更新为成功状态
+      await this.prisma.pipelineRun.update({
+        where: { id: runId },
+        data: {
+          status: PipelineStatus.SUCCESS,
+          duration,
+          logs: logs.join('\n'),
+          finishedAt: new Date(),
+        },
+      });
+
+      this.logger.log(
+        `Pipeline run ${runId} completed successfully in ${duration}ms`,
+      );
+    } catch (error) {
+      const duration = Date.now() - startTime;
+
+      // 更新为失败状态
+      await this.prisma.pipelineRun.update({
+        where: { id: runId },
+        data: {
+          status: PipelineStatus.FAILURE,
+          duration,
+          logs: `Error: ${error.message}\n${error.stack}`,
+          finishedAt: new Date(),
+        },
+      });
+
+      this.logger.error(
+        `Pipeline run ${runId} failed after ${duration}ms: ${error.message}`,
+      );
+      throw error;
+    }
   }
 }

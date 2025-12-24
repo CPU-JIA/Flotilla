@@ -1,5 +1,11 @@
-import { ApiProperty } from '@nestjs/swagger'
-import { IsArray, IsBoolean, IsOptional, IsString, IsUrl } from 'class-validator'
+import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsArray,
+  IsBoolean,
+  IsOptional,
+  IsString,
+  IsUrl,
+} from 'class-validator';
 
 /**
  * 更新 Webhook DTO
@@ -13,7 +19,7 @@ export class UpdateWebhookDto {
   })
   @IsUrl({}, { message: 'URL must be a valid URL' })
   @IsOptional()
-  url?: string
+  url?: string;
 
   @ApiProperty({
     description: '订阅的事件类型数组',
@@ -25,7 +31,7 @@ export class UpdateWebhookDto {
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  events?: string[]
+  events?: string[];
 
   @ApiProperty({
     description: '是否激活 Webhook',
@@ -34,5 +40,5 @@ export class UpdateWebhookDto {
   })
   @IsBoolean()
   @IsOptional()
-  active?: boolean
+  active?: boolean;
 }

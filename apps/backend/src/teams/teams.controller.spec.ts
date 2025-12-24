@@ -113,7 +113,11 @@ describe('TeamsController', () => {
 
       mockTeamsService.findBySlug.mockResolvedValue(mockTeam);
 
-      const result = await controller.findOne(organizationSlug, teamSlug, userId);
+      const result = await controller.findOne(
+        organizationSlug,
+        teamSlug,
+        userId,
+      );
 
       expect(result).toEqual(mockTeam);
       expect(service.findBySlug).toHaveBeenCalledWith(
@@ -236,7 +240,11 @@ describe('TeamsController', () => {
       const mockMembers = [
         {
           userId: 'user-123',
-          user: { id: 'user-123', username: 'alice', email: 'alice@example.com' },
+          user: {
+            id: 'user-123',
+            username: 'alice',
+            email: 'alice@example.com',
+          },
           role: 'MAINTAINER',
         },
         {

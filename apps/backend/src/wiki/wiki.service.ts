@@ -3,16 +3,15 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common'
-import { PrismaService } from '../prisma/prisma.service'
-import { CreateWikiPageDto } from './dto/create-wiki-page.dto'
-import { UpdateWikiPageDto } from './dto/update-wiki-page.dto'
+} from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateWikiPageDto } from './dto/create-wiki-page.dto';
+import { UpdateWikiPageDto } from './dto/update-wiki-page.dto';
 import {
   WikiPageResponseDto,
   WikiTreeNodeDto,
   WikiPageHistoryResponseDto,
-} from './dto/wiki-page-response.dto'
+} from './dto/wiki-page-response.dto';
 
 /**
  * Wiki Service
@@ -44,26 +43,30 @@ export class WikiService {
           slug: dto.slug,
         },
       },
-    })
+    });
 
     if (existing) {
       throw new ConflictException(
         `Wiki page with slug "${dto.slug}" already exists in this project`,
-      )
+      );
     }
 
     // 如果指定了父页面，验证父页面存在且属于同一项目
     if (dto.parentId) {
       const parent = await this.prisma.wikiPage.findUnique({
         where: { id: dto.parentId },
-      })
+      });
 
       if (!parent) {
-        throw new NotFoundException(`Parent page with ID "${dto.parentId}" not found`)
+        throw new NotFoundException(
+          `Parent page with ID "${dto.parentId}" not found`,
+        );
       }
 
       if (parent.projectId !== projectId) {
-        throw new BadRequestException('Parent page must belong to the same project')
+        throw new BadRequestException(
+          'Parent page must belong to the same project',
+        );
       }
     }
 
@@ -88,7 +91,7 @@ export class WikiService {
           },
         },
       },
-    })
+    });
 
     // 创建初始历史记录
     await this.prisma.wikiPageHistory.create({
@@ -99,18 +102,15 @@ export class WikiService {
         editedById: userId,
         message: 'Initial version',
       },
-    })
+    });
 
-    return this.toResponseDto(page)
+    return this.toResponseDto(page);
   }
 
   /**
    * 获取单个 Wiki 页面
    */
-  async getPage(
-    projectId: string,
-    slug: string,
-  ): Promise<WikiPageResponseDto> {
+  async getPage(projectId: string, slug: string): Promise<WikiPageResponseDto> {
     const page = await this.prisma.wikiPage.findUnique({
       where: {
         projectId_slug: {
@@ -128,15 +128,15 @@ export class WikiService {
           },
         },
       },
-    })
+    });
 
     if (!page) {
       throw new NotFoundException(
         `Wiki page with slug "${slug}" not found in this project`,
-      )
+      );
     }
 
-    return this.toResponseDto(page)
+    return this.toResponseDto(page);
   }
 
   /**
@@ -156,10 +156,10 @@ export class WikiService {
         createdAt: true,
         updatedAt: true,
       },
-    })
+    });
 
     // 构建树结构
-    return this.buildTree(pages, null)
+    return this.buildTree(pages, null);
   }
 
   /**
@@ -180,12 +180,12 @@ export class WikiService {
           slug,
         },
       },
-    })
+    });
 
     if (!page) {
       throw new NotFoundException(
         `Wiki page with slug "${slug}" not found in this project`,
-      )
+      );
     }
 
     // 如果更新 slug，检查新 slug 是否已存在
@@ -197,23 +197,23 @@ export class WikiService {
             slug: dto.slug,
           },
         },
-      })
+      });
 
       if (existing) {
         throw new ConflictException(
           `Wiki page with slug "${dto.slug}" already exists in this project`,
-        )
+        );
       }
     }
 
     // 如果更新父页面，验证不会造成循环引用
     if (dto.parentId !== undefined) {
       if (dto.parentId === page.id) {
-        throw new BadRequestException('A page cannot be its own parent')
+        throw new BadRequestException('A page cannot be its own parent');
       }
 
       if (dto.parentId) {
-        await this.validateNoCircularReference(page.id, dto.parentId)
+        await this.validateNoCircularReference(page.id, dto.parentId);
       }
     }
 
@@ -237,7 +237,7 @@ export class WikiService {
           },
         },
       },
-    })
+    });
 
     // 如果内容有变化，创建历史记录
     if (dto.content && dto.content !== page.content) {
@@ -249,10 +249,10 @@ export class WikiService {
           editedById: userId,
           message: dto.message ?? 'Content updated',
         },
-      })
+      });
     }
 
-    return this.toResponseDto(updated)
+    return this.toResponseDto(updated);
   }
 
   /**
@@ -267,17 +267,17 @@ export class WikiService {
           slug,
         },
       },
-    })
+    });
 
     if (!page) {
       throw new NotFoundException(
         `Wiki page with slug "${slug}" not found in this project`,
-      )
+      );
     }
 
     await this.prisma.wikiPage.delete({
       where: { id: page.id },
-    })
+    });
   }
 
   /**
@@ -294,12 +294,12 @@ export class WikiService {
           slug,
         },
       },
-    })
+    });
 
     if (!page) {
       throw new NotFoundException(
         `Wiki page with slug "${slug}" not found in this project`,
-      )
+      );
     }
 
     const history = await this.prisma.wikiPageHistory.findMany({
@@ -315,7 +315,7 @@ export class WikiService {
           },
         },
       },
-    })
+    });
 
     return history.map((h) => ({
       id: h.id,
@@ -326,7 +326,7 @@ export class WikiService {
       editedBy: h.editedBy,
       editedAt: h.editedAt,
       message: h.message,
-    }))
+    }));
   }
 
   /**
@@ -337,25 +337,27 @@ export class WikiService {
     pageId: string,
     newParentId: string,
   ): Promise<void> {
-    let currentId: string | null = newParentId
+    let currentId: string | null = newParentId;
 
     while (currentId) {
       if (currentId === pageId) {
         throw new BadRequestException(
           'Circular reference detected: a page cannot be a descendant of itself',
-        )
+        );
       }
 
       const parent = await this.prisma.wikiPage.findUnique({
         where: { id: currentId },
         select: { parentId: true },
-      })
+      });
 
       if (!parent) {
-        throw new NotFoundException(`Parent page with ID "${currentId}" not found`)
+        throw new NotFoundException(
+          `Parent page with ID "${currentId}" not found`,
+        );
       }
 
-      currentId = parent.parentId
+      currentId = parent.parentId;
     }
   }
 
@@ -363,10 +365,7 @@ export class WikiService {
    * 构建树结构
    * ECP-B2: KISS - 简单的递归树构建算法
    */
-  private buildTree(
-    pages: any[],
-    parentId: string | null,
-  ): WikiTreeNodeDto[] {
+  private buildTree(pages: any[], parentId: string | null): WikiTreeNodeDto[] {
     return pages
       .filter((p) => p.parentId === parentId)
       .map((p) => ({
@@ -378,7 +377,7 @@ export class WikiService {
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
         children: this.buildTree(pages, p.id),
-      }))
+      }));
   }
 
   /**
@@ -398,6 +397,6 @@ export class WikiService {
       createdBy: page.createdBy,
       createdAt: page.createdAt,
       updatedAt: page.updatedAt,
-    }
+    };
   }
 }
