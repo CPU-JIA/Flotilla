@@ -1,6 +1,15 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CollaborationSession, CollaborationParticipant } from '@prisma/client';
+import {
+  CollaborationSession,
+  CollaborationParticipant,
+  User,
+} from '@prisma/client';
+
+// 定义返回类型:Participant包含user关系
+type ParticipantWithUser = CollaborationParticipant & {
+  user: Pick<User, 'id' | 'username' | 'avatar'>;
+};
 
 /**
  * 实时协作编辑服务
@@ -83,7 +92,7 @@ export class CollaborationService {
    * @param sessionId - 会话ID
    * @param userId - 用户ID
    * @param color - 用户光标颜色
-   * @returns 参与者记录
+   * @returns 参与者记录（包含用户信息）
    *
    * ECP-C1: 防御性编程 - 检查会话是否存在
    */
@@ -91,7 +100,7 @@ export class CollaborationService {
     sessionId: string,
     userId: string,
     color: string,
-  ): Promise<CollaborationParticipant> {
+  ): Promise<ParticipantWithUser> {
     if (!sessionId || !userId || !color) {
       throw new Error('sessionId, userId, and color are required');
     }
@@ -124,6 +133,15 @@ export class CollaborationService {
           lastActiveAt: new Date(),
           color, // 允许更新颜色
         },
+        include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              avatar: true,
+            },
+          },
+        },
       });
 
       this.logger.log(`User ${userId} rejoined session ${sessionId}`);
@@ -136,6 +154,15 @@ export class CollaborationService {
         sessionId,
         userId,
         color,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            avatar: true,
+          },
+        },
       },
     });
 
@@ -189,7 +216,7 @@ export class CollaborationService {
    *
    * ECP-C3: Performance Awareness - 使用include优化查询
    */
-  async getActiveUsers(sessionId: string) {
+  async getActiveUsers(sessionId: string): Promise<ParticipantWithUser[]> {
     if (!sessionId) {
       throw new Error('sessionId is required');
     }

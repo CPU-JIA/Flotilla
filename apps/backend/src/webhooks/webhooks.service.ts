@@ -169,7 +169,8 @@ export class WebhookService {
           statusCode: response.status,
           response: this.truncateResponse(response.data),
           success: true,
-          duration,
+          // duration 字段暂未在schema中定义,注释掉
+          // duration,
         },
       });
     } catch (error) {
@@ -197,8 +198,8 @@ export class WebhookService {
           payload,
           statusCode,
           success: false,
-          duration,
-          error: errorMessage,
+          // duration和error字段暂未在schema中定义,将错误信息存入response
+          response: { error: errorMessage },
         },
       });
     }

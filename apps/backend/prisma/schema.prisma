@@ -170,6 +170,7 @@ model User {
   oauthAccounts          OAuthAccount[] // OAuth 账户关联
   twoFactorAuth          TwoFactorAuth? // 两步验证配置
   collaborationSessions  CollaborationParticipant[] // 参与的协作会话
+  dataExportRequests     DataExportRequest[] // GDPR 数据导出请求
 
   @@index([email])
   @@index([username])
@@ -1445,4 +1446,54 @@ model CollaborationParticipant {
   @@index([sessionId])
   @@index([userId])
   @@map("collaboration_participants")
+}
+
+// ============================================
+// GDPR Data Export 模块
+// ============================================
+
+/**
+ * 数据导出格式枚举
+ */
+enum DataExportFormat {
+  JSON
+  CSV
+}
+
+/**
+ * 数据导出状态枚举
+ */
+enum DataExportStatus {
+  PENDING    // 等待处理
+  PROCESSING // 处理中
+  COMPLETED  // 已完成
+  FAILED     // 失败
+  EXPIRED    // 已过期
+}
+
+/**
+ * 数据导出请求表
+ * 支持 GDPR 合规的用户数据导出功能
+ */
+model DataExportRequest {
+  id          String           @id @default(cuid())
+  userId      String
+  format      DataExportFormat @default(JSON)
+  status      DataExportStatus @default(PENDING)
+  filePath    String?          @db.VarChar(500) // MinIO 对象路径
+  fileSize    Int?             // 文件大小（字节）
+  expiresAt   DateTime?        // 过期时间（默认7天）
+  completedAt DateTime?        // 完成时间
+  errorMsg    String?          @db.Text // 失败时的错误信息
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // 关系
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@index([expiresAt]) // 定期清理过期导出
+  @@map("data_export_requests")
 }

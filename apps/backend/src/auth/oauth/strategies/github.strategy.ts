@@ -54,7 +54,9 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     try {
       // 提取主要邮箱（已验证的邮箱）
       const emails = profile.emails || [];
-      const primaryEmail = emails.find((e) => e.primary && e.verified)?.value;
+      const primaryEmail = emails.find(
+        (e: any) => e.primary && e.verified,
+      )?.value;
       const firstEmail = emails[0]?.value;
 
       if (!primaryEmail && !firstEmail) {
@@ -65,19 +67,19 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
       const oauthProfile: OAuthProfileDto = {
         provider: 'github',
         providerId: profile.id,
-        email: primaryEmail || firstEmail,
-        displayName: profile.displayName || profile.username,
-        username: profile.username,
+        email: primaryEmail || firstEmail!,
+        displayName: profile.displayName || profile.username || 'Unknown',
+        username: profile.username || undefined,
         avatar: profile.photos?.[0]?.value,
         accessToken,
         refreshToken: refreshToken || undefined,
         scope: 'user:email',
         metadata: {
-          profileUrl: profile.profileUrl,
-          company: profile._json.company,
-          blog: profile._json.blog,
-          location: profile._json.location,
-          bio: profile._json.bio,
+          profileUrl: (profile as any).profileUrl,
+          company: (profile as any)._json?.company,
+          blog: (profile as any)._json?.blog,
+          location: (profile as any)._json?.location,
+          bio: (profile as any)._json?.bio,
         },
       };
 

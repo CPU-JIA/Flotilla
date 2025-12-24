@@ -11,6 +11,11 @@ import { TriggerPipelineDto } from './dto/trigger-pipeline.dto';
 import { UpdatePipelineStatusDto } from './dto/update-pipeline-status.dto';
 import { Pipeline, PipelineRun, PipelineStatus } from '@prisma/client';
 
+// 定义返回类型:PipelineRun包含pipeline关系
+type PipelineRunWithPipeline = PipelineRun & {
+  pipeline: Pipeline;
+};
+
 /**
  * Pipeline Service
  * ECP-A1: SOLID - 单一职责，专注于流水线业务逻辑
@@ -230,7 +235,7 @@ export class PipelinesService {
   /**
    * 获取单个运行记录
    */
-  async getPipelineRun(runId: string): Promise<PipelineRun> {
+  async getPipelineRun(runId: string): Promise<PipelineRunWithPipeline> {
     const run = await this.prisma.pipelineRun.findUnique({
       where: { id: runId },
       include: { pipeline: true },
