@@ -1,0 +1,23 @@
+sequenceDiagram
+    participant GitClient as Git Client
+    participant GitHTTP as Git HTTP Service
+    participant RaftService as Raft Consensus
+    participant Storage as MinIO Storage
+    participant Database as PostgreSQL
+
+    GitClient->>GitHTTP: GET /info/refs?service=git-receive-pack
+    GitHTTP->>Database: 验证权限
+    GitHTTP-->>GitClient: 返回引用列表
+
+    GitClient->>GitHTTP: POST /git-receive-pack (pack data)
+    GitHTTP->>GitHTTP: 解析pack文件
+
+    GitHTTP->>RaftService: 提交元数据变更
+    RaftService->>RaftService: Leader复制到Followers
+    RaftService-->>GitHTTP: 提交成功
+
+    GitHTTP->>Storage: 存储Git对象
+    Storage-->>GitHTTP: OK
+
+    GitHTTP->>Database: 更新引用
+    GitHTTP-->>GitClient: 推送成功

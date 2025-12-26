@@ -13,7 +13,24 @@ describe('WikiController', () => {
   let controller: WikiController;
   let wikiService: WikiService;
   let permissionService: PermissionService;
-  const mockUser: User = { id: 'user-1', username: 'testuser', email: 'test@example.com', passwordHash: 'hash', role: UserRole.USER, avatar: null, bio: null, isActive: true, emailVerified: true, emailVerifyToken: null, emailVerifyExpires: null, passwordResetToken: null, passwordResetExpires: null, tokenVersion: 0, createdAt: new Date(), updatedAt: new Date() };
+  const mockUser: User = {
+    id: 'user-1',
+    username: 'testuser',
+    email: 'test@example.com',
+    passwordHash: 'hash',
+    role: UserRole.USER,
+    avatar: null,
+    bio: null,
+    isActive: true,
+    emailVerified: true,
+    emailVerifyToken: null,
+    emailVerifyExpires: null,
+    passwordResetToken: null,
+    passwordResetExpires: null,
+    tokenVersion: 0,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 
   const mockWikiService = {
     createPage: jest.fn(),
@@ -84,7 +101,11 @@ describe('WikiController', () => {
       mockPermissionService.checkProjectPermission.mockResolvedValue(undefined);
       mockWikiService.createPage.mockResolvedValue(mockPage);
 
-      const result = await controller.createPage(projectId, mockUser, createDto);
+      const result = await controller.createPage(
+        projectId,
+        mockUser,
+        createDto,
+      );
 
       expect(result).toEqual(mockPage);
       expect(permissionService.checkProjectPermission).toHaveBeenCalledWith(
@@ -113,7 +134,7 @@ describe('WikiController', () => {
 
   describe('getWikiTree', () => {
     const projectId = 'project-1';
-    const userId = 'user-1';
+    const _userId = 'user-1'; // 保留用于上下文说明
 
     it('should return wiki tree with VIEWER permission', async () => {
       const mockTree = [
@@ -148,7 +169,9 @@ describe('WikiController', () => {
         new Error('Forbidden'),
       );
 
-      await expect(controller.getWikiTree(projectId, mockUser)).rejects.toThrow();
+      await expect(
+        controller.getWikiTree(projectId, mockUser),
+      ).rejects.toThrow();
       expect(wikiService.getWikiTree).not.toHaveBeenCalled();
     });
   });
@@ -224,7 +247,12 @@ describe('WikiController', () => {
       mockPermissionService.checkProjectPermission.mockResolvedValue(undefined);
       mockWikiService.updatePage.mockResolvedValue(mockPage);
 
-      const result = await controller.updatePage(projectId, slug, mockUser, updateDto);
+      const result = await controller.updatePage(
+        projectId,
+        slug,
+        mockUser,
+        updateDto,
+      );
 
       expect(result).toEqual(mockPage);
       expect(permissionService.checkProjectPermission).toHaveBeenCalledWith(
@@ -254,7 +282,7 @@ describe('WikiController', () => {
 
   describe('deletePage', () => {
     const projectId = 'project-1';
-    const userId = 'user-1';
+    const _userId = 'user-1'; // 保留用于上下文说明
     const slug = 'getting-started';
 
     it('should delete a page with MAINTAINER permission', async () => {

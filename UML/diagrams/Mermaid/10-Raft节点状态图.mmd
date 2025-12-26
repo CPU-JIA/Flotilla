@@ -1,0 +1,32 @@
+stateDiagram-v2
+    [*] --> Follower : 节点启动
+
+    Follower --> Candidate : 选举超时
+    Candidate --> Leader : 获得多数票
+    Candidate --> Follower : 发现更高任期Leader
+    Candidate --> Candidate : 选举超时，重新选举
+    Leader --> Follower : 发现更高任期
+
+    Follower --> Follower : 收到有效心跳
+    Leader --> Leader : 定期发送心跳
+
+    state Follower {
+        [*] --> 等待心跳
+        等待心跳 --> 重置选举计时器 : 收到心跳
+        重置选举计时器 --> 等待心跳
+    }
+
+    state Candidate {
+        [*] --> 递增任期
+        递增任期 --> 投票给自己
+        投票给自己 --> 发送RequestVote
+        发送RequestVote --> 统计选票
+    }
+
+    state Leader {
+        [*] --> 初始化nextIndex
+        初始化nextIndex --> 发送心跳
+        发送心跳 --> 处理客户端请求
+        处理客户端请求 --> 复制日志
+        复制日志 --> 提交日志
+    }

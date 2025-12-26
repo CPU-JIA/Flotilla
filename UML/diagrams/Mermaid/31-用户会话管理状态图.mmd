@@ -1,0 +1,63 @@
+stateDiagram-v2
+    [*] --> Anonymous : 访问网站
+
+    state Anonymous {
+        [*] --> Browsing
+        Browsing --> LoginPage : 点击登录
+        Browsing --> RegisterPage : 点击注册
+    }
+
+    Anonymous --> Authenticating : 提交凭据
+
+    state Authenticating {
+        [*] --> ValidatingCredentials
+        ValidatingCredentials --> CheckingMFA : 凭据正确
+        ValidatingCredentials --> AuthFailed : 凭据错误
+
+        CheckingMFA --> MFARequired : 启用了2FA
+        CheckingMFA --> AuthSuccess : 未启用2FA
+
+        MFARequired --> ValidatingTOTP
+        ValidatingTOTP --> AuthSuccess : TOTP正确
+        ValidatingTOTP --> AuthFailed : TOTP错误
+    }
+
+    AuthFailed --> Anonymous : 返回登录
+
+    AuthSuccess --> Authenticated : 创建Session
+
+    state Authenticated {
+        [*] --> Active
+
+        Active --> Active : API请求<br/>刷新lastActivity
+        Active --> TokenRefresh : Access Token过期
+        Active --> Idle : 15分钟无活动
+
+        TokenRefresh --> Active : 刷新成功
+        TokenRefresh --> SessionExpired : Refresh Token过期
+
+        Idle --> Active : 恢复活动
+        Idle --> SessionExpired : 30分钟无活动
+
+        Active --> DeviceLogout : 从其他设备登出
+        Active --> PasswordChanged : 密码被修改
+        Active --> ManualLogout : 主动登出
+    }
+
+    SessionExpired --> Anonymous : 重定向登录
+    DeviceLogout --> Anonymous : Token版本失效
+    PasswordChanged --> Anonymous : Token版本递增
+    ManualLogout --> Anonymous : 清除Session
+
+    state SessionStorage {
+        Redis : Redis存储
+        --
+        SessionID : 会话ID
+        UserID : 用户ID
+        TokenVersion : Token版本
+        DeviceInfo : 设备信息
+        IPAddress : IP地址
+        ExpiresAt : 过期时间
+    }
+
+    Authenticated --> SessionStorage : 存储会话

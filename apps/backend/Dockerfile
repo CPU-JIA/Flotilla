@@ -4,6 +4,9 @@ FROM node:22-alpine AS base
 # 安装 pnpm
 RUN corepack enable && corepack prepare pnpm@10.18.2 --activate
 
+# 配置国内镜像加速
+RUN pnpm config set registry https://registry.npmmirror.com
+
 # 设置工作目录
 WORKDIR /app
 
@@ -62,6 +65,9 @@ RUN chmod +x ./apps/backend/docker-entrypoint.sh
 
 # Change ownership to nodejs user
 RUN chown -R nodejs:nodejs /app
+
+# 创建 Git 仓库存储目录并设置权限
+RUN mkdir -p /app/repos && chown -R nodejs:nodejs /app/repos
 
 WORKDIR /app/apps/backend
 

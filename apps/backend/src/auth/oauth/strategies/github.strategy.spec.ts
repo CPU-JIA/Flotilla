@@ -49,7 +49,7 @@ describe('GithubStrategy', () => {
   });
 
   describe('validate', () => {
-    it('should return OAuthProfileDto with primary email', async () => {
+    it('should return OAuthProfileDto with primary email', () => {
       const mockProfile = {
         id: 'github123',
         displayName: 'Test User',
@@ -72,12 +72,7 @@ describe('GithubStrategy', () => {
       const accessToken = 'github_access_token';
       const refreshToken = 'github_refresh_token';
 
-      strategy.validate(
-        accessToken,
-        refreshToken,
-        mockProfile as any,
-        done,
-      );
+      strategy.validate(accessToken, refreshToken, mockProfile as any, done);
 
       expect(done).toHaveBeenCalledWith(null, {
         provider: 'github',
@@ -99,7 +94,7 @@ describe('GithubStrategy', () => {
       });
     });
 
-    it('should use first email when no primary email', async () => {
+    it('should use first email when no primary email', () => {
       const mockProfile = {
         id: 'github123',
         displayName: 'Test User',
@@ -124,7 +119,7 @@ describe('GithubStrategy', () => {
       );
     });
 
-    it('should call done with error when no email found', async () => {
+    it('should call done with error when no email found', () => {
       const mockProfile = {
         id: 'github123',
         displayName: 'Test User',

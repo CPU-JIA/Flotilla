@@ -309,7 +309,9 @@ describe('WikiService', () => {
 
       mockPrismaService.wikiPage.findUnique.mockResolvedValue(existingPage);
       mockPrismaService.wikiPage.update.mockResolvedValue(updatedPage);
-      mockPrismaService.wikiPageHistory.findFirst.mockResolvedValue({ version: 1 });
+      mockPrismaService.wikiPageHistory.findFirst.mockResolvedValue({
+        version: 1,
+      });
       mockPrismaService.wikiPageHistory.create.mockResolvedValue({});
 
       const result = await service.updatePage(

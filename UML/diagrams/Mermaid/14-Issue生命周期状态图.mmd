@@ -1,0 +1,29 @@
+stateDiagram-v2
+    [*] --> Open : 创建Issue
+
+    state Open {
+        [*] --> 待处理
+        待处理 --> 讨论中 : 添加评论
+        讨论中 --> 待处理 : 等待回复
+        讨论中 --> 讨论中 : 继续讨论
+    }
+
+    Open --> InProgress : 分配开发者
+    Open --> Closed : 关闭无效或重复
+
+    state InProgress {
+        [*] --> 开发中
+        开发中 --> 测试中 : 提交修复
+        测试中 --> 开发中 : 测试失败
+        测试中 --> 待合并 : 测试通过
+    }
+
+    InProgress --> Open : 取消分配
+    InProgress --> Closed : 关闭已解决
+
+    state Closed {
+        [*] --> 已完成
+        已完成 --> 已归档 : 归档
+    }
+
+    Closed --> Open : 重新打开

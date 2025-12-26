@@ -1,0 +1,49 @@
+flowchart TD
+    A[收到API请求] --> B{检查路由}
+
+    B -->|公开路由| C[直接处理请求]
+    B -->|受保护路由| D{检查Authorization Header}
+
+    D -->|无Header| E[返回401 Unauthorized]
+    D -->|有Header| F{Token类型}
+
+    F -->|Bearer Token| G[JWT验证流程]
+    F -->|Basic Auth| H[基础认证流程]
+    F -->|API Token| I[API Token验证流程]
+
+    G --> G1[解析JWT]
+    G1 --> G2{签名验证}
+    G2 -->|失败| E
+    G2 -->|成功| G3{Token过期检查}
+    G3 -->|已过期| E
+    G3 -->|未过期| G4{Token版本检查}
+    G4 -->|版本不匹配| E
+    G4 -->|版本匹配| J[提取用户信息]
+
+    H --> H1[解码Base64]
+    H1 --> H2[查询用户]
+    H2 --> H3{密码验证}
+    H3 -->|失败| E
+    H3 -->|成功| J
+
+    I --> I1[查询API Token]
+    I1 --> I2{Token存在且有效}
+    I2 -->|否| E
+    I2 -->|是| I3{检查权限范围}
+    I3 -->|权限不足| K[返回403 Forbidden]
+    I3 -->|权限足够| J
+
+    J --> L{检查用户状态}
+    L -->|已禁用| E
+    L -->|正常| M{检查2FA}
+
+    M -->|需要2FA且未验证| N[返回需要2FA验证]
+    M -->|不需要或已验证| O{RBAC权限检查}
+
+    O -->|无权限| K
+    O -->|有权限| P[执行业务逻辑]
+
+    P --> Q[记录审计日志]
+    Q --> R[返回响应]
+
+    C --> R

@@ -16,8 +16,9 @@ BEGIN
 END
 $$;
 
--- 授予权限
-GRANT ALL PRIVILEGES ON DATABASE cloud_dev_platform TO devplatform;
+-- 授予权限（数据库名由环境变量 POSTGRES_DB 指定，默认 flotilla）
+-- 注意：此脚本在 flotilla 数据库上下文中运行
+GRANT ALL PRIVILEGES ON SCHEMA public TO devplatform;
 
 -- 输出初始化完成信息
 SELECT 'Database initialized successfully!' AS status;

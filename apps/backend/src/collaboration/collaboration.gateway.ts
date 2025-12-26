@@ -32,7 +32,11 @@ import * as Y from 'yjs';
 @WebSocketGateway({
   namespace: 'collaboration',
   cors: {
-    origin: process.env.FRONTEND_URL?.split(',') || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL
+      ? process.env.FRONTEND_URL.split(',')
+          .map((url) => url.trim())
+          .filter(Boolean)
+      : 'http://localhost:3000',
     credentials: true,
   },
 })

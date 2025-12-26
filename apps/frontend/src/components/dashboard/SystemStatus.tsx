@@ -57,7 +57,7 @@ export function SystemStatus() {
 
     try {
       // ECP-C2: 系统化错误处理 - 包装API调用
-      const response = await fetch('http://localhost:4000/api/monitoring/health', {
+      const response = await fetch('http://localhost:4000/api/v1/monitoring/health', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       })

@@ -1,0 +1,79 @@
+graph TB
+    subgraph "Client Layer"
+        WebApp[Web Application]
+        GitClient[Git Client]
+        APIClient[API Client]
+    end
+
+    subgraph "Gateway Layer"
+        APIGateway[API Gateway<br/>NestJS]
+        GitGateway[Git HTTP Gateway]
+    end
+
+    subgraph "Service Layer"
+        subgraph "Core Services"
+            AuthSvc[Auth Service<br/>认证授权]
+            UserSvc[User Service<br/>用户管理]
+            OrgSvc[Organization Service<br/>组织管理]
+        end
+
+        subgraph "Repository Services"
+            ProjectSvc[Project Service<br/>项目管理]
+            RepoSvc[Repository Service<br/>仓库管理]
+            GitSvc[Git Service<br/>Git协议]
+        end
+
+        subgraph "Collaboration Services"
+            IssueSvc[Issue Service<br/>Issue追踪]
+            PRSvc[PR Service<br/>代码审查]
+            WikiSvc[Wiki Service<br/>文档管理]
+        end
+
+        subgraph "Infrastructure Services"
+            NotifySvc[Notification Service<br/>通知推送]
+            SearchSvc[Search Service<br/>代码搜索]
+            AuditSvc[Audit Service<br/>审计日志]
+        end
+
+        subgraph "Consensus Layer"
+            RaftSvc[Raft Service<br/>分布式共识]
+        end
+    end
+
+    subgraph "Message Bus"
+        EventBus[Event Bus<br/>Redis Pub/Sub]
+    end
+
+    subgraph "Data Layer"
+        PostgreSQL[(PostgreSQL)]
+        Redis[(Redis)]
+        MinIO[(MinIO)]
+        MeiliSearch[(MeiliSearch)]
+    end
+
+    WebApp --> APIGateway
+    GitClient --> GitGateway
+    APIClient --> APIGateway
+
+    APIGateway --> AuthSvc & UserSvc & ProjectSvc & IssueSvc & PRSvc
+    GitGateway --> GitSvc
+
+    AuthSvc --> UserSvc
+    ProjectSvc --> OrgSvc
+    RepoSvc --> GitSvc
+    IssueSvc --> ProjectSvc
+    PRSvc --> RepoSvc
+
+    GitSvc --> RaftSvc
+    ProjectSvc --> RaftSvc
+
+    AuthSvc & UserSvc --> PostgreSQL & Redis
+    ProjectSvc & RepoSvc --> PostgreSQL & MinIO
+    IssueSvc & PRSvc --> PostgreSQL
+    SearchSvc --> MeiliSearch
+    NotifySvc --> Redis
+
+    IssueSvc & PRSvc -.-> EventBus
+    EventBus -.-> NotifySvc
+    EventBus -.-> SearchSvc
+    EventBus -.-> AuditSvc

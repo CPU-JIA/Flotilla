@@ -80,8 +80,8 @@ export default function PrivacyPage() {
             <div className="flex-1">
               <h2 className="text-xl font-semibold mb-2">Export Your Data</h2>
               <p className="text-sm text-muted-foreground mb-4">
-                Request a copy of all your personal data stored in Flotilla. 
-                We'll compile your profile, projects, issues, and activity into a downloadable ZIP file.
+                Request a copy of all your personal data stored in Flotilla.
+                We&apos;ll compile your profile, projects, issues, and activity into a downloadable ZIP file.
               </p>
               <div className="flex items-center gap-4">
                 <Button onClick={handleExportData} disabled={exporting}>
@@ -90,7 +90,7 @@ export default function PrivacyPage() {
                 <Badge variant="outline">GDPR Compliant</Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-3">
-                ℹ️ Export typically takes 5-10 minutes. You'll receive an email with a download link.
+                ℹ️ Export typically takes 5-10 minutes. You&apos;ll receive an email with a download link.
               </p>
             </div>
           </div>

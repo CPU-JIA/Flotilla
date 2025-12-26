@@ -7,7 +7,7 @@
  * @jest-environment jsdom
  */
 
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor, within as _within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { WebhookDialog } from '../WebhookDialog'
 import type { Webhook } from '@/types/webhook'

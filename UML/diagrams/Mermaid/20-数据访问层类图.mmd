@@ -1,0 +1,61 @@
+classDiagram
+    class PrismaService {
+        +user: Prisma.UserDelegate
+        +project: Prisma.ProjectDelegate
+        +repository: Prisma.RepositoryDelegate
+        +issue: Prisma.IssueDelegate
+        +pullRequest: Prisma.PullRequestDelegate
+        +notification: Prisma.NotificationDelegate
+        +auditLog: Prisma.AuditLogDelegate
+        +$connect() Promise~void~
+        +$disconnect() Promise~void~
+        +$transaction(fn) Promise~T~
+        +onModuleInit() void
+        +onModuleDestroy() void
+    }
+
+    class RedisService {
+        -Redis client
+        +get(key: string) Promise~string~
+        +set(key: string, value: string, ttl?: number) Promise~void~
+        +del(key: string) Promise~void~
+        +hget(key: string, field: string) Promise~string~
+        +hset(key: string, field: string, value: string) Promise~void~
+        +publish(channel: string, message: string) Promise~void~
+        +subscribe(channel: string, callback: Function) void
+    }
+
+    class MinioService {
+        -Client minioClient
+        +uploadFile(bucket: string, name: string, file: Buffer) Promise~string~
+        +downloadFile(bucket: string, name: string) Promise~Buffer~
+        +deleteFile(bucket: string, name: string) Promise~void~
+        +getPresignedUrl(bucket: string, name: string) Promise~string~
+        +listObjects(bucket: string, prefix: string) Promise~Object[]~
+    }
+
+    class MeiliSearchService {
+        -MeiliSearch client
+        +indexDocument(index: string, doc: Document) Promise~void~
+        +search(index: string, query: string, options?: SearchOptions) Promise~SearchResult~
+        +deleteDocument(index: string, id: string) Promise~void~
+        +updateSettings(index: string, settings: Settings) Promise~void~
+    }
+
+    class AuditService {
+        -PrismaService prisma
+        +log(action: AuditAction, entity: AuditEntity, userId: string, metadata?: any) Promise~void~
+        +query(filters: AuditFilter) Promise~AuditLog[]~
+        +export(filters: AuditFilter, format: ExportFormat) Promise~Buffer~
+    }
+
+    PrismaService <-- AuthService : uses
+    PrismaService <-- UsersService : uses
+    PrismaService <-- ProjectsService : uses
+    RedisService <-- AuthService : uses
+    RedisService <-- NotificationsService : uses
+    MinioService <-- RepositoriesService : uses
+    MinioService <-- FilesService : uses
+    MeiliSearchService <-- SearchService : uses
+    AuditService <-- AuthService : uses
+    AuditService <-- ProjectsService : uses

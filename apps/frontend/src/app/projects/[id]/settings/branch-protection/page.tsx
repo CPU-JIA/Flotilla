@@ -12,7 +12,7 @@ import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Trash2, Shield, Check, X, Plus, Edit } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { BranchProtectionDialog } from '@/components/branch-protection/BranchProtectionDialog'
+import { BranchProtectionDialog, type BranchProtectionRuleInput } from '@/components/branch-protection/BranchProtectionDialog'
 import { useToast } from '@/hooks/use-toast'
 
 interface BranchProtectionRule {
@@ -36,7 +36,7 @@ export default function BranchProtectionPage() {
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingRule, setEditingRule] = useState<BranchProtectionRule | null>(null)
-  const [submitting, setSubmitting] = useState(false)
+  const [_submitting, setSubmitting] = useState(false)
   const { toast } = useToast()
 
   const loadRules = useCallback(async () => {
@@ -70,7 +70,7 @@ export default function BranchProtectionPage() {
     setDialogOpen(true)
   }
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: BranchProtectionRuleInput) => {
     try {
       setSubmitting(true)
       if (editingRule) {

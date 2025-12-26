@@ -1,0 +1,61 @@
+graph TB
+    subgraph "用户设备"
+        Browser[Web浏览器]
+        GitCLI[Git CLI]
+    end
+
+    subgraph "CDN/边缘层"
+        CDN[CDN<br/>静态资源缓存]
+    end
+
+    subgraph "前端层"
+        NextJS[Next.js 16<br/>Port 3000]
+    end
+
+    subgraph "API网关层"
+        Gateway[NestJS API Gateway<br/>Port 4000]
+        ThrottlerGuard[限流守卫]
+        AuthGuard[认证守卫]
+    end
+
+    subgraph "后端服务层 (32个模块)"
+        AuthModule[Auth Module]
+        GitModule[Git HTTP Module]
+        ProjectModule[Project Module]
+        IssueModule[Issue Module]
+        PRModule[PR Module]
+        RaftModule[Raft Module]
+        SearchModule[Search Module]
+        NotifyModule[Notification Module]
+    end
+
+    subgraph "数据层"
+        PostgreSQL[(PostgreSQL 16<br/>Port 5434)]
+        Redis[(Redis 7<br/>Port 6380)]
+        MinIO[(MinIO<br/>Port 9000)]
+        MeiliSearch[(MeiliSearch<br/>Port 7700)]
+    end
+
+    Browser --> CDN
+    CDN --> NextJS
+    GitCLI --> GitModule
+    NextJS --> Gateway
+
+    Gateway --> ThrottlerGuard
+    ThrottlerGuard --> AuthGuard
+    AuthGuard --> AuthModule
+    AuthGuard --> ProjectModule
+    AuthGuard --> IssueModule
+    AuthGuard --> PRModule
+    AuthGuard --> SearchModule
+
+    GitModule --> RaftModule
+    AuthModule --> PostgreSQL
+    AuthModule --> Redis
+    ProjectModule --> PostgreSQL
+    IssueModule --> PostgreSQL
+    PRModule --> PostgreSQL
+    RaftModule --> PostgreSQL
+    SearchModule --> MeiliSearch
+    GitModule --> MinIO
+    NotifyModule --> Redis

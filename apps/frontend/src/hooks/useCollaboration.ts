@@ -5,6 +5,28 @@ import { io, Socket } from 'socket.io-client'
 import * as Y from 'yjs'
 
 /**
+ * 选区位置接口
+ */
+export interface SelectionPosition {
+  line: number
+  column: number
+  offset?: number
+}
+
+/**
+ * Socket响应类型
+ */
+interface SocketResponse {
+  event: string
+  data: {
+    sessionId?: string
+    activeUsers?: CollaborationUser[]
+    yourColor?: string
+    message?: string
+  }
+}
+
+/**
  * 协作用户接口
  */
 export interface CollaborationUser {
@@ -17,8 +39,8 @@ export interface CollaborationUser {
     column: number
   }
   selection?: {
-    start: any
-    end: any
+    start: SelectionPosition
+    end: SelectionPosition
   }
 }
 
@@ -47,7 +69,7 @@ export interface UseCollaborationReturn {
   sendUpdate: (update: Uint8Array) => void
   sendAwareness: (state: {
     cursor?: { line: number; column: number }
-    selection?: { start: any; end: any }
+    selection?: { start: SelectionPosition; end: SelectionPosition }
   }) => void
   disconnect: () => void
 }
@@ -135,14 +157,14 @@ export function useCollaboration(
           projectId,
           documentType,
         },
-        (response: any) => {
+        (response: SocketResponse) => {
           if (response.event === 'document-joined') {
-            sessionIdRef.current = response.data.sessionId
-            setActiveUsers(response.data.activeUsers)
-            setYourColor(response.data.yourColor)
+            sessionIdRef.current = response.data.sessionId ?? null
+            setActiveUsers(response.data.activeUsers ?? [])
+            setYourColor(response.data.yourColor ?? null)
             console.log('Joined document:', response.data)
           } else if (response.event === 'error') {
-            onError?.(new Error(response.data.message))
+            onError?.(new Error(response.data.message ?? 'Unknown error'))
           }
         },
       )
@@ -197,7 +219,7 @@ export function useCollaboration(
         userId: string
         state: {
           cursor?: { line: number; column: number }
-          selection?: { start: any; end: any }
+          selection?: { start: SelectionPosition; end: SelectionPosition }
         }
       }) => {
         setActiveUsers((prev) =>
@@ -249,9 +271,9 @@ export function useCollaboration(
           documentId,
           update: Array.from(update),
         },
-        (response: any) => {
+        (response: SocketResponse) => {
           if (response.event === 'error') {
-            onError?.(new Error(response.data.message))
+            onError?.(new Error(response.data.message ?? 'Unknown error'))
           }
         },
       )
@@ -265,7 +287,7 @@ export function useCollaboration(
   const sendAwareness = useCallback(
     (state: {
       cursor?: { line: number; column: number }
-      selection?: { start: any; end: any }
+      selection?: { start: SelectionPosition; end: SelectionPosition }
     }) => {
       if (!socketRef.current || !connected) {
         return

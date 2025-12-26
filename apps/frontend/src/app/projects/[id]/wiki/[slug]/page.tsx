@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -43,21 +43,21 @@ export default function WikiPageView() {
   const [error, setError] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  useEffect(() => {
-    fetchPage()
-  }, [projectId, slug])
-
-  const fetchPage = async () => {
+  const fetchPage = useCallback(async () => {
     try {
       setLoading(true)
       const data = await api.get<WikiPage>(`/projects/${projectId}/wiki/${slug}`)
       setPage(data)
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load page')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load page')
     } finally {
       setLoading(false)
     }
-  }
+  }, [projectId, slug])
+
+  useEffect(() => {
+    fetchPage()
+  }, [fetchPage])
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this page?')) return
@@ -66,8 +66,8 @@ export default function WikiPageView() {
       setDeleting(true)
       await api.delete(`/projects/${projectId}/wiki/${slug}`)
       router.push(`/projects/${projectId}/wiki`)
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to delete page')
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to delete page')
     } finally {
       setDeleting(false)
     }

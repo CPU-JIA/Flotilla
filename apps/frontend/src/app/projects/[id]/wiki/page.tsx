@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -34,11 +34,7 @@ export default function WikiPage() {
   const [error, setError] = useState<string | null>(null)
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
 
-  useEffect(() => {
-    fetchWikiTree()
-  }, [projectId])
-
-  const fetchWikiTree = async () => {
+  const fetchWikiTree = useCallback(async () => {
     try {
       setLoading(true)
       const data = await api.get<WikiTreeNode[]>(`/projects/${projectId}/wiki`)
@@ -55,12 +51,16 @@ export default function WikiPage() {
       }
       collectIds(data)
       setExpandedNodes(allIds)
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load wiki tree')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load wiki tree')
     } finally {
       setLoading(false)
     }
-  }
+  }, [projectId])
+
+  useEffect(() => {
+    fetchWikiTree()
+  }, [fetchWikiTree])
 
   const toggleNode = (nodeId: string) => {
     setExpandedNodes(prev => {

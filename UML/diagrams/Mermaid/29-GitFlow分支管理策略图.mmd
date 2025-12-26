@@ -1,0 +1,47 @@
+gitGraph
+    commit id: "Initial"
+    branch develop
+    checkout develop
+    commit id: "Setup project"
+
+    branch feature/auth
+    checkout feature/auth
+    commit id: "Add login"
+    commit id: "Add register"
+    checkout develop
+    merge feature/auth id: "Merge auth" tag: "v0.1.0-dev"
+
+    branch feature/projects
+    checkout feature/projects
+    commit id: "Add CRUD"
+    commit id: "Add members"
+
+    checkout develop
+    branch feature/git-protocol
+    commit id: "Add clone"
+    commit id: "Add push"
+
+    checkout develop
+    merge feature/projects id: "Merge projects"
+    merge feature/git-protocol id: "Merge git"
+
+    checkout main
+    merge develop id: "Release v1.0" tag: "v1.0.0"
+
+    branch hotfix/security
+    checkout hotfix/security
+    commit id: "Fix XSS"
+    checkout main
+    merge hotfix/security id: "Hotfix" tag: "v1.0.1"
+    checkout develop
+    merge hotfix/security id: "Sync hotfix"
+
+    checkout develop
+    branch feature/issues
+    commit id: "Add issues"
+    commit id: "Add labels"
+    checkout develop
+    merge feature/issues
+
+    checkout main
+    merge develop id: "Release v1.1" tag: "v1.1.0"

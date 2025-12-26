@@ -76,7 +76,7 @@ export default function DebugEnvPage() {
     setTestResult('Testing direct backend connection...')
 
     try {
-      const backendUrl = 'http://localhost:4000/api/monitoring/health'
+      const backendUrl = 'http://localhost:4000/api/v1/monitoring/health'
       console.log('[Debug] Testing direct backend:', backendUrl)
 
       const startTime = performance.now()

@@ -1,0 +1,32 @@
+sequenceDiagram
+    participant NodeA as Node A (Follower)
+    participant NodeB as Node B (Follower)
+    participant NodeC as Node C (Follower)
+
+    Note over NodeA: 选举超时
+    NodeA->>NodeA: 转为Candidate<br/>term=1, votedFor=A
+
+    par 并行发送RequestVote
+        NodeA->>NodeB: RequestVote(term=1, candidateId=A)
+        NodeA->>NodeC: RequestVote(term=1, candidateId=A)
+    end
+
+    NodeB->>NodeB: 检查日志<br/>投票给A
+    NodeC->>NodeC: 检查日志<br/>投票给A
+
+    NodeB-->>NodeA: voteGranted=true
+    NodeC-->>NodeA: voteGranted=true
+
+    Note over NodeA: 获得3/3票<br/>成为Leader
+
+    NodeA->>NodeA: 转为Leader<br/>初始化nextIndex[]
+
+    par 发送心跳
+        NodeA->>NodeB: AppendEntries(heartbeat)
+        NodeA->>NodeC: AppendEntries(heartbeat)
+    end
+
+    NodeB-->>NodeA: success=true
+    NodeC-->>NodeA: success=true
+
+    Note over NodeA,NodeC: Leader选举完成<br/>开始接收客户端请求

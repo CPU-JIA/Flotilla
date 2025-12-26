@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
 import { Loader2, Github, ExternalLink, Trash2 } from 'lucide-react'
@@ -141,8 +140,9 @@ export default function AccountsPage() {
 
       toast.success(`${providerConfig[accountToDelete.provider].name} account unlinked`)
       await loadAccounts()
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to unlink account')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to unlink account'
+      toast.error(errorMessage)
       console.error(error)
     } finally {
       setUnlinkingId(null)
@@ -276,7 +276,7 @@ export default function AccountsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Unlink Account?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to unlink your {accountToDelete && providerConfig[accountToDelete.provider].name} account? You won't be able to sign in using this account anymore.
+              Are you sure you want to unlink your {accountToDelete && providerConfig[accountToDelete.provider].name} account? You won&apos;t be able to sign in using this account anymore.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

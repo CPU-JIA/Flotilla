@@ -1,0 +1,86 @@
+classDiagram
+    class User {
+        +String id
+        +String username
+        +String email
+        +String passwordHash
+        +String avatar
+        +UserRole role
+        +Boolean emailVerified
+        +Int tokenVersion
+        +DateTime createdAt
+        +register()
+        +login()
+        +updateProfile()
+    }
+
+    class Organization {
+        +String id
+        +String name
+        +String slug
+        +Int maxProjects
+        +Int maxMembers
+        +BigInt storageQuota
+        +addMember()
+        +createTeam()
+    }
+
+    class Project {
+        +String id
+        +String name
+        +String description
+        +Visibility visibility
+        +String ownerId
+        +Boolean isArchived
+        +DateTime createdAt
+        +create()
+        +update()
+        +delete()
+        +addMember()
+    }
+
+    class Repository {
+        +String id
+        +String projectId
+        +String defaultBranch
+        +BigInt storageUsed
+        +init()
+        +createBranch()
+        +commit()
+    }
+
+    class Issue {
+        +String id
+        +Int number
+        +String title
+        +String body
+        +IssueState state
+        +String authorId
+        +create()
+        +close()
+        +addComment()
+        +addLabel()
+    }
+
+    class PullRequest {
+        +String id
+        +Int number
+        +String title
+        +String sourceBranch
+        +String targetBranch
+        +PRState state
+        +MergeStrategy mergeStrategy
+        +create()
+        +review()
+        +merge()
+        +close()
+    }
+
+    User "1" --> "*" Organization : creates
+    User "1" --> "*" Project : owns
+    Organization "1" --> "*" Project : contains
+    Project "1" --> "1" Repository : has
+    Project "1" --> "*" Issue : has
+    Project "1" --> "*" PullRequest : has
+    User "1" --> "*" Issue : authors
+    User "1" --> "*" PullRequest : authors

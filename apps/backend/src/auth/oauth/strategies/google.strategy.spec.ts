@@ -49,7 +49,7 @@ describe('GoogleStrategy', () => {
   });
 
   describe('validate', () => {
-    it('should return OAuthProfileDto with verified email', async () => {
+    it('should return OAuthProfileDto with verified email', () => {
       const mockProfile = {
         id: 'google123',
         displayName: 'Test User',
@@ -65,12 +65,7 @@ describe('GoogleStrategy', () => {
       const accessToken = 'google_access_token';
       const refreshToken = 'google_refresh_token';
 
-      strategy.validate(
-        accessToken,
-        refreshToken,
-        mockProfile as any,
-        done,
-      );
+      strategy.validate(accessToken, refreshToken, mockProfile as any, done);
 
       expect(done).toHaveBeenCalledWith(null, {
         provider: 'google',
@@ -90,7 +85,7 @@ describe('GoogleStrategy', () => {
       });
     });
 
-    it('should use first email when no verified email', async () => {
+    it('should use first email when no verified email', () => {
       const mockProfile = {
         id: 'google123',
         displayName: 'Test User',
@@ -111,7 +106,7 @@ describe('GoogleStrategy', () => {
       );
     });
 
-    it('should call done with error when no email found', async () => {
+    it('should call done with error when no email found', () => {
       const mockProfile = {
         id: 'google123',
         displayName: 'Test User',
@@ -132,7 +127,7 @@ describe('GoogleStrategy', () => {
       );
     });
 
-    it('should set expiration time to 1 hour from now', async () => {
+    it('should set expiration time to 1 hour from now', () => {
       const mockProfile = {
         id: 'google123',
         displayName: 'Test User',

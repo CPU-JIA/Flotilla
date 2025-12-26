@@ -43,8 +43,8 @@ export default function WikiPageNew() {
         content,
       })
       router.push(`/projects/${projectId}/wiki/${data.slug}`)
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to create page')
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to create page')
     } finally {
       setCreating(false)
     }

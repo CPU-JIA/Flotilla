@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -41,11 +41,7 @@ export default function WikiPageHistory() {
     null,
   )
 
-  useEffect(() => {
-    fetchHistory()
-  }, [projectId, slug])
-
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     try {
       setLoading(true)
       const data = await api.get<WikiPageHistory[]>(
@@ -55,12 +51,16 @@ export default function WikiPageHistory() {
       if (data.length > 0) {
         setSelectedVersion(data[0])
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load history')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load history')
     } finally {
       setLoading(false)
     }
-  }
+  }, [projectId, slug])
+
+  useEffect(() => {
+    fetchHistory()
+  }, [fetchHistory])
 
   if (loading) {
     return (

@@ -46,11 +46,13 @@ function TwoFactorVerifyContent() {
 
   /**
    * 自动提交当验证码长度达到6位
+   * Note: handleSubmit is intentionally omitted from deps to prevent re-creation loop
    */
   useEffect(() => {
     if (!useRecoveryCode && code.length === 6) {
       handleSubmit(new Event('submit') as unknown as React.FormEvent)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code, useRecoveryCode])
 
   /**

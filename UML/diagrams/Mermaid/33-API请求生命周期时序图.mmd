@@ -1,0 +1,73 @@
+sequenceDiagram
+    participant Client as 客户端
+    participant Middleware as 中间件层
+    participant Guard as 守卫层
+    participant Interceptor as 拦截器
+    participant Pipe as 管道层
+    participant Controller as 控制器
+    participant Service as 服务层
+    participant DB as 数据库
+
+    Client->>Middleware: HTTP请求
+
+    Note over Middleware: 1. 中间件处理
+    Middleware->>Middleware: HelmetMiddleware (安全Headers)
+    Middleware->>Middleware: CorsMiddleware (跨域)
+    Middleware->>Middleware: CompressionMiddleware (压缩)
+    Middleware->>Middleware: LoggerMiddleware (日志)
+
+    Middleware->>Guard: 传递请求
+
+    Note over Guard: 2. 守卫验证
+    Guard->>Guard: ThrottlerGuard (限流检查)
+
+    alt 限流触发
+        Guard-->>Client: 429 Too Many Requests
+    end
+
+    Guard->>Guard: JwtAuthGuard (JWT验证)
+
+    alt Token无效
+        Guard-->>Client: 401 Unauthorized
+    end
+
+    Guard->>Guard: RolesGuard (角色检查)
+
+    alt 权限不足
+        Guard-->>Client: 403 Forbidden
+    end
+
+    Guard->>Interceptor: 传递请求
+
+    Note over Interceptor: 3. 拦截器 (前置)
+    Interceptor->>Interceptor: LoggingInterceptor (记录请求)
+    Interceptor->>Interceptor: TimeoutInterceptor (超时控制)
+
+    Interceptor->>Pipe: 传递请求
+
+    Note over Pipe: 4. 管道验证
+    Pipe->>Pipe: ValidationPipe (DTO验证)
+
+    alt 验证失败
+        Pipe-->>Client: 400 Bad Request
+    end
+
+    Pipe->>Pipe: ParseIntPipe (参数转换)
+
+    Pipe->>Controller: 传递验证后的请求
+
+    Note over Controller: 5. 控制器处理
+    Controller->>Service: 调用业务逻辑
+
+    Note over Service: 6. 服务层处理
+    Service->>DB: 数据库操作
+    DB-->>Service: 返回数据
+    Service-->>Controller: 返回结果
+
+    Controller-->>Interceptor: 返回响应
+
+    Note over Interceptor: 7. 拦截器 (后置)
+    Interceptor->>Interceptor: TransformInterceptor (响应转换)
+    Interceptor->>Interceptor: LoggingInterceptor (记录响应)
+
+    Interceptor-->>Client: HTTP响应

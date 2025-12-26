@@ -1,0 +1,93 @@
+graph TB
+    subgraph "App Layer"
+        RootLayout[RootLayout<br/>providers, theme]
+    end
+
+    subgraph "Route Groups"
+        AuthGroup["(auth) Group<br/>登录/注册布局"]
+        DashGroup["(dashboard) Group<br/>主应用布局"]
+        PublicGroup["(public) Group<br/>公开页面"]
+    end
+
+    subgraph "Auth Pages"
+        LoginPage[LoginPage]
+        RegisterPage[RegisterPage]
+        ForgotPage[ForgotPasswordPage]
+        OAuthCallback[OAuthCallbackPage]
+    end
+
+    subgraph "Dashboard Pages"
+        HomePage[HomePage<br/>仪表盘]
+        ProjectsPage[ProjectsPage<br/>项目列表]
+        ProjectDetail[ProjectDetailPage]
+        RepoPage[RepositoryPage<br/>代码浏览]
+        IssuePage[IssuePage<br/>Issue详情]
+        PRPage[PullRequestPage<br/>PR详情]
+        SettingsPage[SettingsPage]
+    end
+
+    subgraph "Shared Components"
+        subgraph "Layout Components"
+            Navbar[Navbar]
+            Sidebar[Sidebar]
+            Footer[Footer]
+            Breadcrumb[Breadcrumb]
+        end
+
+        subgraph "UI Components (Shadcn)"
+            Button[Button]
+            Dialog[Dialog]
+            Form[Form]
+            Table[Table]
+            Card[Card]
+            Toast[Toast]
+            Dropdown[DropdownMenu]
+        end
+
+        subgraph "Feature Components"
+            CodeViewer[CodeViewer<br/>Monaco Editor]
+            DiffViewer[DiffViewer<br/>代码对比]
+            FileTree[FileTree<br/>文件树]
+            MarkdownRenderer[MarkdownRenderer]
+            CommentThread[CommentThread]
+            UserAvatar[UserAvatar]
+            RepoCard[RepositoryCard]
+            IssueList[IssueList]
+            PRList[PullRequestList]
+        end
+
+        subgraph "Form Components"
+            LoginForm[LoginForm]
+            RegisterForm[RegisterForm]
+            ProjectForm[ProjectForm]
+            IssueForm[IssueForm]
+            PRForm[PullRequestForm]
+        end
+    end
+
+    subgraph "State Management"
+        AuthContext[AuthContext<br/>用户认证状态]
+        ThemeContext[ThemeContext<br/>主题状态]
+        QueryClient[TanStack QueryClient<br/>服务器状态]
+    end
+
+    RootLayout --> AuthGroup & DashGroup & PublicGroup
+
+    AuthGroup --> LoginPage & RegisterPage & ForgotPage & OAuthCallback
+    DashGroup --> HomePage & ProjectsPage & ProjectDetail & RepoPage & IssuePage & PRPage & SettingsPage
+
+    LoginPage --> LoginForm
+    RegisterPage --> RegisterForm
+    ProjectDetail --> FileTree & CodeViewer
+    RepoPage --> FileTree & CodeViewer & DiffViewer
+    IssuePage --> CommentThread & MarkdownRenderer
+    PRPage --> DiffViewer & CommentThread
+
+    DashGroup --> Navbar & Sidebar
+
+    LoginForm & RegisterForm & ProjectForm --> Button & Form
+    ProjectsPage --> RepoCard & Table
+    IssuePage --> IssueList & Card
+
+    AuthContext -.-> LoginPage & Navbar
+    QueryClient -.-> ProjectsPage & RepoPage & IssuePage

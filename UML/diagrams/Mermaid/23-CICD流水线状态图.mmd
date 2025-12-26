@@ -1,0 +1,31 @@
+stateDiagram-v2
+    [*] --> Pending : 创建Pipeline
+
+    Pending --> Queued : 加入执行队列
+    Pending --> Cancelled : 手动取消
+
+    Queued --> Running : 开始执行
+    Queued --> Cancelled : 手动取消
+
+    state Running {
+        [*] --> Stage1
+        Stage1 --> Stage2 : 构建成功
+        Stage1 --> StageFailed : 构建失败
+
+        Stage2 --> Stage3 : 测试成功
+        Stage2 --> StageFailed : 测试失败
+
+        Stage3 --> StageSuccess : 部署成功
+        Stage3 --> StageFailed : 部署失败
+
+        StageFailed --> [*]
+        StageSuccess --> [*]
+    }
+
+    Running --> Success : 所有阶段通过
+    Running --> Failed : 任一阶段失败
+    Running --> Cancelled : 手动取消
+
+    Success --> [*]
+    Failed --> [*]
+    Cancelled --> [*]

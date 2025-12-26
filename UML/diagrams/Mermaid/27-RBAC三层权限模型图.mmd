@@ -1,0 +1,66 @@
+graph TB
+    subgraph "平台层 Platform Level"
+        SuperAdmin[SUPER_ADMIN<br/>超级管理员]
+        User[USER<br/>普通用户]
+    end
+
+    subgraph "组织层 Organization Level"
+        OrgOwner[OWNER<br/>组织所有者]
+        OrgAdmin[ADMIN<br/>组织管理员]
+        OrgMember[MEMBER<br/>组织成员]
+    end
+
+    subgraph "团队层 Team Level"
+        TeamMaintainer[MAINTAINER<br/>团队维护者]
+        TeamMember[MEMBER<br/>团队成员]
+    end
+
+    subgraph "项目层 Project Level"
+        ProjOwner[OWNER<br/>项目所有者]
+        ProjMaintainer[MAINTAINER<br/>项目维护者]
+        ProjMember[MEMBER<br/>项目成员]
+        ProjViewer[VIEWER<br/>项目访客]
+    end
+
+    subgraph "权限继承 Permission Inheritance"
+        direction LR
+        P1[平台权限]
+        P2[组织权限]
+        P3[团队权限]
+        P4[项目权限]
+
+        P1 --> P2 --> P3 --> P4
+    end
+
+    subgraph "权限矩阵 Permission Matrix"
+        subgraph "项目操作"
+            CreateProj[创建项目]
+            DeleteProj[删除项目]
+            ManageMembers[管理成员]
+            PushCode[推送代码]
+            CreatePR[创建PR]
+            MergePR[合并PR]
+            ViewCode[查看代码]
+        end
+    end
+
+    SuperAdmin -->|全局管理| OrgOwner
+    User -->|创建/加入| OrgMember
+
+    OrgOwner -->|创建团队| TeamMaintainer
+    OrgAdmin -->|管理成员| TeamMember
+    OrgMember -->|加入团队| TeamMember
+
+    TeamMaintainer -->|分配项目| ProjMaintainer
+    TeamMember -->|继承权限| ProjMember
+
+    OrgOwner --> CreateProj
+    ProjOwner --> DeleteProj & ManageMembers
+    ProjMaintainer --> MergePR
+    ProjMember --> PushCode & CreatePR
+    ProjViewer --> ViewCode
+
+    style SuperAdmin fill:#ff6b6b
+    style OrgOwner fill:#feca57
+    style TeamMaintainer fill:#48dbfb
+    style ProjOwner fill:#1dd1a1

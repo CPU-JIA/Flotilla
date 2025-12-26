@@ -132,10 +132,10 @@ describe('OrganizationsController', () => {
 
       mockOrganizationsService.update.mockResolvedValue(mockUpdatedOrg);
 
-      const result = await controller.update(slug, "user-123", updateDto);
+      const result = await controller.update(slug, 'user-123', updateDto);
 
       expect(result).toEqual(mockUpdatedOrg);
-      expect(service.update).toHaveBeenCalledWith(slug, "user-123", updateDto);
+      expect(service.update).toHaveBeenCalledWith(slug, 'user-123', updateDto);
     });
   });
 
@@ -147,10 +147,10 @@ describe('OrganizationsController', () => {
         message: 'Organization deleted',
       });
 
-      const result = await controller.remove(slug, "user-123");
+      const result = await controller.remove(slug, 'user-123');
 
       expect(result).toEqual({ message: 'Organization deleted' });
-      expect(service.remove).toHaveBeenCalledWith(slug, "user-123");
+      expect(service.remove).toHaveBeenCalledWith(slug, 'user-123');
     });
   });
 

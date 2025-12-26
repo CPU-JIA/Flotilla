@@ -86,8 +86,8 @@ export default function TokensPage() {
       queryClient.invalidateQueries({ queryKey: ['api-tokens'] })
       toast.success('令牌创建成功')
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || '创建令牌失败')
+    onError: (error: unknown) => {
+      toast.error(error instanceof Error ? error.message : '创建令牌失败')
     },
   })
 
@@ -100,8 +100,8 @@ export default function TokensPage() {
       queryClient.invalidateQueries({ queryKey: ['api-tokens'] })
       toast.success('令牌已撤销')
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || '撤销令牌失败')
+    onError: (error: unknown) => {
+      toast.error(error instanceof Error ? error.message : '撤销令牌失败')
     },
   })
 

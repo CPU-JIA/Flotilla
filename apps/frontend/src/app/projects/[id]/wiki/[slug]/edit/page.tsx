@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -9,6 +9,13 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { ArrowLeft, Save } from 'lucide-react'
 import { api } from '@/lib/api'
+
+interface WikiUpdateData {
+  title: string
+  content: string
+  message?: string
+  slug?: string
+}
 
 /**
  * Wiki 页面编辑器
@@ -28,23 +35,24 @@ export default function WikiPageEdit() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchPage()
-  }, [projectId, slug])
-
-  const fetchPage = async () => {
+  const fetchPage = useCallback(async () => {
     try {
       setLoading(true)
       const page = await api.get<{ title: string; content: string; slug: string }>(`/projects/${projectId}/wiki/${slug}`)
       setTitle(page.title)
       setContent(page.content)
       setNewSlug(page.slug)
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load page')
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load page'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
-  }
+  }, [projectId, slug])
+
+  useEffect(() => {
+    fetchPage()
+  }, [fetchPage])
 
   const handleSave = async () => {
     if (!title.trim() || !content.trim()) {
@@ -54,7 +62,7 @@ export default function WikiPageEdit() {
 
     try {
       setSaving(true)
-      const updateData: any = {
+      const updateData: WikiUpdateData = {
         title,
         content,
         message: message || undefined,
@@ -66,8 +74,9 @@ export default function WikiPageEdit() {
 
       await api.put(`/projects/${projectId}/wiki/${slug}`, updateData)
       router.push(`/projects/${projectId}/wiki/${newSlug || slug}`)
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to save page')
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save page'
+      alert(errorMessage)
     } finally {
       setSaving(false)
     }

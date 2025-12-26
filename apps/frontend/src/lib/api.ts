@@ -254,9 +254,12 @@ export async function apiRequest<T = unknown>(
           credentials: 'include',
         })
       } else {
-        // 刷新失败，重定向到登录页
+        // 刷新失败，重定向到登录页（避免在认证页面无限循环）
         if (typeof window !== 'undefined') {
-          window.location.href = '/auth/login'
+          const isAuthPage = window.location.pathname.startsWith('/auth/')
+          if (!isAuthPage) {
+            window.location.href = '/auth/login'
+          }
         }
         throw new ApiError(401, 'Unauthorized')
       }
@@ -1232,7 +1235,7 @@ export const api = {
         id: string
         webhookId: string
         event: string
-        payload: Record<string, any>
+        payload: Record<string, unknown>
         statusCode: number | null
         response: string | null
         success: boolean
@@ -1252,13 +1255,13 @@ export const api = {
         id: string
         projectId: string
         name: string
-        config: Record<string, any>
+        config: Record<string, unknown>
         triggers: string[]
         active: boolean
         createdAt: string
         updatedAt: string
         _count?: { runs: number }
-      }>>(`/pipelines/projects/${projectId}`),
+      }>>(`/projects/${projectId}/pipelines`),
 
     // 获取Pipeline详情
     get: (pipelineId: string) =>
@@ -1266,7 +1269,7 @@ export const api = {
         id: string
         projectId: string
         name: string
-        config: Record<string, any>
+        config: Record<string, unknown>
         triggers: string[]
         active: boolean
         createdAt: string
@@ -1279,7 +1282,7 @@ export const api = {
         id: string
         projectId: string
         name: string
-        config: Record<string, any>
+        config: Record<string, unknown>
         triggers: string[]
         active: boolean
         createdAt: string
@@ -1289,11 +1292,11 @@ export const api = {
     // 创建Pipeline
     create: (projectId: string, data: {
       name: string
-      config: Record<string, any>
+      config: Record<string, unknown>
       triggers: string[]
       active?: boolean
     }) =>
-      apiRequest<{ id: string }>(`/pipelines/projects/${projectId}`, {
+      apiRequest<{ id: string }>(`/projects/${projectId}/pipelines`, {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -1301,7 +1304,7 @@ export const api = {
     // 更新Pipeline
     update: (pipelineId: string, data: {
       name?: string
-      config?: Record<string, any>
+      config?: Record<string, unknown>
       triggers?: string[]
       active?: boolean
     }) =>
@@ -1340,7 +1343,7 @@ export const api = {
           finishedAt: string | null
           duration: number | null
           logs: string | null
-          metadata: Record<string, any> | null
+          metadata: Record<string, unknown> | null
           triggeredBy: {
             id: string
             username: string
@@ -1390,16 +1393,16 @@ export const api = {
         finishedAt: string | null
         duration: number | null
         logs: string | null
-        metadata: Record<string, any> | null
+        metadata: Record<string, unknown> | null
         pipeline: {
           id: string
           name: string
         }
-      }>(`/pipelines/runs/${runId}`),
+      }>(`/pipeline-runs/${runId}`),
 
     // 取消Pipeline Run
     cancelRun: (runId: string) =>
-      apiRequest<{ message: string }>(`/pipelines/runs/${runId}/cancel`, {
+      apiRequest<{ message: string }>(`/pipeline-runs/${runId}/cancel`, {
         method: 'POST',
       }),
   },

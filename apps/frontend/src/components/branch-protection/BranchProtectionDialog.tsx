@@ -72,12 +72,24 @@ const branchProtectionSchema = z.object({
 
 type BranchProtectionFormData = z.infer<typeof branchProtectionSchema>
 
+export interface BranchProtectionRuleInput {
+  branchPattern: string
+  requirePullRequest?: boolean
+  requiredApprovingReviews?: number
+  dismissStaleReviews?: boolean
+  requireCodeOwnerReview?: boolean
+  allowForcePushes?: boolean
+  allowDeletions?: boolean
+  requireStatusChecks?: boolean
+  requiredStatusChecks?: string[]
+}
+
 interface BranchProtectionDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   mode: 'create' | 'edit'
   rule?: BranchProtectionRule
-  onSubmit: (data: Partial<BranchProtectionFormData>) => Promise<void>
+  onSubmit: (data: BranchProtectionRuleInput) => Promise<void>
 }
 
 export function BranchProtectionDialog({

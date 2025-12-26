@@ -162,7 +162,6 @@ describe('WebhookController', () => {
     });
   });
 
-
   describe('listDeliveries', () => {
     it('should list webhook deliveries', async () => {
       const webhookId = 'webhook-1';
@@ -193,6 +192,4 @@ describe('WebhookController', () => {
       expect(service.listDeliveries).toHaveBeenCalledWith(webhookId, 50, 0);
     });
   });
-
-
 });

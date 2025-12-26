@@ -158,9 +158,9 @@ export class WebhookService {
         timeout: this.DELIVERY_TIMEOUT,
       });
 
-      const duration = Date.now() - startTime;
+      const _duration = Date.now() - startTime;
 
-      // 记录成功的投递
+      // 记录成功的投递 (_duration暂未使用，schema中未定义duration字段)
       return this.prisma.webhookDelivery.create({
         data: {
           webhookId: webhook.id,
@@ -174,7 +174,7 @@ export class WebhookService {
         },
       });
     } catch (error) {
-      const duration = Date.now() - startTime;
+      const _duration = Date.now() - startTime;
       let statusCode: number | null = null;
       let errorMessage = 'Unknown error';
 

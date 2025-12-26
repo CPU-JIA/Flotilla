@@ -1,0 +1,45 @@
+graph TB
+    User((用户))
+    System((系统))
+
+    subgraph "认证用例"
+        UC_Register[用户注册]
+        UC_Login[用户登录]
+        UC_Logout[用户登出]
+        UC_ResetPwd[密码重置]
+        UC_VerifyEmail[邮箱验证]
+        UC_OAuth[OAuth登录]
+        UC_2FA[两步验证]
+        UC_APIToken[管理API令牌]
+        UC_Session[会话管理]
+    end
+
+    subgraph "包含关系 <<include>>"
+        UC_SendEmail[发送邮件]
+        UC_ValidatePwd[密码强度验证]
+        UC_GenToken[生成JWT Token]
+        UC_CheckHistory[检查密码历史]
+    end
+
+    User --> UC_Register
+    User --> UC_Login
+    User --> UC_Logout
+    User --> UC_ResetPwd
+    User --> UC_OAuth
+    User --> UC_2FA
+    User --> UC_APIToken
+    User --> UC_Session
+
+    UC_Register -.->|include| UC_SendEmail
+    UC_Register -.->|include| UC_ValidatePwd
+    UC_Register -.->|include| UC_GenToken
+
+    UC_Login -.->|include| UC_GenToken
+    UC_Login -.->|extend| UC_2FA
+
+    UC_ResetPwd -.->|include| UC_SendEmail
+    UC_ResetPwd -.->|include| UC_ValidatePwd
+    UC_ResetPwd -.->|include| UC_CheckHistory
+
+    System --> UC_VerifyEmail
+    UC_VerifyEmail -.->|include| UC_SendEmail

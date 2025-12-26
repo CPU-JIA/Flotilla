@@ -1,0 +1,69 @@
+erDiagram
+    User ||--o{ Organization : "创建"
+    User ||--o{ OrganizationMember : "加入组织"
+    User ||--o{ TeamMember : "加入团队"
+    User ||--o{ Project : "拥有"
+    User ||--o{ ProjectMember : "参与项目"
+    User ||--o{ Commit : "提交代码"
+    User ||--o{ Issue : "创建Issue"
+    User ||--o{ PullRequest : "创建PR"
+
+    Organization ||--o{ OrganizationMember : "有成员"
+    Organization ||--o{ Team : "包含团队"
+    Organization ||--o{ Project : "拥有项目"
+    Team ||--o{ TeamMember : "有成员"
+    Team ||--o{ TeamProjectPermission : "项目权限"
+
+    Project ||--|| Repository : "有仓库"
+    Project ||--o{ ProjectMember : "有成员"
+    Project ||--o{ Issue : "有Issue"
+    Project ||--o{ PullRequest : "有PR"
+    Project ||--o{ Label : "有标签"
+    Project ||--o{ BranchProtectionRule : "分支保护"
+
+    Repository ||--o{ Branch : "有分支"
+    Repository ||--o{ Commit : "有提交"
+    Repository ||--o{ File : "有文件"
+
+    Issue ||--o{ IssueComment : "有评论"
+    Issue ||--o{ IssueAssignee : "有分配人"
+    Issue }o--o| Milestone : "属于里程碑"
+
+    PullRequest ||--o{ PRReview : "有审查"
+    PullRequest ||--o{ PRComment : "有评论"
+
+    User {
+        string id PK
+        string username UK
+        string email UK
+        string passwordHash
+        enum role
+        boolean emailVerified
+        int tokenVersion
+    }
+
+    Project {
+        string id PK
+        string name
+        enum visibility
+        string ownerId FK
+        string organizationId FK
+        boolean isArchived
+    }
+
+    Issue {
+        string id PK
+        int number
+        string title
+        enum state
+        string authorId FK
+    }
+
+    PullRequest {
+        string id PK
+        int number
+        string title
+        string sourceBranch
+        string targetBranch
+        enum state
+    }

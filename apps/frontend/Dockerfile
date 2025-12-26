@@ -4,6 +4,9 @@ FROM node:22-alpine AS base
 # 安装 pnpm
 RUN corepack enable && corepack prepare pnpm@10.18.2 --activate
 
+# 配置国内镜像加速
+RUN pnpm config set registry https://registry.npmmirror.com
+
 # 设置工作目录
 WORKDIR /app
 
@@ -24,7 +27,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/frontend/node_modules ./apps/frontend/node_modules
 
 # 设置 Next.js 环境变量
-ENV NEXT_PUBLIC_API_URL=http://localhost:4000/api
+ARG NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN cd apps/frontend && pnpm run build

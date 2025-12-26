@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", sans-serif; padding: 30px; background: white; }
+    h2 { margin-bottom: 20px; color: #2c3e50; font-size: 20px; text-align: center; }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; margin-bottom: 30px; }
+    th, td { border: 1px solid #bdc3c7; padding: 12px 15px; text-align: left; vertical-align: top; }
+    th { background: #3498db; color: white; font-weight: bold; }
+    tr:nth-child(even) { background: #ecf0f1; }
+    .member { font-weight: bold; color: #2c3e50; font-size: 16px; }
+    .role { color: #e74c3c; font-weight: bold; }
+    .count { color: #27ae60; font-weight: bold; }
+    h3 { margin: 20px 0 10px; color: #2c3e50; font-size: 16px; border-bottom: 2px solid #3498db; padding-bottom: 5px; }
+    .diagram-list { font-size: 13px; color: #555; line-height: 1.8; }
+  </style>
+</head>
+<body>
+  <h2>UML课程答辩 - 四人分工表</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th width="12%">成员</th>
+        <th width="15%">答辩角色</th>
+        <th width="38%">负责的UML图</th>
+        <th width="35%">需要掌握的知识点</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="member">成员A</td>
+        <td class="role">架构建模</td>
+        <td>组件图、部署图、架构图<br><span class="count">（共9张）</span></td>
+        <td>系统架构、K8s部署、微服务通信、数据库架构、权限模型</td>
+      </tr>
+      <tr>
+        <td class="member">成员B</td>
+        <td class="role">行为建模</td>
+        <td>时序图、活动图<br><span class="count">（共12张）</span></td>
+        <td>认证流程、Git操作、Raft选举、消息交互、工作流程</td>
+      </tr>
+      <tr>
+        <td class="member">成员C</td>
+        <td class="role">静态建模</td>
+        <td>类图、ER图<br><span class="count">（共5张）</span></td>
+        <td>类关系、数据库设计、Raft类结构、服务层设计</td>
+      </tr>
+      <tr>
+        <td class="member">成员D</td>
+        <td class="role">需求建模</td>
+        <td>用例图、状态图<br><span class="count">（共8张）</span></td>
+        <td>用户角色、功能需求、状态转换、生命周期</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>成员A - 架构建模（9张）</h3>
+  <div class="diagram-list">
+    图2-1 系统整体架构图 | 图2-13 系统组件部署图 | 图2-21 后端模块依赖图<br>
+    图2-25 Kubernetes部署架构图 | 图2-27 RBAC三层权限模型图 | 图2-28 数据库读写分离架构图<br>
+    图2-29 GitFlow分支管理策略图 | 图2-30 微服务通信架构图 | 图2-26 前端React组件层级图
+  </div>
+
+  <h3>成员B - 行为建模（12张）</h3>
+  <div class="diagram-list">
+    图2-2 用户认证时序图 | 图2-3 Git Push流程图 | 图2-11 Raft Leader选举时序图<br>
+    图2-15 用户注册时序图 | 图2-16 OAuth第三方登录时序图 | 图2-17 Git Clone操作时序图<br>
+    图2-24 WebSocket实时通知时序图 | 图2-33 API请求生命周期时序图 | 图2-34 Raft日志复制详细时序图<br>
+    图2-12 Pull Request工作流活动图 | 图2-18 通知系统活动图 | 图2-22 安全认证流程活动图
+  </div>
+
+  <h3>成员C - 静态建模（5张）</h3>
+  <div class="diagram-list">
+    图2-7 核心实体类图 | 图2-8 数据库ER图 | 图2-9 Raft共识类图<br>
+    图2-19 服务层类图 | 图2-20 数据访问层类图
+  </div>
+
+  <h3>成员D - 需求建模（8张）</h3>
+  <div class="diagram-list">
+    图2-4 整体用例图 | 图2-5 认证模块用例图 | 图2-6 代码协作用例图<br>
+    图2-10 Raft节点状态图 | 图2-14 Issue生命周期状态图 | 图2-23 CI/CD流水线状态图<br>
+    图2-31 用户会话管理状态图 | 图2-32 文件上传处理活动图
+  </div>
+
+</body>
+</html>

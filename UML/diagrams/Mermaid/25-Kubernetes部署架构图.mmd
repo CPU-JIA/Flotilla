@@ -1,0 +1,85 @@
+graph TB
+    subgraph "Internet"
+        Users[用户请求]
+    end
+
+    subgraph "云服务商 Infrastructure"
+        subgraph "Ingress Layer"
+            Ingress[Nginx Ingress Controller<br/>SSL Termination<br/>Rate Limiting]
+        end
+
+        subgraph "Kubernetes Cluster"
+            subgraph "Frontend Namespace"
+                FrontDeploy[Deployment: frontend<br/>replicas: 3]
+                FrontSvc[Service: frontend-svc<br/>ClusterIP]
+                FrontHPA[HPA: 3-10 pods<br/>CPU > 70%]
+
+                FrontPod1[Pod: next-1]
+                FrontPod2[Pod: next-2]
+                FrontPod3[Pod: next-3]
+            end
+
+            subgraph "Backend Namespace"
+                BackDeploy[Deployment: backend<br/>replicas: 3]
+                BackSvc[Service: backend-svc<br/>ClusterIP]
+                BackHPA[HPA: 3-15 pods<br/>CPU > 70%]
+
+                BackPod1[Pod: nest-1<br/>Raft Leader]
+                BackPod2[Pod: nest-2<br/>Raft Follower]
+                BackPod3[Pod: nest-3<br/>Raft Follower]
+            end
+
+            subgraph "Data Namespace"
+                PGStateful[StatefulSet: postgresql<br/>replicas: 3]
+                PGSvc[Service: postgres-svc<br/>Headless]
+
+                PGMaster[Pod: pg-0<br/>Master]
+                PGReplica1[Pod: pg-1<br/>Replica]
+                PGReplica2[Pod: pg-2<br/>Replica]
+
+                RedisStateful[StatefulSet: redis<br/>replicas: 3]
+                RedisSvc[Service: redis-svc]
+
+                MinIOStateful[StatefulSet: minio<br/>replicas: 4]
+                MinIOSvc[Service: minio-svc]
+            end
+
+            subgraph "Monitoring Namespace"
+                Prometheus[Prometheus]
+                Grafana[Grafana]
+                AlertManager[AlertManager]
+            end
+        end
+
+        subgraph "Persistent Storage"
+            PV1[PersistentVolume<br/>PostgreSQL Data]
+            PV2[PersistentVolume<br/>MinIO Objects]
+            PV3[PersistentVolume<br/>Redis AOF]
+        end
+    end
+
+    Users --> Ingress
+    Ingress --> FrontSvc
+    Ingress --> BackSvc
+
+    FrontSvc --> FrontPod1 & FrontPod2 & FrontPod3
+    FrontDeploy --> FrontPod1 & FrontPod2 & FrontPod3
+    FrontHPA -.-> FrontDeploy
+
+    BackSvc --> BackPod1 & BackPod2 & BackPod3
+    BackDeploy --> BackPod1 & BackPod2 & BackPod3
+    BackHPA -.-> BackDeploy
+
+    BackPod1 --> PGSvc
+    BackPod1 --> RedisSvc
+    BackPod1 --> MinIOSvc
+
+    PGStateful --> PGMaster & PGReplica1 & PGReplica2
+    PGMaster --> PV1
+
+    MinIOStateful --> PV2
+    RedisStateful --> PV3
+
+    BackPod1 -.metrics.-> Prometheus
+    Prometheus --> Grafana
+    Prometheus --> AlertManager

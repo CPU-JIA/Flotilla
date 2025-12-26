@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useCollaboration } from '@/hooks/useCollaboration'
 import { CollaborationIndicator } from '@/components/collaboration/collaboration-indicator'
-import * as Y from 'yjs'
+import * as _Y from 'yjs'
 
 /**
  * CodeEditorWithCollaboration 组件示例
@@ -102,7 +102,7 @@ export function CodeEditorWithCollaboration({
     yourColor,
     ydoc,
     sendUpdate,
-    sendAwareness,
+    sendAwareness: _sendAwareness,
   } = useCollaboration({
     documentId: filePath,
     projectId,
@@ -138,7 +138,7 @@ export function CodeEditorWithCollaboration({
   useEffect(() => {
     if (!ydoc) return
 
-    const updateHandler = (update: Uint8Array, origin: any) => {
+    const updateHandler = (update: Uint8Array, origin: unknown) => {
       // 只发送本地变更，不发送从远程接收的变更
       if (origin !== 'remote') {
         sendUpdate(update)

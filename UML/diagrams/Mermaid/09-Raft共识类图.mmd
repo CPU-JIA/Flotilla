@@ -1,0 +1,66 @@
+classDiagram
+    class RaftNode {
+        -String nodeId
+        -Int currentTerm
+        -String votedFor
+        -LogEntry[] log
+        -Int commitIndex
+        -Int lastApplied
+        -NodeState state
+        -Map~String,Int~ nextIndex
+        -Map~String,Int~ matchIndex
+        +start() void
+        +stop() void
+        +handleClientWrite(Command) ClientResponse
+        +handleRequestVote(Request) Response
+        +handleAppendEntries(Request) Response
+        -becomeFollower() void
+        -becomeCandidate() void
+        -becomeLeader() void
+        -startElection() void
+        -broadcastAppendEntries() void
+        +exportState() NodeStateSnapshot
+    }
+
+    class RaftTransport {
+        <<interface>>
+        +sendRequestVote(nodeId, request) Response
+        +sendAppendEntries(nodeId, request) Response
+        +startServer(nodeId, handler) void
+        +stopServer() void
+    }
+
+    class StateMachine {
+        <<interface>>
+        +apply(command) any
+        +getState() any
+    }
+
+    class PersistentStorage {
+        <<interface>>
+        +saveTerm(term) void
+        +saveVotedFor(nodeId) void
+        +saveLogEntry(entry) void
+        +loadState() RaftState
+    }
+
+    class LogEntry {
+        +Int index
+        +Int term
+        +Command command
+        +Long timestamp
+    }
+
+    class ClusterConfig {
+        +String nodeId
+        +String[] nodes
+        +Int heartbeatInterval
+        +Int electionTimeoutMin
+        +Int electionTimeoutMax
+    }
+
+    RaftNode --> RaftTransport : uses
+    RaftNode --> StateMachine : uses
+    RaftNode --> PersistentStorage : uses
+    RaftNode --> LogEntry : contains
+    RaftNode --> ClusterConfig : configured by

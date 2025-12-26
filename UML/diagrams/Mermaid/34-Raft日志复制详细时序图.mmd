@@ -1,0 +1,62 @@
+sequenceDiagram
+    participant Client as 客户端
+    participant Leader as Leader节点
+    participant F1 as Follower-1
+    participant F2 as Follower-2
+    participant Log as 日志存储
+    participant SM as 状态机
+
+    Client->>Leader: 写请求 (CreateProject)
+
+    Note over Leader: 1. Leader接收请求
+    Leader->>Leader: 验证是否为Leader
+
+    Leader->>Log: 追加日志条目<br/>term=3, index=5
+    Log-->>Leader: 写入成功
+
+    Note over Leader: 2. 并行复制到Followers
+
+    par 复制到Follower-1
+        Leader->>F1: AppendEntries RPC<br/>prevLogIndex=4<br/>prevLogTerm=3<br/>entries=[{term:3,cmd:CreateProject}]
+
+        F1->>F1: 检查prevLogIndex/Term
+
+        alt 日志一致
+            F1->>Log: 追加日志条目
+            Log-->>F1: 写入成功
+            F1-->>Leader: success=true, matchIndex=5
+        else 日志不一致
+            F1-->>Leader: success=false
+            Note over Leader: 回退nextIndex重试
+        end
+    and 复制到Follower-2
+        Leader->>F2: AppendEntries RPC
+        F2->>F2: 检查日志一致性
+        F2->>Log: 追加日志条目
+        F2-->>Leader: success=true, matchIndex=5
+    end
+
+    Note over Leader: 3. 计算提交索引
+    Leader->>Leader: matchIndex排序<br/>[5, 5, 5]<br/>majority = 5
+
+    Leader->>Leader: 更新commitIndex = 5
+
+    Note over Leader: 4. 应用到状态机
+    Leader->>SM: 应用 index 5 的命令
+    SM->>SM: 执行 CreateProject
+    SM-->>Leader: 返回结果
+
+    Leader-->>Client: 200 OK {project}
+
+    Note over Leader: 5. 心跳通知Followers提交
+
+    par 心跳到Follower-1
+        Leader->>F1: AppendEntries (heartbeat)<br/>leaderCommit=5
+        F1->>F1: 更新commitIndex = min(5, lastLogIndex)
+        F1->>SM: 应用已提交日志
+        F1-->>Leader: success=true
+    and 心跳到Follower-2
+        Leader->>F2: AppendEntries (heartbeat)<br/>leaderCommit=5
+        F2->>SM: 应用已提交日志
+        F2-->>Leader: success=true
+    end

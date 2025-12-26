@@ -1,0 +1,60 @@
+graph TB
+    subgraph "Application Layer"
+        App1[NestJS Pod 1]
+        App2[NestJS Pod 2]
+        App3[NestJS Pod 3]
+    end
+
+    subgraph "Prisma Layer"
+        PrismaWrite[Prisma Client<br/>Write Operations]
+        PrismaRead[Prisma Client<br/>Read Operations]
+    end
+
+    subgraph "Connection Pool"
+        WritePool[Write Pool<br/>max: 10 connections]
+        ReadPool[Read Pool<br/>max: 30 connections]
+    end
+
+    subgraph "PostgreSQL Cluster"
+        subgraph "Primary Node"
+            PGMaster[(PostgreSQL Primary<br/>Port 5432)]
+            WAL[WAL Sender]
+        end
+
+        subgraph "Replica Nodes"
+            PGReplica1[(PostgreSQL Replica 1<br/>Port 5433)]
+            PGReplica2[(PostgreSQL Replica 2<br/>Port 5434)]
+        end
+
+        subgraph "Replication"
+            StreamRep[Streaming Replication<br/>同步复制]
+        end
+    end
+
+    subgraph "PgBouncer Load Balancer"
+        PgBouncerWrite[PgBouncer Write<br/>Transaction Mode]
+        PgBouncerRead[PgBouncer Read<br/>Session Mode]
+    end
+
+    subgraph "Monitoring"
+        PGMonitor[pg_stat_replication<br/>复制监控]
+        Lag[Replication Lag<br/>延迟监控]
+    end
+
+    App1 & App2 & App3 --> PrismaWrite & PrismaRead
+
+    PrismaWrite --> WritePool
+    PrismaRead --> ReadPool
+
+    WritePool --> PgBouncerWrite
+    ReadPool --> PgBouncerRead
+
+    PgBouncerWrite --> PGMaster
+    PgBouncerRead --> PGReplica1 & PGReplica2
+
+    PGMaster --> WAL
+    WAL --> StreamRep
+    StreamRep --> PGReplica1 & PGReplica2
+
+    PGMaster -.-> PGMonitor
+    StreamRep -.-> Lag

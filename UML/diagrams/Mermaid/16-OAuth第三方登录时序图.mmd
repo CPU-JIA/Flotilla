@@ -1,0 +1,52 @@
+sequenceDiagram
+    actor User as 用户
+    participant Frontend as Next.js前端
+    participant Backend as NestJS后端
+    participant OAuth as OAuth提供商<br/>(GitHub/Google)
+    participant Database as PostgreSQL
+    participant Redis as Redis缓存
+
+    User->>Frontend: 点击"GitHub登录"
+    Frontend->>Backend: GET /api/v1/auth/oauth/github
+    Backend->>Backend: 生成state参数(防CSRF)
+    Backend->>Redis: 存储state
+    Backend-->>Frontend: 302 Redirect to GitHub
+
+    Frontend->>OAuth: 重定向到GitHub授权页
+    User->>OAuth: 确认授权
+    OAuth-->>Frontend: 302 Redirect /callback?code=xxx&state=yyy
+
+    Frontend->>Backend: GET /api/v1/auth/oauth/github/callback
+    Backend->>Redis: 验证state参数
+
+    alt State验证失败
+        Backend-->>Frontend: 401 Invalid state
+        Frontend-->>User: 显示登录失败
+    else State验证通过
+        Backend->>OAuth: POST /access_token (code)
+        OAuth-->>Backend: {access_token}
+
+        Backend->>OAuth: GET /user (access_token)
+        OAuth-->>Backend: {id, email, name, avatar}
+
+        Backend->>Database: 查询OAuthAccount
+
+        alt 账号已关联
+            Database-->>Backend: 返回关联用户
+        else 账号未关联
+            Backend->>Database: 检查邮箱是否已注册
+
+            alt 邮箱已存在
+                Backend->>Database: 创建OAuthAccount关联
+            else 邮箱不存在
+                Backend->>Database: 创建新用户
+                Backend->>Database: 创建OAuthAccount关联
+            end
+        end
+
+        Backend->>Backend: 生成JWT Token
+        Backend->>Redis: 存储会话信息
+        Backend-->>Frontend: 200 OK {user, token}
+        Frontend->>Frontend: 存储Token
+        Frontend-->>User: 跳转到Dashboard
+    end

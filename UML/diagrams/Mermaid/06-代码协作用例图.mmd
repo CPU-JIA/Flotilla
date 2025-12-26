@@ -1,0 +1,50 @@
+graph TB
+    Developer((开发者))
+    Reviewer((审查者))
+    CI((CI系统))
+
+    subgraph "Issue管理"
+        UC_CreateIssue[创建Issue]
+        UC_EditIssue[编辑Issue]
+        UC_CloseIssue[关闭Issue]
+        UC_AssignIssue[分配Issue]
+        UC_LabelIssue[添加标签]
+        UC_CommentIssue[评论Issue]
+        UC_LinkPR[关联PR]
+    end
+
+    subgraph "Pull Request"
+        UC_CreatePR[创建PR]
+        UC_ReviewPR[审查PR]
+        UC_ApprovePR[批准PR]
+        UC_RequestChanges[请求修改]
+        UC_MergePR[合并PR]
+        UC_ClosePR[关闭PR]
+        UC_CommentPR[评论PR]
+    end
+
+    subgraph "分支管理"
+        UC_CreateBranch[创建分支]
+        UC_ProtectBranch[保护分支]
+        UC_DeleteBranch[删除分支]
+    end
+
+    Developer --> UC_CreateIssue
+    Developer --> UC_EditIssue
+    Developer --> UC_CommentIssue
+    Developer --> UC_CreatePR
+    Developer --> UC_CreateBranch
+
+    Reviewer --> UC_ReviewPR
+    Reviewer --> UC_ApprovePR
+    Reviewer --> UC_RequestChanges
+    Reviewer --> UC_MergePR
+    Reviewer --> UC_CommentPR
+    Reviewer --> UC_AssignIssue
+    Reviewer --> UC_LabelIssue
+    Reviewer --> UC_ProtectBranch
+
+    UC_CreatePR -.->|extend| UC_LinkPR
+    UC_MergePR -.->|include| UC_CloseIssue
+
+    CI --> UC_ReviewPR

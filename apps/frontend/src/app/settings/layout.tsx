@@ -9,35 +9,82 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { AppLayout } from '@/components/layout/AppLayout'
-import { User, Settings, Smartphone } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
+import {
+  User,
+  Settings,
+  Smartphone,
+  Bell,
+  Shield,
+  Key,
+  Eye,
+  Link2,
+  ScrollText,
+} from 'lucide-react'
 
-const settingsNav = [
+const getSettingsNav = (language: 'zh' | 'en') => [
   {
-    name: '个人资料',
+    name: language === 'zh' ? '个人资料' : 'Profile',
     href: '/settings/profile',
     icon: User,
   },
   {
-    name: '通用设置',
+    name: language === 'zh' ? '通用设置' : 'General',
     href: '/settings/general',
     icon: Settings,
   },
   {
-    name: '设备管理',
+    name: language === 'zh' ? '通知偏好' : 'Notifications',
+    href: '/settings/notifications',
+    icon: Bell,
+  },
+  {
+    name: language === 'zh' ? '设备管理' : 'Devices',
     href: '/settings/devices',
     icon: Smartphone,
+  },
+  {
+    name: language === 'zh' ? '双因素认证' : '2FA',
+    href: '/settings/2fa',
+    icon: Shield,
+  },
+  {
+    name: language === 'zh' ? '访问令牌' : 'Tokens',
+    href: '/settings/tokens',
+    icon: Key,
+  },
+  {
+    name: language === 'zh' ? '隐私设置' : 'Privacy',
+    href: '/settings/privacy',
+    icon: Eye,
+  },
+  {
+    name: language === 'zh' ? '关联账户' : 'Accounts',
+    href: '/settings/accounts',
+    icon: Link2,
+  },
+  {
+    name: language === 'zh' ? '审计日志' : 'Audit Logs',
+    href: '/settings/audit-logs',
+    icon: ScrollText,
   },
 ]
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const { language } = useLanguage()
+  const settingsNav = getSettingsNav(language)
 
   return (
     <AppLayout>
       <div className="max-w-6xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground">设置</h1>
-          <p className="text-muted-foreground mt-1">管理您的账户设置和偏好</p>
+          <h1 className="text-3xl font-bold text-foreground">
+            {language === 'zh' ? '设置' : 'Settings'}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            {language === 'zh' ? '管理您的账户设置和偏好' : 'Manage your account settings and preferences'}
+          </p>
         </div>
 
         <div className="grid grid-cols-12 gap-6">

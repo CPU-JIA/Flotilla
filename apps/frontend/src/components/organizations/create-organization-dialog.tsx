@@ -58,7 +58,7 @@ function isValidSlug(slug: string): boolean {
 
 export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizationDialogProps) {
   const router = useRouter()
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -106,7 +106,7 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
     const trimmedName = formData.name.trim()
     if (!trimmedName || trimmedName.length < 2) {
       setError(
-        t.loading === t.loading
+        language === 'zh'
           ? '组织名称至少需要2个字符'
           : 'Organization name requires at least 2 characters'
       )
@@ -114,7 +114,7 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
     }
     if (trimmedName.length > MAX_NAME_LENGTH) {
       setError(
-        t.loading === t.loading
+        language === 'zh'
           ? `组织名称最多${MAX_NAME_LENGTH}个字符`
           : `Organization name max ${MAX_NAME_LENGTH} characters`
       )
@@ -124,7 +124,7 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
     const trimmedSlug = formData.slug.trim()
     if (!trimmedSlug || trimmedSlug.length < 2) {
       setError(
-        t.loading === t.loading
+        language === 'zh'
           ? '组织标识至少需要2个字符'
           : 'Organization slug requires at least 2 characters'
       )
@@ -132,7 +132,7 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
     }
     if (trimmedSlug.length > MAX_SLUG_LENGTH) {
       setError(
-        t.loading === t.loading
+        language === 'zh'
           ? `组织标识最多${MAX_SLUG_LENGTH}个字符`
           : `Organization slug max ${MAX_SLUG_LENGTH} characters`
       )
@@ -146,7 +146,7 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
     const trimmedDescription = formData.description?.trim() || ''
     if (trimmedDescription.length > MAX_DESCRIPTION_LENGTH) {
       setError(
-        t.loading === t.loading
+        language === 'zh'
           ? `描述最多${MAX_DESCRIPTION_LENGTH}个字符`
           : `Description max ${MAX_DESCRIPTION_LENGTH} characters`
       )
@@ -198,7 +198,7 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
           <DialogHeader>
             <DialogTitle>{t.organizations.createNew}</DialogTitle>
             <DialogDescription>
-              {t.loading === t.loading
+              {language === 'zh'
                 ? '填写组织信息以创建一个新的组织'
                 : 'Fill in organization details to create a new organization'}
             </DialogDescription>
@@ -223,7 +223,7 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
               <Input
                 id="name"
                 placeholder={
-                  t.loading === t.loading
+                  language === 'zh'
                     ? '请输入组织名称（2-100个字符）'
                     : 'Enter organization name (2-100 characters)'
                 }
@@ -252,7 +252,7 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
               <Input
                 id="slug"
                 placeholder={
-                  t.loading === t.loading
+                  language === 'zh'
                     ? '组织URL标识（如：my-org）'
                     : 'Organization URL slug (e.g., my-org)'
                 }
@@ -264,7 +264,7 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
               <p className="text-xs text-gray-500">{t.organizations.slugHelper}</p>
               {formData.slug && !isValidSlug(formData.slug) && (
                 <p className="text-xs text-orange-600">
-                  {t.loading === t.loading ? '⚠ 格式不正确，请检查' : '⚠ Invalid format'}
+                  {language === 'zh' ? '⚠ 格式不正确，请检查' : '⚠ Invalid format'}
                 </p>
               )}
             </div>
@@ -281,7 +281,7 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
               <Textarea
                 id="description"
                 placeholder={
-                  t.loading === t.loading
+                  language === 'zh'
                     ? '请输入组织描述（可选，最多500字符）'
                     : 'Enter organization description (optional, max 500 characters)'
                 }
@@ -309,7 +309,7 @@ export function CreateOrganizationDialog({ onSuccess, trigger }: CreateOrganizat
               }
             >
               {isLoading
-                ? t.loading === t.loading
+                ? language === 'zh'
                   ? '创建中...'
                   : 'Creating...'
                 : t.organizations.createNew}

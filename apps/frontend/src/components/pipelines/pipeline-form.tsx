@@ -10,9 +10,17 @@ import { Card } from '@/components/ui/card'
 import { api } from '@/lib/api'
 import { useRouter } from 'next/navigation'
 
+interface Pipeline {
+  id: string
+  name: string
+  config: Record<string, unknown>
+  triggers: string[]
+  active: boolean
+}
+
 interface PipelineFormProps {
   projectId: string
-  pipeline?: any
+  pipeline?: Pipeline
   onSuccess?: () => void
 }
 
@@ -84,9 +92,10 @@ export function PipelineForm({ projectId, pipeline, onSuccess }: PipelineFormPro
       } else {
         router.push(`/projects/${projectId}/pipelines`)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to save pipeline:', error)
-      alert(error.response?.data?.message || '保存失败，请检查配置格式是否正确')
+      const errorMessage = error instanceof Error ? error.message : '保存失败，请检查配置格式是否正确'
+      alert(errorMessage)
     } finally {
       setLoading(false)
     }

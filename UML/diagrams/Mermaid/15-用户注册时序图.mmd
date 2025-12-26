@@ -1,0 +1,48 @@
+sequenceDiagram
+    actor User as 用户
+    participant Frontend as Next.js前端
+    participant Backend as NestJS后端
+    participant Validator as 验证服务
+    participant Database as PostgreSQL
+    participant Email as 邮件服务
+    participant Redis as Redis缓存
+
+    User->>Frontend: 填写注册表单
+    Frontend->>Frontend: Zod前端验证
+
+    alt 前端验证失败
+        Frontend-->>User: 显示验证错误
+    else 前端验证通过
+        Frontend->>Backend: POST /api/v1/auth/register
+        Backend->>Validator: 验证请求数据
+
+        alt 后端验证失败
+            Validator-->>Backend: 验证错误
+            Backend-->>Frontend: 400 Bad Request
+            Frontend-->>User: 显示错误信息
+        else 验证通过
+            Backend->>Database: 检查用户名/邮箱唯一性
+
+            alt 用户名/邮箱已存在
+                Database-->>Backend: 用户已存在
+                Backend-->>Frontend: 409 Conflict
+                Frontend-->>User: 显示"用户名/邮箱已被注册"
+            else 用户不存在
+                Backend->>Backend: Bcrypt加密密码(rounds=12)
+                Backend->>Database: 创建用户记录
+                Database-->>Backend: 返回用户ID
+
+                Backend->>Backend: 生成邮箱验证Token
+                Backend->>Database: 存储验证Token
+                Backend->>Email: 发送验证邮件
+                Email-->>User: 验证邮件
+
+                Backend->>Backend: 生成JWT Token
+                Backend->>Redis: 存储会话信息
+
+                Backend-->>Frontend: 201 Created {user, token}
+                Frontend->>Frontend: 存储Token到localStorage
+                Frontend-->>User: 跳转到Dashboard\n提示验证邮箱
+            end
+        end
+    end

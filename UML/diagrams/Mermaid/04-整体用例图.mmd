@@ -1,0 +1,64 @@
+graph TB
+    Developer((开发者))
+    Member((项目成员))
+    Viewer((访客))
+    Admin((管理员))
+    Maintainer((维护者))
+    OrgOwner((组织所有者))
+
+    UC1[注册登录]
+    UC2[创建项目]
+    UC3[管理项目]
+    UC4[Git操作<br/>push/pull/clone]
+    UC5[浏览代码]
+    UC6[管理成员]
+    UC7[创建分支]
+    UC8[查看历史]
+    UC9[系统管理]
+    UC10[创建Issue]
+    UC11[创建PR]
+    UC12[代码审查]
+    UC13[合并PR]
+    UC14[代码搜索]
+    UC15[创建组织]
+    UC16[管理团队]
+    UC17[配置CI/CD]
+    UC18[编辑Wiki]
+    UC19[配置Webhook]
+    UC20[设置2FA]
+
+    Developer --> UC1
+    Developer --> UC2
+    Developer --> UC3
+    Developer --> UC4
+    Developer --> UC5
+    Developer --> UC6
+    Developer --> UC7
+    Developer --> UC8
+    Developer --> UC10
+    Developer --> UC11
+    Developer --> UC14
+    Developer --> UC15
+    Developer --> UC20
+
+    Member --> UC1
+    Member --> UC4
+    Member --> UC5
+    Member --> UC8
+    Member --> UC10
+    Member --> UC11
+    Member --> UC18
+
+    Viewer --> UC1
+    Viewer --> UC5
+    Viewer --> UC14
+
+    Maintainer --> UC12
+    Maintainer --> UC13
+    Maintainer --> UC17
+    Maintainer --> UC19
+
+    OrgOwner --> UC16
+    OrgOwner --> UC6
+
+    Admin --> UC9

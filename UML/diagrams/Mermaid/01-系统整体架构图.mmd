@@ -1,0 +1,48 @@
+graph TB
+    subgraph "客户端层"
+        Browser[Web浏览器]
+        GitClient[Git客户端]
+    end
+
+    subgraph "前端服务层"
+        FrontEnd[Next.js 16 应用<br/>SSR + Static]
+    end
+    
+    subgraph "后端服务层"
+        AuthService[认证服务]
+        ProjectService[项目服务]
+        RepoService[仓库服务]
+        GitService[Git HTTP服务]
+        IssueService[Issue服务]
+        PRService[PR服务]
+        SearchService[搜索服务]
+        NotifyService[通知服务]
+        ConsensusService[Raft共识服务]
+    end
+    
+    subgraph "数据持久层"
+        PostgreSQL[(PostgreSQL 16)]
+        Redis[(Redis 7)]
+        MinIO[(MinIO)]
+        MeiliSearch[(MeiliSearch)]
+    end
+    
+    Browser --> FrontEnd
+    GitClient --> GitService
+    FrontEnd --> AuthService
+    FrontEnd --> ProjectService
+    FrontEnd --> RepoService
+    FrontEnd --> IssueService
+    FrontEnd --> PRService
+    FrontEnd --> SearchService
+    
+    AuthService --> PostgreSQL
+    AuthService --> Redis
+    ProjectService --> PostgreSQL
+    RepoService --> PostgreSQL
+    RepoService --> MinIO
+    SearchService --> MeiliSearch
+    
+    ConsensusService --> PostgreSQL
+    ConsensusService -.-> AuthService
+    ConsensusService -.-> ProjectService

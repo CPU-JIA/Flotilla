@@ -1,9 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { api } from '@/lib/api'
 import { CheckCircle, XCircle, Clock, PlayCircle } from 'lucide-react'
+
+interface PipelineRun {
+  status: string
+}
 
 interface PipelineStatusBadgeProps {
   projectId: string
@@ -14,18 +18,14 @@ export function PipelineStatusBadge({
   projectId,
   className = '',
 }: PipelineStatusBadgeProps) {
-  const [latestRun, setLatestRun] = useState<any>(null)
+  const [latestRun, setLatestRun] = useState<PipelineRun | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    loadLatestRun()
-  }, [projectId])
-
-  const loadLatestRun = async () => {
+  const loadLatestRun = useCallback(async () => {
     try {
       setLoading(true)
       // Use api.get with type parameter
-      const data = await api.get<{ runs: Array<{ status: string }> }>(`/projects/${projectId}/pipeline-runs?limit=1`)
+      const data = await api.get<{ runs: Array<PipelineRun> }>(`/projects/${projectId}/pipeline-runs?limit=1`)
       if (data.runs && data.runs.length > 0) {
         setLatestRun(data.runs[0])
       }
@@ -34,7 +34,11 @@ export function PipelineStatusBadge({
     } finally {
       setLoading(false)
     }
-  }
+  }, [projectId])
+
+  useEffect(() => {
+    loadLatestRun()
+  }, [loadLatestRun])
 
   if (loading || !latestRun) {
     return null

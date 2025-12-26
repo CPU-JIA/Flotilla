@@ -1,0 +1,123 @@
+graph TB
+    subgraph "核心模块"
+        AppModule[App Module]
+        ConfigModule[Config Module]
+        DatabaseModule[Database Module]
+    end
+
+    subgraph "认证模块组"
+        AuthModule[Auth Module]
+        ApiTokensModule[API Tokens]
+        OAuthModule[OAuth Module]
+        TwoFactorModule[2FA Module]
+    end
+
+    subgraph "组织模块组"
+        UsersModule[Users Module]
+        OrganizationsModule[Organizations Module]
+        TeamsModule[Teams Module]
+    end
+
+    subgraph "项目模块组"
+        ProjectsModule[Projects Module]
+        RepositoriesModule[Repositories Module]
+        GitModule[Git HTTP Module]
+        BranchProtectionModule[Branch Protection]
+    end
+
+    subgraph "协作模块组"
+        IssuesModule[Issues Module]
+        PullRequestsModule[Pull Requests Module]
+        WikiModule[Wiki Module]
+        CollaborationModule[Real-time Collaboration]
+    end
+
+    subgraph "基础设施模块组"
+        RedisModule[Redis Module]
+        FilesModule[Files/MinIO Module]
+        EmailModule[Email Module]
+        SearchModule[Search/MeiliSearch Module]
+    end
+
+    subgraph "高级功能模块组"
+        NotificationsModule[Notifications Module]
+        WebhooksModule[Webhooks Module]
+        PipelinesModule[CI/CD Pipelines]
+        AuditModule[Audit Module]
+        GdprModule[GDPR Module]
+    end
+
+    subgraph "分布式模块组"
+        RaftModule[Raft Core Module]
+        RaftClusterModule[Raft Cluster Module]
+    end
+
+    AppModule --> ConfigModule
+    AppModule --> DatabaseModule
+    AppModule --> AuthModule
+    AppModule --> UsersModule
+    AppModule --> OrganizationsModule
+    AppModule --> TeamsModule
+    AppModule --> ProjectsModule
+    AppModule --> RepositoriesModule
+    AppModule --> GitModule
+    AppModule --> IssuesModule
+    AppModule --> PullRequestsModule
+    AppModule --> SearchModule
+    AppModule --> NotificationsModule
+    AppModule --> RaftModule
+    AppModule --> AuditModule
+    AppModule --> PipelinesModule
+    AppModule --> WikiModule
+    AppModule --> WebhooksModule
+    AppModule --> CollaborationModule
+    AppModule --> GdprModule
+
+    AuthModule --> UsersModule
+    AuthModule --> RedisModule
+    AuthModule --> EmailModule
+    AuthModule --> ApiTokensModule
+    AuthModule --> OAuthModule
+    AuthModule --> TwoFactorModule
+
+    OrganizationsModule --> UsersModule
+    OrganizationsModule --> TeamsModule
+
+    TeamsModule --> UsersModule
+
+    ProjectsModule --> UsersModule
+    ProjectsModule --> OrganizationsModule
+    ProjectsModule --> RepositoriesModule
+    ProjectsModule --> RaftModule
+
+    RepositoriesModule --> FilesModule
+    RepositoriesModule --> GitModule
+
+    GitModule --> RaftModule
+
+    IssuesModule --> ProjectsModule
+    IssuesModule --> NotificationsModule
+
+    PullRequestsModule --> ProjectsModule
+    PullRequestsModule --> RepositoriesModule
+    PullRequestsModule --> BranchProtectionModule
+    PullRequestsModule --> NotificationsModule
+
+    WikiModule --> ProjectsModule
+
+    CollaborationModule --> ProjectsModule
+    CollaborationModule --> RedisModule
+
+    WebhooksModule --> ProjectsModule
+
+    PipelinesModule --> ProjectsModule
+    PipelinesModule --> RepositoriesModule
+
+    SearchModule --> RepositoriesModule
+
+    NotificationsModule --> RedisModule
+    NotificationsModule --> EmailModule
+
+    RaftClusterModule --> RaftModule
+
+    GdprModule --> UsersModule

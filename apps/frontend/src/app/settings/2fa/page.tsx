@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
-import { Loader2, Shield, CheckCircle2, XCircle, Copy, Eye, EyeOff } from 'lucide-react'
+import { Loader2, Shield, CheckCircle2, XCircle, Copy } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -124,8 +124,9 @@ export default function TwoFactorPage() {
       setIs2FAEnabled(true)
       setSetupMode(false)
       toast.success('2FA enabled successfully! Save your recovery codes.')
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to enable 2FA')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to enable 2FA'
+      toast.error(errorMessage)
       console.error(error)
     } finally {
       setProcessing(false)
@@ -160,8 +161,9 @@ export default function TwoFactorPage() {
       setDisableDialogOpen(false)
       setDisableCode('')
       toast.success('2FA disabled successfully')
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to disable 2FA')
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to disable 2FA'
+      toast.error(errorMessage)
       console.error(error)
     } finally {
       setProcessing(false)
@@ -348,7 +350,7 @@ export default function TwoFactorPage() {
                   Download Codes
                 </Button>
                 <Button variant="outline" onClick={() => setShowRecoveryCodes(false)}>
-                  I've Saved My Codes
+                  I&apos;ve Saved My Codes
                 </Button>
               </div>
             </CardContent>

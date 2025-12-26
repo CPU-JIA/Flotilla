@@ -1,0 +1,196 @@
+const puppeteer = require('puppeteer')
+const fs = require('fs')
+const path = require('path')
+
+// 所有需要转换的表格
+const tables = [
+  {
+    name: '表1-1_技术栈概览',
+    html: `
+      <table>
+        <thead>
+          <tr><th>层次</th><th>技术选型</th><th>版本</th><th>选型理由</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>前端框架</td><td>Next.js (App Router)</td><td>15.5.x</td><td>SSR/SSG支持，App Router，性能优异</td></tr>
+          <tr><td>React</td><td>React</td><td>19.x</td><td>Server Components，生态成熟</td></tr>
+          <tr><td>UI组件库</td><td>Shadcn/ui + Mantine</td><td>7.15</td><td>基于Radix UI，高质量组件</td></tr>
+          <tr><td>状态管理</td><td>TanStack Query + Zustand</td><td>5.x</td><td>服务器状态管理，缓存优化</td></tr>
+          <tr><td>后端框架</td><td>NestJS</td><td>11.x</td><td>企业级架构，模块化，依赖注入</td></tr>
+          <tr><td>ORM</td><td>Prisma</td><td>6.x</td><td>类型安全，自动迁移，性能好</td></tr>
+          <tr><td>数据库</td><td>PostgreSQL</td><td>16.x</td><td>功能强大，JSON支持，开源</td></tr>
+          <tr><td>缓存</td><td>Redis</td><td>7.x</td><td>高性能内存数据库</td></tr>
+          <tr><td>对象存储</td><td>MinIO</td><td>Latest</td><td>S3兼容，开源，易部署</td></tr>
+          <tr><td>搜索引擎</td><td>MeiliSearch</td><td>1.10</td><td>全文代码搜索</td></tr>
+          <tr><td>容器化</td><td>Docker + Docker Compose</td><td>-</td><td>容器化部署</td></tr>
+          <tr><td>包管理</td><td>pnpm (Monorepo)</td><td>10.x</td><td>比npm/yarn更快</td></tr>
+        </tbody>
+      </table>
+    `
+  },
+  {
+    name: '表2-1_平台层角色',
+    html: `
+      <table>
+        <thead>
+          <tr><th>角色</th><th>描述</th><th>权限</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>超级管理员（SUPER_ADMIN）</strong></td><td>平台运维者，最高权限</td><td>用户管理、系统监控、配置管理、审计日志查看</td></tr>
+          <tr><td><strong>普通用户（USER）</strong></td><td>平台注册用户</td><td>创建组织、创建项目、参与协作</td></tr>
+        </tbody>
+      </table>
+    `
+  },
+  {
+    name: '表2-2_组织层角色',
+    html: `
+      <table>
+        <thead>
+          <tr><th>角色</th><th>描述</th><th>权限</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>组织所有者（OWNER）</strong></td><td>组织创建者</td><td>删除组织、转让所有权、所有管理操作</td></tr>
+          <tr><td><strong>组织管理员（ADMIN）</strong></td><td>被授权管理组织的成员</td><td>管理成员、管理团队、管理设置</td></tr>
+          <tr><td><strong>组织成员（MEMBER）</strong></td><td>组织的普通成员</td><td>创建项目、查看组织信息</td></tr>
+        </tbody>
+      </table>
+    `
+  },
+  {
+    name: '表2-3_团队层角色',
+    html: `
+      <table>
+        <thead>
+          <tr><th>角色</th><th>描述</th><th>权限</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>团队维护者（MAINTAINER）</strong></td><td>团队管理者</td><td>管理团队成员、分配项目权限</td></tr>
+          <tr><td><strong>团队成员（MEMBER）</strong></td><td>团队普通成员</td><td>继承团队被赋予的项目权限</td></tr>
+        </tbody>
+      </table>
+    `
+  },
+  {
+    name: '表2-4_项目层角色',
+    html: `
+      <table>
+        <thead>
+          <tr><th>角色</th><th>描述</th><th>权限</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>项目所有者（OWNER）</strong></td><td>项目创建者</td><td>完全控制权，包括删除项目、管理成员</td></tr>
+          <tr><td><strong>项目维护者（MAINTAINER）</strong></td><td>项目核心维护者</td><td>审核PR、管理Issue、分支保护设置</td></tr>
+          <tr><td><strong>项目成员（MEMBER）</strong></td><td>项目开发成员</td><td>读写代码、创建Issue和PR</td></tr>
+          <tr><td><strong>项目查看者（VIEWER）</strong></td><td>只读访问权限</td><td>查看代码和项目信息</td></tr>
+        </tbody>
+      </table>
+    `
+  },
+  {
+    name: '表2-5_后端模块统计',
+    html: `
+      <table>
+        <thead>
+          <tr><th>模块</th><th>模型数量</th><th>主要模型</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>用户与认证</td><td>6</td><td>User, PasswordHistory, UserSession, ApiToken, OAuthAccount, TwoFactorAuth</td></tr>
+          <tr><td>组织与团队</td><td>4</td><td>Organization, OrganizationMember, Team, TeamMember</td></tr>
+          <tr><td>项目管理</td><td>5</td><td>Project, ProjectMember, Repository, Branch, BranchProtectionRule</td></tr>
+          <tr><td>代码协作</td><td>8</td><td>Commit, Issue, IssueComment, Label, Milestone, PullRequest, PRReview</td></tr>
+          <tr><td>通知系统</td><td>2</td><td>Notification, NotificationPreference</td></tr>
+          <tr><td>审计日志</td><td>1</td><td>AuditLog</td></tr>
+          <tr><td>Raft共识</td><td>3</td><td>RaftNode, RaftLog, RaftCluster</td></tr>
+          <tr><td>其他</td><td>5</td><td>File, Webhook, Pipeline, Wiki, Collaboration</td></tr>
+        </tbody>
+      </table>
+    `
+  },
+  {
+    name: '表3-1_改进方向',
+    html: `
+      <table>
+        <thead>
+          <tr><th>优先级</th><th>改进项</th><th>预期效果</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>P0</td><td>实现Raft日志压缩</td><td>解决日志无限增长问题</td></tr>
+          <tr><td>P0</td><td>提升测试覆盖率至80%</td><td>保证代码质量</td></tr>
+          <tr><td>P1</td><td>优化大文件Diff性能</td><td>提升用户体验</td></tr>
+          <tr><td>P1</td><td>添加监控告警系统</td><td>及时发现和处理问题</td></tr>
+          <tr><td>P2</td><td>实现Raft动态成员变更</td><td>支持集群弹性伸缩</td></tr>
+        </tbody>
+      </table>
+    `
+  }
+]
+
+const css = `
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", "SimHei", sans-serif;
+    padding: 20px;
+    background: white;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 12px 15px;
+    text-align: left;
+  }
+  th {
+    background: #f5f5f5;
+    font-weight: bold;
+    color: #333;
+  }
+  tr:nth-child(even) {
+    background: #fafafa;
+  }
+  tr:hover {
+    background: #f0f0f0;
+  }
+  strong {
+    color: #1a1a1a;
+  }
+`
+
+async function renderTables() {
+  const browser = await puppeteer.launch()
+
+  for (const table of tables) {
+    const page = await browser.newPage()
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>${css}</style>
+      </head>
+      <body>${table.html}</body>
+      </html>
+    `
+
+    await page.setContent(html)
+    await page.setViewport({ width: 1200, height: 800, deviceScaleFactor: 2 })
+
+    const element = await page.$('table')
+    await element.screenshot({
+      path: path.join(__dirname, `${table.name}.png`),
+      type: 'png'
+    })
+
+    console.log(`✓ ${table.name}.png`)
+    await page.close()
+  }
+
+  await browser.close()
+  console.log('\nAll tables exported!')
+}
+
+renderTables().catch(console.error)

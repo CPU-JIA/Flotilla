@@ -230,7 +230,7 @@ export function WebhookDialog({
               }`}
               role="group"
               aria-labelledby="events-label"
-              aria-invalid={errors.events ? 'true' : 'false'}
+              aria-describedby={errors.events ? 'events-error' : undefined}
             >
               {WEBHOOK_EVENTS.map((event) => (
                 <div key={event} className="flex items-center space-x-2">

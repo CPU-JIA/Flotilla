@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: "Microsoft YaHei", sans-serif; padding: 30px; background: white; }
+    h2 { margin-bottom: 20px; color: #333; font-size: 18px; text-align: center; }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    th, td { border: 1px solid #ccc; padding: 12px 15px; text-align: left; }
+    th { background: #4a90d9; color: white; font-weight: bold; }
+    tr:nth-child(even) { background: #f8f9fa; }
+    .role { color: #4a90d9; font-weight: bold; }
+    .percent { text-align: center; font-weight: bold; color: #e74c3c; }
+  </style>
+</head>
+<body>
+  <h2>Flotilla云端代码托管平台 - 团队分工表</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>成员</th>
+        <th>角色</th>
+        <th>主要职责</th>
+        <th>负责模块</th>
+        <th>工作量</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>成员A</strong></td>
+        <td class="role">项目负责人/架构师</td>
+        <td>系统架构设计、技术选型、Raft算法实现</td>
+        <td>Raft共识、系统架构、数据库设计</td>
+        <td class="percent">30%</td>
+      </tr>
+      <tr>
+        <td><strong>成员B</strong></td>
+        <td class="role">后端开发工程师</td>
+        <td>API设计与实现、业务逻辑开发</td>
+        <td>用户认证、Git协议、Issue/PR模块</td>
+        <td class="percent">30%</td>
+      </tr>
+      <tr>
+        <td><strong>成员C</strong></td>
+        <td class="role">前端开发工程师</td>
+        <td>用户界面设计、前端交互实现</td>
+        <td>React组件、WebSocket、UI/UX</td>
+        <td class="percent">25%</td>
+      </tr>
+      <tr>
+        <td><strong>成员D</strong></td>
+        <td class="role">测试/文档工程师</td>
+        <td>测试用例设计、UML建模、文档编写</td>
+        <td>单元测试、UML图、课程报告</td>
+        <td class="percent">15%</td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>

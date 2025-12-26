@@ -324,6 +324,22 @@ export default function ProjectDetailPage() {
                   >
                     🔀 Pull Requests
                   </Button>
+                  {/* Wiki 文档系统 */}
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push(`/projects/${project.id}/wiki`)}
+                    className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                  >
+                    📚 Wiki
+                  </Button>
+                  {/* CI/CD 流水线 */}
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push(`/projects/${project.id}/pipelines`)}
+                    className="bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800 hover:bg-orange-100 dark:hover:bg-orange-900/30"
+                  >
+                    🚀 Pipelines
+                  </Button>
                 </div>
               </div>
             )}

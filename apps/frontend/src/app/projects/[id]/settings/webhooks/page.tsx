@@ -23,7 +23,7 @@ export default function WebhooksPage() {
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingWebhook, setEditingWebhook] = useState<Webhook | null>(null)
-  const [submitting, setSubmitting] = useState(false)
+  const [_submitting, setSubmitting] = useState(false)
   const { toast } = useToast()
 
   const loadWebhooks = useCallback(async () => {

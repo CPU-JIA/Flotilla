@@ -1,0 +1,41 @@
+sequenceDiagram
+    participant Client as 前端客户端
+    participant WSGateway as WebSocket网关
+    participant AuthGuard as 认证守卫
+    participant NotifyService as 通知服务
+    participant Redis as Redis PubSub
+    participant Database as PostgreSQL
+
+    Client->>WSGateway: WebSocket连接请求
+    WSGateway->>AuthGuard: 验证JWT Token
+
+    alt Token无效
+        AuthGuard-->>WSGateway: 认证失败
+        WSGateway-->>Client: 关闭连接(4001)
+    else Token有效
+        AuthGuard-->>WSGateway: 认证成功(userId)
+        WSGateway->>WSGateway: 注册用户连接
+        WSGateway->>Redis: SUBSCRIBE user:{userId}:notifications
+        WSGateway-->>Client: 连接成功
+
+        loop 保持连接
+            Client->>WSGateway: ping
+            WSGateway-->>Client: pong
+        end
+
+        Note over NotifyService: 某处触发通知
+        NotifyService->>Database: 创建通知记录
+        NotifyService->>Redis: PUBLISH user:{userId}:notifications
+
+        Redis-->>WSGateway: 收到消息
+        WSGateway->>WSGateway: 查找用户连接
+        WSGateway-->>Client: 推送通知消息
+
+        Client->>WSGateway: 标记已读(notificationId)
+        WSGateway->>NotifyService: markAsRead(id)
+        NotifyService->>Database: 更新通知状态
+
+        Client->>WSGateway: 断开连接
+        WSGateway->>Redis: UNSUBSCRIBE
+        WSGateway->>WSGateway: 移除用户连接
+    end

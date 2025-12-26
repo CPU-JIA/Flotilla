@@ -16,6 +16,18 @@ jest.mock('sonner', () => ({
   toast: jest.fn(() => 'toast-id'),
 }))
 
+// Type-safe mock helpers
+type ToastMethod = jest.Mock
+const mockSonnerToast = sonnerToast as unknown as ToastMethod & {
+  success: ToastMethod
+  error: ToastMethod
+  info: ToastMethod
+  warning: ToastMethod
+  loading: ToastMethod
+  promise: ToastMethod
+  dismiss: ToastMethod
+}
+
 describe('useToast', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -67,7 +79,7 @@ describe('useToast', () => {
   describe('success() method', () => {
     it('should call sonner success toast', () => {
       const sonnerSuccessMock = jest.fn()
-      ;(sonnerToast as any).success = sonnerSuccessMock
+      mockSonnerToast.success = sonnerSuccessMock
 
       const { result } = renderHook(() => useToast())
 
@@ -81,7 +93,7 @@ describe('useToast', () => {
 
     it('should handle success toast with custom duration', () => {
       const sonnerSuccessMock = jest.fn()
-      ;(sonnerToast as any).success = sonnerSuccessMock
+      mockSonnerToast.success = sonnerSuccessMock
 
       const { result } = renderHook(() => useToast())
 
@@ -97,7 +109,7 @@ describe('useToast', () => {
   describe('error() method', () => {
     it('should call sonner error toast', () => {
       const sonnerErrorMock = jest.fn()
-      ;(sonnerToast as any).error = sonnerErrorMock
+      mockSonnerToast.error = sonnerErrorMock
 
       const { result } = renderHook(() => useToast())
 
@@ -111,7 +123,7 @@ describe('useToast', () => {
 
     it('should handle error toast without description', () => {
       const sonnerErrorMock = jest.fn()
-      ;(sonnerToast as any).error = sonnerErrorMock
+      mockSonnerToast.error = sonnerErrorMock
 
       const { result } = renderHook(() => useToast())
 
@@ -127,7 +139,7 @@ describe('useToast', () => {
   describe('info() method', () => {
     it('should call sonner info toast', () => {
       const sonnerInfoMock = jest.fn()
-      ;(sonnerToast as any).info = sonnerInfoMock
+      mockSonnerToast.info = sonnerInfoMock
 
       const { result } = renderHook(() => useToast())
 
@@ -143,7 +155,7 @@ describe('useToast', () => {
   describe('warning() method', () => {
     it('should call sonner warning toast', () => {
       const sonnerWarningMock = jest.fn()
-      ;(sonnerToast as any).warning = sonnerWarningMock
+      mockSonnerToast.warning = sonnerWarningMock
 
       const { result } = renderHook(() => useToast())
 
@@ -159,7 +171,7 @@ describe('useToast', () => {
   describe('loading() method', () => {
     it('should call sonner loading toast', () => {
       const sonnerLoadingMock = jest.fn()
-      ;(sonnerToast as any).loading = sonnerLoadingMock
+      mockSonnerToast.loading = sonnerLoadingMock
 
       const { result } = renderHook(() => useToast())
 
@@ -170,7 +182,7 @@ describe('useToast', () => {
 
     it('should handle loading toast without description', () => {
       const sonnerLoadingMock = jest.fn()
-      ;(sonnerToast as any).loading = sonnerLoadingMock
+      mockSonnerToast.loading = sonnerLoadingMock
 
       const { result } = renderHook(() => useToast())
 
@@ -183,7 +195,7 @@ describe('useToast', () => {
   describe('promise() method', () => {
     it('should expose sonner promise method', () => {
       const sonnerPromiseMock = jest.fn()
-      ;(sonnerToast as any).promise = sonnerPromiseMock
+      mockSonnerToast.promise = sonnerPromiseMock
 
       const { result } = renderHook(() => useToast())
 
@@ -194,7 +206,7 @@ describe('useToast', () => {
   describe('dismiss() method', () => {
     it('should expose sonner dismiss method', () => {
       const sonnerDismissMock = jest.fn()
-      ;(sonnerToast as any).dismiss = sonnerDismissMock
+      mockSonnerToast.dismiss = sonnerDismissMock
 
       const { result } = renderHook(() => useToast())
 
@@ -205,7 +217,7 @@ describe('useToast', () => {
   describe('variant handling', () => {
     it('should handle destructive variant as error', () => {
       const sonnerErrorMock = jest.fn()
-      ;(sonnerToast as any).error = sonnerErrorMock
+      mockSonnerToast.error = sonnerErrorMock
 
       const { result } = renderHook(() => useToast())
 
@@ -219,7 +231,7 @@ describe('useToast', () => {
 
     it('should handle success variant', () => {
       const sonnerSuccessMock = jest.fn()
-      ;(sonnerToast as any).success = sonnerSuccessMock
+      mockSonnerToast.success = sonnerSuccessMock
 
       const { result } = renderHook(() => useToast())
 
@@ -233,7 +245,7 @@ describe('useToast', () => {
 
     it('should handle info variant', () => {
       const sonnerInfoMock = jest.fn()
-      ;(sonnerToast as any).info = sonnerInfoMock
+      mockSonnerToast.info = sonnerInfoMock
 
       const { result } = renderHook(() => useToast())
 
@@ -247,7 +259,7 @@ describe('useToast', () => {
 
     it('should handle warning variant', () => {
       const sonnerWarningMock = jest.fn()
-      ;(sonnerToast as any).warning = sonnerWarningMock
+      mockSonnerToast.warning = sonnerWarningMock
 
       const { result } = renderHook(() => useToast())
 

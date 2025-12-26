@@ -1,0 +1,43 @@
+sequenceDiagram
+    participant GitClient as Git客户端
+    participant GitHTTP as Git HTTP服务
+    participant AuthGuard as 认证守卫
+    participant RepoService as 仓库服务
+    participant MinIO as MinIO对象存储
+    participant Database as PostgreSQL
+
+    GitClient->>GitHTTP: GET /{org}/{repo}.git/info/refs?service=git-upload-pack
+    GitHTTP->>AuthGuard: 验证Basic Auth
+
+    alt 私有仓库 & 未授权
+        AuthGuard-->>GitHTTP: 401 Unauthorized
+        GitHTTP-->>GitClient: WWW-Authenticate: Basic
+        GitClient->>GitClient: 提示输入凭据
+        GitClient->>GitHTTP: 带Basic Auth重试
+        GitHTTP->>AuthGuard: 验证凭据
+        AuthGuard->>Database: 查询用户权限
+    end
+
+    AuthGuard-->>GitHTTP: 授权通过
+    GitHTTP->>RepoService: 获取仓库引用
+    RepoService->>Database: 查询分支/标签
+    Database-->>RepoService: 返回引用列表
+    RepoService-->>GitHTTP: 引用列表
+    GitHTTP-->>GitClient: 001e# service=git-upload-pack\n引用列表
+
+    GitClient->>GitClient: 计算需要的对象
+    GitClient->>GitHTTP: POST /{org}/{repo}.git/git-upload-pack
+
+    Note over GitClient,GitHTTP: POST Body包含want/have协商
+
+    GitHTTP->>RepoService: 处理upload-pack请求
+    RepoService->>MinIO: 获取Git对象
+    MinIO-->>RepoService: 返回pack数据
+    RepoService->>RepoService: 生成packfile
+    RepoService-->>GitHTTP: packfile数据流
+    GitHTTP-->>GitClient: Transfer-Encoding: chunked\npackfile数据
+
+    GitClient->>GitClient: 解压并验证对象
+    GitClient->>GitClient: 更新工作目录
+
+    Note over GitClient: Clone完成

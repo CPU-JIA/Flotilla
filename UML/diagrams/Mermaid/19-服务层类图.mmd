@@ -1,0 +1,109 @@
+classDiagram
+    class AuthService {
+        -PrismaService prisma
+        -JwtService jwtService
+        -PasswordService passwordService
+        -EmailService emailService
+        +register(dto: RegisterDto) Promise~User~
+        +login(dto: LoginDto) Promise~AuthResponse~
+        +logout(userId: string) Promise~void~
+        +refreshToken(token: string) Promise~AuthResponse~
+        +verifyEmail(token: string) Promise~void~
+        +forgotPassword(email: string) Promise~void~
+        +resetPassword(token: string, password: string) Promise~void~
+        +validateUser(username: string, password: string) Promise~User~
+    }
+
+    class UsersService {
+        -PrismaService prisma
+        -FilesService filesService
+        +findById(id: string) Promise~User~
+        +findByEmail(email: string) Promise~User~
+        +findByUsername(username: string) Promise~User~
+        +updateProfile(id: string, dto: UpdateUserDto) Promise~User~
+        +updateAvatar(id: string, file: File) Promise~string~
+        +deactivate(id: string) Promise~void~
+    }
+
+    class ProjectsService {
+        -PrismaService prisma
+        -RepositoriesService repoService
+        -RaftService raftService
+        +create(userId: string, dto: CreateProjectDto) Promise~Project~
+        +findAll(userId: string, query: QueryDto) Promise~Project[]~
+        +findById(id: string) Promise~Project~
+        +update(id: string, dto: UpdateProjectDto) Promise~Project~
+        +delete(id: string) Promise~void~
+        +archive(id: string) Promise~void~
+        +transfer(id: string, newOwnerId: string) Promise~void~
+    }
+
+    class RepositoriesService {
+        -PrismaService prisma
+        -MinioService minioService
+        -GitService gitService
+        +init(projectId: string) Promise~Repository~
+        +getFiles(repoId: string, ref: string, path: string) Promise~File[]~
+        +getFileContent(repoId: string, ref: string, path: string) Promise~string~
+        +createBranch(repoId: string, name: string, ref: string) Promise~Branch~
+        +deleteBranch(repoId: string, name: string) Promise~void~
+        +getCommits(repoId: string, ref: string) Promise~Commit[]~
+    }
+
+    class IssuesService {
+        -PrismaService prisma
+        -NotificationsService notifyService
+        +create(projectId: string, userId: string, dto: CreateIssueDto) Promise~Issue~
+        +findAll(projectId: string, query: IssueQueryDto) Promise~Issue[]~
+        +findByNumber(projectId: string, number: int) Promise~Issue~
+        +update(id: string, dto: UpdateIssueDto) Promise~Issue~
+        +close(id: string, userId: string) Promise~Issue~
+        +reopen(id: string, userId: string) Promise~Issue~
+        +assign(id: string, assigneeIds: string[]) Promise~Issue~
+        +addLabel(id: string, labelId: string) Promise~Issue~
+    }
+
+    class PullRequestsService {
+        -PrismaService prisma
+        -GitService gitService
+        -BranchProtectionService branchProtection
+        -NotificationsService notifyService
+        +create(projectId: string, userId: string, dto: CreatePRDto) Promise~PullRequest~
+        +findAll(projectId: string, query: PRQueryDto) Promise~PullRequest[]~
+        +findByNumber(projectId: string, number: int) Promise~PullRequest~
+        +review(prId: string, userId: string, dto: ReviewDto) Promise~PRReview~
+        +merge(prId: string, userId: string, strategy: MergeStrategy) Promise~PullRequest~
+        +close(prId: string, userId: string) Promise~PullRequest~
+        +checkMergeability(prId: string) Promise~MergeCheck~
+    }
+
+    class RaftService {
+        -RaftNode node
+        -PrismaService prisma
+        -ConfigService config
+        +start() Promise~void~
+        +stop() Promise~void~
+        +executeCommand(command: Command) Promise~CommandResult~
+        +getState() RaftState
+        +getLeader() string
+        +isLeader() boolean
+    }
+
+    class NotificationsService {
+        -PrismaService prisma
+        -WebSocketGateway wsGateway
+        -EmailService emailService
+        +create(userId: string, type: NotificationType, data: any) Promise~Notification~
+        +markAsRead(id: string) Promise~void~
+        +markAllAsRead(userId: string) Promise~void~
+        +getUnreadCount(userId: string) Promise~int~
+        +broadcast(userIds: string[], notification: Notification) Promise~void~
+    }
+
+    AuthService --> UsersService : uses
+    AuthService --> PasswordService : uses
+    ProjectsService --> RepositoriesService : uses
+    ProjectsService --> RaftService : uses
+    IssuesService --> NotificationsService : uses
+    PullRequestsService --> NotificationsService : uses
+    PullRequestsService --> BranchProtectionService : uses
