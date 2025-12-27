@@ -14,6 +14,18 @@ import {
 } from '../decorators/audit.decorator';
 
 /**
+ * HTTP Request 类型定义
+ * ECP-C1: 类型安全 - 明确定义 request 结构
+ */
+interface HttpRequest {
+  user?: { id?: string; username?: string };
+  params?: Record<string, string>;
+  body?: Record<string, string | number | boolean | undefined>;
+  socket?: { remoteAddress?: string };
+  get(header: string): string | undefined;
+}
+
+/**
  * 审计日志拦截器
  *
  * Phase 4: 自动记录审计日志
@@ -33,7 +45,7 @@ export class AuditInterceptor implements NestInterceptor {
     private readonly auditService: AuditService,
   ) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     // 获取审计元数据
     const auditMetadata = this.reflector.get<AuditMetadata>(
       AUDIT_METADATA_KEY,
@@ -46,13 +58,14 @@ export class AuditInterceptor implements NestInterceptor {
     }
 
     // 获取 HTTP 请求信息
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<HttpRequest>();
     const user = request.user; // 从 JWT Auth Guard 注入的用户信息
     const ipAddress = this.getClientIp(request);
     const userAgent = request.get('user-agent') || '';
 
     // 获取实体 ID（从请求参数中提取）
-    const entityId = request.params?.id || request.body?.id || undefined;
+    const entityIdRaw = request.params?.id || request.body?.id;
+    const entityId = typeof entityIdRaw === 'string' ? entityIdRaw : undefined;
 
     return next.handle().pipe(
       // 操作成功时记录
@@ -101,7 +114,7 @@ export class AuditInterceptor implements NestInterceptor {
    *
    * @param request Express Request
    */
-  private getClientIp(request: any): string {
+  private getClientIp(request: HttpRequest): string {
     const xForwardedFor = request.get('x-forwarded-for');
     if (xForwardedFor) {
       // X-Forwarded-For 可能是逗号分隔的列表，取第一个

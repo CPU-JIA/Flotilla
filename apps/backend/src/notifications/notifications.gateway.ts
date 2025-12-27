@@ -208,7 +208,7 @@ export class NotificationsGateway
    *
    * ECP-D1: 可测试性 - 公共方法，可独立测试
    */
-  sendToUser(userId: string, event: string, data: any) {
+  sendToUser(userId: string, event: string, data: unknown) {
     const sockets = this.userSockets.get(userId);
 
     if (!sockets || sockets.size === 0) {
@@ -233,7 +233,7 @@ export class NotificationsGateway
    *
    * 使用场景：系统维护通知、紧急公告等
    */
-  broadcast(event: string, data: any) {
+  broadcast(event: string, data: unknown) {
     this.server.emit(event, data);
     this.logger.log(
       `📢 Broadcast ${event} to all users (${this.userSockets.size} online)`,

@@ -3,6 +3,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { User } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TokenService } from '../token.service';
@@ -21,6 +22,24 @@ export class OAuthService {
     private readonly prisma: PrismaService,
     private readonly tokenService: TokenService,
   ) {}
+
+  /**
+   * 将 metadata 转换为 Prisma JsonValue 兼容格式
+   * 过滤掉 undefined 值（Prisma JsonValue 不支持 undefined）
+   * ECP-C1: 防御性编程 - 确保数据格式兼容
+   */
+  private sanitizeMetadata(
+    metadata?: Record<string, string | number | boolean | null | undefined>,
+  ): Prisma.InputJsonValue | undefined {
+    if (!metadata) return undefined;
+    const sanitized: Record<string, string | number | boolean | null> = {};
+    for (const [key, value] of Object.entries(metadata)) {
+      if (value !== undefined) {
+        sanitized[key] = value;
+      }
+    }
+    return sanitized;
+  }
 
   /**
    * 使用 OAuth 登录或注册
@@ -117,7 +136,7 @@ export class OAuthService {
         refreshToken: profile.refreshToken,
         expiresAt: profile.expiresAt,
         scope: profile.scope,
-        metadata: profile.metadata,
+        metadata: this.sanitizeMetadata(profile.metadata),
       },
     });
   }
@@ -201,7 +220,7 @@ export class OAuthService {
             refreshToken: profile.refreshToken,
             expiresAt: profile.expiresAt,
             scope: profile.scope,
-            metadata: profile.metadata,
+            metadata: this.sanitizeMetadata(profile.metadata),
           },
         },
       },

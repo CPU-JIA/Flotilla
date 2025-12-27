@@ -5,6 +5,34 @@ import { ConfigService } from '@nestjs/config';
 import { OAuthProfileDto } from '../dto/oauth-profile.dto';
 
 /**
+ * GitHub Profile Email 类型
+ * ECP-C1: 类型安全 - 明确定义外部数据结构
+ */
+interface GitHubEmail {
+  value: string;
+  primary?: boolean;
+  verified?: boolean;
+}
+
+/**
+ * GitHub Profile 扩展属性
+ */
+interface GitHubProfileJson {
+  company?: string;
+  blog?: string;
+  location?: string;
+  bio?: string;
+}
+
+/**
+ * 扩展的 GitHub Profile
+ */
+interface ExtendedGitHubProfile {
+  profileUrl?: string;
+  _json?: GitHubProfileJson;
+}
+
+/**
  * GitHub OAuth Strategy
  * 使用 Passport GitHub Strategy 实现 GitHub OAuth 登录
  * ECP-C1: Defensive Programming - 严格验证配置
@@ -49,19 +77,22 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     accessToken: string,
     refreshToken: string,
     profile: Profile,
-    done: (error: any, user?: any) => void,
-  ): any {
+    done: (error: Error | null, user?: OAuthProfileDto | null) => void,
+  ): void {
     try {
       // 提取主要邮箱（已验证的邮箱）
-      const emails = profile.emails || [];
+      const emails = (profile.emails || []) as GitHubEmail[];
       const primaryEmail = emails.find(
-        (e: any) => e.primary && e.verified,
+        (e: GitHubEmail) => e.primary && e.verified,
       )?.value;
       const firstEmail = emails[0]?.value;
 
       if (!primaryEmail && !firstEmail) {
         throw new Error('No verified email found in GitHub account');
       }
+
+      // 类型安全的扩展 profile 访问
+      const extendedProfile = profile as ExtendedGitHubProfile;
 
       // 构造标准化 OAuth Profile
       const oauthProfile: OAuthProfileDto = {
@@ -75,17 +106,17 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
         refreshToken: refreshToken || undefined,
         scope: 'user:email',
         metadata: {
-          profileUrl: (profile as any).profileUrl,
-          company: (profile as any)._json?.company,
-          blog: (profile as any)._json?.blog,
-          location: (profile as any)._json?.location,
-          bio: (profile as any)._json?.bio,
+          profileUrl: extendedProfile.profileUrl,
+          company: extendedProfile._json?.company,
+          blog: extendedProfile._json?.blog,
+          location: extendedProfile._json?.location,
+          bio: extendedProfile._json?.bio,
         },
       };
 
       done(null, oauthProfile);
     } catch (error) {
-      done(error, null);
+      done(error instanceof Error ? error : new Error(String(error)), null);
     }
   }
 }

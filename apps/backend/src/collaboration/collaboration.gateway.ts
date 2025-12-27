@@ -347,7 +347,7 @@ export class CollaborationGateway
    */
   @SubscribeMessage('sync-update')
   async handleSyncUpdate(
-    @MessageBody() data: { documentId: string; update: any },
+    @MessageBody() data: { documentId: string; update: ArrayLike<number> },
     @ConnectedSocket() client: Socket,
   ) {
     try {
@@ -408,7 +408,10 @@ export class CollaborationGateway
       documentId: string;
       state: {
         cursor?: { line: number; column: number };
-        selection?: { start: any; end: any };
+        selection?: {
+          start: { line: number; column: number };
+          end: { line: number; column: number };
+        };
       };
     },
     @ConnectedSocket() client: Socket,

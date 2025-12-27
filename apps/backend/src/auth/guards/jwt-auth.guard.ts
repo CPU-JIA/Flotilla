@@ -7,6 +7,17 @@ import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
+/**
+ * JWT 验证用户类型
+ * ECP-C1: 类型安全 - 明确定义用户结构
+ */
+interface JwtUser {
+  id: string;
+  email: string;
+  username: string;
+  role: string;
+}
+
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   constructor(private reflector: Reflector) {
@@ -27,7 +38,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest(err: any, user: any, _info: any) {
+  handleRequest<TUser = JwtUser>(
+    err: Error | null,
+    user: TUser | false,
+    _info: unknown,
+  ): TUser {
     if (err || !user) {
       throw err || new UnauthorizedException('认证失败，请重新登录');
     }

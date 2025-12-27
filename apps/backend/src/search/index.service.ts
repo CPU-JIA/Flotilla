@@ -21,6 +21,32 @@ import { extractSymbols } from './parsers/typescript-parser';
 import { Readable } from 'stream';
 
 /**
+ * File 记录类型（包含关联数据）
+ * ECP-C1: 类型安全 - 明确定义数据库查询结果结构
+ */
+interface FileWithRelations {
+  id: string;
+  path: string;
+  size: number;
+  objectName: string;
+  mimeType: string;
+  commitId: string | null;
+  repositoryId: string;
+  updatedAt: Date;
+  repository: {
+    projectId: string;
+    project: { name: string };
+  };
+  commit: {
+    message: string;
+    hash: string;
+    authorId: string;
+    author: { username: string } | null;
+  } | null;
+  branch: { name: string };
+}
+
+/**
  * 索引服务
  *
  * 职责：
@@ -317,7 +343,7 @@ export class IndexService {
    * ECP-B3 (命名清晰): 字段映射逻辑清晰
    */
   private buildCodeDocument(
-    file: any,
+    file: FileWithRelations,
     content: string,
     symbols: string[],
   ): CodeDocument {

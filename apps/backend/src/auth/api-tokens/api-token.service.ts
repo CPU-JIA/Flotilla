@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateApiTokenDto } from './dto/create-api-token.dto';
@@ -19,6 +20,8 @@ import * as crypto from 'crypto';
  */
 @Injectable()
 export class ApiTokenService {
+  private readonly logger = new Logger(ApiTokenService.name);
+
   constructor(private prisma: PrismaService) {}
 
   /**
@@ -123,8 +126,8 @@ export class ApiTokenService {
         where: { id: apiToken.id },
         data: { lastUsedAt: new Date() },
       })
-      .catch((err) => {
-        console.error('Failed to update lastUsedAt:', err);
+      .catch((err: Error) => {
+        this.logger.error('Failed to update lastUsedAt:', err.message);
       });
 
     return {

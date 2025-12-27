@@ -14,5 +14,6 @@ export class OAuthProfileDto {
   refreshToken?: string;
   expiresAt?: Date;
   scope?: string;
-  metadata?: Record<string, any>;
+  // Prisma JsonValue compatible type (null represents undefined values)
+  metadata?: Record<string, string | number | boolean | null | undefined>;
 }

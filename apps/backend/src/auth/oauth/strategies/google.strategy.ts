@@ -50,7 +50,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     refreshToken: string,
     profile: Profile,
     done: VerifyCallback,
-  ): any {
+  ): void {
     try {
       // 提取主要邮箱
       const emails = profile.emails || [];

@@ -1,4 +1,4 @@
-import { parse } from '@typescript-eslint/typescript-estree';
+import { parse, TSESTree } from '@typescript-eslint/typescript-estree';
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 import { extractPythonSymbols } from './python-parser';
 import { extractJavaSymbols } from './java-parser';
@@ -59,7 +59,7 @@ export function extractTypeScriptSymbols(
  *
  * ECP-B2 (KISS): 直接遍历AST，无过度抽象
  */
-function traverseAst(node: any, symbols: Set<string>): void {
+function traverseAst(node: TSESTree.Node | null, symbols: Set<string>): void {
   if (!node || typeof node !== 'object') {
     return;
   }
@@ -129,11 +129,15 @@ function traverseAst(node: any, symbols: Set<string>): void {
       continue; // 跳过父节点引用，避免循环
     }
 
-    const child = node[key];
+    const child = (node as unknown as Record<string, unknown>)[key];
     if (Array.isArray(child)) {
-      child.forEach((item) => traverseAst(item, symbols));
-    } else if (typeof child === 'object' && child !== null) {
-      traverseAst(child, symbols);
+      child.forEach((item) => {
+        if (item && typeof item === 'object' && 'type' in item) {
+          traverseAst(item as TSESTree.Node, symbols);
+        }
+      });
+    } else if (child && typeof child === 'object' && 'type' in child) {
+      traverseAst(child as TSESTree.Node, symbols);
     }
   }
 }

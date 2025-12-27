@@ -144,7 +144,8 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
     nodeId: string,
     request: RequestVoteRequest,
   ): Promise<RequestVoteResponse> {
-    return this.sendRPC(nodeId, 'RequestVote', request);
+    const result = await this.sendRPC(nodeId, 'RequestVote', request);
+    return result as RequestVoteResponse;
   }
 
   /**
@@ -154,15 +155,16 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
     nodeId: string,
     request: AppendEntriesRequest,
   ): Promise<AppendEntriesResponse> {
-    return this.sendRPC(nodeId, 'AppendEntries', request);
+    const result = await this.sendRPC(nodeId, 'AppendEntries', request);
+    return result as AppendEntriesResponse;
   }
 
   /**
    * 处理新连接
    */
-  private handleConnection(ws: WebSocket, req: any): void {
+  private handleConnection(ws: WebSocket, req: { url?: string }): void {
     // 从查询参数中获取节点ID
-    const url = new URL(req.url, 'ws://localhost');
+    const url = new URL(req.url || '', 'ws://localhost');
     const remoteNodeId = url.searchParams.get('nodeId');
 
     if (!remoteNodeId) {
@@ -271,8 +273,8 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
   private async sendRPC(
     nodeId: string,
     type: 'RequestVote' | 'AppendEntries',
-    data: any,
-  ): Promise<any> {
+    data: RequestVoteRequest | AppendEntriesRequest,
+  ): Promise<unknown> {
     // 获取或创建连接（在 Promise 外部进行异步操作）
     let ws: WebSocket;
     try {
