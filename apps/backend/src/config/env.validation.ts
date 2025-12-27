@@ -57,6 +57,20 @@ export interface EnvironmentVariables {
   // Bootstrap Admin
   INITIAL_ADMIN_EMAIL?: string;
 
+  // Two-Factor Authentication
+  TWO_FACTOR_ENCRYPTION_KEY: string;
+
+  // Webhook
+  WEBHOOK_SECRET?: string;
+
+  // OAuth
+  GITHUB_CLIENT_ID?: string;
+  GITHUB_CLIENT_SECRET?: string;
+  GITHUB_CALLBACK_URL?: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+  GOOGLE_CALLBACK_URL?: string;
+
   // SMTP
   SMTP_HOST?: string;
   SMTP_PORT?: string;
@@ -162,6 +176,23 @@ const VALIDATION_RULES: ValidationRule[] = [
     errorMessage: 'NODE_ENV must be one of: development, production, test',
   },
 
+  // ========== TWO-FACTOR AUTHENTICATION ==========
+  {
+    name: 'TWO_FACTOR_ENCRYPTION_KEY',
+    required: true,
+    minLength: 32,
+    errorMessage:
+      'TWO_FACTOR_ENCRYPTION_KEY must be at least 32 characters for AES-256-GCM encryption',
+  },
+
+  // ========== WEBHOOK ==========
+  {
+    name: 'WEBHOOK_SECRET',
+    required: false,
+    minLength: 32,
+    errorMessage: 'WEBHOOK_SECRET should be at least 32 characters if set',
+  },
+
   // ========== PRODUCTION-SPECIFIC VALIDATIONS ==========
   {
     name: 'INITIAL_ADMIN_EMAIL',
@@ -250,6 +281,53 @@ export function validateEnvironmentVariables(
           `❌ Detected weak or default secret containing "${secret}". This is not allowed in production.`,
         );
       }
+    }
+  }
+
+  // ========== OAUTH CONFIGURATION VALIDATION ==========
+  // If any GitHub OAuth config is set, all must be set
+  const hasGithubConfig =
+    config.GITHUB_CLIENT_ID ||
+    config.GITHUB_CLIENT_SECRET ||
+    config.GITHUB_CALLBACK_URL;
+  if (hasGithubConfig) {
+    if (!config.GITHUB_CLIENT_ID) {
+      errors.push(
+        '❌ GITHUB_CLIENT_ID is required when GitHub OAuth is enabled',
+      );
+    }
+    if (!config.GITHUB_CLIENT_SECRET) {
+      errors.push(
+        '❌ GITHUB_CLIENT_SECRET is required when GitHub OAuth is enabled',
+      );
+    }
+    if (!config.GITHUB_CALLBACK_URL) {
+      errors.push(
+        '❌ GITHUB_CALLBACK_URL is required when GitHub OAuth is enabled',
+      );
+    }
+  }
+
+  // If any Google OAuth config is set, all must be set
+  const hasGoogleConfig =
+    config.GOOGLE_CLIENT_ID ||
+    config.GOOGLE_CLIENT_SECRET ||
+    config.GOOGLE_CALLBACK_URL;
+  if (hasGoogleConfig) {
+    if (!config.GOOGLE_CLIENT_ID) {
+      errors.push(
+        '❌ GOOGLE_CLIENT_ID is required when Google OAuth is enabled',
+      );
+    }
+    if (!config.GOOGLE_CLIENT_SECRET) {
+      errors.push(
+        '❌ GOOGLE_CLIENT_SECRET is required when Google OAuth is enabled',
+      );
+    }
+    if (!config.GOOGLE_CALLBACK_URL) {
+      errors.push(
+        '❌ GOOGLE_CALLBACK_URL is required when Google OAuth is enabled',
+      );
     }
   }
 

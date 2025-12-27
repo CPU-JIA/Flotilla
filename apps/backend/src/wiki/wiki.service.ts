@@ -4,6 +4,7 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
+import { WikiPage } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateWikiPageDto } from './dto/create-wiki-page.dto';
 import { UpdateWikiPageDto } from './dto/update-wiki-page.dto';
@@ -356,10 +357,11 @@ export class WikiService {
         );
       }
 
-      const parent = await this.prisma.wikiPage.findUnique({
-        where: { id: currentId },
-        select: { parentId: true },
-      });
+      const parent: { parentId: string | null } | null =
+        await this.prisma.wikiPage.findUnique({
+          where: { id: currentId },
+          select: { parentId: true },
+        });
 
       if (!parent) {
         throw new NotFoundException(
@@ -375,7 +377,18 @@ export class WikiService {
    * 构建树结构
    * ECP-B2: KISS - 简单的递归树构建算法
    */
-  private buildTree(pages: any[], parentId: string | null): WikiTreeNodeDto[] {
+  private buildTree(
+    pages: Array<{
+      id: string;
+      slug: string;
+      title: string;
+      parentId: string | null;
+      order: number;
+      createdAt: Date;
+      updatedAt: Date;
+    }>,
+    parentId: string | null,
+  ): WikiTreeNodeDto[] {
     return pages
       .filter((p) => p.parentId === parentId)
       .map((p) => ({
@@ -394,7 +407,16 @@ export class WikiService {
    * 转换为响应 DTO
    * ECP-D2: 注释 Why - 显式转换确保响应格式一致性
    */
-  private toResponseDto(page: any): WikiPageResponseDto {
+  private toResponseDto(
+    page: WikiPage & {
+      createdBy?: {
+        id?: string;
+        username: string;
+        email?: string;
+        avatar: string | null;
+      };
+    },
+  ): WikiPageResponseDto {
     return {
       id: page.id,
       projectId: page.projectId,
@@ -404,7 +426,14 @@ export class WikiService {
       parentId: page.parentId,
       order: page.order,
       createdById: page.createdById,
-      createdBy: page.createdBy,
+      createdBy: page.createdBy
+        ? {
+            id: page.createdBy.id ?? page.createdById,
+            username: page.createdBy.username,
+            email: page.createdBy.email ?? '',
+            avatar: page.createdBy.avatar,
+          }
+        : undefined,
       createdAt: page.createdAt,
       updatedAt: page.updatedAt,
     };

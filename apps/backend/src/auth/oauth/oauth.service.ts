@@ -3,6 +3,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
+import { User } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TokenService } from '../token.service';
 import { OAuthProfileDto } from './dto/oauth-profile.dto';
@@ -264,9 +265,9 @@ export class OAuthService {
   /**
    * 私有方法：生成认证 Token
    */
-  private async generateAuthTokens(user: any) {
+  private async generateAuthTokens(user: User) {
     const { accessToken, refreshToken } =
-      await this.tokenService.generateTokens(user, user.tokenVersion);
+      await this.tokenService.generateTokens(user);
 
     return {
       user: {

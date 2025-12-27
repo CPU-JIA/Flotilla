@@ -17,6 +17,13 @@ import * as path from 'path';
 import { getRepoPath } from '../../config/git.config';
 import { fixGitSubdirectoryBug } from '../utils/git-utils';
 
+interface GitTreeEntry {
+  mode: string;
+  path: string;
+  oid: string;
+  type: 'commit' | 'blob' | 'tree' | 'special';
+}
+
 @Injectable()
 export class GitCommitService {
   private readonly logger = new Logger(GitCommitService.name);
@@ -51,7 +58,7 @@ export class GitCommitService {
 
       // Try to resolve current branch HEAD to get parent commit
       let parentCommit: string | null = null;
-      const existingTree: any[] = [];
+      const existingTree: GitTreeEntry[] = [];
 
       try {
         // Read ref file directly (git.resolveRef has bugs with bare repos)
@@ -88,7 +95,7 @@ export class GitCommitService {
             const mode = await entry.mode();
 
             existingTree.push({
-              mode,
+              mode: mode.toString(8).padStart(6, '0'),
               path: filepath,
               oid,
               type,
@@ -103,7 +110,7 @@ export class GitCommitService {
       }
 
       // Create tree entries map for merging
-      const treeEntriesMap = new Map<string, any>();
+      const treeEntriesMap = new Map<string, GitTreeEntry>();
       existingTree.forEach((entry) => {
         treeEntriesMap.set(entry.path, entry);
       });
@@ -124,8 +131,15 @@ export class GitCommitService {
         });
       }
 
-      // Convert map to array for writeTree
-      const treeEntries = Array.from(treeEntriesMap.values());
+      // Convert map to array and filter out unsupported types for writeTree
+      const treeEntries = Array.from(treeEntriesMap.values()).filter(
+        (entry) => entry.type !== 'special',
+      ) as Array<{
+        mode: string;
+        path: string;
+        oid: string;
+        type: 'blob' | 'commit' | 'tree';
+      }>;
 
       // Create new tree
       const treeOid = await git.writeTree({

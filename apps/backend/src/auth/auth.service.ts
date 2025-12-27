@@ -238,9 +238,13 @@ export class AuthService {
       throw new UnauthorizedException('账户已被禁用，请联系管理员');
     }
 
-    // 邮箱验证检查
-    const requireEmailVerification =
-      process.env.REQUIRE_EMAIL_VERIFICATION !== 'false';
+    // 🔒 SECURITY FIX C5: 生产环境强制要求邮箱验证
+    // CWE-287: Improper Authentication
+    const isProduction = process.env.NODE_ENV === 'production';
+    const requireEmailVerification = isProduction
+      ? true // 生产环境强制启用
+      : process.env.REQUIRE_EMAIL_VERIFICATION !== 'false'; // 开发环境可配置
+
     if (requireEmailVerification && !user.emailVerified) {
       throw new UnauthorizedException(
         '邮箱未验证，请先验证邮箱后再登录。如未收到验证邮件，请使用"重新发送验证邮件"功能',

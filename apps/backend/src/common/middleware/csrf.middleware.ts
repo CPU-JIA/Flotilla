@@ -74,12 +74,23 @@ export class CsrfMiddleware implements NestMiddleware {
   }
 
   use(req: Request, res: Response, next: NextFunction) {
-    // 生产环境才启用 CSRF 保护（开发环境免除以简化测试）
+    // 🔒 SECURITY FIX C1: 所有环境都启用 CSRF 保护
+    // 开发环境可通过白名单IP绕过（仅限测试场景）
     const isProduction = process.env.NODE_ENV === 'production';
-    const enableCsrf = process.env.ENABLE_CSRF !== 'false'; // 默认启用
+    const devWhitelistIPs =
+      process.env.CSRF_DEV_WHITELIST_IPS?.split(',').map((ip) => ip.trim()) ||
+      [];
 
-    if (!isProduction || !enableCsrf) {
-      return next();
+    // 开发环境白名单检查（仅在非生产环境有效）
+    if (!isProduction && devWhitelistIPs.length > 0) {
+      const clientIP =
+        (req.headers['x-forwarded-for'] as string)?.split(',')[0] ||
+        req.ip ||
+        req.socket.remoteAddress ||
+        '';
+      if (devWhitelistIPs.includes(clientIP)) {
+        return next();
+      }
     }
 
     // GET/HEAD/OPTIONS 请求不需要 CSRF 保护

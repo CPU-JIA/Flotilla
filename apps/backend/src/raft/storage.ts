@@ -144,7 +144,18 @@ export class MemoryPersistentStorage implements PersistentStorage {
   /**
    * 导出状态快照（用于调试）
    */
-  exportSnapshot(): any {
+  exportSnapshot(): {
+    nodeId: string;
+    currentTerm: number;
+    votedFor: string | null;
+    logLength: number;
+    log: Array<{
+      index: number;
+      term: number;
+      commandType: string;
+      timestamp: number;
+    }>;
+  } {
     return {
       nodeId: this.nodeId,
       currentTerm: this.currentTerm,
@@ -185,7 +196,7 @@ import * as path from 'path';
 import { createHash } from 'crypto';
 
 interface StoredData {
-  data: any;
+  data: unknown;
   checksum: string;
 }
 
@@ -413,7 +424,7 @@ export class FilePersistentStorage implements PersistentStorage {
    * 原子写入：先写临时文件，再 rename
    * ECP-C1: 防御性编程 - 确保写入的原子性
    */
-  private async writeAtomic(filePath: string, data: any): Promise<void> {
+  private async writeAtomic(filePath: string, data: unknown): Promise<void> {
     const tempPath = `${filePath}.tmp`;
 
     try {

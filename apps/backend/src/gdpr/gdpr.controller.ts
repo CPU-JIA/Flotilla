@@ -14,6 +14,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import type { User } from '@prisma/client';
 import { GdprService } from './gdpr.service';
 import { CreateExportRequestDto } from './dto/create-export-request.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -49,7 +50,7 @@ export class GdprController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async requestExport(
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
     @Body() dto: CreateExportRequestDto,
   ) {
     const exportRequest = await this.gdprService.requestExport(user.id, dto);
@@ -77,7 +78,7 @@ export class GdprController {
   @ApiResponse({ status: 404, description: 'Export request not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getExportStatus(
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
     @Param('id') exportId: string,
   ) {
     return this.gdprService.getExportStatus(exportId, user.id);
@@ -94,7 +95,7 @@ export class GdprController {
     description: 'Export history retrieved successfully',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  getUserExports(@CurrentUser() user: any) {
+  getUserExports(@CurrentUser() user: User) {
     return this.gdprService.getUserExports(user.id);
   }
 
@@ -112,7 +113,7 @@ export class GdprController {
   @ApiResponse({ status: 400, description: 'Export not ready or expired' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async downloadExport(
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
     @Param('id') exportId: string,
   ) {
     return this.gdprService.downloadExport(exportId, user.id);

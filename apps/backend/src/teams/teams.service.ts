@@ -136,7 +136,7 @@ export class TeamsService {
 
     // Calculate user's role if userId provided (在应用层动态计算，不缓存)
     const myMember = userId
-      ? team.members.find((m) => m.user.id === userId)
+      ? team.members.find((m: { user: { id: string } }) => m.user.id === userId)
       : null;
 
     return {
@@ -146,12 +146,24 @@ export class TeamsService {
       description: team.description,
       organization: team.organization,
       myRole: myMember?.role || null,
-      members: team.members.map((m) => ({
-        id: m.id,
-        role: m.role,
-        joinedAt: m.joinedAt,
-        user: m.user,
-      })),
+      members: team.members.map(
+        (m: {
+          id: string;
+          role: string;
+          joinedAt: Date;
+          user: {
+            id: string;
+            username: string;
+            email: string;
+            avatar: string | null;
+          };
+        }) => ({
+          id: m.id,
+          role: m.role,
+          joinedAt: m.joinedAt,
+          user: m.user,
+        }),
+      ),
       memberCount: team.members.length,
       projectCount: team._count.projectPermissions,
       createdAt: team.createdAt,

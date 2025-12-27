@@ -85,7 +85,7 @@ export class RaftExecuteCommandDto {
   @IsNotEmpty()
   type: string;
 
-  payload: any;
+  payload: unknown;
 }
 
 @ApiTags('Raft Cluster')

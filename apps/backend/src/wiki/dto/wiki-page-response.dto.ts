@@ -36,11 +36,11 @@ export class WikiPageResponseDto {
   @ApiProperty({ description: '创建者 ID', example: 'clxxx...' })
   createdById: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: '创建者信息',
     example: { id: 'clxxx...', username: 'john', email: 'john@example.com' },
   })
-  createdBy: {
+  createdBy?: {
     id: string;
     username: string;
     email: string;

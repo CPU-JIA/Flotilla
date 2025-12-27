@@ -7,6 +7,31 @@ import { DataExportFormat, DataExportStatus } from '@prisma/client';
 import { CreateExportRequestDto } from './dto/create-export-request.dto';
 
 /**
+ * 用户数据导出结构
+ */
+interface UserDataExport {
+  exportDate: string;
+  user: Record<string, unknown>;
+  organizationMemberships: Record<string, unknown>[];
+  teamMemberships: Record<string, unknown>[];
+  projects: Record<string, unknown>[];
+  issues: {
+    authored: Record<string, unknown>[];
+    assigned: Record<string, unknown>[];
+  };
+  issueComments: Record<string, unknown>[];
+  pullRequests: {
+    authored: Record<string, unknown>[];
+    assigned: Record<string, unknown>[];
+  };
+  prComments: Record<string, unknown>[];
+  prReviews: Record<string, unknown>[];
+  commits: Record<string, unknown>[];
+  notifications: Record<string, unknown>[];
+  auditLogs: Record<string, unknown>[];
+}
+
+/**
  * GDPR 数据导出服务
  * ECP-A1: SOLID 原则 - 单一职责，专注于数据导出
  * ECP-C1: 防御性编程 - 验证所有输入和状态
@@ -172,7 +197,7 @@ export class GdprService {
    * 收集用户所有个人数据
    * ECP-C3: 性能意识 - 使用 include 优化查询
    */
-  async collectUserData(userId: string) {
+  async collectUserData(userId: string): Promise<UserDataExport> {
     this.logger.log(`Collecting data for user: ${userId}`);
 
     // 用户基本信息
@@ -480,7 +505,7 @@ export class GdprService {
    * 将数据转换为 CSV 格式
    * ECP-B2: KISS 原则 - 简单的 CSV 转换
    */
-  private convertToCSV(data: any): string {
+  private convertToCSV(data: UserDataExport): string {
     const sections: string[] = [];
 
     // 用户信息
@@ -536,7 +561,7 @@ export class GdprService {
   /**
    * 将对象数组转换为 CSV
    */
-  private objectToCSV(data: any[]): string {
+  private objectToCSV(data: Record<string, unknown>[]): string {
     if (data.length === 0) return '';
 
     // 扁平化嵌套对象
@@ -561,8 +586,11 @@ export class GdprService {
   /**
    * 扁平化嵌套对象
    */
-  private flattenObject(obj: any, prefix = ''): any {
-    const flattened: any = {};
+  private flattenObject(
+    obj: Record<string, unknown>,
+    prefix = '',
+  ): Record<string, unknown> {
+    const flattened: Record<string, unknown> = {};
 
     for (const key in obj) {
       if (obj[key] === null || obj[key] === undefined) {
@@ -570,7 +598,10 @@ export class GdprService {
       } else if (typeof obj[key] === 'object' && !(obj[key] instanceof Date)) {
         Object.assign(
           flattened,
-          this.flattenObject(obj[key], `${prefix}${key}.`),
+          this.flattenObject(
+            obj[key] as Record<string, unknown>,
+            `${prefix}${key}.`,
+          ),
         );
       } else {
         flattened[prefix + key] = obj[key];
@@ -583,10 +614,18 @@ export class GdprService {
   /**
    * 转义 CSV 字段
    */
-  private escapeCSV(value: any): string {
+  private escapeCSV(value: unknown): string {
     if (value === null || value === undefined) return '';
 
-    const str = String(value);
+    // ECP-C1: 处理对象类型，避免 [object Object]
+    let str: string;
+    if (typeof value === 'object') {
+      str = JSON.stringify(value);
+    } else if (typeof value === 'string') {
+      str = value;
+    } else {
+      str = String(value as string | number | boolean);
+    }
 
     // 如果包含逗号、引号或换行符，需要用引号包裹并转义
     if (str.includes(',') || str.includes('"') || str.includes('\n')) {

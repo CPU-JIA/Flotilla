@@ -27,7 +27,7 @@ jest.mock('bcrypt', () => ({
 describe('AuthService', () => {
   let service: AuthService;
 
-  const mockPrismaService = {
+  const mockPrismaService: any = {
     user: {
       findUnique: jest.fn(),
       findFirst: jest.fn(),
@@ -44,7 +44,7 @@ describe('AuthService', () => {
     userSession: {
       updateMany: jest.fn(),
     },
-    $transaction: jest.fn((callback) => callback(mockPrismaService)),
+    $transaction: jest.fn((callback: any) => callback(mockPrismaService)),
   };
 
   const mockJwtService = {
@@ -601,7 +601,7 @@ describe('AuthService', () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
       mockPrismaService.user.count.mockResolvedValue(0); // First user
 
-      mockPrismaService.$transaction.mockImplementation((callback) => {
+      mockPrismaService.$transaction.mockImplementation((callback: any) => {
         const tx = {
           user: {
             count: jest.fn().mockResolvedValue(0),
@@ -649,21 +649,23 @@ describe('AuthService', () => {
       (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
 
       // Mock $transaction with proper tx object
-      mockPrismaService.$transaction.mockImplementation(async (callback) => {
-        const tx = {
-          user: {
-            count: jest.fn().mockResolvedValue(5),
-            create: jest.fn().mockResolvedValue(superAdminUser),
-          },
-          organization: {
-            create: jest.fn().mockResolvedValue(personalOrg),
-          },
-          organizationMember: {
-            create: jest.fn().mockResolvedValue({}),
-          },
-        };
-        return await callback(tx);
-      });
+      mockPrismaService.$transaction.mockImplementation(
+        async (callback: any) => {
+          const tx = {
+            user: {
+              count: jest.fn().mockResolvedValue(5),
+              create: jest.fn().mockResolvedValue(superAdminUser),
+            },
+            organization: {
+              create: jest.fn().mockResolvedValue(personalOrg),
+            },
+            organizationMember: {
+              create: jest.fn().mockResolvedValue({}),
+            },
+          };
+          return await callback(tx);
+        },
+      );
 
       const result = await service.register(registerDto);
 

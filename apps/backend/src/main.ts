@@ -19,6 +19,26 @@ validateEnvironmentVariables(process.env);
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
+
+  // 🔒 SECURITY FIX C3: 验证JWT密钥配置
+  // CWE-798: Use of Hard-coded Credentials
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    logger.error('❌ FATAL: JWT_SECRET environment variable is not set');
+    throw new Error(
+      'JWT_SECRET is required but not configured. Application cannot start.',
+    );
+  }
+  if (jwtSecret.length < 32) {
+    logger.error(
+      `❌ FATAL: JWT_SECRET is too short (${jwtSecret.length} characters). Minimum length is 32 characters.`,
+    );
+    throw new Error(
+      'JWT_SECRET must be at least 32 characters long for security.',
+    );
+  }
+  logger.log('✅ JWT_SECRET validation passed');
+
   const app = await NestFactory.create(AppModule, {
     bodyParser: true,
   });
@@ -53,6 +73,7 @@ async function bootstrap() {
 
   // 启用 CORS - ECP-C1: 动态读取环境变量确保运行时配置生效
   // Phase 3: 支持多源配置
+  const isProduction = process.env.NODE_ENV === 'production';
   const allowedOrigins: string[] = [];
 
   // 方式1: 使用 CORS_ALLOWED_ORIGINS (生产环境推荐，支持多域名)
@@ -71,9 +92,33 @@ async function bootstrap() {
     allowedOrigins.push(process.env.WEBSITE_URL);
   }
 
-  // 默认值：开发环境
-  if (allowedOrigins.length === 0) {
-    allowedOrigins.push('http://localhost:3000', 'http://localhost:3003');
+  // 🔒 SECURITY FIX C4: 生产环境强制配置 CORS，禁止 localhost
+  if (isProduction) {
+    if (allowedOrigins.length === 0) {
+      logger.error(
+        '❌ FATAL: CORS_ALLOWED_ORIGINS must be configured in production',
+      );
+      throw new Error(
+        'CORS_ALLOWED_ORIGINS is required in production environment',
+      );
+    }
+    // 检查是否包含 localhost（生产环境禁止）
+    const hasLocalhost = allowedOrigins.some(
+      (origin) => origin.includes('localhost') || origin.includes('127.0.0.1'),
+    );
+    if (hasLocalhost) {
+      logger.error(
+        '❌ FATAL: CORS configuration includes localhost in production',
+      );
+      throw new Error(
+        'Localhost origins are not allowed in production environment',
+      );
+    }
+  } else {
+    // 开发环境默认值
+    if (allowedOrigins.length === 0) {
+      allowedOrigins.push('http://localhost:3000', 'http://localhost:3003');
+    }
   }
 
   logger.log(`🌐 CORS enabled for origins: ${allowedOrigins.join(', ')}`);

@@ -260,7 +260,7 @@ export class WebhookService {
    */
   private generateSignature(
     secret: string,
-    payload: Record<string, any>,
+    payload: Record<string, unknown>,
   ): string {
     const payloadString = JSON.stringify(payload);
     const hmac = crypto.createHmac('sha256', secret);
@@ -272,7 +272,7 @@ export class WebhookService {
    * 截断响应内容（防止存储过大的响应）
    * ECP-C3: Performance Awareness - 限制数据库存储大小
    */
-  private truncateResponse(data: any): string {
+  private truncateResponse(data: unknown): string {
     const responseString =
       typeof data === 'string' ? data : JSON.stringify(data);
     const MAX_LENGTH = 1000;

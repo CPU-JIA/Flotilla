@@ -48,7 +48,7 @@ export interface LogEntry {
 // 状态机命令接口
 export interface Command {
   type: CommandType; // 操作类型
-  payload: any; // 操作数据
+  payload: unknown; // 操作数据
   clientId?: string; // 客户端标识（用于去重）
   requestId?: string; // 请求ID（用于幂等性）
 }
@@ -87,7 +87,7 @@ export interface AppendEntriesResponse {
 export interface ClientResponse {
   success: boolean;
   error?: string;
-  data?: any;
+  data?: unknown;
   leaderId?: string; // 重定向到Leader
 }
 
@@ -146,8 +146,8 @@ export interface RaftRPCHandler {
 
 // 状态机接口
 export interface StateMachine {
-  apply(command: Command): Promise<any>;
-  getState(): any;
+  apply(command: Command): Promise<unknown>;
+  getState(): unknown;
   createSnapshot(): Promise<Buffer>;
   restoreFromSnapshot(snapshot: Buffer): Promise<void>;
 }

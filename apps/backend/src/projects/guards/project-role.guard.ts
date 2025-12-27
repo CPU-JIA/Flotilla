@@ -1,8 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { MemberRole } from '@prisma/client';
+import { MemberRole, User } from '@prisma/client';
 import { PermissionService } from '../../common/services/permission.service';
 import { REQUIRED_PROJECT_ROLE_KEY } from '../decorators/require-project-role.decorator';
+import { BaseRoleGuard } from '../../common/guards/base-role.guard';
 
 /**
  * Guard for checking project-level permissions
@@ -12,33 +13,25 @@ import { REQUIRED_PROJECT_ROLE_KEY } from '../decorators/require-project-role.de
  * Usage:
  * @UseGuards(ProjectRoleGuard)
  * @RequireProjectRole('MAINTAINER')
+ *
+ * ECP-A1: Inheritance - extends BaseRoleGuard to eliminate code duplication
  */
 @Injectable()
-export class ProjectRoleGuard implements CanActivate {
-  constructor(
-    private reflector: Reflector,
-    private permissionService: PermissionService,
-  ) {}
+export class ProjectRoleGuard extends BaseRoleGuard<MemberRole> {
+  constructor(reflector: Reflector, permissionService: PermissionService) {
+    super(reflector, permissionService);
+  }
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    // Get required role from decorator metadata
-    const requiredRole = this.reflector.getAllAndOverride<MemberRole>(
-      REQUIRED_PROJECT_ROLE_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+  protected getDecoratorKey(): string {
+    return REQUIRED_PROJECT_ROLE_KEY;
+  }
 
-    if (!requiredRole) {
-      // No role requirement, allow access
-      return true;
-    }
-
-    const request = context.switchToHttp().getRequest();
-    const user = request.user;
+  protected async checkPermission(
+    request: any,
+    user: User,
+    requiredRole: MemberRole,
+  ): Promise<void> {
     const projectId = request.params.id || request.params.projectId;
-
-    if (!user) {
-      return false;
-    }
 
     if (!projectId) {
       throw new Error(
@@ -55,7 +48,5 @@ export class ProjectRoleGuard implements CanActivate {
 
     // Attach project to request for use in controller (avoid duplicate query)
     request.project = project;
-
-    return true;
   }
 }

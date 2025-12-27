@@ -122,7 +122,9 @@ export class OrganizationsService {
 
     // Calculate user's role if userId provided (在应用层动态计算，不缓存)
     const myMember = userId
-      ? organization.members.find((m) => m.user.id === userId)
+      ? organization.members.find(
+          (m: { user: { id: string } }) => m.user.id === userId,
+        )
       : null;
 
     return {
@@ -138,12 +140,19 @@ export class OrganizationsService {
       storageQuota: organization.storageQuota,
       storageUsed: organization.storageUsed,
       myRole: myMember?.role || null,
-      members: organization.members.map((m) => ({
-        id: m.id,
-        role: m.role,
-        joinedAt: m.joinedAt,
-        user: m.user,
-      })),
+      members: organization.members.map(
+        (m: {
+          id: string;
+          role: string;
+          joinedAt: Date;
+          user: { id: string; username: string; email: string; avatar: string };
+        }) => ({
+          id: m.id,
+          role: m.role,
+          joinedAt: m.joinedAt,
+          user: m.user,
+        }),
+      ),
       memberCount: organization.members.length,
       projectCount: organization._count.projects,
       teamCount: organization._count.teams,

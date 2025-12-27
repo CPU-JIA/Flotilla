@@ -55,12 +55,12 @@ export class PrismaService
     }
 
     const models = Reflect.ownKeys(this).filter(
-      (key) => key[0] !== '_' && typeof key === 'string',
+      (key): key is string => typeof key === 'string' && key[0] !== '_',
     );
 
     return Promise.all(
       models.map((modelKey) => {
-        const model = this[modelKey as string];
+        const model = (this as any)[modelKey];
         if (model && typeof model.deleteMany === 'function') {
           return model.deleteMany();
         }

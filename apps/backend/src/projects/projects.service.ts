@@ -15,7 +15,13 @@ import {
   UpdateMemberRoleDto,
   QueryProjectsDto,
 } from './dto';
-import type { User, Project, ProjectMember } from '@prisma/client';
+import type {
+  User,
+  Project,
+  ProjectMember,
+  Repository,
+  Prisma,
+} from '@prisma/client';
 import { ProjectVisibility } from '@prisma/client';
 
 export interface ProjectListResponse {
@@ -33,7 +39,7 @@ export interface ProjectDetailResponse extends Project {
   members: (ProjectMember & {
     user: { id: string; username: string; email: string };
   })[];
-  repository: any;
+  repository: Repository | null;
   _count: { members: number };
 }
 
@@ -145,7 +151,7 @@ export class ProjectsService {
 
     const skip = (page - 1) * pageSize;
 
-    const where: any = {
+    const where: Prisma.ProjectWhereInput = {
       OR: [
         // 用户拥有的项目
         { ownerId: currentUser.id },

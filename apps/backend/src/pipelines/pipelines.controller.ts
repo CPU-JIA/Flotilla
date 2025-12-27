@@ -21,6 +21,7 @@ import {
   ApiBody,
   ApiHeader,
 } from '@nestjs/swagger';
+import type { User } from '@prisma/client';
 import { PipelinesService } from './pipelines.service';
 import { CreatePipelineDto } from './dto/create-pipeline.dto';
 import { UpdatePipelineDto } from './dto/update-pipeline.dto';
@@ -59,11 +60,11 @@ export class PipelinesController {
   async createPipeline(
     @Param('projectId') projectId: string,
     @Body() createPipelineDto: CreatePipelineDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     // 权限检查：需要 MAINTAINER 或以上权限
     await this.permissionService.checkProjectPermission(
-      user.id,
+      user,
       projectId,
       'MAINTAINER',
     );
@@ -90,11 +91,11 @@ export class PipelinesController {
     @Param('projectId') projectId: string,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '20',
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     // 权限检查：需要项目访问权限
     await this.permissionService.checkProjectPermission(
-      user.id,
+      user,
       projectId,
       'VIEWER',
     );
@@ -116,13 +117,13 @@ export class PipelinesController {
   @ApiResponse({ status: 404, description: '流水线不存在' })
   async getPipeline(
     @Param('pipelineId') pipelineId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     const pipeline = await this.pipelinesService.getPipeline(pipelineId);
 
     // 权限检查
     await this.permissionService.checkProjectPermission(
-      user.id,
+      user,
       pipeline.projectId,
       'VIEWER',
     );
@@ -143,13 +144,13 @@ export class PipelinesController {
   async updatePipeline(
     @Param('pipelineId') pipelineId: string,
     @Body() updatePipelineDto: UpdatePipelineDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     const pipeline = await this.pipelinesService.getPipeline(pipelineId);
 
     // 权限检查：需要 MAINTAINER 或以上权限
     await this.permissionService.checkProjectPermission(
-      user.id,
+      user,
       pipeline.projectId,
       'MAINTAINER',
     );
@@ -169,13 +170,13 @@ export class PipelinesController {
   @ApiResponse({ status: 404, description: '流水线不存在' })
   async deletePipeline(
     @Param('pipelineId') pipelineId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     const pipeline = await this.pipelinesService.getPipeline(pipelineId);
 
     // 权限检查：需要 MAINTAINER 或以上权限
     await this.permissionService.checkProjectPermission(
-      user.id,
+      user,
       pipeline.projectId,
       'MAINTAINER',
     );
@@ -196,13 +197,13 @@ export class PipelinesController {
   async triggerPipeline(
     @Param('pipelineId') pipelineId: string,
     @Body() triggerPipelineDto: TriggerPipelineDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     const pipeline = await this.pipelinesService.getPipeline(pipelineId);
 
     // 权限检查：需要 MEMBER 或以上权限
     await this.permissionService.checkProjectPermission(
-      user.id,
+      user,
       pipeline.projectId,
       'MEMBER',
     );
@@ -233,13 +234,13 @@ export class PipelinesController {
     @Param('pipelineId') pipelineId: string,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '20',
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     const pipeline = await this.pipelinesService.getPipeline(pipelineId);
 
     // 权限检查
     await this.permissionService.checkProjectPermission(
-      user.id,
+      user,
       pipeline.projectId,
       'VIEWER',
     );
@@ -261,13 +262,13 @@ export class PipelinesController {
   @ApiResponse({ status: 404, description: '运行记录不存在' })
   async getPipelineRun(
     @Param('runId') runId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     const run = await this.pipelinesService.getPipelineRun(runId);
 
     // 权限检查
     await this.permissionService.checkProjectPermission(
-      user.id,
+      user,
       run.pipeline.projectId,
       'VIEWER',
     );
@@ -324,11 +325,11 @@ export class PipelinesController {
     @Param('projectId') projectId: string,
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '20',
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ) {
     // 权限检查
     await this.permissionService.checkProjectPermission(
-      user.id,
+      user,
       projectId,
       'VIEWER',
     );

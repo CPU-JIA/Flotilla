@@ -16,6 +16,68 @@
 import { GitStateMachine } from './git-state-machine';
 import { CommandType, type Command } from './types';
 
+// 类型定义：测试结果类型
+interface CreateProjectResult {
+  project: {
+    id: string;
+    name: string;
+    description?: string;
+    ownerId: string;
+    repositoryId?: string;
+  };
+  repository: {
+    id: string;
+    name: string;
+    defaultBranch: string;
+    branches: Map<string, unknown>;
+  };
+}
+
+interface UpdateProjectResult {
+  name: string;
+  description?: string;
+  ownerId: string;
+}
+
+interface DeleteProjectResult {
+  deleted: boolean;
+}
+
+interface GitCommitResult {
+  commit: {
+    hash: string;
+    message: string;
+    author: string;
+    files: Map<string, unknown>;
+    parent?: string;
+  };
+  branch: string;
+}
+
+interface GitCreateBranchResult {
+  branch: string;
+  repository: string;
+}
+
+interface GitMergeResult {
+  mergeCommit: {
+    message: string;
+  };
+  targetBranch: string;
+}
+
+interface FileOperationResult {
+  commit: {
+    message: string;
+  };
+}
+
+interface StateResult {
+  projectCount: number;
+  repositoryCount: number;
+  nodeId: string;
+}
+
 describe('GitStateMachine - Git 状态机测试', () => {
   let stateMachine: GitStateMachine;
 
@@ -43,7 +105,9 @@ describe('GitStateMachine - Git 状态机测试', () => {
           },
         };
 
-        const result = await stateMachine.apply(command);
+        const result = (await stateMachine.apply(
+          command,
+        )) as CreateProjectResult;
 
         expect(result.project).toMatchObject({
           id: 'proj-1',
@@ -88,7 +152,9 @@ describe('GitStateMachine - Git 状态机测试', () => {
           },
         };
 
-        const result = await stateMachine.apply(command);
+        const result = (await stateMachine.apply(
+          command,
+        )) as CreateProjectResult;
 
         const branches = Array.from(result.repository.branches.keys());
         expect(branches).toContain('main');
@@ -135,7 +201,9 @@ describe('GitStateMachine - Git 状态机测试', () => {
           },
         };
 
-        const result = await stateMachine.apply(command);
+        const result = (await stateMachine.apply(
+          command,
+        )) as UpdateProjectResult;
 
         expect(result.name).toBe('Updated Name');
         expect(result.description).toBe('Updated Description');
@@ -150,7 +218,9 @@ describe('GitStateMachine - Git 状态机测试', () => {
           },
         };
 
-        const result = await stateMachine.apply(command);
+        const result = (await stateMachine.apply(
+          command,
+        )) as UpdateProjectResult;
 
         expect(result.name).toBe('New Name');
         expect(result.description).toBe('Original Description');
@@ -190,7 +260,9 @@ describe('GitStateMachine - Git 状态机测试', () => {
           payload: { id: 'proj-1' },
         };
 
-        const result = await stateMachine.apply(command);
+        const result = (await stateMachine.apply(
+          command,
+        )) as DeleteProjectResult;
 
         expect(result.deleted).toBe(true);
         expect(stateMachine.getProject('proj-1')).toBeUndefined();
@@ -225,14 +297,14 @@ describe('GitStateMachine - Git 状态机测试', () => {
     let repoId: string;
 
     beforeEach(async () => {
-      const result = await stateMachine.apply({
+      const result = (await stateMachine.apply({
         type: CommandType.CREATE_PROJECT,
         payload: {
           id: 'proj-1',
           name: 'Test Project',
           ownerId: 'user-1',
         },
-      });
+      })) as CreateProjectResult;
       repoId = result.repository.id;
     });
 
@@ -255,7 +327,7 @@ describe('GitStateMachine - Git 状态机测试', () => {
           },
         };
 
-        const result = await stateMachine.apply(command);
+        const result = (await stateMachine.apply(command)) as GitCommitResult;
 
         expect(result.commit).toBeDefined();
         expect(result.commit.message).toBe('Initial commit');
@@ -278,7 +350,7 @@ describe('GitStateMachine - Git 状态机测试', () => {
           },
         };
 
-        const result = await stateMachine.apply(command);
+        const result = (await stateMachine.apply(command)) as GitCommitResult;
 
         expect(result.commit.files.size).toBe(2);
         expect(result.commit.files.has('file1.txt')).toBe(true);
@@ -297,7 +369,7 @@ describe('GitStateMachine - Git 状态机测试', () => {
           },
         };
 
-        const result = await stateMachine.apply(command);
+        const result = (await stateMachine.apply(command)) as GitCommitResult;
 
         const commits = stateMachine.getBranchCommits(repoId, 'main');
         const latestCommit = commits[commits.length - 1];
@@ -307,7 +379,7 @@ describe('GitStateMachine - Git 状态机测试', () => {
 
       it('提交应记录父提交', async () => {
         // 第一次提交
-        const commit1 = await stateMachine.apply({
+        const commit1 = (await stateMachine.apply({
           type: CommandType.GIT_COMMIT,
           payload: {
             repositoryId: repoId,
@@ -316,10 +388,10 @@ describe('GitStateMachine - Git 状态机测试', () => {
             author: 'test@example.com',
             files: [{ path: 'file1.txt', content: 'content' }],
           },
-        });
+        })) as GitCommitResult;
 
         // 第二次提交
-        const commit2 = await stateMachine.apply({
+        const commit2 = (await stateMachine.apply({
           type: CommandType.GIT_COMMIT,
           payload: {
             repositoryId: repoId,
@@ -328,7 +400,7 @@ describe('GitStateMachine - Git 状态机测试', () => {
             author: 'test@example.com',
             files: [{ path: 'file2.txt', content: 'content' }],
           },
-        });
+        })) as GitCommitResult;
 
         expect(commit2.commit.parent).toBe(commit1.commit.hash);
       });
@@ -393,7 +465,9 @@ describe('GitStateMachine - Git 状态机测试', () => {
           },
         };
 
-        const result = await stateMachine.apply(command);
+        const result = (await stateMachine.apply(
+          command,
+        )) as GitCreateBranchResult;
 
         expect(result.branch).toBe('develop');
         expect(result.repository).toBe(repoId);
@@ -426,7 +500,9 @@ describe('GitStateMachine - Git 状态机测试', () => {
           },
         };
 
-        const result = await stateMachine.apply(command);
+        const result = (await stateMachine.apply(
+          command,
+        )) as GitCreateBranchResult;
 
         expect(result.branch).toBe('feature');
       });
@@ -518,7 +594,7 @@ describe('GitStateMachine - Git 状态机测试', () => {
           },
         };
 
-        const result = await stateMachine.apply(command);
+        const result = (await stateMachine.apply(command)) as GitMergeResult;
 
         // ECP-B2: KISS - 合并提交测试合并到一起
         expect(result.mergeCommit).toBeDefined();
@@ -566,14 +642,14 @@ describe('GitStateMachine - Git 状态机测试', () => {
     let repoId: string;
 
     beforeEach(async () => {
-      const result = await stateMachine.apply({
+      const result = (await stateMachine.apply({
         type: CommandType.CREATE_PROJECT,
         payload: {
           id: 'proj-1',
           name: 'Test Project',
           ownerId: 'user-1',
         },
-      });
+      })) as CreateProjectResult;
       repoId = result.repository.id;
     });
 
@@ -590,7 +666,9 @@ describe('GitStateMachine - Git 状态机测试', () => {
           },
         };
 
-        const result = await stateMachine.apply(command);
+        const result = (await stateMachine.apply(
+          command,
+        )) as FileOperationResult;
 
         expect(result.commit).toBeDefined();
         expect(result.commit.message).toContain('create');
@@ -610,7 +688,9 @@ describe('GitStateMachine - Git 状态机测试', () => {
           },
         };
 
-        const result = await stateMachine.apply(command);
+        const result = (await stateMachine.apply(
+          command,
+        )) as FileOperationResult;
 
         expect(result.commit).toBeDefined();
         expect(result.commit.message).toBe('Update README');
@@ -628,7 +708,9 @@ describe('GitStateMachine - Git 状态机测试', () => {
           },
         };
 
-        const result = await stateMachine.apply(command);
+        const result = (await stateMachine.apply(
+          command,
+        )) as FileOperationResult;
 
         expect(result.commit).toBeDefined();
         expect(result.commit.message).toContain('delete');
@@ -686,13 +768,13 @@ describe('GitStateMachine - Git 状态机测试', () => {
     });
 
     it('恢复后应有相同的项目数量', async () => {
-      const originalState = stateMachine.getState();
+      const originalState = stateMachine.getState() as StateResult;
       const snapshot = await stateMachine.createSnapshot();
 
       const newStateMachine = new GitStateMachine('test-node-2');
       await newStateMachine.restoreFromSnapshot(snapshot);
 
-      const restoredState = newStateMachine.getState();
+      const restoredState = newStateMachine.getState() as StateResult;
       expect(restoredState.projectCount).toBe(originalState.projectCount);
       expect(restoredState.repositoryCount).toBe(originalState.repositoryCount);
     });
@@ -710,14 +792,14 @@ describe('GitStateMachine - Git 状态机测试', () => {
     let repoId: string;
 
     beforeEach(async () => {
-      const result = await stateMachine.apply({
+      const result = (await stateMachine.apply({
         type: CommandType.CREATE_PROJECT,
         payload: {
           id: 'proj-1',
           name: 'Test Project',
           ownerId: 'user-1',
         },
-      });
+      })) as CreateProjectResult;
       repoId = result.repository.id;
 
       await stateMachine.apply({
@@ -733,7 +815,7 @@ describe('GitStateMachine - Git 状态机测试', () => {
     });
 
     it('getState 应返回状态摘要', () => {
-      const state = stateMachine.getState();
+      const state = stateMachine.getState() as StateResult;
 
       expect(state.projectCount).toBe(1);
       expect(state.repositoryCount).toBe(1);
@@ -885,21 +967,21 @@ describe('GitStateMachine - Git 状态机测试', () => {
         },
       };
 
-      const result = await stateMachine.apply(command);
+      const result = (await stateMachine.apply(command)) as CreateProjectResult;
       expect(result.project.name).toBe('测试项目 🚀');
     });
 
     it('应处理大型 payload', async () => {
       const largeContent = 'x'.repeat(100000); // 100KB
 
-      const result = await stateMachine.apply({
+      const result = (await stateMachine.apply({
         type: CommandType.CREATE_PROJECT,
         payload: {
           id: 'proj-1',
           name: 'Test',
           ownerId: 'user-1',
         },
-      });
+      })) as CreateProjectResult;
 
       const repoId = result.repository.id;
 

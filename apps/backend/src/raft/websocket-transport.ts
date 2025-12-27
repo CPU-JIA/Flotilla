@@ -27,11 +27,11 @@ interface RaftMessage {
     | 'RequestVoteResponse'
     | 'AppendEntriesResponse';
   requestId: string;
-  data: any;
+  data: unknown;
 }
 
 interface PendingRequest {
-  resolve: (value: any) => void;
+  resolve: (value: unknown) => void;
   reject: (error: Error) => void;
   timer: NodeJS.Timeout;
 }
@@ -222,7 +222,9 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
           throw new Error('No RPC handler registered');
         }
 
-        const response = await this.handler.handleRequestVote(message.data);
+        const response = await this.handler.handleRequestVote(
+          message.data as import('./types').RequestVoteRequest,
+        );
         const responseMessage: RaftMessage = {
           type: 'RequestVoteResponse',
           requestId: message.requestId,
@@ -236,7 +238,9 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
           throw new Error('No RPC handler registered');
         }
 
-        const response = await this.handler.handleAppendEntries(message.data);
+        const response = await this.handler.handleAppendEntries(
+          message.data as import('./types').AppendEntriesRequest,
+        );
         const responseMessage: RaftMessage = {
           type: 'AppendEntriesResponse',
           requestId: message.requestId,

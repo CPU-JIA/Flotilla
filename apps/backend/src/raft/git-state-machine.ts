@@ -15,6 +15,58 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 import { createHash } from 'crypto';
 
+// Command Payload Types - 为每种命令定义具体的 payload 接口
+interface CreateProjectPayload {
+  id: string;
+  name: string;
+  description: string;
+  ownerId: string;
+}
+
+interface UpdateProjectPayload {
+  id: string;
+  [key: string]: unknown; // 其他更新字段
+}
+
+interface DeleteProjectPayload {
+  id: string;
+}
+
+interface GitCommitPayload {
+  repositoryId: string;
+  branchName: string;
+  message: string;
+  author: string;
+  files: Array<{
+    path: string;
+    content: string;
+    mimeType?: string;
+  }>;
+}
+
+interface GitCreateBranchPayload {
+  repositoryId: string;
+  branchName: string;
+  fromBranch?: string;
+}
+
+interface GitMergePayload {
+  repositoryId: string;
+  sourceBranch: string;
+  targetBranch: string;
+  message: string;
+  author: string;
+}
+
+interface FileOperationPayload {
+  repositoryId: string;
+  branchName?: string;
+  filePath: string;
+  content?: string;
+  author: string;
+  message?: string;
+}
+
 // Git状态数据结构
 interface GitRepository {
   id: string;
@@ -95,11 +147,11 @@ export class GitStateMachine implements StateMachine {
    * 应用命令到状态机
    * ECP-A1: 单一职责 - 专注于命令执行
    */
-  apply(command: Command): Promise<any> {
+  apply(command: Command): Promise<unknown> {
     try {
       this.debugLog(`Applying command: ${command.type}`);
 
-      let result: any;
+      let result: unknown;
       switch (command.type) {
         case CommandType.CREATE_PROJECT:
           result = this.handleCreateProject(command);
@@ -158,7 +210,7 @@ export class GitStateMachine implements StateMachine {
   /**
    * 获取状态机当前状态
    */
-  getState(): any {
+  getState(): unknown {
     return {
       projectCount: this.state.projects.size,
       repositoryCount: this.state.repositories.size,
@@ -291,7 +343,7 @@ export class GitStateMachine implements StateMachine {
   /**
    * 保存快照到文件
    */
-  private async saveSnapshotToFile(snapshot: any): Promise<void> {
+  private async saveSnapshotToFile(snapshot: unknown): Promise<void> {
     if (!this.snapshotFile) return;
 
     const tempFile = `${this.snapshotFile}.tmp`;
@@ -337,8 +389,9 @@ export class GitStateMachine implements StateMachine {
    * 命令处理器实现
    */
 
-  private handleCreateProject(command: Command): any {
-    const { id, name, description, ownerId } = command.payload;
+  private handleCreateProject(command: Command): unknown {
+    const payload = command.payload as CreateProjectPayload;
+    const { id, name, description, ownerId } = payload;
 
     if (this.state.projects.has(id)) {
       throw new Error(`Project ${id} already exists`);
@@ -384,8 +437,9 @@ export class GitStateMachine implements StateMachine {
     return { project, repository };
   }
 
-  private handleUpdateProject(command: Command): any {
-    const { id, ...updates } = command.payload;
+  private handleUpdateProject(command: Command): unknown {
+    const payload = command.payload as UpdateProjectPayload;
+    const { id, ...updates } = payload;
 
     const project = this.state.projects.get(id);
     if (!project) {
@@ -402,8 +456,9 @@ export class GitStateMachine implements StateMachine {
     return updatedProject;
   }
 
-  private handleDeleteProject(command: Command): any {
-    const { id } = command.payload;
+  private handleDeleteProject(command: Command): unknown {
+    const payload = command.payload as DeleteProjectPayload;
+    const { id } = payload;
 
     const project = this.state.projects.get(id);
     if (!project) {
@@ -419,9 +474,9 @@ export class GitStateMachine implements StateMachine {
     return { deleted: true };
   }
 
-  private handleGitCommit(command: Command): any {
-    const { repositoryId, branchName, message, author, files } =
-      command.payload;
+  private handleGitCommit(command: Command): unknown {
+    const payload = command.payload as GitCommitPayload;
+    const { repositoryId, branchName, message, author, files } = payload;
 
     const repository = this.state.repositories.get(repositoryId);
     if (!repository) {
@@ -466,8 +521,9 @@ export class GitStateMachine implements StateMachine {
     return { commit, branch: branchName, repository: repositoryId };
   }
 
-  private handleGitCreateBranch(command: Command): any {
-    const { repositoryId, branchName, fromBranch } = command.payload;
+  private handleGitCreateBranch(command: Command): unknown {
+    const payload = command.payload as GitCreateBranchPayload;
+    const { repositoryId, branchName, fromBranch } = payload;
 
     const repository = this.state.repositories.get(repositoryId);
     if (!repository) {
@@ -499,10 +555,11 @@ export class GitStateMachine implements StateMachine {
     return { branch: branchName, repository: repositoryId };
   }
 
-  private handleGitMerge(command: Command): any {
+  private handleGitMerge(command: Command): unknown {
     // 简化的合并实现
+    const payload = command.payload as GitMergePayload;
     const { repositoryId, sourceBranch, targetBranch, message, author } =
-      command.payload;
+      payload;
 
     const repository = this.state.repositories.get(repositoryId);
     if (!repository) {
@@ -534,31 +591,32 @@ export class GitStateMachine implements StateMachine {
     return { mergeCommit, targetBranch };
   }
 
-  private handleCreateFile(command: Command): any {
+  private handleCreateFile(command: Command): unknown {
     return this.handleFileOperation(command, 'create');
   }
 
-  private handleUpdateFile(command: Command): any {
+  private handleUpdateFile(command: Command): unknown {
     return this.handleFileOperation(command, 'update');
   }
 
-  private handleDeleteFile(command: Command): any {
+  private handleDeleteFile(command: Command): unknown {
     return this.handleFileOperation(command, 'delete');
   }
 
   private handleFileOperation(
     command: Command,
     operation: 'create' | 'update' | 'delete',
-  ): any {
+  ): unknown {
     // 文件操作将作为Git提交处理
+    const payload = command.payload as FileOperationPayload;
     const { repositoryId, branchName, filePath, content, author, message } =
-      command.payload;
+      payload;
 
     const commitMessage = message || `${operation} ${filePath}`;
     const files =
       operation === 'delete'
         ? []
-        : [{ path: filePath, content, mimeType: 'text/plain' }];
+        : [{ path: filePath, content: content || '', mimeType: 'text/plain' }];
 
     return this.handleGitCommit({
       type: CommandType.GIT_COMMIT,

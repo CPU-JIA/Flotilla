@@ -21,6 +21,13 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 
+// 类型定义：loadState 返回类型
+interface LoadStateResult {
+  currentTerm: number;
+  votedFor: string | null;
+  log: LogEntry[];
+}
+
 describe('MemoryPersistentStorage - 持久化存储测试', () => {
   let storage: MemoryPersistentStorage;
 
@@ -39,7 +46,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
     it('应成功保存 term', async () => {
       await storage.saveTerm(5);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.currentTerm).toBe(5);
     });
 
@@ -47,7 +54,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
       await storage.saveTerm(3);
       await storage.saveTerm(7);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.currentTerm).toBe(7);
     });
 
@@ -63,12 +70,12 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
       await storage.saveTerm(5);
       await storage.saveTerm(5);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.currentTerm).toBe(5);
     });
 
     it('初始 term 应为 0', async () => {
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.currentTerm).toBe(0);
     });
   });
@@ -77,7 +84,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
     it('应成功保存 votedFor', async () => {
       await storage.saveVotedFor('node-1');
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.votedFor).toBe('node-1');
     });
 
@@ -85,7 +92,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
       await storage.saveVotedFor('node-1');
       await storage.saveVotedFor(null);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.votedFor).toBeNull();
     });
 
@@ -93,12 +100,12 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
       await storage.saveVotedFor('node-1');
       await storage.saveVotedFor('node-2');
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.votedFor).toBe('node-2');
     });
 
     it('初始 votedFor 应为 null', async () => {
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.votedFor).toBeNull();
     });
   });
@@ -117,7 +124,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
 
       await storage.saveLogEntry(entry);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.log).toHaveLength(1);
       expect(state.log[0]).toEqual(entry);
     });
@@ -148,7 +155,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
         await storage.saveLogEntry(entry);
       }
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.log).toHaveLength(3);
       expect(state.log).toEqual(entries);
     });
@@ -222,10 +229,12 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
 
       await storage.saveLogEntry(entry1Updated);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.log).toHaveLength(1);
       expect(state.log[0].term).toBe(2);
-      expect(state.log[0].command.payload.name).toBe('v2');
+      expect((state.log[0].command.payload as { name: string }).name).toBe(
+        'v2',
+      );
     });
   });
 
@@ -245,7 +254,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
     it('应成功截断指定索引之后的日志', async () => {
       await storage.truncateLogFrom(3);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.log).toHaveLength(2);
       expect(state.log[state.log.length - 1].index).toBe(2);
     });
@@ -253,14 +262,14 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
     it('应处理截断到第一个索引的情况', async () => {
       await storage.truncateLogFrom(1);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.log).toHaveLength(0);
     });
 
     it('应处理截断超出日志长度的情况', async () => {
       await storage.truncateLogFrom(10);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.log).toHaveLength(5); // 不应删除任何日志
     });
 
@@ -286,7 +295,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
 
       await storage.saveLogEntry(newEntry);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.log).toHaveLength(3);
       expect(state.log[2].term).toBe(2);
     });
@@ -306,7 +315,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
         });
       }
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
 
       expect(state.currentTerm).toBe(5);
       expect(state.votedFor).toBe('node-2');
@@ -321,7 +330,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
         timestamp: Date.now(),
       });
 
-      const state1 = await storage.loadState();
+      const state1 = (await storage.loadState()) as LoadStateResult;
       state1.log.push({
         index: 2,
         term: 1,
@@ -329,12 +338,12 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
         timestamp: Date.now(),
       });
 
-      const state2 = await storage.loadState();
+      const state2 = (await storage.loadState()) as LoadStateResult;
       expect(state2.log).toHaveLength(1); // 不应受外部修改影响
     });
 
     it('应能恢复空状态', async () => {
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
 
       expect(state.currentTerm).toBe(0);
       expect(state.votedFor).toBeNull();
@@ -397,7 +406,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
 
       storage.clear();
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.currentTerm).toBe(0);
       expect(state.votedFor).toBeNull();
       expect(state.log).toHaveLength(0);
@@ -447,7 +456,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
 
       await Promise.all(promises);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.log).toHaveLength(100);
     });
 
@@ -466,7 +475,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
         });
       }
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.log).toHaveLength(count);
 
       // 验证第一个和最后一个条目
@@ -497,7 +506,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
 
       await storage.saveLogEntry(entry);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.log[0]).toEqual(entry);
     });
 
@@ -523,7 +532,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
         await storage.saveLogEntry(entry);
       }
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
 
       for (let i = 0; i < entries.length; i++) {
         expect(state.log[i]).toEqual(entries[i]);
@@ -545,7 +554,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
 
       await storage.saveLogEntry(entry);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.log[0].command.payload).toEqual({});
     });
 
@@ -562,7 +571,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
 
       await storage.saveLogEntry(entry);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.log[0].command.payload).toBeNull();
     });
 
@@ -586,7 +595,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
 
       await storage.saveLogEntry(entry);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.log[0].command.payload).toEqual(largePayload);
     });
 
@@ -606,7 +615,7 @@ describe('MemoryPersistentStorage - 持久化存储测试', () => {
 
       await storage.saveLogEntry(entry);
 
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.log[0].command.payload).toEqual(entry.command.payload);
     });
   });
@@ -646,7 +655,7 @@ describe('FilePersistentStorage - 文件持久化存储测试', () => {
 
       // 创建新实例来验证持久化
       const storage2 = new FilePersistentStorage('test-node', testDir);
-      const state = await storage2.loadState();
+      const state = (await storage2.loadState()) as LoadStateResult;
       expect(state.currentTerm).toBe(5);
     });
 
@@ -659,7 +668,7 @@ describe('FilePersistentStorage - 文件持久化存储测试', () => {
     });
 
     it('首次加载应返回默认值', async () => {
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.currentTerm).toBe(0);
     });
   });
@@ -669,7 +678,7 @@ describe('FilePersistentStorage - 文件持久化存储测试', () => {
       await storage.saveVotedFor('node-1');
 
       const storage2 = new FilePersistentStorage('test-node', testDir);
-      const state = await storage2.loadState();
+      const state = (await storage2.loadState()) as LoadStateResult;
       expect(state.votedFor).toBe('node-1');
     });
 
@@ -678,12 +687,12 @@ describe('FilePersistentStorage - 文件持久化存储测试', () => {
       await storage.saveVotedFor(null);
 
       const storage2 = new FilePersistentStorage('test-node', testDir);
-      const state = await storage2.loadState();
+      const state = (await storage2.loadState()) as LoadStateResult;
       expect(state.votedFor).toBeNull();
     });
 
     it('首次加载应返回 null', async () => {
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.votedFor).toBeNull();
     });
   });
@@ -703,7 +712,7 @@ describe('FilePersistentStorage - 文件持久化存储测试', () => {
       await storage.saveLogEntry(entry);
 
       const storage2 = new FilePersistentStorage('test-node', testDir);
-      const state = await storage2.loadState();
+      const state = (await storage2.loadState()) as LoadStateResult;
       expect(state.log).toHaveLength(1);
       expect(state.log[0]).toEqual(entry);
     });
@@ -735,7 +744,7 @@ describe('FilePersistentStorage - 文件持久化存储测试', () => {
       }
 
       const storage2 = new FilePersistentStorage('test-node', testDir);
-      const state = await storage2.loadState();
+      const state = (await storage2.loadState()) as LoadStateResult;
       expect(state.log).toHaveLength(3);
       expect(state.log).toEqual(entries);
     });
@@ -754,7 +763,7 @@ describe('FilePersistentStorage - 文件持久化存储测试', () => {
     });
 
     it('首次加载应返回空日志', async () => {
-      const state = await storage.loadState();
+      const state = (await storage.loadState()) as LoadStateResult;
       expect(state.log).toHaveLength(0);
     });
   });
@@ -775,7 +784,7 @@ describe('FilePersistentStorage - 文件持久化存储测试', () => {
       await storage.truncateLogFrom(3);
 
       const storage2 = new FilePersistentStorage('test-node', testDir);
-      const state = await storage2.loadState();
+      const state = (await storage2.loadState()) as LoadStateResult;
       expect(state.log).toHaveLength(2);
       expect(state.log[state.log.length - 1].index).toBe(2);
     });
@@ -793,7 +802,7 @@ describe('FilePersistentStorage - 文件持久化存储测试', () => {
       await storage.saveLogEntry(newEntry);
 
       const storage2 = new FilePersistentStorage('test-node', testDir);
-      const state = await storage2.loadState();
+      const state = (await storage2.loadState()) as LoadStateResult;
       expect(state.log).toHaveLength(3);
       expect(state.log[2].term).toBe(2);
     });
@@ -853,7 +862,7 @@ describe('FilePersistentStorage - 文件持久化存储测试', () => {
       await storage.saveLogEntry(entry);
 
       const storage2 = new FilePersistentStorage('test-node', testDir);
-      const state = await storage2.loadState();
+      const state = (await storage2.loadState()) as LoadStateResult;
       expect(state.log[0].command.payload).toEqual(largePayload);
     });
   });
@@ -887,8 +896,8 @@ describe('FilePersistentStorage - 文件持久化存储测试', () => {
       await storage1.saveTerm(5);
       await storage2.saveTerm(10);
 
-      const state1 = await storage1.loadState();
-      const state2 = await storage2.loadState();
+      const state1 = (await storage1.loadState()) as LoadStateResult;
+      const state2 = (await storage2.loadState()) as LoadStateResult;
 
       expect(state1.currentTerm).toBe(5);
       expect(state2.currentTerm).toBe(10);
@@ -923,13 +932,17 @@ describe('FilePersistentStorage - 文件持久化存储测试', () => {
 
       // 创建新实例验证持久化
       const storage2 = new FilePersistentStorage('test-node', testDir);
-      const state = await storage2.loadState();
+      const state = (await storage2.loadState()) as LoadStateResult;
 
       expect(state.currentTerm).toBe(5);
       expect(state.votedFor).toBe('node-2');
       expect(state.log).toHaveLength(3);
-      expect(state.log[0].command.payload.id).toBe('proj-1');
-      expect(state.log[2].command.payload.id).toBe('proj-3');
+      expect((state.log[0].command.payload as { id: string }).id).toBe(
+        'proj-1',
+      );
+      expect((state.log[2].command.payload as { id: string }).id).toBe(
+        'proj-3',
+      );
     });
   });
 
@@ -942,7 +955,7 @@ describe('FilePersistentStorage - 文件持久化存储测试', () => {
       const storage3 = new FilePersistentStorage('test-node', nonExistentDir);
 
       // 应该自动创建目录并初始化
-      const state = await storage3.loadState();
+      const state = (await storage3.loadState()) as LoadStateResult;
       expect(state.currentTerm).toBe(0);
       expect(state.votedFor).toBeNull();
       expect(state.log).toHaveLength(0);
@@ -975,7 +988,7 @@ describe('FilePersistentStorage - 文件持久化存储测试', () => {
       }
 
       const storage2 = new FilePersistentStorage('test-node', testDir);
-      const state = await storage2.loadState();
+      const state = (await storage2.loadState()) as LoadStateResult;
       expect(state.log).toHaveLength(50);
     });
   });

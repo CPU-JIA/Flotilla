@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GdprController } from './gdpr.controller';
 import { GdprService } from './gdpr.service';
-import { DataExportFormat, DataExportStatus } from '@prisma/client';
+import { DataExportFormat, DataExportStatus, User } from '@prisma/client';
 
 describe('GdprController', () => {
   let controller: GdprController;
@@ -14,11 +14,12 @@ describe('GdprController', () => {
     downloadExport: jest.fn(),
   };
 
+  // ECP-A1: 测试使用部分 Mock User，使用双重断言绕过类型检查
   const mockUser = {
     id: 'user-123',
     username: 'testuser',
     email: 'test@example.com',
-  };
+  } as unknown as User;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

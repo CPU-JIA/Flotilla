@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PipelinesController } from './pipelines.controller';
 import { PipelinesService } from './pipelines.service';
 import { PermissionService } from '../common/services/permission.service';
-import { PipelineStatus } from '@prisma/client';
+import { PipelineStatus, User } from '@prisma/client';
 import { WebhookSignatureGuard } from './guards/webhook-signature.guard';
 
 describe('PipelinesController', () => {
@@ -27,7 +27,8 @@ describe('PipelinesController', () => {
     checkProjectPermission: jest.fn(),
   };
 
-  const mockUser = { id: 'user-1', username: 'testuser' };
+  // ECP-A1: 测试使用部分 Mock User，使用双重断言绕过类型检查
+  const mockUser = { id: 'user-1', username: 'testuser' } as unknown as User;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -81,7 +82,7 @@ describe('PipelinesController', () => {
 
       expect(result).toEqual(mockPipeline);
       expect(permissionService.checkProjectPermission).toHaveBeenCalledWith(
-        mockUser.id,
+        mockUser,
         projectId,
         'MAINTAINER',
       );
@@ -137,7 +138,7 @@ describe('PipelinesController', () => {
 
       expect(result).toEqual(mockPipeline);
       expect(permissionService.checkProjectPermission).toHaveBeenCalledWith(
-        mockUser.id,
+        mockUser,
         mockPipeline.projectId,
         'VIEWER',
       );

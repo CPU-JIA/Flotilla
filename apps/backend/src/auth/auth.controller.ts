@@ -96,7 +96,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 5, ttl: 3600000 } }) // 🔒 SECURITY FIX: 5 requests/hour (防止垃圾注册攻击)
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 🔒 SECURITY FIX C2: 5次/分钟（防止垃圾注册攻击）
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: '用户注册' })
@@ -104,7 +104,7 @@ export class AuthController {
   @ApiResponseDoc({ status: 409, description: '用户名或邮箱已存在' })
   @ApiResponseDoc({
     status: 429,
-    description: 'Rate limit exceeded: 超过频率限制（5次/小时）',
+    description: 'Rate limit exceeded: 超过频率限制（5次/分钟）',
   })
   async register(
     @Body() dto: RegisterDto,
@@ -135,7 +135,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 10, ttl: 900000 } }) // 🔒 SECURITY FIX: 15分钟10次（防止暴力破解）
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 🔒 SECURITY FIX C2: 5次/分钟（防止暴力破解）
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '用户登录' })
@@ -143,7 +143,7 @@ export class AuthController {
   @ApiResponseDoc({ status: 401, description: '用户名或密码错误' })
   @ApiResponseDoc({
     status: 429,
-    description: 'Rate limit exceeded: 超过频率限制（10次/15分钟）',
+    description: 'Rate limit exceeded: 超过频率限制（5次/分钟）',
   })
   async login(
     @Body() dto: LoginDto,

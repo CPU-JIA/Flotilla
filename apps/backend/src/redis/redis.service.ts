@@ -107,7 +107,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
    * @param value 缓存值
    * @param ttl 过期时间（秒），默认60秒
    */
-  async set(key: string, value: any, ttl: number = 60): Promise<boolean> {
+  async set(key: string, value: unknown, ttl: number = 60): Promise<boolean> {
     if (!this.isAvailable()) {
       this.logger.warn(`⚠️ Redis unavailable, skipping SET ${key}`);
       return false;
