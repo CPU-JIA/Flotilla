@@ -23,7 +23,7 @@ import { test, expect, APIRequestContext } from '@playwright/test'
 async function loginViaAPI(
   request: APIRequestContext,
   username: string,
-  password: string,
+  password: string
 ): Promise<string> {
   const response = await request.post('http://localhost:4000/api/auth/login', {
     data: { usernameOrEmail: username, password },
@@ -40,7 +40,7 @@ async function createProjectViaAPI(
   request: APIRequestContext,
   token: string,
   name: string,
-  requireApprovals: number = 0,
+  requireApprovals: number = 0
 ): Promise<string> {
   const response = await request.post('http://localhost:4000/api/projects', {
     headers: {
@@ -68,7 +68,7 @@ async function createBranch(
   token: string,
   projectId: string,
   name: string,
-  startPoint: string,
+  startPoint: string
 ): Promise<void> {
   const response = await request.post(`http://localhost:4000/api/git/${projectId}/branches`, {
     headers: {
@@ -89,7 +89,7 @@ async function createCommit(
   projectId: string,
   branch: string,
   files: Array<{ path: string; content: string }>,
-  message: string,
+  message: string
 ): Promise<Record<string, unknown>> {
   const response = await request.post(`http://localhost:4000/api/git/${projectId}/commit`, {
     headers: {
@@ -111,7 +111,7 @@ async function createPullRequest(
   projectId: string,
   title: string,
   sourceBranch: string,
-  targetBranch: string = 'main',
+  targetBranch: string = 'main'
 ): Promise<{ id: string; number: number }> {
   const response = await request.post('http://localhost:4000/api/pull-requests', {
     headers: {
@@ -139,7 +139,7 @@ async function submitReview(
   token: string,
   prId: string,
   state: 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED',
-  body?: string,
+  body?: string
 ): Promise<void> {
   const response = await request.post(`http://localhost:4000/api/pull-requests/${prId}/reviews`, {
     headers: {
@@ -191,7 +191,7 @@ test.describe('PR Merge E2E Tests', () => {
       projectId,
       'feature-merge-commit',
       [{ path: 'feature.txt', content: 'Merge commit test' }],
-      'Add feature for merge commit',
+      'Add feature for merge commit'
     )
 
     const pr = await createPullRequest(
@@ -199,7 +199,7 @@ test.describe('PR Merge E2E Tests', () => {
       creatorToken,
       projectId,
       'Test Merge Commit',
-      'feature-merge-commit',
+      'feature-merge-commit'
     )
 
     // Navigate to PR detail page
@@ -218,10 +218,13 @@ test.describe('PR Merge E2E Tests', () => {
     // Select Merge Commit strategy (should be default)
     const strategySelect = dialog.locator('select').first()
     await expect(strategySelect).toBeVisible()
-    await strategySelect.selectOption('merge')
+    await strategySelect.selectOption('MERGE')
 
     // Confirm merge (button inside dialog)
-    const confirmButton = dialog.getByRole('button').filter({ hasText: /Merge|合并/i }).first()
+    const confirmButton = dialog
+      .getByRole('button')
+      .filter({ hasText: /Merge|合并/i })
+      .first()
     await confirmButton.click()
 
     // Wait for merge to complete
@@ -243,7 +246,7 @@ test.describe('PR Merge E2E Tests', () => {
       projectId,
       'feature-squash',
       [{ path: 'file1.txt', content: 'First commit' }],
-      'First commit',
+      'First commit'
     )
     await createCommit(
       request,
@@ -251,7 +254,7 @@ test.describe('PR Merge E2E Tests', () => {
       projectId,
       'feature-squash',
       [{ path: 'file2.txt', content: 'Second commit' }],
-      'Second commit',
+      'Second commit'
     )
 
     const pr = await createPullRequest(
@@ -259,7 +262,7 @@ test.describe('PR Merge E2E Tests', () => {
       creatorToken,
       projectId,
       'Test Squash Merge',
-      'feature-squash',
+      'feature-squash'
     )
 
     // Navigate to PR detail page
@@ -267,7 +270,10 @@ test.describe('PR Merge E2E Tests', () => {
     await page.waitForLoadState('networkidle', { timeout: 10000 })
 
     // Click Merge button
-    await page.getByRole('button', { name: /Merge Pull Request|合并/i }).first().click()
+    await page
+      .getByRole('button', { name: /Merge Pull Request|合并/i })
+      .first()
+      .click()
 
     // Select Squash strategy
     const dialog = page.getByRole('dialog')
@@ -275,10 +281,13 @@ test.describe('PR Merge E2E Tests', () => {
 
     const strategySelect = dialog.locator('select').first()
     await expect(strategySelect).toBeVisible()
-    await strategySelect.selectOption('squash')
+    await strategySelect.selectOption('SQUASH')
 
     // Confirm merge (button inside dialog)
-    const confirmButton = dialog.getByRole('button').filter({ hasText: /Merge|合并/i }).first()
+    const confirmButton = dialog
+      .getByRole('button')
+      .filter({ hasText: /Merge|合并/i })
+      .first()
     await confirmButton.click()
 
     // Wait and verify merge completed
@@ -295,7 +304,7 @@ test.describe('PR Merge E2E Tests', () => {
       projectId,
       'feature-rebase',
       [{ path: 'rebase.txt', content: 'Rebase test' }],
-      'Add rebase feature',
+      'Add rebase feature'
     )
 
     const pr = await createPullRequest(
@@ -303,7 +312,7 @@ test.describe('PR Merge E2E Tests', () => {
       creatorToken,
       projectId,
       'Test Rebase Merge',
-      'feature-rebase',
+      'feature-rebase'
     )
 
     // Navigate to PR detail page
@@ -311,7 +320,10 @@ test.describe('PR Merge E2E Tests', () => {
     await page.waitForLoadState('networkidle', { timeout: 10000 })
 
     // Click Merge button
-    await page.getByRole('button', { name: /Merge Pull Request|合并/i }).first().click()
+    await page
+      .getByRole('button', { name: /Merge Pull Request|合并/i })
+      .first()
+      .click()
 
     // Select Rebase strategy
     const dialog = page.getByRole('dialog')
@@ -319,10 +331,13 @@ test.describe('PR Merge E2E Tests', () => {
 
     const strategySelect = dialog.locator('select').first()
     await expect(strategySelect).toBeVisible()
-    await strategySelect.selectOption('rebase')
+    await strategySelect.selectOption('REBASE')
 
     // Confirm merge (button inside dialog)
-    const confirmButton = dialog.getByRole('button').filter({ hasText: /Merge|合并/i }).first()
+    const confirmButton = dialog
+      .getByRole('button')
+      .filter({ hasText: /Merge|合并/i })
+      .first()
     await confirmButton.click()
 
     // Wait and verify merge completed
@@ -334,7 +349,12 @@ test.describe('PR Merge E2E Tests', () => {
     // Create project with requireApprovals=1
     const timestamp = Date.now()
     const approvalProjectName = `Approval Required ${timestamp}`
-    const approvalProjectId = await createProjectViaAPI(request, creatorToken, approvalProjectName, 1)
+    const approvalProjectId = await createProjectViaAPI(
+      request,
+      creatorToken,
+      approvalProjectName,
+      1
+    )
 
     // Create feature branch and PR
     await createBranch(request, creatorToken, approvalProjectId, 'feature-blocked', 'main')
@@ -344,7 +364,7 @@ test.describe('PR Merge E2E Tests', () => {
       approvalProjectId,
       'feature-blocked',
       [{ path: 'blocked.txt', content: 'Needs approval' }],
-      'Add feature',
+      'Add feature'
     )
 
     const pr = await createPullRequest(
@@ -352,7 +372,7 @@ test.describe('PR Merge E2E Tests', () => {
       creatorToken,
       approvalProjectId,
       'Test Merge Blocked',
-      'feature-blocked',
+      'feature-blocked'
     )
 
     // Navigate to PR detail page
@@ -372,7 +392,12 @@ test.describe('PR Merge E2E Tests', () => {
     // Create project with requireApprovals=1
     const timestamp = Date.now()
     const approvalProjectName = `Approval Test ${timestamp}`
-    const approvalProjectId = await createProjectViaAPI(request, creatorToken, approvalProjectName, 1)
+    const approvalProjectId = await createProjectViaAPI(
+      request,
+      creatorToken,
+      approvalProjectName,
+      1
+    )
 
     // Create feature branch and PR
     await createBranch(request, creatorToken, approvalProjectId, 'feature-approved', 'main')
@@ -382,7 +407,7 @@ test.describe('PR Merge E2E Tests', () => {
       approvalProjectId,
       'feature-approved',
       [{ path: 'approved.txt', content: 'Approved feature' }],
-      'Add approved feature',
+      'Add approved feature'
     )
 
     const pr = await createPullRequest(
@@ -390,7 +415,7 @@ test.describe('PR Merge E2E Tests', () => {
       creatorToken,
       approvalProjectId,
       'Test Merge After Approval',
-      'feature-approved',
+      'feature-approved'
     )
 
     // Submit approval review
@@ -413,7 +438,10 @@ test.describe('PR Merge E2E Tests', () => {
     const dialog = page.getByRole('dialog')
     await expect(dialog.first()).toBeVisible({ timeout: 3000 })
 
-    const confirmButton = dialog.getByRole('button').filter({ hasText: /Merge|合并/i }).first()
+    const confirmButton = dialog
+      .getByRole('button')
+      .filter({ hasText: /Merge|合并/i })
+      .first()
     await confirmButton.click()
 
     // Verify merge completed
@@ -430,7 +458,7 @@ test.describe('PR Merge E2E Tests', () => {
       projectId,
       'feature-info',
       [{ path: 'info.txt', content: 'Merge info test' }],
-      'Add feature',
+      'Add feature'
     )
 
     const pr = await createPullRequest(
@@ -438,20 +466,26 @@ test.describe('PR Merge E2E Tests', () => {
       creatorToken,
       projectId,
       'Test Merge Info',
-      'feature-info',
+      'feature-info'
     )
 
     // Navigate and merge
     await page.goto(`/projects/${projectId}/pulls/${pr.number}`)
     await page.waitForLoadState('networkidle', { timeout: 10000 })
 
-    await page.getByRole('button', { name: /Merge Pull Request|合并/i }).first().click()
+    await page
+      .getByRole('button', { name: /Merge Pull Request|合并/i })
+      .first()
+      .click()
 
     // Wait for dialog and confirm merge
     const dialog = page.getByRole('dialog')
     await expect(dialog.first()).toBeVisible({ timeout: 3000 })
 
-    const confirmButton = dialog.getByRole('button').filter({ hasText: /Merge|合并/i }).first()
+    const confirmButton = dialog
+      .getByRole('button')
+      .filter({ hasText: /Merge|合并/i })
+      .first()
     await confirmButton.click()
 
     // Wait for merge

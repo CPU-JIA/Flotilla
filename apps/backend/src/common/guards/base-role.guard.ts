@@ -1,6 +1,22 @@
 import { CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { Request } from 'express';
+import { User } from '@prisma/client';
 import { PermissionService } from '../services/permission.service';
+
+/**
+ * Authenticated user object set by JwtAuthGuard
+ * ECP-P0: Type Safety - Replaces 'any' with concrete type
+ */
+export type AuthenticatedUser = User;
+
+/**
+ * Express Request with authenticated user attached
+ * ECP-P0: Type Safety - Provides type-safe access to request.user
+ */
+export interface AuthenticatedRequest extends Request {
+  user: AuthenticatedUser;
+}
 
 /**
  * Abstract base class for role-based guards using Template Method pattern
@@ -75,8 +91,8 @@ export abstract class BaseRoleGuard<
    * @throws NotFoundException if entity not found
    */
   protected abstract checkPermission(
-    request: any,
-    user: any,
+    request: AuthenticatedRequest,
+    user: AuthenticatedUser,
     requiredRole: TRole,
   ): Promise<void>;
 }

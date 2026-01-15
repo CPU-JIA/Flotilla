@@ -16,9 +16,9 @@ export enum ReviewState {
 }
 
 export enum MergeStrategy {
-  MERGE = 'merge',
-  SQUASH = 'squash',
-  REBASE = 'rebase',
+  MERGE = 'MERGE',
+  SQUASH = 'SQUASH',
+  REBASE = 'REBASE',
 }
 
 export interface User {

@@ -6,6 +6,10 @@ import {
 import { Reflector } from '@nestjs/core';
 import { TeamRole, User } from '@prisma/client';
 import { PermissionService } from '../../common/services/permission.service';
+import {
+  AuthenticatedRequest,
+  AuthenticatedUser,
+} from '../../common/guards/base-role.guard';
 import { REQUIRE_TEAM_ROLE_KEY } from '../decorators/require-team-role.decorator';
 import { BaseRoleGuard } from '../../common/guards/base-role.guard';
 
@@ -37,8 +41,8 @@ export class TeamRoleGuard extends BaseRoleGuard<TeamRole> {
   }
 
   protected async checkPermission(
-    request: any,
-    user: User,
+    request: AuthenticatedRequest,
+    user: AuthenticatedUser,
     requiredRole: TeamRole,
   ): Promise<void> {
     const organizationSlug = request.params.organizationSlug;

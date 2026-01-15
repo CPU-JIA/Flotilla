@@ -23,20 +23,33 @@ export class WebhookService {
   /**
    * 创建 Webhook
    * ECP-C1: 生成安全的随机密钥用于 HMAC 签名
+   * ECP-C1: 存储 SHA256 哈希值而非明文 secret，防止数据库泄露
    */
-  createWebhook(projectId: string, dto: CreateWebhookDto): Promise<Webhook> {
+  async createWebhook(
+    projectId: string,
+    dto: CreateWebhookDto,
+  ): Promise<Webhook & { secret: string }> {
     // 生成随机密钥（32 字节 = 256 bits）
     const secret = crypto.randomBytes(32).toString('hex');
+    // 计算 SHA256 哈希值用于存储
+    const secretHash = crypto.createHash('sha256').update(secret).digest('hex');
 
-    return this.prisma.webhook.create({
+    const webhook = await this.prisma.webhook.create({
       data: {
         projectId,
         url: dto.url,
-        secret,
+        secret: '', // 清空明文secret字段（向后兼容）
+        secretHash,
         events: dto.events,
         active: dto.active ?? true,
       },
     });
+
+    // 仅此一次返回明文 secret 给用户
+    return {
+      ...webhook,
+      secret,
+    };
   }
 
   /**
@@ -144,8 +157,9 @@ export class WebhookService {
     const startTime = Date.now();
 
     try {
-      // 生成 HMAC-SHA256 签名
-      const signature = this.generateSignature(webhook.secret, payload);
+      // 使用 secretHash 生成签名（secretHash 为 null 时使用空字符串作为后备）
+      const secretHash = webhook.secretHash || '';
+      const signature = this.generateSignature(secretHash, payload);
 
       // 发送 HTTP POST 请求
       const response = await axios.post(webhook.url, payload, {
@@ -255,17 +269,48 @@ export class WebhookService {
   }
 
   /**
-   * 生成 HMAC-SHA256 签名
+   * 生成并验证 HMAC-SHA256 签名
    * ECP-C1: Security - HMAC 签名防止伪造请求
+   * ECP-C1: 使用 timingSafeEqual 防止时序攻击
+   * @param secretHash SHA256 哈希值（存储在数据库中）
+   * @param payload 事件负载
+   * @returns 签名字符串
    */
   private generateSignature(
-    secret: string,
+    secretHash: string,
     payload: Record<string, unknown>,
   ): string {
     const payloadString = JSON.stringify(payload);
-    const hmac = crypto.createHmac('sha256', secret);
+    // 使用哈希值作为HMAC密钥进行签名
+    const hmac = crypto.createHmac('sha256', secretHash);
     hmac.update(payloadString);
     return `sha256=${hmac.digest('hex')}`;
+  }
+
+  /**
+   * 验证 Webhook 签名
+   * ECP-C1: 使用 timingSafeEqual 防止时序攻击
+   * @param secretHash 存储的 SHA256 哈希值
+   * @param payload 事件负载
+   * @param signature 接收到的签名
+   * @returns 签名是否有效
+   */
+  private verifySignature(
+    secretHash: string,
+    payload: Record<string, unknown>,
+    signature: string,
+  ): boolean {
+    const expectedSignature = this.generateSignature(secretHash, payload);
+    const expectedBuffer = Buffer.from(expectedSignature);
+    const receivedBuffer = Buffer.from(signature);
+
+    // 使用 timingSafeEqual 防止时序攻击
+    try {
+      return crypto.timingSafeEqual(expectedBuffer, receivedBuffer);
+    } catch {
+      // 长度不匹配时 timingSafeEqual 会抛出错误
+      return false;
+    }
   }
 
   /**

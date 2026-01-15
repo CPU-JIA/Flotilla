@@ -9,6 +9,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { GitService } from '../git/git.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { BranchProtectionService } from '../branch-protection/branch-protection.service';
+import { PRMergeService } from './pr-merge.service';
+import { PRReviewService } from './pr-review.service';
 import { CreatePullRequestDto } from './dto/create-pull-request.dto';
 import {
   MergePullRequestDto,
@@ -75,6 +77,19 @@ describe('PullRequestsService', () => {
     checkMergePermission: jest.fn().mockResolvedValue({ allowed: true }),
   };
 
+  const mockPRMergeService = {
+    merge: jest.fn(),
+    canMergePR: jest.fn(),
+  };
+
+  const mockPRReviewService = {
+    addReview: jest.fn(),
+    getReviewSummary: jest.fn(),
+    addComment: jest.fn(),
+    getComments: jest.fn(),
+    getReviews: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -94,6 +109,14 @@ describe('PullRequestsService', () => {
         {
           provide: BranchProtectionService,
           useValue: mockBranchProtectionService,
+        },
+        {
+          provide: PRMergeService,
+          useValue: mockPRMergeService,
+        },
+        {
+          provide: PRReviewService,
+          useValue: mockPRReviewService,
         },
       ],
     }).compile();
@@ -490,61 +513,48 @@ describe('PullRequestsService', () => {
         mergeCommit: 'abc123',
       });
       mockPrisma.pREvent.create.mockResolvedValue({});
+      // 设置 PRMergeService mock 返回值
+      mockPRMergeService.merge.mockResolvedValue({
+        ...mockPR,
+        state: PRState.MERGED,
+        mergedAt: new Date(),
+        mergedBy: userId,
+        mergeCommit: 'abc123',
+      });
     });
 
     it('should merge PR with MERGE strategy', async () => {
       const dto: MergePullRequestDto = { strategy: MergeStrategy.MERGE };
-      mockGitService.mergeCommit.mockResolvedValue('abc123');
 
       const result = await service.merge(prId, userId, dto);
 
-      expect(mockGitService.mergeCommit).toHaveBeenCalledWith(
-        'proj-1',
-        'feature',
-        'main',
-        expect.stringContaining('Merge pull request #1'),
-        { name: 'merger', email: 'merger@example.com' },
-      );
       expect(result.state).toBe(PRState.MERGED);
       expect(result.mergeCommit).toBe('abc123');
+      expect(mockPRMergeService.merge).toHaveBeenCalledWith(prId, userId, dto);
     });
 
     it('should merge PR with SQUASH strategy', async () => {
       const dto: MergePullRequestDto = { strategy: MergeStrategy.SQUASH };
-      mockGitService.squashMerge.mockResolvedValue('def456');
 
       await service.merge(prId, userId, dto);
 
-      expect(mockGitService.squashMerge).toHaveBeenCalledWith(
-        'proj-1',
-        'feature',
-        'main',
-        expect.stringContaining('Test PR'),
-        { name: 'merger', email: 'merger@example.com' },
-      );
+      expect(mockPRMergeService.merge).toHaveBeenCalledWith(prId, userId, dto);
     });
 
     it('should merge PR with REBASE strategy', async () => {
       const dto: MergePullRequestDto = { strategy: MergeStrategy.REBASE };
-      mockGitService.rebaseMerge.mockResolvedValue('ghi789');
 
       await service.merge(prId, userId, dto);
 
-      expect(mockGitService.rebaseMerge).toHaveBeenCalledWith(
-        'proj-1',
-        'feature',
-        'main',
-        { name: 'merger', email: 'merger@example.com' },
-      );
+      expect(mockPRMergeService.merge).toHaveBeenCalledWith(prId, userId, dto);
     });
 
     it('should throw error if PR is not OPEN', async () => {
-      mockPrisma.pullRequest.findUnique.mockResolvedValue({
-        ...mockPR,
-        state: PRState.MERGED,
-      });
-
       const dto: MergePullRequestDto = { strategy: MergeStrategy.MERGE };
+
+      mockPRMergeService.merge.mockRejectedValue(
+        new BadRequestException('PR is not open'),
+      );
 
       await expect(service.merge(prId, userId, dto)).rejects.toThrow(
         BadRequestException,
@@ -552,12 +562,14 @@ describe('PullRequestsService', () => {
       await expect(service.merge(prId, userId, dto)).rejects.toThrow(
         'PR is not open',
       );
-      expect(mockGitService.mergeCommit).not.toHaveBeenCalled();
     });
 
     it('should throw InternalServerErrorException if Git merge fails', async () => {
       const dto: MergePullRequestDto = { strategy: MergeStrategy.MERGE };
-      mockGitService.mergeCommit.mockRejectedValue(new Error('Merge conflict'));
+
+      mockPRMergeService.merge.mockRejectedValue(
+        new InternalServerErrorException('Merge failed'),
+      );
 
       await expect(service.merge(prId, userId, dto)).rejects.toThrow(
         InternalServerErrorException,
@@ -569,20 +581,11 @@ describe('PullRequestsService', () => {
 
     it('should update PR state and timestamps after successful merge', async () => {
       const dto: MergePullRequestDto = { strategy: MergeStrategy.MERGE };
-      mockGitService.mergeCommit.mockResolvedValue('abc123');
 
-      await service.merge(prId, userId, dto);
+      const result = await service.merge(prId, userId, dto);
 
-      expect(mockPrisma.pullRequest.update).toHaveBeenCalledWith({
-        where: { id: prId },
-        data: {
-          state: PRState.MERGED,
-          mergedAt: expect.any(Date),
-          mergedBy: userId,
-          mergeCommit: 'abc123',
-        },
-        include: expect.anything(),
-      });
+      expect(result.state).toBe(PRState.MERGED);
+      expect(mockPRMergeService.merge).toHaveBeenCalledWith(prId, userId, dto);
     });
 
     it('should create merged event', async () => {
@@ -590,22 +593,10 @@ describe('PullRequestsService', () => {
         strategy: MergeStrategy.SQUASH,
         commitMessage: 'Custom message',
       };
-      mockGitService.squashMerge.mockResolvedValue('xyz999');
 
       await service.merge(prId, userId, dto);
 
-      expect(mockPrisma.pREvent.create).toHaveBeenCalledWith({
-        data: {
-          pullRequestId: prId,
-          actorId: userId,
-          event: 'merged',
-          metadata: {
-            strategy: MergeStrategy.SQUASH,
-            commitMessage: 'Custom message',
-            mergeCommit: 'xyz999',
-          },
-        },
-      });
+      expect(mockPRMergeService.merge).toHaveBeenCalledWith(prId, userId, dto);
     });
   });
 
@@ -623,8 +614,7 @@ describe('PullRequestsService', () => {
         body: 'LGTM',
       };
 
-      mockPrisma.pullRequest.findUnique.mockResolvedValue(mockPR);
-      mockPrisma.pRReview.create.mockResolvedValue({
+      const mockReview = {
         id: 'review-1',
         pullRequestId: prId,
         reviewerId,
@@ -636,32 +626,28 @@ describe('PullRequestsService', () => {
           username: 'reviewer',
           avatar: null,
         },
-      });
-      mockPrisma.pREvent.create.mockResolvedValue({});
+      };
+
+      mockPRReviewService.addReview.mockResolvedValue(mockReview);
 
       const result = await service.addReview(prId, reviewerId, dto);
 
       expect(result.state).toBe('APPROVED');
-      expect(mockPrisma.pRReview.create).toHaveBeenCalledWith({
-        data: {
-          pullRequestId: prId,
-          reviewerId,
-          state: dto.state,
-          body: dto.body,
-        },
-        include: expect.anything(),
-      });
+      expect(mockPRReviewService.addReview).toHaveBeenCalledWith(
+        prId,
+        reviewerId,
+        dto,
+      );
     });
 
     it('should throw error if PR is not OPEN', async () => {
-      mockPrisma.pullRequest.findUnique.mockResolvedValue({
-        id: prId,
-        state: PRState.MERGED,
-      });
-
       const dto: CreateReviewDto = {
         state: 'APPROVED' as any,
       };
+
+      mockPRReviewService.addReview.mockRejectedValue(
+        new BadRequestException('Cannot review a closed or merged PR'),
+      );
 
       await expect(service.addReview(prId, reviewerId, dto)).rejects.toThrow(
         BadRequestException,
@@ -672,11 +658,13 @@ describe('PullRequestsService', () => {
     });
 
     it('should throw NotFoundException if PR not found', async () => {
-      mockPrisma.pullRequest.findUnique.mockResolvedValue(null);
-
       const dto: CreateReviewDto = {
         state: 'APPROVED' as any,
       };
+
+      mockPRReviewService.addReview.mockRejectedValue(
+        new NotFoundException('Pull request not found'),
+      );
 
       await expect(service.addReview(prId, reviewerId, dto)).rejects.toThrow(
         NotFoundException,
@@ -689,8 +677,7 @@ describe('PullRequestsService', () => {
         body: 'Please fix this',
       };
 
-      mockPrisma.pullRequest.findUnique.mockResolvedValue(mockPR);
-      mockPrisma.pRReview.create.mockResolvedValue({
+      const mockReview = {
         id: 'review-1',
         pullRequestId: prId,
         reviewerId,
@@ -698,21 +685,17 @@ describe('PullRequestsService', () => {
         body: dto.body,
         createdAt: new Date(),
         reviewer: { id: reviewerId, username: 'reviewer', avatar: null },
-      });
-      mockPrisma.pREvent.create.mockResolvedValue({});
+      };
+
+      mockPRReviewService.addReview.mockResolvedValue(mockReview);
 
       await service.addReview(prId, reviewerId, dto);
 
-      expect(mockPrisma.pREvent.create).toHaveBeenCalledWith({
-        data: {
-          pullRequestId: prId,
-          actorId: reviewerId,
-          event: 'reviewed',
-          metadata: {
-            state: 'CHANGES_REQUESTED',
-          },
-        },
-      });
+      expect(mockPRReviewService.addReview).toHaveBeenCalledWith(
+        prId,
+        reviewerId,
+        dto,
+      );
     });
   });
 
@@ -725,8 +708,7 @@ describe('PullRequestsService', () => {
         body: 'This is a comment',
       };
 
-      mockPrisma.pullRequest.findUnique.mockResolvedValue({ id: prId });
-      mockPrisma.pRComment.create.mockResolvedValue({
+      const mockComment = {
         id: 'comment-1',
         pullRequestId: prId,
         authorId,
@@ -740,24 +722,20 @@ describe('PullRequestsService', () => {
           username: 'commenter',
           avatar: null,
         },
-      });
+      };
+
+      mockPRReviewService.addComment.mockResolvedValue(mockComment);
 
       const result = await service.addComment(prId, authorId, dto);
 
       expect(result.body).toBe(dto.body);
       expect(result.filePath).toBeNull();
       expect(result.lineNumber).toBeNull();
-      expect(mockPrisma.pRComment.create).toHaveBeenCalledWith({
-        data: {
-          pullRequestId: prId,
-          authorId,
-          body: dto.body,
-          filePath: undefined,
-          lineNumber: undefined,
-          commitHash: undefined,
-        },
-        include: expect.anything(),
-      });
+      expect(mockPRReviewService.addComment).toHaveBeenCalledWith(
+        prId,
+        authorId,
+        dto,
+      );
     });
 
     it('should create line-specific comment', async () => {
@@ -768,8 +746,7 @@ describe('PullRequestsService', () => {
         commitHash: 'abc123',
       };
 
-      mockPrisma.pullRequest.findUnique.mockResolvedValue({ id: prId });
-      mockPrisma.pRComment.create.mockResolvedValue({
+      const mockComment = {
         id: 'comment-2',
         pullRequestId: prId,
         authorId,
@@ -779,21 +756,30 @@ describe('PullRequestsService', () => {
         commitHash: dto.commitHash,
         createdAt: new Date(),
         author: { id: authorId, username: 'commenter', avatar: null },
-      });
+      };
+
+      mockPRReviewService.addComment.mockResolvedValue(mockComment);
 
       const result = await service.addComment(prId, authorId, dto);
 
       expect(result.filePath).toBe('src/index.ts');
       expect(result.lineNumber).toBe(42);
       expect(result.commitHash).toBe('abc123');
+      expect(mockPRReviewService.addComment).toHaveBeenCalledWith(
+        prId,
+        authorId,
+        dto,
+      );
     });
 
     it('should throw NotFoundException if PR not found', async () => {
-      mockPrisma.pullRequest.findUnique.mockResolvedValue(null);
-
       const dto: PullRequestCreateCommentDto = {
         body: 'Comment',
       };
+
+      mockPRReviewService.addComment.mockRejectedValue(
+        new NotFoundException('Pull request not found'),
+      );
 
       await expect(service.addComment(prId, authorId, dto)).rejects.toThrow(
         NotFoundException,
@@ -832,51 +818,52 @@ describe('PullRequestsService', () => {
         },
       ];
 
-      mockPrisma.pRReview.findMany.mockResolvedValue(mockReviews);
+      const mockSummary = {
+        totalReviewers: 2,
+        approved: 1,
+        commented: 1,
+        changesRequested: 0,
+        reviewers: [
+          { id: 'user-1', username: 'reviewer1', state: 'APPROVED' },
+          { id: 'user-2', username: 'reviewer2', state: 'COMMENTED' },
+        ],
+      };
+
+      mockPRReviewService.getReviewSummary.mockResolvedValue(mockSummary);
 
       const result = await service.getReviewSummary(prId);
 
       expect(result.totalReviewers).toBe(2);
-      expect(result.approved).toBe(1); // user-1's latest is APPROVED
-      expect(result.commented).toBe(1); // user-2's is COMMENTED
+      expect(result.approved).toBe(1);
+      expect(result.commented).toBe(1);
       expect(result.changesRequested).toBe(0);
       expect(result.reviewers).toHaveLength(2);
       expect(result.reviewers[0].id).toBe('user-1');
       expect(result.reviewers[0].state).toBe('APPROVED');
+      expect(mockPRReviewService.getReviewSummary).toHaveBeenCalledWith(prId);
     });
 
     it('should count reviews by state correctly', async () => {
-      const mockReviews = [
-        {
-          id: 'review-1',
-          reviewerId: 'user-1',
-          state: 'APPROVED',
-          createdAt: new Date(),
-          reviewer: { id: 'user-1', username: 'r1', avatar: null },
-        },
-        {
-          id: 'review-2',
-          reviewerId: 'user-2',
-          state: 'APPROVED',
-          createdAt: new Date(),
-          reviewer: { id: 'user-2', username: 'r2', avatar: null },
-        },
-        {
-          id: 'review-3',
-          reviewerId: 'user-3',
-          state: 'CHANGES_REQUESTED',
-          createdAt: new Date(),
-          reviewer: { id: 'user-3', username: 'r3', avatar: null },
-        },
-      ];
+      const mockSummary = {
+        totalReviewers: 3,
+        approved: 2,
+        changesRequested: 1,
+        commented: 0,
+        reviewers: [
+          { id: 'user-1', username: 'r1', state: 'APPROVED' },
+          { id: 'user-2', username: 'r2', state: 'APPROVED' },
+          { id: 'user-3', username: 'r3', state: 'CHANGES_REQUESTED' },
+        ],
+      };
 
-      mockPrisma.pRReview.findMany.mockResolvedValue(mockReviews);
+      mockPRReviewService.getReviewSummary.mockResolvedValue(mockSummary);
 
       const result = await service.getReviewSummary(prId);
 
       expect(result.approved).toBe(2);
       expect(result.changesRequested).toBe(1);
       expect(result.commented).toBe(0);
+      expect(mockPRReviewService.getReviewSummary).toHaveBeenCalledWith(prId);
     });
   });
 
@@ -886,59 +873,34 @@ describe('PullRequestsService', () => {
     const authorId = 'user-author';
 
     it('should block merge with active change requests', async () => {
-      const mockPR = {
-        id: prId,
-        authorId,
-        project: {
-          id: 'proj-1',
-          requireApprovals: 1,
-          allowSelfMerge: true,
-          requireReviewFromOwner: false,
-          ownerId: 'owner-1',
-        },
+      const mockResult = {
+        allowed: false,
+        reason: 'Cannot merge with active change requests',
+        hasChangeRequests: true,
+        approvalCount: 0,
+        requiredApprovals: 1,
       };
 
-      mockPrisma.pullRequest.findUnique.mockResolvedValue(mockPR);
-      mockPrisma.pRReview.findMany.mockResolvedValue([
-        {
-          id: 'review-1',
-          reviewerId: 'user-1',
-          state: 'CHANGES_REQUESTED',
-          createdAt: new Date(),
-          reviewer: { id: 'user-1', username: 'r1', avatar: null },
-        },
-      ]);
+      mockPRMergeService.canMergePR.mockResolvedValue(mockResult);
 
       const result = await service.canMergePR(prId, userId);
 
       expect(result.allowed).toBe(false);
       expect(result.reason).toContain('change requests');
       expect(result.hasChangeRequests).toBe(true);
+      expect(mockPRMergeService.canMergePR).toHaveBeenCalledWith(prId, userId);
     });
 
     it('should block merge with insufficient approvals', async () => {
-      const mockPR = {
-        id: prId,
-        authorId,
-        project: {
-          id: 'proj-1',
-          requireApprovals: 2,
-          allowSelfMerge: true,
-          requireReviewFromOwner: false,
-          ownerId: 'owner-1',
-        },
+      const mockResult = {
+        allowed: false,
+        reason: 'Need 1 more approval',
+        approvalCount: 1,
+        requiredApprovals: 2,
+        hasChangeRequests: false,
       };
 
-      mockPrisma.pullRequest.findUnique.mockResolvedValue(mockPR);
-      mockPrisma.pRReview.findMany.mockResolvedValue([
-        {
-          id: 'review-1',
-          reviewerId: 'user-1',
-          state: 'APPROVED',
-          createdAt: new Date(),
-          reviewer: { id: 'user-1', username: 'r1', avatar: null },
-        },
-      ]);
+      mockPRMergeService.canMergePR.mockResolvedValue(mockResult);
 
       const result = await service.canMergePR(prId, userId);
 
@@ -946,92 +908,58 @@ describe('PullRequestsService', () => {
       expect(result.reason).toContain('1 more approval');
       expect(result.approvalCount).toBe(1);
       expect(result.requiredApprovals).toBe(2);
+      expect(mockPRMergeService.canMergePR).toHaveBeenCalledWith(prId, userId);
     });
 
     it('should block self-merge when disallowed', async () => {
-      const mockPR = {
-        id: prId,
-        authorId,
-        project: {
-          id: 'proj-1',
-          requireApprovals: 1,
-          allowSelfMerge: false,
-          requireReviewFromOwner: false,
-          ownerId: 'owner-1',
-        },
+      const mockResult = {
+        allowed: false,
+        reason: 'Cannot merge your own PR',
+        hasChangeRequests: false,
+        approvalCount: 1,
+        requiredApprovals: 1,
       };
 
-      mockPrisma.pullRequest.findUnique.mockResolvedValue(mockPR);
-      mockPrisma.pRReview.findMany.mockResolvedValue([
-        {
-          id: 'review-1',
-          reviewerId: 'user-1',
-          state: 'APPROVED',
-          createdAt: new Date(),
-          reviewer: { id: 'user-1', username: 'r1', avatar: null },
-        },
-      ]);
+      mockPRMergeService.canMergePR.mockResolvedValue(mockResult);
 
-      const result = await service.canMergePR(prId, authorId); // Author trying to merge
+      const result = await service.canMergePR(prId, authorId);
 
       expect(result.allowed).toBe(false);
       expect(result.reason).toContain('own PR');
+      expect(mockPRMergeService.canMergePR).toHaveBeenCalledWith(
+        prId,
+        authorId,
+      );
     });
 
     it('should require owner approval when configured', async () => {
       const ownerId = 'owner-1';
-      const mockPR = {
-        id: prId,
-        authorId,
-        project: {
-          id: 'proj-1',
-          requireApprovals: 1,
-          allowSelfMerge: true,
-          requireReviewFromOwner: true,
-          ownerId,
-        },
+      const mockResult = {
+        allowed: false,
+        reason: 'Requires owner approval',
+        hasChangeRequests: false,
+        approvalCount: 1,
+        requiredApprovals: 1,
       };
 
-      mockPrisma.pullRequest.findUnique.mockResolvedValue(mockPR);
-      mockPrisma.pRReview.findMany.mockResolvedValue([
-        {
-          id: 'review-1',
-          reviewerId: 'user-1',
-          state: 'APPROVED',
-          createdAt: new Date(),
-          reviewer: { id: 'user-1', username: 'r1', avatar: null },
-        },
-      ]);
+      mockPRMergeService.canMergePR.mockResolvedValue(mockResult);
 
       const result = await service.canMergePR(prId, userId);
 
       expect(result.allowed).toBe(false);
       expect(result.reason).toContain('owner approval');
+      expect(mockPRMergeService.canMergePR).toHaveBeenCalledWith(prId, userId);
     });
 
     it('should allow merge when all rules pass', async () => {
-      const mockPR = {
-        id: prId,
-        authorId,
-        project: {
-          id: 'proj-1',
-          requireApprovals: 1,
-          allowSelfMerge: true,
-          requireReviewFromOwner: false,
-          ownerId: 'owner-1',
-        },
+      const mockResult = {
+        allowed: true,
+        approvalCount: 1,
+        requiredApprovals: 1,
+        hasChangeRequests: false,
       };
 
-      mockPrisma.pullRequest.findUnique.mockResolvedValue(mockPR);
-      mockPrisma.pRReview.findMany.mockResolvedValue([
-        {
-          id: 'review-1',
-          reviewerId: 'user-1',
-          state: 'APPROVED',
-          createdAt: new Date(),
-          reviewer: { id: 'user-1', username: 'r1', avatar: null },
-        },
-      ]);
+      mockPRMergeService.canMergePR.mockResolvedValue(mockResult);
 
       const result = await service.canMergePR(prId, userId);
 
@@ -1039,10 +967,13 @@ describe('PullRequestsService', () => {
       expect(result.approvalCount).toBe(1);
       expect(result.requiredApprovals).toBe(1);
       expect(result.hasChangeRequests).toBe(false);
+      expect(mockPRMergeService.canMergePR).toHaveBeenCalledWith(prId, userId);
     });
 
     it('should throw NotFoundException if PR not found', async () => {
-      mockPrisma.pullRequest.findUnique.mockResolvedValue(null);
+      mockPRMergeService.canMergePR.mockRejectedValue(
+        new NotFoundException('Pull request not found'),
+      );
 
       await expect(service.canMergePR(prId, userId)).rejects.toThrow(
         NotFoundException,
@@ -1297,18 +1228,12 @@ describe('PullRequestsService', () => {
         },
       ];
 
-      mockPrisma.pRComment.findMany.mockResolvedValue(mockComments);
+      mockPRReviewService.getComments.mockResolvedValue(mockComments);
 
       const result = await service.getComments(prId);
 
       expect(result).toEqual(mockComments);
-      expect(mockPrisma.pRComment.findMany).toHaveBeenCalledWith({
-        where: { pullRequestId: prId },
-        include: expect.objectContaining({
-          author: expect.any(Object),
-        }),
-        orderBy: { createdAt: 'asc' },
-      });
+      expect(mockPRReviewService.getComments).toHaveBeenCalledWith(prId);
     });
   });
 
@@ -1333,18 +1258,12 @@ describe('PullRequestsService', () => {
         },
       ];
 
-      mockPrisma.pRReview.findMany.mockResolvedValue(mockReviews);
+      mockPRReviewService.getReviews.mockResolvedValue(mockReviews);
 
       const result = await service.getReviews(prId);
 
       expect(result).toEqual(mockReviews);
-      expect(mockPrisma.pRReview.findMany).toHaveBeenCalledWith({
-        where: { pullRequestId: prId },
-        include: expect.objectContaining({
-          reviewer: expect.any(Object),
-        }),
-        orderBy: { createdAt: 'desc' },
-      });
+      expect(mockPRReviewService.getReviews).toHaveBeenCalledWith(prId);
     });
   });
 
@@ -1370,6 +1289,13 @@ describe('PullRequestsService', () => {
       },
     };
 
+    const mockMergedPR = {
+      ...mockPR,
+      state: PRState.MERGED,
+      mergedAt: new Date(),
+      mergedById: userId,
+    };
+
     beforeEach(() => {
       mockPrisma.pullRequest.findUnique.mockResolvedValue(mockPR);
       mockPrisma.user.findUnique.mockResolvedValue({
@@ -1377,23 +1303,17 @@ describe('PullRequestsService', () => {
         email: 'merger@example.com',
       });
       mockPrisma.pREvent.create.mockResolvedValue({});
+      // 默认设置 merge 成功返回
+      mockPRMergeService.merge.mockResolvedValue(mockMergedPR);
     });
 
     it('should enforce branch protection rules during merge', async () => {
-      const protectionRule = {
-        id: 'rule-1',
-        projectId: 'proj-1',
-        branchPattern: 'main',
-        requirePullRequest: true,
-        requiredApprovingReviews: 2,
-      };
-
-      mockBranchProtectionService.findByBranch.mockResolvedValue(
-        protectionRule,
-      );
-      mockPrisma.pRReview.count.mockResolvedValue(1); // Only 1 approval
-
       const dto: MergePullRequestDto = { strategy: MergeStrategy.MERGE };
+
+      // 覆盖 beforeEach 的默认设置，模拟分支保护拒绝
+      mockPRMergeService.merge.mockRejectedValue(
+        new BadRequestException('分支 "main" 受保护，需要至少 2 个批准审查'),
+      );
 
       await expect(service.merge(prId, userId, dto)).rejects.toThrow(
         '分支 "main" 受保护，需要至少 2 个批准审查',
@@ -1401,56 +1321,21 @@ describe('PullRequestsService', () => {
     });
 
     it('should allow merge when branch protection requirements are met', async () => {
-      const protectionRule = {
-        id: 'rule-1',
-        projectId: 'proj-1',
-        branchPattern: 'main',
-        requirePullRequest: true,
-        requiredApprovingReviews: 2,
-      };
-
-      mockBranchProtectionService.findByBranch.mockResolvedValue(
-        protectionRule,
-      );
-      mockPrisma.pRReview.count.mockResolvedValue(2); // 2 approvals
-      mockGitService.mergeCommit.mockResolvedValue('abc123');
-      mockPrisma.pullRequest.update.mockResolvedValue({
-        ...mockPR,
-        state: PRState.MERGED,
-        mergedAt: new Date(),
-        mergedBy: userId,
-        mergeCommit: 'abc123',
-        merger: { id: userId, username: 'merger', avatar: null },
-      });
-
       const dto: MergePullRequestDto = { strategy: MergeStrategy.MERGE };
 
       const result = await service.merge(prId, userId, dto);
 
       expect(result.state).toBe(PRState.MERGED);
-      expect(mockBranchProtectionService.findByBranch).toHaveBeenCalledWith(
-        'proj-1',
-        'main',
-      );
+      expect(mockPRMergeService.merge).toHaveBeenCalledWith(prId, userId, dto);
     });
 
     it('should allow merge when no branch protection exists', async () => {
-      mockBranchProtectionService.findByBranch.mockResolvedValue(null);
-      mockGitService.mergeCommit.mockResolvedValue('abc123');
-      mockPrisma.pullRequest.update.mockResolvedValue({
-        ...mockPR,
-        state: PRState.MERGED,
-        mergedAt: new Date(),
-        mergedBy: userId,
-        mergeCommit: 'abc123',
-        merger: { id: userId, username: 'merger', avatar: null },
-      });
-
       const dto: MergePullRequestDto = { strategy: MergeStrategy.MERGE };
 
       const result = await service.merge(prId, userId, dto);
 
       expect(result.state).toBe(PRState.MERGED);
+      expect(mockPRMergeService.merge).toHaveBeenCalledWith(prId, userId, dto);
     });
   });
 });

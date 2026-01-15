@@ -10,6 +10,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { GitService } from '../git/git.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { BranchProtectionService } from '../branch-protection/branch-protection.service';
+import { PRMergeService } from './pr-merge.service';
+import { PRReviewService } from './pr-review.service';
 import { CreatePullRequestDto } from './dto/create-pull-request.dto';
 import { UpdatePullRequestDto } from './dto/update-pull-request.dto';
 import {
@@ -29,6 +31,8 @@ export class PullRequestsService {
     private readonly gitService: GitService,
     private readonly notificationsService: NotificationsService,
     private readonly branchProtectionService: BranchProtectionService,
+    private readonly prMergeService: PRMergeService,
+    private readonly prReviewService: PRReviewService,
   ) {}
 
   /**
@@ -463,546 +467,64 @@ export class PullRequestsService {
 
   /**
    * 合并PR（支持3种策略：merge, squash, rebase）
+   * 委托给PRMergeService处理
    */
   async merge(id: string, userId: string, dto: MergePullRequestDto) {
-    const pr = await this.prisma.pullRequest.findUnique({
-      where: { id },
-      include: {
-        project: true,
-        author: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-            avatar: true,
-          },
-        },
-      },
-    });
-
-    if (!pr) {
-      throw new NotFoundException(`Pull request ${id} not found`);
-    }
-
-    if (pr.state !== PRState.OPEN) {
-      throw new BadRequestException('PR is not open');
-    }
-
-    // 🛡️ 检查分支保护规则
-    const protectionRule = await this.branchProtectionService.findByBranch(
-      pr.projectId,
-      pr.targetBranch,
-    );
-
-    if (protectionRule && protectionRule.requirePullRequest) {
-      // 统计APPROVED状态的审核数量
-      const approvedReviews = await this.prisma.pRReview.count({
-        where: {
-          pullRequestId: id,
-          state: 'APPROVED',
-        },
-      });
-
-      const required = protectionRule.requiredApprovingReviews;
-
-      if (approvedReviews < required) {
-        throw new ForbiddenException(
-          `分支 "${pr.targetBranch}" 受保护，需要至少 ${required} 个批准审查，当前只有 ${approvedReviews} 个`,
-        );
-      }
-
-      this.logger.log(
-        `✅ Branch protection check passed: ${approvedReviews}/${required} approvals for PR #${pr.number}`,
-      );
-    }
-
-    // Get merger info
-    const merger = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        username: true,
-        email: true,
-      },
-    });
-
-    if (!merger) {
-      throw new NotFoundException('Merger user not found');
-    }
-
-    const author = {
-      name: merger.username,
-      email: merger.email,
-    };
-
-    const strategy = dto.strategy || MergeStrategy.MERGE;
-    const commitMessage =
-      dto.commitMessage ||
-      `Merge pull request #${pr.number}: ${pr.title}\n\nMerged by: ${merger.username}`;
-
-    let mergeCommitOid: string;
-
-    try {
-      // Execute merge based on strategy
-      switch (strategy) {
-        case MergeStrategy.MERGE:
-          mergeCommitOid = await this.gitService.mergeCommit(
-            pr.projectId,
-            pr.sourceBranch,
-            pr.targetBranch,
-            commitMessage,
-            author,
-          );
-          break;
-
-        case MergeStrategy.SQUASH: {
-          const squashMessage =
-            dto.commitMessage ||
-            `${pr.title}\n\n${pr.body || ''}\n\nSquashed commits from #${pr.number}`;
-          mergeCommitOid = await this.gitService.squashMerge(
-            pr.projectId,
-            pr.sourceBranch,
-            pr.targetBranch,
-            squashMessage,
-            author,
-          );
-          break;
-        }
-
-        case MergeStrategy.REBASE:
-          mergeCommitOid = await this.gitService.rebaseMerge(
-            pr.projectId,
-            pr.sourceBranch,
-            pr.targetBranch,
-            author,
-          );
-          break;
-
-        default:
-          // TypeScript: strategy is 'never' here because all enum cases are handled
-          // Cast to string for error message
-          throw new BadRequestException(
-            `Invalid merge strategy: ${String(strategy)}`,
-          );
-      }
-    } catch (error) {
-      this.logger.error(`Merge failed for PR ${id}:`, error);
-      throw new InternalServerErrorException(`Merge failed: ${error.message}`);
-    }
-
-    // Update database with merge result
-    const merged = await this.prisma.pullRequest.update({
-      where: { id },
-      data: {
-        state: PRState.MERGED,
-        mergedAt: new Date(),
-        mergedBy: userId,
-        mergeCommit: mergeCommitOid,
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
-        },
-        merger: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
-        },
-      },
-    });
-
-    // Create merged event
-    await this.prisma.pREvent.create({
-      data: {
-        pullRequestId: id,
-        actorId: userId,
-        event: 'merged',
-        metadata: {
-          strategy: dto.strategy,
-          commitMessage: dto.commitMessage,
-          mergeCommit: mergeCommitOid,
-        },
-      },
-    });
-
-    this.logger.log(
-      `PR #${pr.number} merged successfully using ${strategy} strategy`,
-    );
-
-    // 🔔 发送PR合并通知给作者（如果不是作者自己合并）
-    try {
-      if (pr.authorId !== userId) {
-        await this.notificationsService.create({
-          userId: pr.authorId,
-          type: 'PR_MERGED',
-          title: `[PR #${pr.number}] Pull Request 已合并`,
-          body: `${merged.merger?.username || '管理员'} 使用 ${strategy} 策略合并了您的 Pull Request`,
-          link: `/projects/${pr.projectId}/pull-requests/${pr.number}`,
-          metadata: {
-            prId: pr.id,
-            mergerId: userId,
-            mergeStrategy: strategy,
-            mergeCommit: mergeCommitOid,
-          },
-        });
-        this.logger.log(
-          `📨 Sent PR_MERGED notification for PR #${pr.number} to author ${pr.authorId}`,
-        );
-      }
-    } catch (error) {
-      this.logger.warn(
-        `⚠️ Failed to send PR_MERGED notification: ${error.message}`,
-      );
-    }
-
-    return merged;
+    return this.prMergeService.merge(id, userId, dto);
   }
 
   /**
    * 添加Review
+   * 委托给PRReviewService处理
    */
   async addReview(prId: string, reviewerId: string, dto: CreateReviewDto) {
-    const pr = await this.prisma.pullRequest.findUnique({
-      where: { id: prId },
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-          },
-        },
-      },
-    });
-
-    if (!pr) {
-      throw new NotFoundException(`Pull request ${prId} not found`);
-    }
-
-    if (pr.state !== PRState.OPEN) {
-      throw new BadRequestException('Cannot review a closed or merged PR');
-    }
-
-    const review = await this.prisma.pRReview.create({
-      data: {
-        pullRequestId: prId,
-        reviewerId,
-        state: dto.state,
-        body: dto.body,
-      },
-      include: {
-        reviewer: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
-        },
-      },
-    });
-
-    // 创建 reviewed 事件
-    await this.prisma.pREvent.create({
-      data: {
-        pullRequestId: prId,
-        actorId: reviewerId,
-        event: 'reviewed',
-        metadata: {
-          state: dto.state,
-        },
-      },
-    });
-
-    // 🔔 发送Review通知给PR作者（如果不是自己Review自己的PR）
-    try {
-      if (pr.authorId !== reviewerId) {
-        const reviewStateText =
-          dto.state === 'APPROVED'
-            ? '批准了'
-            : dto.state === 'CHANGES_REQUESTED'
-              ? '请求修改'
-              : '评论了';
-
-        await this.notificationsService.create({
-          userId: pr.authorId,
-          type: 'PR_REVIEWED',
-          title: `[PR #${pr.number}] ${review.reviewer.username} ${reviewStateText}您的 Pull Request`,
-          body:
-            dto.body ||
-            `${review.reviewer.username} ${reviewStateText}了您的 PR`,
-          link: `/projects/${pr.projectId}/pull-requests/${pr.number}`,
-          metadata: {
-            prId: pr.id,
-            reviewId: review.id,
-            reviewState: dto.state,
-            reviewerId,
-          },
-        });
-        this.logger.log(
-          `📨 Sent PR_REVIEWED notification for PR #${pr.number} to author ${pr.authorId}`,
-        );
-      }
-    } catch (error) {
-      this.logger.warn(
-        `⚠️ Failed to send PR_REVIEWED notification: ${error.message}`,
-      );
-    }
-
-    return review;
+    return this.prReviewService.addReview(prId, reviewerId, dto);
   }
 
   /**
    * 添加Comment
+   * 委托给PRReviewService处理
    */
   async addComment(
     prId: string,
     authorId: string,
     dto: PullRequestCreateCommentDto,
   ) {
-    const pr = await this.prisma.pullRequest.findUnique({
-      where: { id: prId },
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-          },
-        },
-      },
-    });
-
-    if (!pr) {
-      throw new NotFoundException(`Pull request ${prId} not found`);
-    }
-
-    const comment = await this.prisma.pRComment.create({
-      data: {
-        pullRequestId: prId,
-        authorId,
-        body: dto.body,
-        filePath: dto.filePath,
-        lineNumber: dto.lineNumber,
-        commitHash: dto.commitHash,
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
-        },
-      },
-    });
-
-    // 🔔 发送Comment通知给PR作者（如果不是自己评论自己的PR）
-    try {
-      if (pr.authorId !== authorId) {
-        await this.notificationsService.create({
-          userId: pr.authorId,
-          type: 'PR_COMMENTED',
-          title: `[PR #${pr.number}] ${comment.author.username} 评论了您的 Pull Request`,
-          body: dto.body?.substring(0, 100) || '新评论',
-          link: `/projects/${pr.projectId}/pull-requests/${pr.number}#comment-${comment.id}`,
-          metadata: {
-            prId: pr.id,
-            commentId: comment.id,
-            filePath: dto.filePath,
-            lineNumber: dto.lineNumber,
-          },
-        });
-        this.logger.log(
-          `📨 Sent PR_COMMENTED notification for PR #${pr.number} to author ${pr.authorId}`,
-        );
-      }
-    } catch (error) {
-      this.logger.warn(
-        `⚠️ Failed to send PR_COMMENTED notification: ${error.message}`,
-      );
-    }
-
-    return comment;
+    return this.prReviewService.addComment(prId, authorId, dto);
   }
 
   /**
    * 获取PR的所有Comments
+   * 委托给PRReviewService处理
    */
   async getComments(prId: string) {
-    return this.prisma.pRComment.findMany({
-      where: { pullRequestId: prId },
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'asc',
-      },
-    });
+    return this.prReviewService.getComments(prId);
   }
 
   /**
    * 获取PR的所有Reviews
+   * 委托给PRReviewService处理
    */
   async getReviews(prId: string) {
-    return this.prisma.pRReview.findMany({
-      where: { pullRequestId: prId },
-      include: {
-        reviewer: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    return this.prReviewService.getReviews(prId);
   }
 
   /**
    * Get review summary with latest review state per reviewer
    * 获取Review摘要（每个reviewer的最新review状态）
+   * 委托给PRReviewService处理
    */
   async getReviewSummary(prId: string) {
-    // Fetch all reviews ordered by createdAt desc
-    const reviews = await this.prisma.pRReview.findMany({
-      where: { pullRequestId: prId },
-      include: {
-        reviewer: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    // Get latest review per reviewer using Map
-    const latestReviewsMap = new Map<string, (typeof reviews)[0]>();
-    for (const review of reviews) {
-      if (!latestReviewsMap.has(review.reviewerId)) {
-        latestReviewsMap.set(review.reviewerId, review);
-      }
-    }
-
-    const latestReviews = Array.from(latestReviewsMap.values());
-
-    // Aggregate by state
-    const summary = {
-      approved: latestReviews.filter((r) => r.state === 'APPROVED').length,
-      changesRequested: latestReviews.filter(
-        (r) => r.state === 'CHANGES_REQUESTED',
-      ).length,
-      commented: latestReviews.filter((r) => r.state === 'COMMENTED').length,
-      totalReviewers: latestReviews.length,
-      reviewers: latestReviews.map((r) => ({
-        id: r.reviewer.id,
-        username: r.reviewer.username,
-        avatar: r.reviewer.avatar,
-        state: r.state,
-        createdAt: r.createdAt,
-      })),
-    };
-
-    return summary;
+    return this.prReviewService.getReviewSummary(prId);
   }
 
   /**
    * Check if PR can be merged based on approval rules
    * 检查PR是否可以合并（基于approval规则）
+   * 委托给PRMergeService处理
    */
   async canMergePR(prId: string, userId: string) {
-    const pr = await this.prisma.pullRequest.findUnique({
-      where: { id: prId },
-      include: {
-        project: {
-          select: {
-            id: true,
-            requireApprovals: true,
-            allowSelfMerge: true,
-            requireReviewFromOwner: true,
-            ownerId: true,
-          },
-        },
-      },
-    });
-
-    if (!pr) {
-      throw new NotFoundException(`Pull request ${prId} not found`);
-    }
-
-    // Get review summary
-    const reviewSummary = await this.getReviewSummary(prId);
-
-    // Rule 1: No active "changes requested" reviews
-    if (reviewSummary.changesRequested > 0) {
-      return {
-        allowed: false,
-        reason: 'Cannot merge: active change requests',
-        approvalCount: reviewSummary.approved,
-        requiredApprovals: pr.project.requireApprovals,
-        hasChangeRequests: true,
-      };
-    }
-
-    // Rule 2: Minimum approval count
-    if (reviewSummary.approved < pr.project.requireApprovals) {
-      return {
-        allowed: false,
-        reason: `Need ${pr.project.requireApprovals - reviewSummary.approved} more approval(s)`,
-        approvalCount: reviewSummary.approved,
-        requiredApprovals: pr.project.requireApprovals,
-        hasChangeRequests: false,
-      };
-    }
-
-    // Rule 3: Self-merge policy
-    if (!pr.project.allowSelfMerge && pr.authorId === userId) {
-      return {
-        allowed: false,
-        reason: 'Cannot merge your own PR (project policy)',
-        approvalCount: reviewSummary.approved,
-        requiredApprovals: pr.project.requireApprovals,
-        hasChangeRequests: false,
-      };
-    }
-
-    // Rule 4: Owner approval requirement
-    if (pr.project.requireReviewFromOwner) {
-      const ownerReview = reviewSummary.reviewers.find(
-        (r) => r.id === pr.project.ownerId && r.state === 'APPROVED',
-      );
-      if (!ownerReview) {
-        return {
-          allowed: false,
-          reason: 'Project owner approval required',
-          approvalCount: reviewSummary.approved,
-          requiredApprovals: pr.project.requireApprovals,
-          hasChangeRequests: false,
-        };
-      }
-    }
-
-    // All rules passed
-    return {
-      allowed: true,
-      approvalCount: reviewSummary.approved,
-      requiredApprovals: pr.project.requireApprovals,
-      hasChangeRequests: false,
-    };
+    return this.prMergeService.canMergePR(prId, userId);
   }
 
   /**

@@ -10,6 +10,11 @@ describe('OAuthService', () => {
   let _prisma: PrismaService;
   let _tokenService: TokenService;
 
+  // 设置测试环境变量
+  beforeAll(() => {
+    process.env.OAUTH_ENCRYPTION_KEY = 'test-oauth-encryption-key-32chars!';
+  });
+
   const mockPrisma = {
     oAuthAccount: {
       findUnique: jest.fn(),

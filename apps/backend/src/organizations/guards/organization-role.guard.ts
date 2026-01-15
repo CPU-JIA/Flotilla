@@ -6,6 +6,10 @@ import {
 import { Reflector } from '@nestjs/core';
 import { OrgRole, User } from '@prisma/client';
 import { PermissionService } from '../../common/services/permission.service';
+import {
+  AuthenticatedRequest,
+  AuthenticatedUser,
+} from '../../common/guards/base-role.guard';
 import { REQUIRE_ORG_ROLE_KEY } from '../decorators/require-org-role.decorator';
 import { BaseRoleGuard } from '../../common/guards/base-role.guard';
 
@@ -42,8 +46,8 @@ export class OrganizationRoleGuard extends BaseRoleGuard<OrgRole> {
   }
 
   protected async checkPermission(
-    request: any,
-    user: User,
+    request: AuthenticatedRequest,
+    user: AuthenticatedUser,
     requiredRole: OrgRole,
   ): Promise<void> {
     // Support both :slug (organizations routes) and :organizationSlug (teams routes)

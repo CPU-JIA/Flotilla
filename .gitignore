@@ -87,3 +87,4 @@ raft-advanced-test.ts
 raft-quick-test.ts
 test-results/
 flotilla-test-report-*.json
+.ace-tool/

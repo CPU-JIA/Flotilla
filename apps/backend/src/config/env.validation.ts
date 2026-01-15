@@ -60,16 +60,17 @@ export interface EnvironmentVariables {
   // Two-Factor Authentication
   TWO_FACTOR_ENCRYPTION_KEY: string;
 
-  // Webhook
-  WEBHOOK_SECRET?: string;
-
   // OAuth
+  OAUTH_ENCRYPTION_KEY: string;
   GITHUB_CLIENT_ID?: string;
   GITHUB_CLIENT_SECRET?: string;
   GITHUB_CALLBACK_URL?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   GOOGLE_CALLBACK_URL?: string;
+
+  // Webhook
+  WEBHOOK_SECRET?: string;
 
   // SMTP
   SMTP_HOST?: string;
@@ -185,6 +186,15 @@ const VALIDATION_RULES: ValidationRule[] = [
       'TWO_FACTOR_ENCRYPTION_KEY must be at least 32 characters for AES-256-GCM encryption',
   },
 
+  // ========== OAUTH ENCRYPTION ==========
+  {
+    name: 'OAUTH_ENCRYPTION_KEY',
+    required: true,
+    minLength: 32,
+    errorMessage:
+      'OAUTH_ENCRYPTION_KEY must be at least 32 characters for AES-256-GCM encryption',
+  },
+
   // ========== WEBHOOK ==========
   {
     name: 'WEBHOOK_SECRET',
@@ -285,50 +295,56 @@ export function validateEnvironmentVariables(
   }
 
   // ========== OAUTH CONFIGURATION VALIDATION ==========
-  // If any GitHub OAuth config is set, all must be set
+  // ECP-C1: Defensive Programming - OAuth is optional, only validate if CLIENT_ID/SECRET provided
+  // FIXED: 移除CALLBACK_URL检查，允许docker-compose.yml设置默认值
+  // If GitHub OAuth credentials are set, both CLIENT_ID and CLIENT_SECRET must be set
   const hasGithubConfig =
-    config.GITHUB_CLIENT_ID ||
-    config.GITHUB_CLIENT_SECRET ||
-    config.GITHUB_CALLBACK_URL;
+    (config.GITHUB_CLIENT_ID && (config.GITHUB_CLIENT_ID as string).trim()) ||
+    (config.GITHUB_CLIENT_SECRET &&
+      (config.GITHUB_CLIENT_SECRET as string).trim());
   if (hasGithubConfig) {
-    if (!config.GITHUB_CLIENT_ID) {
+    if (
+      !config.GITHUB_CLIENT_ID ||
+      !(config.GITHUB_CLIENT_ID as string).trim()
+    ) {
       errors.push(
         '❌ GITHUB_CLIENT_ID is required when GitHub OAuth is enabled',
       );
     }
-    if (!config.GITHUB_CLIENT_SECRET) {
+    if (
+      !config.GITHUB_CLIENT_SECRET ||
+      !(config.GITHUB_CLIENT_SECRET as string).trim()
+    ) {
       errors.push(
         '❌ GITHUB_CLIENT_SECRET is required when GitHub OAuth is enabled',
       );
     }
-    if (!config.GITHUB_CALLBACK_URL) {
-      errors.push(
-        '❌ GITHUB_CALLBACK_URL is required when GitHub OAuth is enabled',
-      );
-    }
+    // GITHUB_CALLBACK_URL使用docker-compose.yml的默认值，无需验证
   }
 
-  // If any Google OAuth config is set, all must be set
+  // If Google OAuth credentials are set, both CLIENT_ID and CLIENT_SECRET must be set
   const hasGoogleConfig =
-    config.GOOGLE_CLIENT_ID ||
-    config.GOOGLE_CLIENT_SECRET ||
-    config.GOOGLE_CALLBACK_URL;
+    (config.GOOGLE_CLIENT_ID && (config.GOOGLE_CLIENT_ID as string).trim()) ||
+    (config.GOOGLE_CLIENT_SECRET &&
+      (config.GOOGLE_CLIENT_SECRET as string).trim());
   if (hasGoogleConfig) {
-    if (!config.GOOGLE_CLIENT_ID) {
+    if (
+      !config.GOOGLE_CLIENT_ID ||
+      !(config.GOOGLE_CLIENT_ID as string).trim()
+    ) {
       errors.push(
         '❌ GOOGLE_CLIENT_ID is required when Google OAuth is enabled',
       );
     }
-    if (!config.GOOGLE_CLIENT_SECRET) {
+    if (
+      !config.GOOGLE_CLIENT_SECRET ||
+      !(config.GOOGLE_CLIENT_SECRET as string).trim()
+    ) {
       errors.push(
         '❌ GOOGLE_CLIENT_SECRET is required when Google OAuth is enabled',
       );
     }
-    if (!config.GOOGLE_CALLBACK_URL) {
-      errors.push(
-        '❌ GOOGLE_CALLBACK_URL is required when Google OAuth is enabled',
-      );
-    }
+    // GOOGLE_CALLBACK_URL使用docker-compose.yml的默认值，无需验证
   }
 
   // ========== WARNINGS (non-blocking) ==========

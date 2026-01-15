@@ -10,6 +10,7 @@
  */
 
 import { EventEmitter } from 'events';
+import { Logger } from '@nestjs/common';
 import type {
   NodeState,
   LogEntry,
@@ -58,6 +59,7 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
   private readonly stateMachine: StateMachine;
   private readonly storage: PersistentStorage;
   private readonly timer: RaftTimer;
+  private readonly logger = new Logger(RaftNode.name);
 
   constructor(
     private readonly config: ClusterConfig,
@@ -789,16 +791,13 @@ export class RaftNode extends EventEmitter implements RaftRPCHandler {
   }
 
   private log(message: string): void {
-    console.log(
-      `[${this.config.nodeId}] [TERM ${this.currentTerm}] [${this.state}] ${message}`,
-    );
+    const context = `[TERM ${this.currentTerm}] [${this.state}]`;
+    this.logger.log(message, context);
   }
 
   private logError(message: string, error: Error): void {
-    console.error(
-      `[${this.config.nodeId}] [TERM ${this.currentTerm}] [${this.state}] ERROR: ${message}`,
-      error,
-    );
+    const context = `[TERM ${this.currentTerm}] [${this.state}]`;
+    this.logger.error(`${message}: ${error.message}`, error.stack, context);
     this.emitEvent(RaftEvent.ERROR, { error, context: message });
   }
 

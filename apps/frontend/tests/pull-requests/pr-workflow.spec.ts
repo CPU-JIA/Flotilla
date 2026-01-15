@@ -22,7 +22,7 @@ import { test, expect, APIRequestContext } from '@playwright/test'
 async function loginViaAPI(
   request: APIRequestContext,
   username: string,
-  password: string,
+  password: string
 ): Promise<string> {
   const response = await request.post('http://localhost:4000/api/auth/login', {
     data: { usernameOrEmail: username, password },
@@ -38,7 +38,7 @@ async function loginViaAPI(
 async function createProjectViaAPI(
   request: APIRequestContext,
   token: string,
-  name: string,
+  name: string
 ): Promise<string> {
   const response = await request.post('http://localhost:4000/api/projects', {
     headers: {
@@ -64,7 +64,7 @@ async function createProjectViaAPI(
 async function _initGitRepo(
   request: APIRequestContext,
   token: string,
-  projectId: string,
+  projectId: string
 ): Promise<void> {
   const response = await request.post(`http://localhost:4000/api/git/${projectId}/init`, {
     headers: {
@@ -95,7 +95,7 @@ async function createBranch(
   token: string,
   projectId: string,
   name: string,
-  startPoint: string,
+  startPoint: string
 ): Promise<void> {
   const response = await request.post(`http://localhost:4000/api/git/${projectId}/branches`, {
     headers: {
@@ -116,7 +116,7 @@ async function createCommit(
   projectId: string,
   branch: string,
   files: Array<{ path: string; content: string }>,
-  message: string,
+  message: string
 ): Promise<Record<string, unknown>> {
   const response = await request.post(`http://localhost:4000/api/git/${projectId}/commit`, {
     headers: {
@@ -166,14 +166,14 @@ test.describe('Pull Request E2E Workflow', () => {
 
     // Verify page title
     await expect(
-      page.locator('h1, h2').filter({ hasText: /Pull Requests?|拉取请求/i }),
+      page.locator('h1, h2').filter({ hasText: /Pull Requests?|拉取请求/i })
     ).toBeVisible({
       timeout: 5000,
     })
 
     // Verify "New Pull Request" button exists
     await expect(
-      page.getByRole('button', { name: /New.*Pull Request|创建.*Pull Request/i }),
+      page.getByRole('button', { name: /New.*Pull Request|创建.*Pull Request/i })
     ).toBeVisible({
       timeout: 5000,
     })
@@ -188,7 +188,7 @@ test.describe('Pull Request E2E Workflow', () => {
       projectId,
       'feature-create-pr',
       [{ path: 'feature.txt', content: 'This is a new feature\nAdded functionality' }],
-      'Add new feature',
+      'Add new feature'
     )
 
     await page.goto(`/projects/${projectId}/pulls/new`)
@@ -203,7 +203,9 @@ test.describe('Pull Request E2E Workflow', () => {
     // Look for textarea or contenteditable for PR description
     const bodyField = page.locator('textarea').filter({ hasText: '' }).first()
     if (await bodyField.isVisible()) {
-      await bodyField.fill('This PR adds a new feature\n\n- Added feature.txt\n- Implemented functionality')
+      await bodyField.fill(
+        'This PR adds a new feature\n\n- Added feature.txt\n- Implemented functionality'
+      )
     }
 
     // Select source branch (feature-branch) if not auto-selected
@@ -229,7 +231,9 @@ test.describe('Pull Request E2E Workflow', () => {
     expect(prNumber).toBeGreaterThan(0)
 
     // Verify PR title displayed
-    await expect(page.getByRole('heading').filter({ hasText: 'Test PR: Add new feature' })).toBeVisible({
+    await expect(
+      page.getByRole('heading').filter({ hasText: 'Test PR: Add new feature' })
+    ).toBeVisible({
       timeout: 5000,
     })
 
@@ -248,7 +252,7 @@ test.describe('Pull Request E2E Workflow', () => {
       projectId,
       'feature-diff-test',
       [{ path: 'feature.txt', content: 'This is a new feature\nAdded functionality' }],
-      'Add new feature',
+      'Add new feature'
     )
 
     // First create a PR via API for testing
@@ -288,7 +292,9 @@ test.describe('Pull Request E2E Workflow', () => {
 
     // Verify diff content displayed (should show feature.txt changes)
     // Use more specific selector to match only the filename header, not the patch content
-    await expect(page.locator('.bg-gray-100,.bg-gray-800').filter({ hasText: 'feature.txt' })).toBeVisible({
+    await expect(
+      page.locator('.bg-gray-100,.bg-gray-800').filter({ hasText: 'feature.txt' })
+    ).toBeVisible({
       timeout: 5000,
     })
     await expect(page.locator('text=This is a new feature')).toBeVisible({
@@ -308,7 +314,7 @@ test.describe('Pull Request E2E Workflow', () => {
       projectId,
       'feature-merge-commit',
       [{ path: 'merge-commit.txt', content: 'Merge commit test' }],
-      'Add merge commit test file',
+      'Add merge commit test file'
     )
 
     // Create a PR via API
@@ -346,10 +352,13 @@ test.describe('Pull Request E2E Workflow', () => {
 
     // Select "Merge Commit" strategy from dropdown
     const strategySelect = page.locator('select').filter({ hasText: /Merge.*Squash.*Rebase/i })
-    await strategySelect.selectOption('merge')
+    await strategySelect.selectOption('MERGE')
 
     // Confirm merge - look for "合并 PR" or "Merge PR" button in dialog (use .last() to get dialog button)
-    await page.getByRole('button', { name: /^Merge.*PR$|^合并.*PR$/i }).last().click()
+    await page
+      .getByRole('button', { name: /^Merge.*PR$|^合并.*PR$/i })
+      .last()
+      .click()
 
     // Wait for merge to complete
     await page.waitForTimeout(2000)
@@ -360,7 +369,9 @@ test.describe('Pull Request E2E Workflow', () => {
     })
 
     // Verify merge commit message or merged state
-    await expect(page.locator('text=merged this pull request').or(page.locator('text=已合并'))).toBeVisible({
+    await expect(
+      page.locator('text=merged this pull request').or(page.locator('text=已合并'))
+    ).toBeVisible({
       timeout: 5000,
     })
 
@@ -378,7 +389,7 @@ test.describe('Pull Request E2E Workflow', () => {
       projectId,
       'feature-squash',
       [{ path: 'squash.txt', content: 'Squash merge test' }],
-      'Add squash test file',
+      'Add squash test file'
     )
 
     // Create a PR via API
@@ -415,10 +426,13 @@ test.describe('Pull Request E2E Workflow', () => {
 
     // Select "Squash" strategy from dropdown
     const strategySelect = page.locator('select').filter({ hasText: /Merge.*Squash.*Rebase/i })
-    await strategySelect.selectOption('squash')  // Lowercase to match MergeStrategy enum value
+    await strategySelect.selectOption('SQUASH') // Uppercase to match MergeStrategy enum value
 
     // Confirm merge
-    await page.getByRole('button', { name: /^Merge.*PR$|^合并.*PR$/i }).last().click()
+    await page
+      .getByRole('button', { name: /^Merge.*PR$|^合并.*PR$/i })
+      .last()
+      .click()
 
     // Wait for merge to complete
     await page.waitForTimeout(2000)
@@ -429,7 +443,9 @@ test.describe('Pull Request E2E Workflow', () => {
     })
 
     // Verify merge completed
-    await expect(page.locator('text=merged this pull request').or(page.locator('text=已合并'))).toBeVisible({
+    await expect(
+      page.locator('text=merged this pull request').or(page.locator('text=已合并'))
+    ).toBeVisible({
       timeout: 5000,
     })
   })
@@ -443,7 +459,7 @@ test.describe('Pull Request E2E Workflow', () => {
       projectId,
       'feature-rebase',
       [{ path: 'rebase.txt', content: 'Rebase merge test' }],
-      'Add rebase test file',
+      'Add rebase test file'
     )
 
     // Create a PR via API
@@ -480,10 +496,13 @@ test.describe('Pull Request E2E Workflow', () => {
 
     // Select "Rebase" strategy from dropdown
     const strategySelect = page.locator('select').filter({ hasText: /Merge.*Squash.*Rebase/i })
-    await strategySelect.selectOption('rebase')  // Lowercase to match MergeStrategy enum value
+    await strategySelect.selectOption('REBASE') // Uppercase to match MergeStrategy enum value
 
     // Confirm merge
-    await page.getByRole('button', { name: /^Merge.*PR$|^合并.*PR$/i }).last().click()
+    await page
+      .getByRole('button', { name: /^Merge.*PR$|^合并.*PR$/i })
+      .last()
+      .click()
 
     // Wait for merge to complete
     await page.waitForTimeout(2000)
@@ -494,7 +513,9 @@ test.describe('Pull Request E2E Workflow', () => {
     })
 
     // Verify merge completed
-    await expect(page.locator('text=merged this pull request').or(page.locator('text=已合并'))).toBeVisible({
+    await expect(
+      page.locator('text=merged this pull request').or(page.locator('text=已合并'))
+    ).toBeVisible({
       timeout: 5000,
     })
   })

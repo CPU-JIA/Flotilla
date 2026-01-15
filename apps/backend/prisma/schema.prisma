@@ -1,6 +1,3 @@
-// Prisma Schema for Cloud Dev Platform
-// 基于云计算的开发协作平台
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,249 +7,106 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================
-// 枚举定义
-// ============================================
-
-enum UserRole {
-  USER // 普通用户
-  SUPER_ADMIN // 超级管理员
-}
-
-enum ProjectVisibility {
-  PUBLIC // 公开
-  PRIVATE // 私有
-}
-
-enum MemberRole {
-  OWNER // 所有者
-  MAINTAINER // 维护者（可管理项目设置、审核PR）
-  MEMBER // 成员（可读写代码）
-  VIEWER // 查看者（只读）
-}
-
-enum RaftNodeState {
-  FOLLOWER // 跟随者
-  CANDIDATE // 候选人
-  LEADER // 领导者
-}
-
-enum IssueState {
-  OPEN // 开放状态
-  CLOSED // 已关闭
-}
-
-enum MilestoneState {
-  OPEN // 进行中
-  CLOSED // 已完成
-}
-
-enum PRState {
-  OPEN // 开放状态
-  MERGED // 已合并
-  CLOSED // 已关闭
-}
-
-enum ReviewState {
-  APPROVED // 批准
-  CHANGES_REQUESTED // 请求修改
-  COMMENTED // 仅评论
-}
-
-enum MergeStrategy {
-  MERGE // 标准merge commit (保留完整历史)
-  SQUASH // Squash merge (压缩成单个commit)
-  REBASE // Rebase merge (线性历史)
-}
-
-enum OrgRole {
-  OWNER // 组织所有者（最高权限）
-  ADMIN // 组织管理员（可管理成员和设置）
-  MEMBER // 组织成员（基础权限）
-}
-
-enum TeamRole {
-  MAINTAINER // 团队维护者（可管理团队和分配权限）
-  MEMBER // 团队成员（继承团队权限）
-}
-
-enum IndexStatus {
-  PENDING // 等待索引
-  INDEXING // 索引中
-  INDEXED // 已索引
-  FAILED // 索引失败
-  OUTDATED // 已过期（文件有新提交）
-}
-
-enum AuditAction {
-  CREATE // 创建
-  UPDATE // 更新
-  DELETE // 删除
-  LOGIN // 登录
-  LOGOUT // 登出
-  ACCESS // 访问
-  DOWNLOAD // 下载
-  UPLOAD // 上传
-  GRANT // 授权
-  REVOKE // 撤销
-  APPROVE // 批准
-  REJECT // 拒绝
-}
-
-enum AuditEntityType {
-  USER // 用户
-  PROJECT // 项目
-  REPOSITORY // 仓库
-  FILE // 文件
-  ISSUE // Issue
-  PULL_REQUEST // Pull Request
-  ORGANIZATION // 组织
-  TEAM // 团队
-  BRANCH_PROTECTION // 分支保护
-  SETTINGS // 设置
-}
-
-// ============================================
-// 用户模块
-// ============================================
-
 model User {
-  id           String   @id @default(cuid())
-  username     String   @unique @db.VarChar(50)
-  email        String   @unique @db.VarChar(255)
-  passwordHash String   @db.VarChar(255)
-  avatar       String?  @db.VarChar(500)
-  bio          String?  @db.Text
-  role         UserRole @default(USER)
-  isActive     Boolean  @default(true) // 账户是否激活（封禁功能）
-
-  // 邮箱验证字段
-  emailVerified      Boolean   @default(false) // 邮箱是否已验证
-  emailVerifyToken   String?   @unique @db.VarChar(255) // 邮箱验证token
-  emailVerifyExpires DateTime? // 验证token过期时间（24小时）
-
-  // 密码重置字段
-  passwordResetToken   String?   @unique @db.VarChar(255) // 密码重置token
-  passwordResetExpires DateTime? // 重置token过期时间（1小时）
-
-  // 🔒 SECURITY FIX: JWT Token版本控制（CWE-613: 密码重置后撤销旧Token）
-  tokenVersion Int @default(0) // Token版本号，密码重置/登出时递增
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
-  ownedProjects          Project[]               @relation("ProjectOwner")
-  projectMembers         ProjectMember[]
+  id                     String                     @id @default(cuid())
+  username               String                     @unique @db.VarChar(50)
+  email                  String                     @unique @db.VarChar(255)
+  passwordHash           String                     @db.VarChar(255)
+  avatar                 String?                    @db.VarChar(500)
+  bio                    String?
+  role                   UserRole                   @default(USER)
+  isActive               Boolean                    @default(true)
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
+  emailVerified          Boolean                    @default(false)
+  emailVerifyToken       String?                    @unique @db.VarChar(255)
+  emailVerifyExpires     DateTime?
+  passwordResetToken     String?                    @unique @db.VarChar(255)
+  passwordResetExpires   DateTime?
+  tokenVersion           Int                        @default(0)
+  apiTokens              ApiToken[]
+  auditLogs              AuditLog[]                 @relation("AuditLogUser")
+  collaborationSessions  CollaborationParticipant[]
   commits                Commit[]
-  uploadedFiles          ProjectFile[]
+  dataExportRequests     DataExportRequest[]
+  assignedIssues         IssueAssignee[]            @relation("IssueAssignees")
+  issueComments          IssueComment[]             @relation("IssueCommentAuthor")
+  issueEvents            IssueEvent[]               @relation("IssueEventActor")
+  authoredIssues         Issue[]                    @relation("IssueAuthor")
+  notificationPreference NotificationPreference?
+  notifications          Notification[]
+  oauthAccounts          OAuthAccount[]
   organizationMembers    OrganizationMember[]
-  teamMembers            TeamMember[]
-  authoredIssues         Issue[]                 @relation("IssueAuthor")
-  assignedIssues         IssueAssignee[]         @relation("IssueAssignees") // 🔒 新增
-  issueComments          IssueComment[]          @relation("IssueCommentAuthor")
-  issueEvents            IssueEvent[]            @relation("IssueEventActor")
-  authoredPRs            PullRequest[]           @relation("PRAuthor")
-  assignedPRs            PRAssignee[]            @relation("PRAssignees") // 🔒 新增
-  mergedPRs              PullRequest[]           @relation("PRMerger")
-  prReviews              PRReview[]
+  passwordHistories      PasswordHistory[]
+  assignedPRs            PRAssignee[]               @relation("PRAssignees")
   prComments             PRComment[]
   prEvents               PREvent[]
-  notifications          Notification[] // 用户接收的通知
-  notificationPreference NotificationPreference? // 用户通知偏好设置（1:1关系）
-  auditLogs              AuditLog[] // Phase 4: 用户的审计日志
-  passwordHistories      PasswordHistory[] // 🔒 密码历史记录（防止重用旧密码）
-  sessions               UserSession[] // 🔒 Phase 4: 用户会话记录（设备管理）
-  apiTokens              ApiToken[] // API 令牌（Personal Access Token）
-  createdWikiPages       WikiPage[]        @relation("WikiPageCreator") // 创建的 Wiki 页面
-  editedWikiPages        WikiPage[]        @relation("WikiPageEditor") // 最后编辑的 Wiki 页面
-  wikiPageEdits          WikiPageHistory[] @relation("WikiHistoryEditor") // Wiki 编辑历史
-  oauthAccounts          OAuthAccount[] // OAuth 账户关联
-  twoFactorAuth          TwoFactorAuth? // 两步验证配置
-  collaborationSessions  CollaborationParticipant[] // 参与的协作会话
-  dataExportRequests     DataExportRequest[] // GDPR 数据导出请求
+  prReviews              PRReview[]
+  uploadedFiles          ProjectFile[]
+  projectMembers         ProjectMember[]
+  ownedProjects          Project[]                  @relation("ProjectOwner")
+  authoredPRs            PullRequest[]              @relation("PRAuthor")
+  mergedPRs              PullRequest[]              @relation("PRMerger")
+  teamMembers            TeamMember[]
+  twoFactorAuth          TwoFactorAuth?
+  sessions               UserSession[]
+  createdWikiPages       WikiPage[]                 @relation("WikiPageCreator")
+  editedWikiPages        WikiPage[]                 @relation("WikiPageEditor")
+  editedWikiPageHistory  WikiPageHistory[]          @relation("WikiPageHistoryEditor")
 
   @@index([email])
   @@index([username])
   @@map("users")
 }
 
-// 🔒 SECURITY FIX: 密码历史记录表（防止重用旧密码）
-// CWE-521: Weak Password Requirements
 model PasswordHistory {
   id           String   @id @default(cuid())
   userId       String
   passwordHash String   @db.VarChar(255)
   createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // 关系
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt(sort: Desc)]) // 按用户和时间倒序索引（查询最近密码）
   @@map("password_histories")
 }
 
-// 🔒 Phase 4: 用户会话表（设备管理、异地登录检测）
-// 记录每次登录的设备、IP、地理位置
 model UserSession {
-  id        String  @id @default(cuid())
-  userId    String
-  ipAddress String  @db.VarChar(45) // IPv4: 15字符, IPv6: 45字符
-  userAgent String  @db.Text // 浏览器User-Agent
-  device    String? @db.VarChar(100) // 设备类型（解析自User-Agent）
-  browser   String? @db.VarChar(100) // 浏览器类型
-  os        String? @db.VarChar(100) // 操作系统
-  location  String? @db.VarChar(200) // 地理位置（城市/国家）
-
-  // Token版本（用于撤销特定会话）
+  id           String   @id @default(cuid())
+  userId       String
+  ipAddress    String   @db.VarChar(45)
+  userAgent    String
+  device       String?  @db.VarChar(100)
+  browser      String?  @db.VarChar(100)
+  os           String?  @db.VarChar(100)
+  location     String?  @db.VarChar(200)
   tokenVersion Int
+  isActive     Boolean  @default(true)
+  lastUsedAt   DateTime @default(now())
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // 会话状态
-  isActive   Boolean  @default(true) // 会话是否激活
-  lastUsedAt DateTime @default(now()) // 最后活跃时间
-  expiresAt  DateTime // Token过期时间
-
-  createdAt DateTime @default(now())
-
-  // 关系
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, isActive]) // 查询用户的活跃会话
-  @@index([userId, createdAt(sort: Desc)]) // 查询用户的历史会话
-  @@index([expiresAt]) // 定期清理过期会话
+  @@index([expiresAt])
   @@map("user_sessions")
 }
 
-// ============================================
-// 组织与团队模块
-// ============================================
-
 model Organization {
-  id          String  @id @default(cuid())
-  name        String  @db.VarChar(100)
-  slug        String  @unique @db.VarChar(100)
-  description String? @db.Text
-  avatar      String? @db.VarChar(500)
-  website     String? @db.VarChar(500)
-
-  // 资源配额
-  maxProjects  Int    @default(1000)
-  maxMembers   Int    @default(1000)
-  storageQuota BigInt @default(107374182400) // 100GB default
-  storageUsed  BigInt @default(0)
-
-  // 个人组织标识（用于数据迁移时区分个人项目组织）
-  isPersonal Boolean @default(false)
-
-  // 软删除支持（30天保护期）
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  // 关系
-  members  OrganizationMember[]
-  teams    Team[]
-  projects Project[]
+  id           String               @id @default(cuid())
+  name         String               @db.VarChar(100)
+  slug         String               @unique @db.VarChar(100)
+  description  String?
+  avatar       String?              @db.VarChar(500)
+  website      String?              @db.VarChar(500)
+  maxProjects  Int                  @default(1000)
+  maxMembers   Int                  @default(1000)
+  storageQuota BigInt               @default(107374182400)
+  storageUsed  BigInt               @default(0)
+  isPersonal   Boolean              @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  members      OrganizationMember[]
+  projects     Project[]
+  teams        Team[]
 
   @@index([slug])
   @@index([deletedAt])
@@ -261,43 +115,33 @@ model Organization {
 }
 
 model OrganizationMember {
-  id             String  @id @default(cuid())
+  id             String       @id @default(cuid())
   organizationId String
   userId         String
-  role           OrgRole @default(MEMBER)
-
-  joinedAt DateTime @default(now())
-
-  // 关系
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           OrgRole      @default(MEMBER)
+  joinedAt       DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, userId])
   @@index([userId])
   @@index([role])
-  // 性能优化索引 - 提升高频查询效率
-  @@index([organizationId, role]) // 优化成员角色查询（如 "组织的所有管理员"）
   @@map("organization_members")
 }
 
 model Team {
-  id             String  @id @default(cuid())
-  organizationId String
-  name           String  @db.VarChar(100)
-  slug           String  @db.VarChar(100)
-  description    String? @db.Text
-  avatar         String? @db.VarChar(500)
-
-  // 团队成员配额
-  maxMembers Int @default(100)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
-  organization       Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                 String                  @id @default(cuid())
+  organizationId     String
+  name               String                  @db.VarChar(100)
+  slug               String                  @db.VarChar(100)
+  description        String?
+  avatar             String?                 @db.VarChar(500)
+  maxMembers         Int                     @default(100)
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
   members            TeamMember[]
   projectPermissions TeamProjectPermission[]
+  organization       Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, slug])
   @@index([slug])
@@ -305,16 +149,13 @@ model Team {
 }
 
 model TeamMember {
-  id     String   @id @default(cuid())
-  teamId String
-  userId String
-  role   TeamRole @default(MEMBER)
-
+  id       String   @id @default(cuid())
+  teamId   String
+  userId   String
+  role     TeamRole @default(MEMBER)
   joinedAt DateTime @default(now())
-
-  // 关系
-  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId])
   @@index([userId])
@@ -326,70 +167,51 @@ model TeamProjectPermission {
   id        String     @id @default(cuid())
   teamId    String
   projectId String
-  role      MemberRole // 复用项目角色：OWNER/MAINTAINER/MEMBER/VIEWER
-
-  createdAt DateTime @default(now())
-
-  // 关系
-  team    Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role      MemberRole
+  createdAt DateTime   @default(now())
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  team      Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, projectId])
   @@index([projectId])
   @@map("team_project_permissions")
 }
 
-// ============================================
-// 项目模块
-// ============================================
-
 model Project {
-  id             String            @id @default(cuid())
-  name           String            @db.VarChar(100)
-  description    String?           @db.Text
-  visibility     ProjectVisibility @default(PRIVATE)
-  ownerId        String
-  organizationId String?
-
-  // 项目设置功能字段
-  defaultBranch String?   @default("main") @db.VarChar(100)
-  isArchived    Boolean   @default(false)
-  archivedAt    DateTime?
-
-  // PR Approval Settings
-  requireApprovals       Int     @default(1)
-  allowSelfMerge         Boolean @default(true)
-  requireReviewFromOwner Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
-  owner                 User                    @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  organization          Organization?           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  repository            Repository?
-  members               ProjectMember[]
-  projectFiles          ProjectFile[]
-  teamPermissions       TeamProjectPermission[]
-  issues                Issue[]
-  labels                Label[]
-  milestones            Milestone[]
-  pullRequests          PullRequest[]
-  branchProtectionRules BranchProtectionRule[]
-  searchMetadata        SearchMetadata[] // Code Search索引元数据
-  wikiPages             WikiPage[] // Wiki 文档页面
-  pipelines             Pipeline[] // CI/CD 流水线
-  webhooks              Webhook[] // Webhooks
-  collaborationSessions CollaborationSession[] // 协作会话
+  id                     String                  @id @default(cuid())
+  name                   String                  @db.VarChar(100)
+  description            String?
+  visibility             ProjectVisibility       @default(PRIVATE)
+  ownerId                String
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  organizationId         String?
+  archivedAt             DateTime?
+  defaultBranch          String?                 @default("main") @db.VarChar(100)
+  isArchived             Boolean                 @default(false)
+  allowSelfMerge         Boolean                 @default(true)
+  requireApprovals       Int                     @default(1)
+  requireReviewFromOwner Boolean                 @default(false)
+  branchProtectionRules  BranchProtectionRule[]
+  collaborationSessions  CollaborationSession[]
+  issues                 Issue[]
+  labels                 Label[]
+  milestones             Milestone[]
+  pipelines              Pipeline[]
+  projectFiles           ProjectFile[]
+  members                ProjectMember[]
+  organization           Organization?           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  owner                  User                    @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  pullRequests           PullRequest[]
+  repository             Repository?
+  searchMetadata         SearchMetadata[]
+  teamPermissions        TeamProjectPermission[]
+  webhooks               Webhook[]
+  wikiPages              WikiPage[]
 
   @@unique([ownerId, name])
   @@unique([organizationId, name])
   @@index([visibility])
-  // 性能优化索引 - 提升高频查询效率
-  @@index([ownerId, visibility]) // 优化所有者的项目查询（如 "我的公开项目"）
-  @@index([visibility, updatedAt]) // 优化公开项目列表查询（时间排序）
-  @@index([isArchived, updatedAt]) // 优化归档过滤查询（排除归档项目）
-  @@index([organizationId, visibility]) // 优化组织项目查询（如 "组织的公开项目"）
   @@map("projects")
 }
 
@@ -398,58 +220,44 @@ model ProjectMember {
   projectId String
   userId    String
   role      MemberRole @default(MEMBER)
-
-  joinedAt DateTime @default(now())
-
-  // 关系
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt  DateTime   @default(now())
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, userId])
   @@index([projectId])
   @@index([userId])
-  @@index([projectId, role]) // 优化按项目和角色查询（如：查找所有MAINTAINER）
   @@map("project_members")
 }
 
-// ============================================
-// 仓库模块
-// ============================================
-
 model Repository {
-  id            String @id @default(cuid())
-  projectId     String @unique
-  defaultBranch String @default("main") @db.VarChar(100)
-  storageUsed   BigInt @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
-  project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id             String           @id @default(cuid())
+  projectId      String           @unique
+  defaultBranch  String           @default("main") @db.VarChar(100)
+  storageUsed    BigInt           @default(0)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
   branches       Branch[]
   commits        Commit[]
   files          File[]
-  searchMetadata SearchMetadata[] // Code Search索引元数据
+  project        Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  searchMetadata SearchMetadata[]
 
   @@index([projectId])
   @@map("repositories")
 }
 
 model Branch {
-  id           String  @id @default(cuid())
+  id           String     @id @default(cuid())
   repositoryId String
-  name         String  @db.VarChar(100)
+  name         String     @db.VarChar(100)
   commitId     String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
-  repository Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-  commit     Commit?    @relation("BranchCommit", fields: [commitId], references: [id], onDelete: SetNull)
-  commits    Commit[]   @relation("BranchCommits")
-  files      File[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  commit       Commit?    @relation("BranchCommit", fields: [commitId], references: [id])
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  commits      Commit[]   @relation("BranchCommits")
+  files        File[]
 
   @@unique([repositoryId, name])
   @@index([commitId])
@@ -457,95 +265,69 @@ model Branch {
 }
 
 model Commit {
-  id           String  @id @default(cuid())
+  id           String     @id @default(cuid())
   repositoryId String
   branchId     String
   authorId     String
-  message      String  @db.Text
-  hash         String  @default(cuid()) @db.VarChar(64)
-  parentHash   String? @db.VarChar(64)
-
-  createdAt DateTime @default(now())
-
-  // 关系
-  repository  Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-  branch      Branch     @relation("BranchCommits", fields: [branchId], references: [id], onDelete: Cascade)
-  author      User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  files       File[]
-  branchHeads Branch[]   @relation("BranchCommit")
+  message      String
+  hash         String     @default(cuid()) @db.VarChar(64)
+  parentHash   String?    @db.VarChar(64)
+  createdAt    DateTime   @default(now())
+  branchHeads  Branch[]   @relation("BranchCommit")
+  author       User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  branch       Branch     @relation("BranchCommits", fields: [branchId], references: [id], onDelete: Cascade)
+  repository   Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  files        File[]
 
   @@index([repositoryId])
   @@index([branchId])
   @@index([authorId])
   @@index([hash])
   @@index([createdAt])
-  // 性能优化索引 - 提升高频查询效率
-  @@index([branchId, createdAt(sort: Desc)]) // 优化提交历史查询（分支的提交记录降序排列）
-  @@index([repositoryId, createdAt]) // 优化仓库提交统计（如 "仓库的最近提交"）
   @@map("commits")
 }
 
 model File {
-  id           String  @id @default(cuid())
-  repositoryId String
-  branchId     String
-  commitId     String?
-  path         String  @db.VarChar(500)
-  objectName   String  @db.VarChar(1000) // MinIO对象名称
-  size         Int
-  mimeType     String  @db.VarChar(100)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
-  repository Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
-  branch     Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade)
-  commit     Commit?    @relation(fields: [commitId], references: [id], onDelete: SetNull)
-
-  // Code Search索引元数据（可选关系）
+  id             String          @id @default(cuid())
+  repositoryId   String
+  branchId       String
+  commitId       String?
+  path           String          @db.VarChar(500)
+  objectName     String          @db.VarChar(1000)
+  size           Int
+  mimeType       String          @db.VarChar(100)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  branch         Branch          @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  commit         Commit?         @relation(fields: [commitId], references: [id])
+  repository     Repository      @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
   searchMetadata SearchMetadata?
 
   @@unique([repositoryId, branchId, path])
   @@index([branchId])
   @@index([commitId])
   @@index([path])
-  // 性能优化索引 - 提升高频查询效率
-  @@index([repositoryId, branchId, createdAt]) // 优化文件时间线查询（如 "仓库特定分支的最近文件变更"）
   @@map("files")
 }
 
-// ============================================
-// Code Search 模块
-// ============================================
-
 model SearchMetadata {
-  id           String @id @default(cuid())
-  fileId       String @unique // 关联到File表
-  projectId    String
-  repositoryId String
-
-  // 索引状态
+  id            String      @id @default(cuid())
+  fileId        String      @unique
+  projectId     String
+  repositoryId  String
   status        IndexStatus @default(PENDING)
-  indexedAt     DateTime? // 上次索引时间
-  failureReason String?     @db.Text // 失败原因
-  retryCount    Int         @default(0) // 重试次数
-
-  // 文件快照（用于检测变化）
-  lastCommitId String? @db.VarChar(64)
-  contentHash  String? @db.VarChar(64) // SHA256 hash
-
-  // 索引统计
-  symbolCount Int @default(0) // 代码符号数量
-  lineCount   Int @default(0) // 总行数
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
-  file       File       @relation(fields: [fileId], references: [id], onDelete: Cascade)
-  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  repository Repository @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  indexedAt     DateTime?
+  failureReason String?
+  retryCount    Int         @default(0)
+  lastCommitId  String?     @db.VarChar(64)
+  contentHash   String?     @db.VarChar(64)
+  symbolCount   Int         @default(0)
+  lineCount     Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  file          File        @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  project       Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  repository    Repository  @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
   @@index([repositoryId])
@@ -554,17 +336,12 @@ model SearchMetadata {
   @@map("search_metadata")
 }
 
-// ============================================
-// Raft 分布式共识模块
-// ============================================
-
 model RaftLog {
-  id        String @id @default(cuid())
-  index     Int    @unique
+  id        String   @id @default(cuid())
+  index     Int      @unique
   term      Int
-  command   String @db.Text
+  command   String
   timestamp BigInt
-
   createdAt DateTime @default(now())
 
   @@index([index])
@@ -582,34 +359,26 @@ model RaftState {
   leaderId    String?       @db.VarChar(50)
   commitIndex Int           @default(0)
   lastApplied Int           @default(0)
-
-  updatedAt DateTime @updatedAt
+  updatedAt   DateTime      @updatedAt
 
   @@index([nodeId])
   @@map("raft_state")
 }
 
-// ============================================
-// 项目文件管理模块
-// ============================================
-
 model ProjectFile {
-  id         String  @id @default(cuid())
+  id         String   @id @default(cuid())
   projectId  String
-  name       String  @db.VarChar(255)
-  path       String  @db.VarChar(1000) // MinIO中的对象路径
+  name       String   @db.VarChar(255)
+  path       String   @db.VarChar(1000)
   size       Int
-  mimeType   String  @db.VarChar(100)
-  type       String  @db.VarChar(10) // 'file' or 'folder'
-  folder     String? @db.VarChar(500) // 所属文件夹路径
+  mimeType   String   @db.VarChar(100)
+  type       String   @db.VarChar(10)
+  folder     String?  @db.VarChar(500)
   uploadedBy String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
-  project  Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  uploader User    @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploader   User     @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
 
   @@index([projectId])
   @@index([uploadedBy])
@@ -618,83 +387,60 @@ model ProjectFile {
   @@map("project_files")
 }
 
-// ============================================
-// Issue 追踪系统模块
-// ============================================
-
 model Issue {
-  id        String     @id @default(cuid())
-  projectId String
-  number    Int // 项目内唯一编号（自增）
-  title     String     @db.VarChar(500)
-  body      String?    @db.Text
-  state     IssueState @default(OPEN)
-  authorId  String
-
-  // 🔒 REFACTOR: 使用关联表替代数组字段（符合关系型数据库范式）
-  // ❌ 旧实现: assigneeIds String[], labelIds String[]
-  // ✅ 新实现: assignees IssueAssignee[], labels IssueLabel[]
+  id          String          @id @default(cuid())
+  projectId   String
+  number      Int
+  title       String          @db.VarChar(500)
+  body        String?
+  state       IssueState      @default(OPEN)
+  authorId    String
   milestoneId String?
-
-  closedAt  DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  // 关系
-  project   Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  author    User            @relation("IssueAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  milestone Milestone?      @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
-  assignees IssueAssignee[] // 🔒 被分配人关联表
-  labels    IssueLabel[] // 🔒 标签关联表
-  comments  IssueComment[]
-  events    IssueEvent[]
+  closedAt    DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  assignees   IssueAssignee[]
+  comments    IssueComment[]
+  events      IssueEvent[]
+  labels      IssueLabel[]
+  author      User            @relation("IssueAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  milestone   Milestone?      @relation(fields: [milestoneId], references: [id])
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, number])
   @@index([authorId])
   @@index([state])
   @@index([milestoneId])
   @@index([createdAt])
-  // 性能优化索引 - 提升高频查询效率
-  @@index([projectId, state, createdAt]) // 优化状态过滤+时间排序（如 "项目的开放Issue按时间排序"）
-  @@index([projectId, milestoneId]) // 优化里程碑过滤（如 "项目的特定里程碑下的Issue"）
-  @@index([projectId, number]) // 优化按编号查询（补充unique索引，提升特定查询场景）
   @@map("issues")
 }
 
 model Label {
-  id          String  @id @default(cuid())
+  id          String       @id @default(cuid())
   projectId   String
-  name        String  @db.VarChar(50)
-  color       String  @db.VarChar(7) // Hex color (#RRGGBB)
-  description String? @db.VarChar(200)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
+  name        String       @db.VarChar(50)
+  color       String       @db.VarChar(7)
+  description String?      @db.VarChar(200)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  issueLabels IssueLabel[]
   project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  issueLabels IssueLabel[] // 🔒 标签关联表
 
   @@unique([projectId, name])
   @@map("labels")
 }
 
-// 🔒 REFACTOR: Issue 标签关联表（替代 labelIds String[]）
-// ECP-A1: SOLID 原则 - 符合关系型数据库设计范式
-// ECP-C3: Performance Awareness - 优化查询性能，消除 N+1 查询风险
 model IssueLabel {
   id        String   @id @default(cuid())
   issueId   String
   labelId   String
   createdAt DateTime @default(now())
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  label     Label    @relation(fields: [labelId], references: [id], onDelete: Cascade)
 
-  // 关系
-  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
-  label Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
-
-  @@unique([issueId, labelId]) // 防止重复标签
-  @@index([labelId]) // 查询标签的所有Issue
-  @@index([issueId]) // 查询Issue的所有标签
+  @@unique([issueId, labelId])
+  @@index([labelId])
+  @@index([issueId])
   @@map("issue_labels")
 }
 
@@ -702,17 +448,14 @@ model Milestone {
   id          String         @id @default(cuid())
   projectId   String
   title       String         @db.VarChar(200)
-  description String?        @db.Text
+  description String?
   dueDate     DateTime?
   state       MilestoneState @default(OPEN)
   closedAt    DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  issues  Issue[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  issues      Issue[]
+  project     Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, title])
   @@index([state])
@@ -721,17 +464,14 @@ model Milestone {
 }
 
 model IssueComment {
-  id       String @id @default(cuid())
-  issueId  String
-  authorId String
-  body     String @db.Text
-
+  id        String   @id @default(cuid())
+  issueId   String
+  authorId  String
+  body      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  // 关系
-  issue  Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
-  author User  @relation("IssueCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  author    User     @relation("IssueCommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
 
   @@index([issueId])
   @@index([authorId])
@@ -739,36 +479,29 @@ model IssueComment {
   @@map("issue_comments")
 }
 
-// 🔒 REFACTOR: Issue 被分配人关联表（替代 assigneeIds String[]）
-// ECP-A1: SOLID 原则 - 符合关系型数据库设计范式
 model IssueAssignee {
   id         String   @id @default(cuid())
   issueId    String
   userId     String
   assignedAt DateTime @default(now())
+  issue      Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  user       User     @relation("IssueAssignees", fields: [userId], references: [id], onDelete: Cascade)
 
-  // 关系
-  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
-  user  User  @relation("IssueAssignees", fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([issueId, userId]) // 防止重复分配
-  @@index([userId]) // 查询用户被分配的所有Issue
-  @@index([issueId]) // 查询Issue的所有被分配人
+  @@unique([issueId, userId])
+  @@index([userId])
+  @@index([issueId])
   @@map("issue_assignees")
 }
 
 model IssueEvent {
-  id       String @id @default(cuid())
-  issueId  String
-  actorId  String
-  event    String @db.VarChar(50) // 事件类型：opened, closed, reopened, assigned, labeled, etc.
-  metadata Json? // 事件相关元数据
-
+  id        String   @id @default(cuid())
+  issueId   String
+  actorId   String
+  event     String   @db.VarChar(50)
+  metadata  Json?
   createdAt DateTime @default(now())
-
-  // 关系
-  issue Issue @relation(fields: [issueId], references: [id], onDelete: Cascade)
-  actor User  @relation("IssueEventActor", fields: [actorId], references: [id], onDelete: Cascade)
+  actor     User     @relation("IssueEventActor", fields: [actorId], references: [id], onDelete: Cascade)
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
 
   @@index([issueId])
   @@index([actorId])
@@ -777,67 +510,50 @@ model IssueEvent {
   @@map("issue_events")
 }
 
-// ============================================
-// Pull Request 系统模块
-// ============================================
-
 model PullRequest {
-  id           String  @id @default(cuid())
-  projectId    String
-  number       Int // 项目内唯一编号（自增）
-  title        String  @db.VarChar(500)
-  body         String? @db.Text
-  sourceBranch String  @db.VarChar(100)
-  targetBranch String  @db.VarChar(100)
-  state        PRState @default(OPEN)
-  authorId     String
-
-  // 合并相关
+  id            String         @id @default(cuid())
+  projectId     String
+  number        Int
+  title         String         @db.VarChar(500)
+  body          String?
+  sourceBranch  String         @db.VarChar(100)
+  targetBranch  String         @db.VarChar(100)
+  state         PRState        @default(OPEN)
+  authorId      String
   mergedAt      DateTime?
   mergedBy      String?
-  mergeCommit   String?        @db.VarChar(64) // 合并后生成的 commit hash
-  mergeStrategy MergeStrategy? // 使用的合并策略
-
-  closedAt  DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  // 关系
-  project   Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  author    User         @relation("PRAuthor", fields: [authorId], references: [id], onDelete: Cascade)
-  merger    User?        @relation("PRMerger", fields: [mergedBy], references: [id], onDelete: SetNull)
-  assignees PRAssignee[] // 🔒 新增: 被分配人关联表
-  reviews   PRReview[]
-  comments  PRComment[]
-  events    PREvent[]
+  mergeCommit   String?        @db.VarChar(64)
+  closedAt      DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  mergeStrategy MergeStrategy?
+  assignees     PRAssignee[]
+  comments      PRComment[]
+  events        PREvent[]
+  reviews       PRReview[]
+  author        User           @relation("PRAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  merger        User?          @relation("PRMerger", fields: [mergedBy], references: [id])
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, number])
   @@index([projectId])
   @@index([authorId])
   @@index([state])
   @@index([createdAt])
-  // 性能优化索引 - 提升高频查询效率
-  @@index([projectId, state, createdAt]) // 优化PR列表查询（如 "项目的开放PR按时间排序"）
-  @@index([authorId, state]) // 优化用户PR查询（如 "用户的开放PR"）
-  @@index([projectId, number]) // 优化按编号查询（补充unique索引）
   @@map("pull_requests")
 }
 
-// 🔒 REFACTOR: PR 被分配人关联表
-// ECP-A1: SOLID 原则 - 符合关系型数据库设计范式
 model PRAssignee {
-  id            String   @id @default(cuid())
+  id            String      @id @default(cuid())
   pullRequestId String
   userId        String
-  assignedAt    DateTime @default(now())
+  assignedAt    DateTime    @default(now())
+  pullRequest   PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  user          User        @relation("PRAssignees", fields: [userId], references: [id], onDelete: Cascade)
 
-  // 关系
-  pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
-  user        User        @relation("PRAssignees", fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([pullRequestId, userId]) // 防止重复分配
-  @@index([userId]) // 查询用户被分配的所有PR
-  @@index([pullRequestId]) // 查询PR的所有被分配人
+  @@unique([pullRequestId, userId])
+  @@index([userId])
+  @@index([pullRequestId])
   @@map("pr_assignees")
 }
 
@@ -846,14 +562,11 @@ model PRReview {
   pullRequestId String
   reviewerId    String
   state         ReviewState
-  body          String?     @db.Text
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
-  pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
-  reviewer    User        @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  body          String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  pullRequest   PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
+  reviewer      User        @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
 
   @@index([pullRequestId])
   @@index([reviewerId])
@@ -862,20 +575,17 @@ model PRReview {
 }
 
 model PRComment {
-  id            String  @id @default(cuid())
+  id            String      @id @default(cuid())
   pullRequestId String
   authorId      String
-  body          String  @db.Text
-  filePath      String? @db.VarChar(500) // For line-level comments
-  lineNumber    Int? // For line-level comments
-  commitHash    String? @db.VarChar(64) // 锁定到特定 commit，防止 diff 变化后行号错位
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
-  pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
-  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body          String
+  filePath      String?     @db.VarChar(500)
+  lineNumber    Int?
+  commitHash    String?     @db.VarChar(64)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  author        User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  pullRequest   PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
 
   @@index([pullRequestId])
   @@index([authorId])
@@ -884,17 +594,14 @@ model PRComment {
 }
 
 model PREvent {
-  id            String @id @default(cuid())
+  id            String      @id @default(cuid())
   pullRequestId String
   actorId       String
-  event         String @db.VarChar(50) // 事件类型：opened, closed, merged, reviewed, etc.
-  metadata      Json? // 事件相关元数据
-
-  createdAt DateTime @default(now())
-
-  // 关系
-  pullRequest PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
-  actor       User        @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  event         String      @db.VarChar(50)
+  metadata      Json?
+  createdAt     DateTime    @default(now())
+  actor         User        @relation(fields: [actorId], references: [id], onDelete: Cascade)
+  pullRequest   PullRequest @relation(fields: [pullRequestId], references: [id], onDelete: Cascade)
 
   @@index([pullRequestId])
   @@index([actorId])
@@ -903,355 +610,234 @@ model PREvent {
   @@map("pr_events")
 }
 
-// ============================================
-// 通知系统模块
-// ============================================
-
-/**
- * 通知类型枚举
- * 支持的通知场景：
- * - Pull Request相关：创建、合并、关闭、审查、评论
- * - Issue相关：提及、分配、评论
- */
-enum NotificationType {
-  PR_CREATED // PR被创建
-  PR_MERGED // PR被合并
-  PR_CLOSED // PR被关闭
-  PR_REVIEWED // PR被审查
-  PR_COMMENTED // PR被评论
-  ISSUE_MENTIONED // 在Issue中被提及
-  ISSUE_ASSIGNED // 被分配到Issue
-  ISSUE_COMMENTED // Issue被评论
-}
-
-/**
- * 通知表
- * 存储所有用户通知记录
- * ECP-C3: Performance Awareness - 添加索引优化查询
- * - userId: 按用户查询未读通知
- * - read: 快速过滤已读/未读
- * - createdAt: 时间排序
- */
+/// *
+///  * 通知表
+///  * 存储所有用户通知记录
+///  * ECP-C3: Performance Awareness - 添加索引优化查询
+///  * - userId: 按用户查询未读通知
+///  * - read: 快速过滤已读/未读
+///  * - createdAt: 时间排序
 model Notification {
-  id       String           @id @default(cuid())
-  userId   String // 通知接收者
-  type     NotificationType // 通知类型
-  title    String           @db.VarChar(200) // 通知标题
-  body     String?          @db.Text // 通知内容（支持Markdown）
-  read     Boolean          @default(false) // 是否已读
-  link     String?          @db.VarChar(500) // 相关资源链接（如PR详情页）
-  metadata Json? // 额外元数据（PR ID、Issue ID、评论内容等）
-
-  createdAt DateTime @default(now())
-
-  // 关系
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String           @db.VarChar(200)
+  body      String?
+  read      Boolean          @default(false)
+  link      String?          @db.VarChar(500)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([read])
   @@index([createdAt])
-  // 性能优化索引 - 提升高频查询效率
-  @@index([userId, read, createdAt]) // 优化未读通知查询+时间排序（如 "用户的未读通知按时间排序"）
   @@map("notifications")
 }
 
-/**
- * 通知偏好设置表
- * 用户可自定义接收哪些类型的通知
- * ECP-A1: SOLID - 单一职责原则
- * - 每个用户一条配置记录（1:1关系）
- */
+/// *
+///  * 通知偏好设置表
+///  * 用户可自定义接收哪些类型的通知
+///  * ECP-A1: SOLID - 单一职责原则
+///  * - 每个用户一条配置记录（1:1关系）
 model NotificationPreference {
-  id     String @id @default(cuid())
-  userId String @unique // 用户ID（唯一）
-
-  // PR通知开关
-  prCreated   Boolean @default(true) // PR创建通知
-  prMerged    Boolean @default(true) // PR合并通知
-  prReviewed  Boolean @default(true) // PR审查通知
-  prCommented Boolean @default(true) // PR评论通知
-
-  // Issue通知开关
-  issueMentioned Boolean @default(true) // Issue提及通知
-  issueAssigned  Boolean @default(true) // Issue分配通知
-  issueCommented Boolean @default(true) // Issue评论通知
-
-  // 邮件通知（暂未实现，预留字段）
-  emailNotifications Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  prCreated          Boolean  @default(true)
+  prMerged           Boolean  @default(true)
+  prReviewed         Boolean  @default(true)
+  prCommented        Boolean  @default(true)
+  issueMentioned     Boolean  @default(true)
+  issueAssigned      Boolean  @default(true)
+  issueCommented     Boolean  @default(true)
+  emailNotifications Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notification_preferences")
 }
 
-// ============================================
-// 分支保护规则模块
-// ============================================
-
-/**
- * 分支保护规则表
- * 为项目的特定分支配置保护策略，防止未经审核的代码合并
- * MVP功能：
- * - 要求PR审核才能合并
- * - 设置最少审核人数
- * - 禁止直接推送到保护分支
- * 后续扩展：
- * - 分支模式匹配（通配符支持）
- * - CI/CD状态检查集成
- * - Code Owner审查要求
- */
+/// *
+///  * 分支保护规则表
+///  * 为项目的特定分支配置保护策略，防止未经审核的代码合并
+///  * MVP功能：
+///  * - 要求PR审核才能合并
+///  * - 设置最少审核人数
+///  * - 禁止直接推送到保护分支
+///  * 后续扩展：
+///  * - 分支模式匹配（通配符支持）
+///  * - CI/CD状态检查集成
+///  * - Code Owner审查要求
 model BranchProtectionRule {
-  id        String @id @default(cuid())
-  projectId String
+  id                       String   @id @default(cuid())
+  projectId                String
+  branchPattern            String   @db.VarChar(100)
+  requirePullRequest       Boolean  @default(true)
+  requiredApprovingReviews Int      @default(1)
+  dismissStaleReviews      Boolean  @default(false)
+  requireCodeOwnerReview   Boolean  @default(false)
+  allowForcePushes         Boolean  @default(false)
+  allowDeletions           Boolean  @default(false)
+  requireStatusChecks      Boolean  @default(false)
+  requiredStatusChecks     String[]
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  project                  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  // 保护的分支名称（MVP: 精确匹配，如 "main", "develop"）
-  branchPattern String @db.VarChar(100)
-
-  // 核心保护规则
-  requirePullRequest       Boolean @default(true) // 必须通过PR修改（不能直接push）
-  requiredApprovingReviews Int     @default(1) // 最少批准审核数量
-  dismissStaleReviews      Boolean @default(false) // 新提交后作废旧审查
-  requireCodeOwnerReview   Boolean @default(false) // 要求Code Owner审查
-
-  // 高级保护选项
-  allowForcePushes Boolean @default(false) // 允许强制推送（危险操作）
-  allowDeletions   Boolean @default(false) // 允许删除保护分支
-
-  // 状态检查（CI/CD集成，Phase 2功能，暂时保留字段）
-  requireStatusChecks  Boolean  @default(false) // 要求状态检查通过
-  requiredStatusChecks String[] // 必须通过的检查项 ["ci", "tests", "build"]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@unique([projectId, branchPattern]) // 每个项目的每个分支只能有一条保护规则
+  @@unique([projectId, branchPattern])
   @@index([projectId])
   @@map("branch_protection_rules")
 }
 
-// ============================================
-// 安全审计日志模块
-// ============================================
-
-/**
- * 安全审计日志表
- * Phase 4: 记录所有敏感操作和安全事件，用于合规审计和安全分析
- * 核心功能：
- * - 记录用户操作（登录、权限变更、敏感数据访问）
- * - 记录资源变更（创建、更新、删除）
- * - 记录审计追踪（谁、什么时间、做了什么、结果如何）
- * - 支持 IP 地址和 User-Agent 追踪
- * 合规要求：
- * - SOC2: 审计日志保留至少90天
- * - ISO27001: 记录安全相关事件
- * - GDPR: 记录个人数据访问
- */
+/// *
+///  * 安全审计日志表
+///  * Phase 4: 记录所有敏感操作和安全事件，用于合规审计和安全分析
+///  * 核心功能：
+///  * - 记录用户操作（登录、权限变更、敏感数据访问）
+///  * - 记录资源变更（创建、更新、删除）
+///  * - 记录审计追踪（谁、什么时间、做了什么、结果如何）
+///  * - 支持 IP 地址和 User-Agent 追踪
+///  * 合规要求：
+///  * - SOC2: 审计日志保留至少90天
+///  * - ISO27001: 记录安全相关事件
+///  * - GDPR: 记录个人数据访问
 model AuditLog {
-  id String @id @default(cuid())
+  id          String          @id @default(cuid())
+  entityId    String?         @db.VarChar(100)
+  userId      String?         @db.VarChar(100)
+  username    String?         @db.VarChar(50)
+  ipAddress   String?         @db.VarChar(45)
+  userAgent   String?
+  description String
+  metadata    Json?
+  success     Boolean         @default(true)
+  errorMsg    String?
+  createdAt   DateTime        @default(now())
+  action      AuditAction     @default(ACCESS)
+  entityType  AuditEntityType
+  user        User?           @relation("AuditLogUser", fields: [userId], references: [id], onDelete: SetNull)
 
-  // 操作信息
-  action     AuditAction     @default(ACCESS) // 操作类型
-  entityType AuditEntityType // 实体类型
-  entityId   String?         @db.VarChar(100) // 实体 ID（可选，如登录操作无实体）
-
-  // 操作者信息
-  userId    String? @db.VarChar(100) // 操作用户 ID（系统操作可为 null）
-  username  String? @db.VarChar(50) // 操作用户名（冗余，便于查询）
-  ipAddress String? @db.VarChar(45) // IP 地址（IPv4/IPv6）
-  userAgent String? @db.Text // User-Agent
-
-  // 操作详情
-  description String  @db.Text // 操作描述（人类可读）
-  metadata    Json? // 额外元数据（JSON格式）
-  success     Boolean @default(true) // 操作是否成功
-  errorMsg    String? @db.Text // 失败时的错误信息
-
-  // 时间戳
-  createdAt DateTime @default(now())
-
-  // 关系（可选，用于级联删除）
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  // 索引优化
-  @@index([userId]) // 按用户查询审计日志
-  @@index([action]) // 按操作类型查询
-  @@index([entityType]) // 按实体类型查询
-  @@index([createdAt]) // 按时间范围查询
-  @@index([success]) // 查询失败操作
-  @@index([userId, createdAt]) // 复合索引：用户的时间线
+  @@index([userId])
   @@map("audit_logs")
 }
 
-// ============================================
-// API Token 模块（Personal Access Token）
-// ============================================
-
-/**
- * API Token 表
- * 用户可创建多个 API 令牌用于程序化访问 API
- * 核心功能：
- * - 支持多个令牌（每个令牌有独立名称）
- * - 作用域控制（read, write, admin）
- * - 可选过期时间
- * - SHA256 哈希存储（安全性）
- * - 令牌只在创建时显示一次
- * ECP-C1: 防御性编程 - 令牌哈希存储，不可逆
- * ECP-C2: 系统化错误处理 - 过期验证、作用域验证
- */
+/// *
+///  * API Token 表
+///  * 用户可创建多个 API 令牌用于程序化访问 API
+///  * 核心功能：
+///  * - 支持多个令牌（每个令牌有独立名称）
+///  * - 作用域控制（read, write, admin）
+///  * - 可选过期时间
+///  * - SHA256 哈希存储（安全性）
+///  * - 令牌只在创建时显示一次
+///  * ECP-C1: 防御性编程 - 令牌哈希存储，不可逆
+///  * ECP-C2: 系统化错误处理 - 过期验证、作用域验证
 model ApiToken {
   id          String    @id @default(cuid())
   userId      String
-  name        String    @db.VarChar(100) // 令牌名称（用户自定义）
-  tokenHash   String    @unique @db.VarChar(64) // SHA256 hash (64 hex chars)
-  tokenPrefix String    @db.VarChar(8) // 前8字符用于识别
-  scopes      String[] // 作用域：["read", "write", "admin"]
-  expiresAt   DateTime? // 可选过期时间
-  lastUsedAt  DateTime? // 最后使用时间
+  name        String    @db.VarChar(100)
+  tokenHash   String    @unique @db.VarChar(64)
+  tokenPrefix String    @db.VarChar(8)
+  scopes      String[]
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
   createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // 关系
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId]) // 查询用户的所有令牌
-  @@index([tokenHash]) // 快速验证令牌
-  @@index([expiresAt]) // 定期清理过期令牌
-  @@index([userId, createdAt(sort: Desc)]) // 优化用户令牌列表查询
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@index([userId, createdAt(sort: Desc)])
   @@map("api_tokens")
 }
 
-// ============================================
-// Newsletter 模块
-// ============================================
-
-/**
- * Newsletter 订阅者表
- * 用于营销网站的Newsletter订阅功能
- * 核心功能：
- * - 邮箱订阅
- * - 双重确认（发送确认邮件）
- * - 取消订阅
- * ECP-C1: 防御性编程 - 邮箱唯一性、确认token安全
- */
+/// *
+///  * Newsletter 订阅者表
+///  * 用于营销网站的Newsletter订阅功能
+///  * 核心功能：
+///  * - 邮箱订阅
+///  * - 双重确认（发送确认邮件）
+///  * - 取消订阅
+///  * ECP-C1: 防御性编程 - 邮箱唯一性、确认token安全
 model NewsletterSubscriber {
   id           String    @id @default(cuid())
-  email        String    @unique @db.VarChar(255) // 订阅邮箱
-  confirmToken String    @unique @db.VarChar(64) // 确认token（SHA256）
-  confirmed    Boolean   @default(false) // 是否已确认
-  confirmedAt  DateTime? // 确认时间
+  email        String    @unique @db.VarChar(255)
+  confirmToken String    @unique @db.VarChar(64)
+  confirmed    Boolean   @default(false)
+  confirmedAt  DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  @@index([email]) // 快速查询邮箱
-  @@index([confirmed]) // 查询已确认/未确认订阅
-  @@index([createdAt(sort: Desc)]) // 按时间排序
   @@map("newsletter_subscribers")
 }
 
-// ============================================
-// Wiki 文档模块
-// ============================================
-
-/**
- * Wiki 页面模型
- * 支持层级结构、版本历史、Markdown 内容
- * ECP-A1: SOLID - 清晰的数据模型结构
- * ECP-C1: 防御性编程 - slug 唯一性约束
- */
+/// *
+///  * Wiki 页面模型
+///  * 支持层级结构、版本历史、Markdown 内容
+///  * ECP-A1: SOLID - 清晰的数据模型结构
+///  * ECP-C1: 防御性编程 - slug 唯一性约束
 model WikiPage {
-  id    String @id @default(cuid())
-  slug  String @db.VarChar(200) // URL 友好标识符
-  title String @db.VarChar(500) // 页面标题
-  content String @db.Text // Markdown 内容
-  order Int    @default(0) // 同级排序
-
-  // 所属项目
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  // 层级结构（自引用）
-  parentId String?
-  parent   WikiPage?  @relation("WikiPageHierarchy", fields: [parentId], references: [id], onDelete: Restrict)
-  children WikiPage[] @relation("WikiPageHierarchy")
-
-  // 作者和编辑者
+  id             String            @id @default(cuid())
+  projectId      String
+  slug           String            @db.VarChar(200)
+  title          String            @db.VarChar(500)
+  content        String
+  parentId       String?
+  order          Int               @default(0)
   createdById    String
-  createdBy      User   @relation("WikiPageCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
   lastEditedById String
-  lastEditedBy   User   @relation("WikiPageEditor", fields: [lastEditedById], references: [id], onDelete: Restrict)
+  history        WikiPageHistory[]
+  createdBy      User              @relation("WikiPageCreator", fields: [createdById], references: [id])
+  lastEditedBy   User              @relation("WikiPageEditor", fields: [lastEditedById], references: [id])
+  project        Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  // 时间戳
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 版本历史
-  history WikiPageHistory[]
-
-  @@unique([projectId, slug]) // 项目内 slug 唯一
-  @@index([projectId]) // 按项目查询
-  @@index([parentId]) // 树形结构查询
-  @@index([order]) // 排序查询
+  @@unique([projectId, slug])
+  @@index([projectId])
+  @@index([parentId])
   @@map("wiki_pages")
 }
 
-/**
- * Wiki 页面历史记录模型
- * 保存每次编辑的历史版本
- * ECP-C1: 防御性编程 - 完整的版本追溯
- */
+/// *
+///  * Wiki 页面历史记录模型
+///  * 保存每次编辑的历史版本
+///  * ECP-C1: 防御性编程 - 完整的版本追溯
 model WikiPageHistory {
-  id       String @id @default(cuid())
-  pageId   String // 所属页面
-  page     WikiPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
-
-  title    String @db.VarChar(500) // 历史版本标题
-  content  String @db.Text // 历史版本内容
-  version  Int // 版本号（递增）
-
-  // 编辑者
+  id         String   @id(map: "wiki_page_histories_pkey") @default(cuid())
+  pageId     String
+  title      String   @db.VarChar(500)
+  content    String
   editedById String
-  editedBy   User   @relation("WikiHistoryEditor", fields: [editedById], references: [id], onDelete: Restrict)
+  editedAt   DateTime @default(now())
+  message    String?  @db.VarChar(500)
+  version    Int      @default(1)
+  editedBy   User     @relation("WikiPageHistoryEditor", fields: [editedById], references: [id])
+  page       WikiPage @relation(fields: [pageId], references: [id], onDelete: Cascade, map: "wiki_page_histories_pageId_fkey")
 
-  // 编辑时间
-  editedAt DateTime @default(now())
-
-  @@index([pageId, version]) // 查询特定版本
-  @@index([editedAt(sort: Desc)]) // 按时间排序
   @@map("wiki_page_history")
 }
 
-// ============================================
-// OAuth 集成模块
-// ============================================
-
-/**
- * OAuth 账户关联表
- * 支持第三方 OAuth 登录（GitHub、Google 等）
- * ECP-C1: 防御性编程 - 令牌加密存储
- */
+/// *
+///  * OAuth 账户关联表
+///  * 支持第三方 OAuth 登录（GitHub、Google 等）
+///  * ECP-C1: 防御性编程 - 令牌加密存储
 model OAuthAccount {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   userId       String
-  provider     String   @db.VarChar(50) // github, google, etc.
-  providerId   String   @db.VarChar(255) // OAuth provider's user ID
-  email        String?  @db.VarChar(255)
-  displayName  String?  @db.VarChar(255)
-  accessToken  String?  @db.Text
-  refreshToken String?  @db.Text
+  provider     String    @db.VarChar(50)
+  providerId   String    @db.VarChar(255)
+  email        String?   @db.VarChar(255)
+  displayName  String?   @db.VarChar(255)
+  accessToken  String?
+  refreshToken String?
   expiresAt    DateTime?
-  scope        String?  @db.Text
+  scope        String?
   metadata     Json?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // 关系
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerId])
   @@index([userId])
@@ -1260,35 +846,20 @@ model OAuthAccount {
   @@map("oauth_accounts")
 }
 
-// ============================================
-// CI/CD Pipeline 模块
-// ============================================
-
-enum PipelineStatus {
-  PENDING
-  RUNNING
-  SUCCESS
-  FAILURE
-  CANCELLED
-}
-
-/**
- * Pipeline 配置表
- * 定义 CI/CD 流水线配置
- */
+/// *
+///  * Pipeline 配置表
+///  * 定义 CI/CD 流水线配置
 model Pipeline {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   projectId String
-  name      String   @db.VarChar(100)
-  config    Json // YAML/JSON 配置
-  triggers  String[] // push, pull_request, schedule
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
-  project Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  runs    PipelineRun[]
+  name      String        @db.VarChar(100)
+  config    Json
+  triggers  String[]
+  active    Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  runs      PipelineRun[]
+  project   Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, name])
   @@index([projectId])
@@ -1296,10 +867,9 @@ model Pipeline {
   @@map("pipelines")
 }
 
-/**
- * Pipeline 运行记录表
- * 记录每次流水线执行情况
- */
+/// *
+///  * Pipeline 运行记录表
+///  * 记录每次流水线执行情况
 model PipelineRun {
   id         String         @id @default(cuid())
   pipelineId String
@@ -1308,12 +878,10 @@ model PipelineRun {
   status     PipelineStatus @default(PENDING)
   startedAt  DateTime       @default(now())
   finishedAt DateTime?
-  duration   Int? // milliseconds
-  logs       String?        @db.Text
+  duration   Int?
+  logs       String?
   metadata   Json?
-
-  // 关系
-  pipeline Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  pipeline   Pipeline       @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
 
   @@index([pipelineId])
   @@index([status])
@@ -1323,124 +891,93 @@ model PipelineRun {
   @@map("pipeline_runs")
 }
 
-// ============================================
-// Webhook 模块
-// ============================================
-
-/**
- * Webhook 配置表
- * 支持事件推送到外部 URL
- */
+/// *
+///  * Webhook 配置表
+///  * 支持事件推送到外部 URL
 model Webhook {
-  id        String   @id @default(cuid())
-  projectId String
-  url       String   @db.VarChar(500)
-  secret    String   @db.VarChar(255) // HMAC 签名密钥
-  events    String[] // push, pull_request.opened, issue.closed
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // 关系
-  project    Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id         String            @id @default(cuid())
+  projectId  String
+  url        String            @db.VarChar(500)
+  secret     String            @db.VarChar(255) // 已弃用：仅用于向后兼容，新创建的webhook使用secretHash
+  secretHash String?           @db.VarChar(255) // SHA256哈希值，用于安全验证
+  events     String[]
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  active     Boolean           @default(true)
   deliveries WebhookDelivery[]
+  project    Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
-  @@index([active])
   @@map("webhooks")
 }
 
-/**
- * Webhook 投递记录表
- * 记录每次 Webhook 发送结果
- */
+/// *
+///  * Webhook 投递记录表
+///  * 记录每次 Webhook 发送结果
 model WebhookDelivery {
   id             String   @id @default(cuid())
   webhookId      String
   event          String   @db.VarChar(100)
   payload        Json
-  requestHeaders Json?
-  response       Json?
   statusCode     Int?
+  response       Json?
   success        Boolean  @default(false)
-  retryCount     Int      @default(0)
   deliveredAt    DateTime @default(now())
-
-  // 关系
-  webhook Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  requestHeaders Json?
+  retryCount     Int      @default(0)
+  webhook        Webhook  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
 
   @@index([webhookId])
-  @@index([event])
-  @@index([success])
-  @@index([deliveredAt(sort: Desc)])
   @@map("webhook_deliveries")
 }
 
-// ============================================
-// Two-Factor Authentication 模块
-// ============================================
-
-/**
- * 两步验证配置表
- * 支持TOTP（Time-based One-Time Password）
- */
+/// *
+///  * 两步验证配置表
+///  * 支持TOTP（Time-based One-Time Password）
 model TwoFactorAuth {
   id            String    @id @default(cuid())
   userId        String    @unique
-  secret        String    @db.VarChar(255) // TOTP secret
-  recoveryCodes String[] // 恢复代码数组
+  secret        String    @db.VarChar(255)
+  recoveryCodes String[]
   enabled       Boolean   @default(false)
   verifiedAt    DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
-  // 关系
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("two_factor_auth")
 }
 
-// ============================================
-// Real-time Collaboration 模块
-// ============================================
-
-/**
- * 协作会话表
- * 管理实时协作编辑会话
- */
+/// *
+///  * 协作会话表
+///  * 管理实时协作编辑会话
 model CollaborationSession {
-  id           String   @id @default(cuid())
-  documentId   String   @db.VarChar(500) // 文档ID（文件路径或Wiki页面ID）
-  documentType String   @db.VarChar(20) // file, wiki
+  id           String                     @id @default(cuid())
+  documentType String                     @db.VarChar(20)
+  documentId   String                     @db.VarChar(500)
   projectId    String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // 关系
-  project      Project                    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt    DateTime                   @default(now())
+  updatedAt    DateTime                   @updatedAt
   participants CollaborationParticipant[]
+  project      Project                    @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  @@index([documentId])
   @@index([projectId])
   @@map("collaboration_sessions")
 }
 
-/**
- * 协作参与者表
- * 记录每个会话的参与用户
- */
+/// *
+///  * 协作参与者表
+///  * 记录每个会话的参与用户
 model CollaborationParticipant {
-  id           String   @id @default(cuid())
+  id           String               @id @default(cuid())
   sessionId    String
   userId       String
-  color        String   @db.VarChar(20) // 用户光标颜色
-  lastActiveAt DateTime @default(now()) // 最后活跃时间
-  joinedAt     DateTime @default(now()) // 加入时间
-
-  // 关系
-  session CollaborationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  user    User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  color        String               @db.VarChar(20)
+  joinedAt     DateTime             @default(now())
+  lastActiveAt DateTime             @default(now())
+  session      CollaborationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([sessionId, userId])
   @@index([sessionId])
@@ -1448,52 +985,162 @@ model CollaborationParticipant {
   @@map("collaboration_participants")
 }
 
-// ============================================
-// GDPR Data Export 模块
-// ============================================
+/// *
+///  * 数据导出请求表
+///  * 支持 GDPR 合规的用户数据导出功能
+model DataExportRequest {
+  id          String           @id @default(cuid())
+  userId      String
+  filePath    String?          @db.VarChar(500)
+  fileSize    Int?
+  expiresAt   DateTime?
+  completedAt DateTime?
+  errorMsg    String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  format      DataExportFormat @default(JSON)
+  status      DataExportStatus @default(PENDING)
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-/**
- * 数据导出格式枚举
- */
+  @@index([userId])
+  @@map("data_export_requests")
+}
+
+enum UserRole {
+  USER
+  SUPER_ADMIN
+}
+
+enum ProjectVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum MemberRole {
+  OWNER
+  MAINTAINER
+  MEMBER
+  VIEWER
+}
+
+enum RaftNodeState {
+  FOLLOWER
+  CANDIDATE
+  LEADER
+}
+
+enum IssueState {
+  OPEN
+  CLOSED
+}
+
+enum MilestoneState {
+  OPEN
+  CLOSED
+}
+
+enum PRState {
+  OPEN
+  MERGED
+  CLOSED
+}
+
+enum ReviewState {
+  APPROVED
+  CHANGES_REQUESTED
+  COMMENTED
+}
+
+enum MergeStrategy {
+  MERGE
+  SQUASH
+  REBASE
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum TeamRole {
+  MAINTAINER
+  MEMBER
+}
+
+enum IndexStatus {
+  PENDING
+  INDEXING
+  INDEXED
+  FAILED
+  OUTDATED
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  ACCESS
+  DOWNLOAD
+  UPLOAD
+  GRANT
+  REVOKE
+  APPROVE
+  REJECT
+}
+
+enum AuditEntityType {
+  USER
+  PROJECT
+  REPOSITORY
+  FILE
+  ISSUE
+  PULL_REQUEST
+  ORGANIZATION
+  TEAM
+  BRANCH_PROTECTION
+  SETTINGS
+}
+
+/// *
+///  * 通知类型枚举
+///  * 支持的通知场景：
+///  * - Pull Request相关：创建、合并、关闭、审查、评论
+///  * - Issue相关：提及、分配、评论
+enum NotificationType {
+  PR_CREATED
+  PR_MERGED
+  PR_CLOSED
+  PR_REVIEWED
+  PR_COMMENTED
+  ISSUE_MENTIONED
+  ISSUE_ASSIGNED
+  ISSUE_COMMENTED
+}
+
+enum PipelineStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILURE
+  CANCELLED
+}
+
+/// *
+///  * 数据导出格式枚举
 enum DataExportFormat {
   JSON
   CSV
 }
 
-/**
- * 数据导出状态枚举
- */
+/// *
+///  * 数据导出状态枚举
 enum DataExportStatus {
-  PENDING    // 等待处理
-  PROCESSING // 处理中
-  COMPLETED  // 已完成
-  FAILED     // 失败
-  EXPIRED    // 已过期
-}
-
-/**
- * 数据导出请求表
- * 支持 GDPR 合规的用户数据导出功能
- */
-model DataExportRequest {
-  id          String           @id @default(cuid())
-  userId      String
-  format      DataExportFormat @default(JSON)
-  status      DataExportStatus @default(PENDING)
-  filePath    String?          @db.VarChar(500) // MinIO 对象路径
-  fileSize    Int?             // 文件大小（字节）
-  expiresAt   DateTime?        // 过期时间（默认7天）
-  completedAt DateTime?        // 完成时间
-  errorMsg    String?          @db.Text // 失败时的错误信息
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-
-  // 关系
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([status])
-  @@index([createdAt(sort: Desc)])
-  @@index([expiresAt]) // 定期清理过期导出
-  @@map("data_export_requests")
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  EXPIRED
 }

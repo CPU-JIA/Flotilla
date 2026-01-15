@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { User } from '@prisma/client';
+import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TokenService } from '../token.service';
 import { OAuthProfileDto } from './dto/oauth-profile.dto';
@@ -18,10 +19,81 @@ import { OAuthProfileDto } from './dto/oauth-profile.dto';
  */
 @Injectable()
 export class OAuthService {
+  private readonly encryptionKey: Buffer;
+  private readonly algorithm = 'aes-256-gcm';
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly tokenService: TokenService,
-  ) {}
+  ) {
+    // ECP-C1: 防御性编程 - 确保加密密钥已配置
+    const key = process.env.OAUTH_ENCRYPTION_KEY;
+    if (!key || key.length < 32) {
+      throw new Error(
+        'OAUTH_ENCRYPTION_KEY must be at least 32 characters long. Please set it in .env file.',
+      );
+    }
+    this.encryptionKey = Buffer.from(key.padEnd(32, '0').slice(0, 32));
+  }
+
+  /**
+   * 加密数据
+   * @param data 待加密数据
+   * @returns 加密后的字符串（格式：iv:encryptedData:authTag）
+   * ECP-C1: 防御性编程 - 使用 AES-256-GCM 加密存储敏感的 OAuth Token
+   */
+  private encrypt(data: string): string {
+    try {
+      const iv = crypto.randomBytes(16);
+      const cipher = crypto.createCipheriv(
+        this.algorithm,
+        this.encryptionKey,
+        iv,
+      );
+
+      let encrypted = cipher.update(data, 'utf8', 'hex');
+      encrypted += cipher.final('hex');
+
+      const authTag = cipher.getAuthTag();
+
+      // 格式：iv:encryptedData:authTag
+      return `${iv.toString('hex')}:${encrypted}:${authTag.toString('hex')}`;
+    } catch (error) {
+      throw new Error(`Encryption failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * 解密数据
+   * @param encryptedData 加密的数据（格式：iv:encryptedData:authTag）
+   * @returns 解密后的字符串
+   */
+  private decrypt(encryptedData: string): string {
+    try {
+      const parts = encryptedData.split(':');
+      if (parts.length !== 3) {
+        throw new Error('Invalid encrypted data format');
+      }
+
+      const iv = Buffer.from(parts[0], 'hex');
+      const encrypted = parts[1];
+      const authTag = Buffer.from(parts[2], 'hex');
+
+      const decipher = crypto.createDecipheriv(
+        this.algorithm,
+        this.encryptionKey,
+        iv,
+      );
+      decipher.setAuthTag(authTag);
+
+      let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+      decrypted += decipher.final('utf8');
+
+      return decrypted;
+    } catch (error) {
+      throw new Error(`Decryption failed: ${error.message}`);
+    }
+  }
 
   /**
    * 将 metadata 转换为 Prisma JsonValue 兼容格式
@@ -132,8 +204,10 @@ export class OAuthService {
         providerId: profile.providerId,
         email: profile.email,
         displayName: profile.displayName,
-        accessToken: profile.accessToken,
-        refreshToken: profile.refreshToken,
+        accessToken: this.encrypt(profile.accessToken),
+        refreshToken: profile.refreshToken
+          ? this.encrypt(profile.refreshToken)
+          : null,
         expiresAt: profile.expiresAt,
         scope: profile.scope,
         metadata: this.sanitizeMetadata(profile.metadata),
@@ -216,8 +290,10 @@ export class OAuthService {
             providerId: profile.providerId,
             email: profile.email,
             displayName: profile.displayName,
-            accessToken: profile.accessToken,
-            refreshToken: profile.refreshToken,
+            accessToken: this.encrypt(profile.accessToken),
+            refreshToken: profile.refreshToken
+              ? this.encrypt(profile.refreshToken)
+              : null,
             expiresAt: profile.expiresAt,
             scope: profile.scope,
             metadata: this.sanitizeMetadata(profile.metadata),
@@ -268,13 +344,16 @@ export class OAuthService {
 
   /**
    * 私有方法：更新 OAuth Token
+   * ECP-C1: 防御性编程 - 加密敏感的 OAuth Token
    */
   private updateOAuthToken(oauthId: string, profile: OAuthProfileDto) {
     return this.prisma.oAuthAccount.update({
       where: { id: oauthId },
       data: {
-        accessToken: profile.accessToken,
-        refreshToken: profile.refreshToken,
+        accessToken: this.encrypt(profile.accessToken),
+        refreshToken: profile.refreshToken
+          ? this.encrypt(profile.refreshToken)
+          : null,
         expiresAt: profile.expiresAt,
         scope: profile.scope,
       },

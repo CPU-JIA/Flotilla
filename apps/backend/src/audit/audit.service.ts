@@ -36,80 +36,198 @@ export interface CreateAuditLogDto {
   errorMsg?: string;
 }
 
+export interface AuditLogResult {
+  success: boolean;
+  error?: string;
+  retries?: number;
+}
+
 @Injectable()
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
+  private auditLogFailureCount = 0;
+  private readonly MAX_RETRIES = 3;
+  private readonly RETRY_DELAY_MS = 100;
 
   constructor(private prisma: PrismaService) {}
+
+  /**
+   * 获取审计日志失败计数
+   */
+  getFailureCount(): number {
+    return this.auditLogFailureCount;
+  }
+
+  /**
+   * 重置失败计数
+   */
+  resetFailureCount(): void {
+    this.auditLogFailureCount = 0;
+  }
+
+  /**
+   * 带重试的延迟函数
+   */
+  private async delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
 
   /**
    * 创建审计日志（异步非阻塞）
    *
    * @param dto 审计日志数据
-   * @returns Promise<void> - 异步执行，不阻塞主流程
+   * @returns Promise<AuditLogResult> - 包含成功状态和错误信息
    */
-  async log(dto: CreateAuditLogDto): Promise<void> {
-    try {
-      await this.prisma.auditLog.create({
-        data: {
+  async log(dto: CreateAuditLogDto): Promise<AuditLogResult> {
+    let lastError: Error | null = null;
+    let retryCount = 0;
+
+    // 关键安全操作（登录失败、权限拒绝等）需要重试
+    const isCriticalOperation =
+      dto.action === 'LOGIN_FAILED' ||
+      dto.action === 'PERMISSION_DENIED' ||
+      dto.action === 'UNAUTHORIZED_ACCESS';
+
+    const maxAttempts = isCriticalOperation ? this.MAX_RETRIES : 1;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        await this.prisma.auditLog.create({
+          data: {
+            action: dto.action,
+            entityType: dto.entityType,
+            entityId: dto.entityId,
+            userId: dto.userId,
+            username: dto.username,
+            ipAddress: dto.ipAddress,
+            userAgent: dto.userAgent,
+            description: dto.description,
+            metadata: dto.metadata || {},
+            success: dto.success !== undefined ? dto.success : true,
+            errorMsg: dto.errorMsg,
+          },
+        });
+
+        this.logger.debug(
+          `📝 Audit log created: ${dto.action} ${dto.entityType} by ${dto.username || 'system'}`,
+        );
+
+        return { success: true, retries: attempt };
+      } catch (error) {
+        lastError = error as Error;
+        retryCount = attempt;
+
+        const errorContext = {
           action: dto.action,
           entityType: dto.entityType,
-          entityId: dto.entityId,
           userId: dto.userId,
-          username: dto.username,
-          ipAddress: dto.ipAddress,
-          userAgent: dto.userAgent,
-          description: dto.description,
-          metadata: dto.metadata || {},
-          success: dto.success !== undefined ? dto.success : true,
-          errorMsg: dto.errorMsg,
-        },
-      });
+          attempt: attempt + 1,
+          maxAttempts,
+          errorName: error.name,
+          errorCode: error.code,
+        };
 
-      this.logger.debug(
-        `📝 Audit log created: ${dto.action} ${dto.entityType} by ${dto.username || 'system'}`,
-      );
-    } catch (error) {
-      // 审计日志写入失败不应影响业务操作
-      // 仅记录错误日志，不抛出异常
-      this.logger.error(
-        `❌ Failed to create audit log: ${error.message}`,
-        error.stack,
-      );
+        if (attempt < maxAttempts - 1) {
+          const delayMs = this.RETRY_DELAY_MS * Math.pow(2, attempt);
+          this.logger.warn(
+            `⚠️  Audit log write failed (attempt ${attempt + 1}/${maxAttempts}), retrying in ${delayMs}ms: ${error.message}`,
+            JSON.stringify(errorContext),
+          );
+          await this.delay(delayMs);
+        } else {
+          this.logger.error(
+            `❌ Failed to create audit log after ${maxAttempts} attempts: ${error.message}`,
+            JSON.stringify(errorContext),
+          );
+        }
+      }
     }
+
+    // 记录失败计数
+    this.auditLogFailureCount++;
+
+    return {
+      success: false,
+      error: lastError?.message || 'Unknown error',
+      retries: retryCount,
+    };
   }
 
   /**
    * 批量创建审计日志
    *
    * @param logs 审计日志数组
+   * @returns Promise<AuditLogResult> - 包含成功状态和错误信息
    */
-  async logMany(logs: CreateAuditLogDto[]): Promise<void> {
-    try {
-      await this.prisma.auditLog.createMany({
-        data: logs.map((log) => ({
-          action: log.action,
-          entityType: log.entityType,
-          entityId: log.entityId,
-          userId: log.userId,
-          username: log.username,
-          ipAddress: log.ipAddress,
-          userAgent: log.userAgent,
-          description: log.description,
-          metadata: log.metadata || {},
-          success: log.success !== undefined ? log.success : true,
-          errorMsg: log.errorMsg,
-        })),
-        skipDuplicates: true,
-      });
-
-      this.logger.debug(`📝 ${logs.length} audit logs created in batch`);
-    } catch (error) {
-      this.logger.error(
-        `❌ Failed to create batch audit logs: ${error.message}`,
-        error.stack,
-      );
+  async logMany(logs: CreateAuditLogDto[]): Promise<AuditLogResult> {
+    if (!logs || logs.length === 0) {
+      return { success: true, retries: 0 };
     }
+
+    let lastError: Error | null = null;
+    let retryCount = 0;
+
+    // 批量操作最多重试 2 次
+    const maxAttempts = 2;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        await this.prisma.auditLog.createMany({
+          data: logs.map((log) => ({
+            action: log.action,
+            entityType: log.entityType,
+            entityId: log.entityId,
+            userId: log.userId,
+            username: log.username,
+            ipAddress: log.ipAddress,
+            userAgent: log.userAgent,
+            description: log.description,
+            metadata: log.metadata || {},
+            success: log.success !== undefined ? log.success : true,
+            errorMsg: log.errorMsg,
+          })),
+          skipDuplicates: true,
+        });
+
+        this.logger.debug(`📝 ${logs.length} audit logs created in batch`);
+        return { success: true, retries: attempt };
+      } catch (error) {
+        lastError = error as Error;
+        retryCount = attempt;
+
+        const errorContext = {
+          batchSize: logs.length,
+          attempt: attempt + 1,
+          maxAttempts,
+          errorName: error.name,
+          errorCode: error.code,
+          sampleActions: logs.slice(0, 3).map((l) => l.action),
+        };
+
+        if (attempt < maxAttempts - 1) {
+          const delayMs = this.RETRY_DELAY_MS * Math.pow(2, attempt);
+          this.logger.warn(
+            `⚠️  Batch audit log write failed (attempt ${attempt + 1}/${maxAttempts}), retrying in ${delayMs}ms: ${error.message}`,
+            JSON.stringify(errorContext),
+          );
+          await this.delay(delayMs);
+        } else {
+          this.logger.error(
+            `❌ Failed to create batch audit logs (${logs.length} logs) after ${maxAttempts} attempts: ${error.message}`,
+            JSON.stringify(errorContext),
+          );
+        }
+      }
+    }
+
+    // 记录失败计数
+    this.auditLogFailureCount++;
+
+    return {
+      success: false,
+      error: lastError?.message || 'Unknown error',
+      retries: retryCount,
+    };
   }
 
   /**

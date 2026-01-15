@@ -51,7 +51,7 @@ describe('WebhookService', () => {
   });
 
   describe('createWebhook', () => {
-    it('should create a webhook with generated secret', async () => {
+    it('should create a webhook with generated secret and secretHash', async () => {
       const projectId = 'project-123';
       const dto = {
         url: 'https://example.com/webhook',
@@ -63,7 +63,8 @@ describe('WebhookService', () => {
         id: 'webhook-123',
         projectId,
         url: dto.url,
-        secret: 'generated-secret',
+        secret: '',
+        secretHash: 'hashed-secret',
         events: dto.events,
         active: true,
         createdAt: new Date(),
@@ -74,19 +75,25 @@ describe('WebhookService', () => {
 
       const result = await service.createWebhook(projectId, dto);
 
-      expect(result).toEqual(mockWebhook);
+      // 验证返回的结果包含明文 secret
+      expect(result.secret).toBeDefined();
+      expect(result.secret).toHaveLength(64); // 32 字节 hex = 64 字符
+
+      // 验证 secretHash 被存储
       expect(prisma.webhook.create).toHaveBeenCalledWith({
         data: {
           projectId,
           url: dto.url,
-          secret: expect.any(String), // 验证 secret 被生成
+          secret: '',
+          secretHash: expect.any(String),
           events: dto.events,
           active: true,
         },
       });
-      // 验证 secret 长度（32 字节 hex = 64 字符）
+
+      // 验证 secretHash 长度（SHA256 hex = 64 字符）
       const callArgs = (prisma.webhook.create as jest.Mock).mock.calls[0][0];
-      expect(callArgs.data.secret).toHaveLength(64);
+      expect(callArgs.data.secretHash).toHaveLength(64);
     });
   });
 

@@ -842,8 +842,10 @@ describe('RaftNode - 核心功能测试', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      // 不应崩溃，应记录错误
-      expect(console.error).toHaveBeenCalled();
+      // 不应崩溃，节点应继续运行（Logger 已替代 console.error）
+      const state = node.exportState();
+      expect(state).toBeDefined();
+      expect(state.state).toBeDefined();
     });
 
     it('应处理存储层错误', async () => {

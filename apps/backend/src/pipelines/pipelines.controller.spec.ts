@@ -169,7 +169,7 @@ describe('PipelinesController', () => {
 
       expect(result).toEqual(updatedPipeline);
       expect(permissionService.checkProjectPermission).toHaveBeenCalledWith(
-        mockUser.id,
+        mockUser,
         mockPipeline.projectId,
         'MAINTAINER',
       );
@@ -219,7 +219,7 @@ describe('PipelinesController', () => {
 
       expect(result).toEqual(mockRun);
       expect(permissionService.checkProjectPermission).toHaveBeenCalledWith(
-        mockUser.id,
+        mockUser,
         mockPipeline.projectId,
         'MEMBER',
       );

@@ -37,10 +37,13 @@ describe('ApiTokenService', () => {
   describe('createToken', () => {
     it('should create a new API token', async () => {
       const userId = 'user123';
+      // 使用未来日期，避免过期验证失败
+      const futureDate = new Date();
+      futureDate.setFullYear(futureDate.getFullYear() + 1);
       const dto: CreateApiTokenDto = {
         name: 'CI/CD Token',
         scopes: ['read', 'write'],
-        expiresAt: new Date('2025-12-31'),
+        expiresAt: futureDate,
       };
 
       const mockToken = {
@@ -122,11 +125,14 @@ describe('ApiTokenService', () => {
   describe('validateToken', () => {
     it('should validate a valid token', async () => {
       const token = 'flo_' + '0'.repeat(56); // 有效格式
+      // 使用未来日期，避免令牌被判定为过期
+      const futureDate = new Date();
+      futureDate.setFullYear(futureDate.getFullYear() + 1);
       const mockToken = {
         id: 'token123',
         userId: 'user123',
         scopes: ['read', 'write'],
-        expiresAt: new Date('2025-12-31'),
+        expiresAt: futureDate,
       };
 
       mockPrismaService.apiToken.findUnique.mockResolvedValue(mockToken);

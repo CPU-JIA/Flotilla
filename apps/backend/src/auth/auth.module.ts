@@ -29,11 +29,9 @@ import { ApiTokenModule } from './api-tokens/api-token.module';
       useFactory: (configService: ConfigService): JwtModuleOptions => {
         // 🔒 SECURITY FIX: 强制要求JWT_SECRET和JWT_REFRESH_SECRET环境变量
         // CWE-798: Use of Hard-coded Credentials
-        const jwtSecret =
-          configService.get<string>('JWT_SECRET') || process.env.JWT_SECRET;
+        const jwtSecret = configService.get<string>('JWT_SECRET');
         const jwtRefreshSecret =
-          configService.get<string>('JWT_REFRESH_SECRET') ||
-          process.env.JWT_REFRESH_SECRET;
+          configService.get<string>('JWT_REFRESH_SECRET');
 
         // 验证JWT_SECRET
         if (

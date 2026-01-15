@@ -98,13 +98,15 @@ export class GdprService {
   /**
    * 异步处理导出请求
    * ECP-B1: DRY 原则 - 复用数据收集逻辑
+   * ECP-C2: 错误处理 - 完整的失败通知和状态更新
    */
   async processExport(exportId: string) {
     this.logger.log(`Processing export request: ${exportId}`);
 
+    let exportRequest: any;
     try {
       // 更新状态为处理中
-      const exportRequest = await this.prisma.dataExportRequest.update({
+      exportRequest = await this.prisma.dataExportRequest.update({
         where: { id: exportId },
         data: { status: DataExportStatus.PROCESSING },
         include: { user: true },
@@ -176,18 +178,53 @@ export class GdprService {
 
       this.logger.log(`Export request ${exportId} completed successfully`);
     } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `Failed to process export ${exportId}: ${error.message}`,
+        `Failed to process export ${exportId}: ${errorMessage}`,
+        error instanceof Error ? error.stack : undefined,
       );
 
-      // 更新状态为失败
-      await this.prisma.dataExportRequest.update({
-        where: { id: exportId },
-        data: {
-          status: DataExportStatus.FAILED,
-          errorMsg: error.message,
-        },
-      });
+      // 更新状态为失败并存储错误信息
+      try {
+        const updatedExport = await this.prisma.dataExportRequest.update({
+          where: { id: exportId },
+          data: {
+            status: DataExportStatus.FAILED,
+            errorMsg: errorMessage,
+          },
+          include: { user: true },
+        });
+
+        // 发送失败通知邮件给用户（GDPR 要求必须通知）
+        const frontendUrl =
+          this.configService.get<string>('FRONTEND_URL') ||
+          'http://localhost:3000';
+        const settingsUrl = `${frontendUrl}/settings/privacy`;
+
+        await this.emailService.sendEmail({
+          to: updatedExport.user.email,
+          subject: 'Data export failed - Action required - Flotilla',
+          template: 'data-export-failed',
+          context: {
+            username: updatedExport.user.username,
+            errorReason: errorMessage,
+            settingsUrl,
+            baseUrl: frontendUrl,
+            supportEmail:
+              this.configService.get<string>('SUPPORT_EMAIL') ||
+              'support@flotilla.dev',
+          },
+        });
+
+        this.logger.log(
+          `Sent failure notification email to user ${updatedExport.userId} for export ${exportId}`,
+        );
+      } catch (updateError) {
+        this.logger.error(
+          `Failed to update export status or send failure email for ${exportId}: ${updateError instanceof Error ? updateError.message : String(updateError)}`,
+        );
+      }
 
       throw error;
     }
