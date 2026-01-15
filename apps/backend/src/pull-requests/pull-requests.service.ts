@@ -3,7 +3,6 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
-  InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -14,13 +13,16 @@ import { PRMergeService } from './pr-merge.service';
 import { PRReviewService } from './pr-review.service';
 import { CreatePullRequestDto } from './dto/create-pull-request.dto';
 import { UpdatePullRequestDto } from './dto/update-pull-request.dto';
-import {
-  MergePullRequestDto,
-  MergeStrategy,
-} from './dto/merge-pull-request.dto';
+import { MergePullRequestDto } from './dto/merge-pull-request.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { PullRequestCreateCommentDto } from './dto/create-comment.dto';
 import { PullRequest, PRState, Prisma } from '@prisma/client';
+import {
+  PR_DETAIL_INCLUDE,
+  PR_LIST_INCLUDE,
+  PR_BASIC_INCLUDE,
+  USER_SELECT_BASIC,
+} from './constants/pr-queries.constant';
 
 @Injectable()
 export class PullRequestsService {
@@ -36,27 +38,33 @@ export class PullRequestsService {
   ) {}
 
   /**
-   * 获取项目中下一个PR编号
+   * 🔒 ECP-A1防御编程: 使用原子操作获取下一个PR编号
+   * 通过数据库原子更新避免并发竞态条件
    */
   private async getNextPRNumber(projectId: string): Promise<number> {
-    const lastPR = await this.prisma.pullRequest.findFirst({
-      where: { projectId },
-      orderBy: { number: 'desc' },
-    });
+    const project = await this.prisma.$queryRaw<
+      Array<{ nextprnumber: number }>
+    >`
+      UPDATE projects 
+      SET "nextPRNumber" = "nextPRNumber" + 1 
+      WHERE id = ${projectId}
+      RETURNING "nextPRNumber"
+    `;
 
-    return (lastPR?.number || 0) + 1;
+    if (!project || project.length === 0) {
+      throw new NotFoundException(`Project ${projectId} not found`);
+    }
+
+    return project[0].nextprnumber;
   }
 
   /**
-   * 创建PR（带重试机制处理并发）
+   * 创建PR
    */
   async create(
     authorId: string,
     dto: CreatePullRequestDto,
   ): Promise<PullRequest> {
-    const maxRetries = 3;
-    let retries = 0;
-
     // 验证项目是否存在
     const project = await this.prisma.project.findUnique({
       where: { id: dto.projectId },
@@ -73,87 +81,57 @@ export class PullRequestsService {
       );
     }
 
-    while (retries < maxRetries) {
-      try {
-        const number = await this.getNextPRNumber(dto.projectId);
+    const number = await this.getNextPRNumber(dto.projectId);
 
-        const pullRequest = await this.prisma.pullRequest.create({
-          data: {
-            projectId: dto.projectId,
-            authorId,
-            number,
-            title: dto.title,
-            body: dto.body,
-            sourceBranch: dto.sourceBranch,
-            targetBranch: dto.targetBranch,
-          },
-          include: {
-            author: {
-              select: {
-                id: true,
-                username: true,
-                email: true,
-                avatar: true,
-              },
-            },
-            project: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
+    const pullRequest = await this.prisma.pullRequest.create({
+      data: {
+        projectId: dto.projectId,
+        authorId,
+        number,
+        title: dto.title,
+        body: dto.body,
+        sourceBranch: dto.sourceBranch,
+        targetBranch: dto.targetBranch,
+      },
+      include: PR_BASIC_INCLUDE,
+    });
+
+    // 创建 opened 事件
+    await this.prisma.pREvent.create({
+      data: {
+        pullRequestId: pullRequest.id,
+        actorId: authorId,
+        event: 'opened',
+      },
+    });
+
+    // 🔔 发送PR创建通知给项目owner（如果不是作者本人）
+    try {
+      if (project.ownerId !== authorId) {
+        await this.notificationsService.create({
+          userId: project.ownerId,
+          type: 'PR_CREATED',
+          title: `[PR #${pullRequest.number}] ${pullRequest.title}`,
+          body: `${pullRequest.author.username} 创建了一个新的 Pull Request`,
+          link: `/projects/${pullRequest.projectId}/pull-requests/${pullRequest.number}`,
+          metadata: {
+            prId: pullRequest.id,
+            projectId: pullRequest.projectId,
+            authorId: pullRequest.authorId,
           },
         });
-
-        // 创建 opened 事件
-        await this.prisma.pREvent.create({
-          data: {
-            pullRequestId: pullRequest.id,
-            actorId: authorId,
-            event: 'opened',
-          },
-        });
-
-        // 🔔 发送PR创建通知给项目owner（如果不是作者本人）
-        try {
-          if (project.ownerId !== authorId) {
-            await this.notificationsService.create({
-              userId: project.ownerId,
-              type: 'PR_CREATED',
-              title: `[PR #${pullRequest.number}] ${pullRequest.title}`,
-              body: `${pullRequest.author.username} 创建了一个新的 Pull Request`,
-              link: `/projects/${pullRequest.projectId}/pull-requests/${pullRequest.number}`,
-              metadata: {
-                prId: pullRequest.id,
-                projectId: pullRequest.projectId,
-                authorId: pullRequest.authorId,
-              },
-            });
-            this.logger.log(
-              `📨 Sent PR_CREATED notification for PR #${pullRequest.number} to owner ${project.ownerId}`,
-            );
-          }
-        } catch (error) {
-          // 通知失败不影响PR创建
-          this.logger.warn(
-            `⚠️ Failed to send PR_CREATED notification: ${error.message}`,
-          );
-        }
-
-        return pullRequest;
-      } catch (error) {
-        // P2002: Unique constraint violation
-        if (error.code === 'P2002' && retries < maxRetries - 1) {
-          retries++;
-          continue;
-        }
-        throw error;
+        this.logger.log(
+          `📨 Sent PR_CREATED notification for PR #${pullRequest.number} to owner ${project.ownerId}`,
+        );
       }
+    } catch (error) {
+      // 通知失败不影响PR创建
+      this.logger.warn(
+        `⚠️ Failed to send PR_CREATED notification: ${error.message}`,
+      );
     }
 
-    throw new BadRequestException(
-      'Failed to create pull request after retries',
-    );
+    return pullRequest;
   }
 
   /**
@@ -167,21 +145,7 @@ export class PullRequestsService {
 
     return this.prisma.pullRequest.findMany({
       where,
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
-        },
-        _count: {
-          select: {
-            comments: true,
-            reviews: true,
-          },
-        },
-      },
+      include: PR_LIST_INCLUDE,
       orderBy: {
         createdAt: 'desc',
       },
@@ -194,71 +158,7 @@ export class PullRequestsService {
   async findOne(id: string) {
     const pullRequest = await this.prisma.pullRequest.findUnique({
       where: { id },
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-            avatar: true,
-          },
-        },
-        merger: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
-        },
-        project: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        reviews: {
-          include: {
-            reviewer: {
-              select: {
-                id: true,
-                username: true,
-                avatar: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
-        comments: {
-          include: {
-            author: {
-              select: {
-                id: true,
-                username: true,
-                avatar: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
-        events: {
-          include: {
-            actor: {
-              select: {
-                id: true,
-                username: true,
-                avatar: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
-      },
+      include: PR_DETAIL_INCLUDE,
     });
 
     if (!pullRequest) {
@@ -279,71 +179,7 @@ export class PullRequestsService {
           number,
         },
       },
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-            avatar: true,
-          },
-        },
-        merger: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
-        },
-        project: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        reviews: {
-          include: {
-            reviewer: {
-              select: {
-                id: true,
-                username: true,
-                avatar: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-        },
-        comments: {
-          include: {
-            author: {
-              select: {
-                id: true,
-                username: true,
-                avatar: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
-        events: {
-          include: {
-            actor: {
-              select: {
-                id: true,
-                username: true,
-                avatar: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: 'asc',
-          },
-        },
-      },
+      include: PR_DETAIL_INCLUDE,
     });
 
     if (!pullRequest) {
@@ -382,11 +218,7 @@ export class PullRequestsService {
       data: dto,
       include: {
         author: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
+          select: USER_SELECT_BASIC,
         },
       },
     });
@@ -400,10 +232,7 @@ export class PullRequestsService {
       where: { id },
       include: {
         author: {
-          select: {
-            id: true,
-            username: true,
-          },
+          select: USER_SELECT_BASIC,
         },
       },
     });
@@ -560,11 +389,7 @@ export class PullRequestsService {
       },
       include: {
         author: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
+          select: USER_SELECT_BASIC,
         },
       },
       orderBy: { createdAt: 'asc' },

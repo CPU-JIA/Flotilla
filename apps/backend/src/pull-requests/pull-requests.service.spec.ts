@@ -30,7 +30,6 @@ describe('PullRequestsService', () => {
       findUnique: jest.fn(),
     },
     pullRequest: {
-      findFirst: jest.fn(),
       create: jest.fn(),
       findMany: jest.fn(),
       findUnique: jest.fn(),
@@ -51,6 +50,7 @@ describe('PullRequestsService', () => {
       create: jest.fn(),
       findMany: jest.fn(),
     },
+    $queryRaw: jest.fn(),
   };
 
   const mockGitService = {
@@ -141,11 +141,11 @@ describe('PullRequestsService', () => {
     const authorId = 'user-1';
 
     it('should create first PR with number 1', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue([{ nextprnumber: 1 }]);
       mockPrisma.project.findUnique.mockResolvedValue({
         id: 'proj-1',
         name: 'Test Project',
       });
-      mockPrisma.pullRequest.findFirst.mockResolvedValue(null);
       mockPrisma.pullRequest.create.mockResolvedValue({
         id: 'pr-1',
         projectId: 'proj-1',
@@ -186,10 +186,6 @@ describe('PullRequestsService', () => {
 
       expect(result.number).toBe(1);
       expect(result.state).toBe(PRState.OPEN);
-      expect(mockPrisma.pullRequest.findFirst).toHaveBeenCalledWith({
-        where: { projectId: 'proj-1' },
-        orderBy: { number: 'desc' },
-      });
       expect(mockPrisma.pREvent.create).toHaveBeenCalledWith({
         data: {
           pullRequestId: 'pr-1',
@@ -200,11 +196,11 @@ describe('PullRequestsService', () => {
     });
 
     it('should auto-increment PR number within same project', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue([{ nextprnumber: 6 }]);
       mockPrisma.project.findUnique.mockResolvedValue({
         id: 'proj-1',
         name: 'Test Project',
       });
-      mockPrisma.pullRequest.findFirst.mockResolvedValue({ number: 5 });
       mockPrisma.pullRequest.create.mockResolvedValue({
         id: 'pr-6',
         projectId: 'proj-1',
@@ -256,6 +252,7 @@ describe('PullRequestsService', () => {
     });
 
     it('should throw error if project not found', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue([]);
       mockPrisma.project.findUnique.mockResolvedValue(null);
 
       await expect(service.create(authorId, createDto)).rejects.toThrow(
@@ -266,53 +263,12 @@ describe('PullRequestsService', () => {
       );
     });
 
-    it('should retry on P2002 unique constraint violation', async () => {
-      mockPrisma.project.findUnique.mockResolvedValue({
-        id: 'proj-1',
-        name: 'Test Project',
-      });
-      mockPrisma.pullRequest.findFirst
-        .mockResolvedValueOnce({ number: 1 })
-        .mockResolvedValueOnce({ number: 2 });
-
-      const p2002Error: any = new Error('Unique constraint violation');
-      p2002Error.code = 'P2002';
-
-      mockPrisma.pullRequest.create
-        .mockRejectedValueOnce(p2002Error)
-        .mockResolvedValueOnce({
-          id: 'pr-3',
-          projectId: 'proj-1',
-          number: 3,
-          title: createDto.title,
-          state: PRState.OPEN,
-          authorId,
-          sourceBranch: createDto.sourceBranch,
-          targetBranch: createDto.targetBranch,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          author: {
-            id: authorId,
-            username: 'testuser',
-            email: 'test@example.com',
-            avatar: null,
-          },
-          project: { id: 'proj-1', name: 'Test Project' },
-        });
-      mockPrisma.pREvent.create.mockResolvedValue({});
-
-      const result = await service.create(authorId, createDto);
-
-      expect(result.number).toBe(3);
-      expect(mockPrisma.pullRequest.create).toHaveBeenCalledTimes(2);
-    });
-
     it('should create opened event', async () => {
+      mockPrisma.$queryRaw.mockResolvedValue([{ nextprnumber: 1 }]);
       mockPrisma.project.findUnique.mockResolvedValue({
         id: 'proj-1',
         name: 'Test Project',
       });
-      mockPrisma.pullRequest.findFirst.mockResolvedValue(null);
       mockPrisma.pullRequest.create.mockResolvedValue({
         id: 'pr-1',
         number: 1,
