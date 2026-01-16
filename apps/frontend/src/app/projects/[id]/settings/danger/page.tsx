@@ -6,6 +6,7 @@
  * ECP-C1: 防御性编程 - 多重确认和权限验证
  */
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
@@ -13,13 +14,7 @@ import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { api, ApiError } from '@/lib/api'
 import type { Project } from '@/types/project'
 
@@ -43,7 +38,7 @@ export default function DangerZonePage() {
       const data = await api.projects.getById(projectId)
       setProject(data)
     } catch (err) {
-      console.error('Failed to fetch project:', err)
+      logger.error('Failed to fetch project:', err)
     } finally {
       setLoading(false)
     }
@@ -173,9 +168,7 @@ export default function DangerZonePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <p className="text-sm text-muted-foreground mb-3">
-              {t.projects.settings.archiveDesc}
-            </p>
+            <p className="text-sm text-muted-foreground mb-3">{t.projects.settings.archiveDesc}</p>
             {project.isArchived ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
@@ -188,7 +181,9 @@ export default function DangerZonePage() {
                   disabled={operating}
                   className="border-yellow-500 text-yellow-600 hover:bg-yellow-50 dark:hover:bg-yellow-900/30"
                 >
-                  {operating ? t.projects.settings.unarchiving : t.projects.settings.unarchiveButton}
+                  {operating
+                    ? t.projects.settings.unarchiving
+                    : t.projects.settings.unarchiveButton}
                 </Button>
               </div>
             ) : (
@@ -218,9 +213,7 @@ export default function DangerZonePage() {
         <CardContent className="space-y-4">
           <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg space-y-4">
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                {t.projects.settings.deleteDesc}
-              </p>
+              <p className="text-sm text-muted-foreground">{t.projects.settings.deleteDesc}</p>
               <p className="text-sm text-red-600 dark:text-red-400 font-medium">
                 ⚠️ {t.projects.settings.deleteWarning}
               </p>

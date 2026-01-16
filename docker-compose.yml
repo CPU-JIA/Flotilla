@@ -54,8 +54,8 @@ services:
     container_name: flotilla-minio
     restart: unless-stopped
     ports:
-      - '9000:9000'   # API端口
-      - '9001:9001'   # Console端口
+      - '9000:9000' # API端口
+      - '9001:9001' # Console端口
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:?MINIO_ROOT_USER is required}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD is required}
@@ -132,6 +132,7 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:4000/api/v1/auth/oauth/google/callback}
+      OAUTH_ENCRYPTION_KEY: ${OAUTH_ENCRYPTION_KEY:?OAUTH_ENCRYPTION_KEY is required}
       # SMTP配置 (可选)
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
@@ -156,7 +157,8 @@ services:
     networks:
       - flotilla-network
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:4000/api/docs']
+      test:
+        ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:4000/api/docs']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -216,7 +218,7 @@ services:
     networks:
       - flotilla-network
     profiles:
-      - replica   # 使用 docker-compose --profile replica up 来启动
+      - replica # 使用 docker-compose --profile replica up 来启动
 
 volumes:
   postgres_data:

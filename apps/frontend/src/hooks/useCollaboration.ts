@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { io, Socket } from 'socket.io-client'
 import * as Y from 'yjs'
@@ -87,13 +88,11 @@ export interface UseCollaborationReturn {
  *   documentId: 'README.md',
  *   projectId: 'project-123',
  *   documentType: 'file',
- *   onUserJoined: (user) => console.log('User joined:', user),
+ *   onUserJoined: (user) => logger.log('User joined:', user),
  * })
  * ```
  */
-export function useCollaboration(
-  options: UseCollaborationOptions,
-): UseCollaborationReturn {
+export function useCollaboration(options: UseCollaborationOptions): UseCollaborationReturn {
   const {
     documentId,
     projectId,
@@ -146,7 +145,7 @@ export function useCollaboration(
 
     // 连接成功
     socket.on('connected', (data) => {
-      console.log('Connected to collaboration service:', data)
+      logger.log('Connected to collaboration service:', data)
       setConnected(true)
 
       // 加入文档
@@ -162,55 +161,52 @@ export function useCollaboration(
             sessionIdRef.current = response.data.sessionId ?? null
             setActiveUsers(response.data.activeUsers ?? [])
             setYourColor(response.data.yourColor ?? null)
-            console.log('Joined document:', response.data)
+            logger.log('Joined document:', response.data)
           } else if (response.event === 'error') {
             onError?.(new Error(response.data.message ?? 'Unknown error'))
           }
-        },
+        }
       )
     })
 
     // 连接错误
     socket.on('connect_error', (error) => {
-      console.error('Connection error:', error)
+      logger.error('Connection error:', error)
       setConnected(false)
       onError?.(error)
     })
 
     // 断开连接
     socket.on('disconnect', () => {
-      console.log('Disconnected from collaboration service')
+      logger.log('Disconnected from collaboration service')
       setConnected(false)
     })
 
     // 用户加入
     socket.on('user-joined', (data: { user: CollaborationUser }) => {
-      console.log('User joined:', data.user)
+      logger.log('User joined:', data.user)
       setActiveUsers((prev) => [...prev, data.user])
       onUserJoined?.(data.user)
     })
 
     // 用户离开
     socket.on('user-left', (data: { userId: string }) => {
-      console.log('User left:', data.userId)
+      logger.log('User left:', data.userId)
       setActiveUsers((prev) => prev.filter((u) => u.id !== data.userId))
       onUserLeft?.(data.userId)
     })
 
     // 接收 CRDT 更新
-    socket.on(
-      'sync-update',
-      (data: { update: number[]; senderId: string }) => {
-        try {
-          const updateArray = new Uint8Array(data.update)
-          Y.applyUpdate(doc, updateArray)
-          onUpdate?.(updateArray)
-        } catch (error) {
-          console.error('Error applying update:', error)
-          onError?.(error as Error)
-        }
-      },
-    )
+    socket.on('sync-update', (data: { update: number[]; senderId: string }) => {
+      try {
+        const updateArray = new Uint8Array(data.update)
+        Y.applyUpdate(doc, updateArray)
+        onUpdate?.(updateArray)
+      } catch (error) {
+        logger.error('Error applying update:', error)
+        onError?.(error as Error)
+      }
+    })
 
     // 接收用户状态更新
     socket.on(
@@ -230,10 +226,10 @@ export function useCollaboration(
                   cursor: data.state.cursor,
                   selection: data.state.selection,
                 }
-              : user,
-          ),
+              : user
+          )
         )
-      },
+      }
     )
 
     // 清理函数
@@ -244,16 +240,7 @@ export function useCollaboration(
       socket.disconnect()
       doc.destroy()
     }
-  }, [
-    enabled,
-    documentId,
-    projectId,
-    documentType,
-    onUserJoined,
-    onUserLeft,
-    onUpdate,
-    onError,
-  ])
+  }, [enabled, documentId, projectId, documentType, onUserJoined, onUserLeft, onUpdate, onError])
 
   /**
    * 发送 CRDT 更新
@@ -261,7 +248,7 @@ export function useCollaboration(
   const sendUpdate = useCallback(
     (update: Uint8Array) => {
       if (!socketRef.current || !connected) {
-        console.warn('Socket not connected, update not sent')
+        logger.warn('Socket not connected, update not sent')
         return
       }
 
@@ -275,10 +262,10 @@ export function useCollaboration(
           if (response.event === 'error') {
             onError?.(new Error(response.data.message ?? 'Unknown error'))
           }
-        },
+        }
       )
     },
-    [connected, documentId, onError],
+    [connected, documentId, onError]
   )
 
   /**
@@ -298,7 +285,7 @@ export function useCollaboration(
         state,
       })
     },
-    [connected, documentId],
+    [connected, documentId]
   )
 
   /**

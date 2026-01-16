@@ -22,7 +22,7 @@ import { test, expect, APIRequestContext } from '@playwright/test'
 async function loginViaAPI(
   request: APIRequestContext,
   username: string,
-  password: string,
+  password: string
 ): Promise<string> {
   const response = await request.post('http://localhost:4000/api/auth/login', {
     data: { usernameOrEmail: username, password },
@@ -38,7 +38,7 @@ async function loginViaAPI(
 async function createProjectViaAPI(
   request: APIRequestContext,
   token: string,
-  name: string,
+  name: string
 ): Promise<string> {
   const response = await request.post('http://localhost:4000/api/projects', {
     headers: {
@@ -66,7 +66,7 @@ async function createBranch(
   token: string,
   projectId: string,
   name: string,
-  startPoint: string,
+  startPoint: string
 ): Promise<void> {
   const response = await request.post(`http://localhost:4000/api/git/${projectId}/branches`, {
     headers: {
@@ -87,7 +87,7 @@ async function createCommit(
   projectId: string,
   branch: string,
   files: Array<{ path: string; content: string }>,
-  message: string,
+  message: string
 ): Promise<Record<string, unknown>> {
   const response = await request.post(`http://localhost:4000/api/git/${projectId}/commit`, {
     headers: {
@@ -109,7 +109,7 @@ async function createPullRequest(
   projectId: string,
   title: string,
   sourceBranch: string,
-  targetBranch: string = 'main',
+  targetBranch: string = 'main'
 ): Promise<{ id: string; number: number }> {
   const response = await request.post('http://localhost:4000/api/pull-requests', {
     headers: {
@@ -139,7 +139,7 @@ async function addLineComment(
   filePath: string,
   lineNumber: number,
   body: string,
-  commitHash?: string,
+  commitHash?: string
 ): Promise<void> {
   const response = await request.post(`http://localhost:4000/api/pull-requests/${prId}/comments`, {
     headers: {
@@ -195,7 +195,7 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
       projectId,
       'feature-display-comments',
       [{ path: 'test.txt', content: 'Line 1\nLine 2\nLine 3\nLine 4' }],
-      'Add test file with 4 lines',
+      'Add test file with 4 lines'
     )
 
     // Create PR
@@ -204,7 +204,7 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
       accessToken,
       projectId,
       'Test Line Comment Display',
-      'feature-display-comments',
+      'feature-display-comments'
     )
 
     // Add line-level comment via API
@@ -215,7 +215,7 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
       'test.txt',
       2,
       'This is a comment on line 2',
-      'feature-display-comments',
+      'feature-display-comments'
     )
 
     // Navigate to PR detail page
@@ -227,17 +227,25 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
 
     // Verify line-level comment is displayed in blue section
     await expect(
-      page.locator('.bg-blue-50,.bg-blue-900\\/20').filter({ hasText: 'This is a comment on line 2' }).first(),
+      page
+        .locator('.bg-blue-50,.bg-blue-900\\/20')
+        .filter({ hasText: 'This is a comment on line 2' })
+        .first()
     ).toBeVisible({ timeout: 5000 })
 
     // Verify comment metadata (line number indicator)
-    await expect(page.locator('text=2 comment(s) on line').or(page.locator('text=line 2')).first()).toBeVisible()
+    await expect(
+      page.locator('text=2 comment(s) on line').or(page.locator('text=line 2')).first()
+    ).toBeVisible()
 
     // Verify author username appears
     await expect(page.locator(`text=${testUser.username}`).first()).toBeVisible()
   })
 
-  test('should show Add comment button on hover for commentable lines', async ({ page, request }) => {
+  test('should show Add comment button on hover for commentable lines', async ({
+    page,
+    request,
+  }) => {
     // Create feature branch with a file change
     await createBranch(request, accessToken, projectId, 'feature-hover-test', 'main')
     await createCommit(
@@ -246,7 +254,7 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
       projectId,
       'feature-hover-test',
       [{ path: 'hover-test.txt', content: 'New line added' }],
-      'Add hover test file',
+      'Add hover test file'
     )
 
     // Create PR
@@ -255,7 +263,7 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
       accessToken,
       projectId,
       'Test Hover Interaction',
-      'feature-hover-test',
+      'feature-hover-test'
     )
 
     // Navigate to PR detail page
@@ -267,14 +275,18 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
 
     // Find a line with addition marker (green background, starts with +)
     // This should be the "New line added" line
-    const addedLine = page.locator('.bg-green-50,.bg-green-900\\/20').filter({ hasText: 'New line added' })
+    const addedLine = page
+      .locator('.bg-green-50,.bg-green-900\\/20')
+      .filter({ hasText: 'New line added' })
     await expect(addedLine).toBeVisible({ timeout: 5000 })
 
     // Hover over the added line
     await addedLine.hover()
 
     // Verify "Add comment" button appears on hover
-    await expect(page.getByRole('button', { name: /💬 Add comment/i }).first()).toBeVisible({ timeout: 3000 })
+    await expect(page.getByRole('button', { name: /💬 Add comment/i }).first()).toBeVisible({
+      timeout: 3000,
+    })
   })
 
   test('should add line-level comment via inline form', async ({ page, request }) => {
@@ -286,7 +298,7 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
       projectId,
       'feature-add-comment',
       [{ path: 'comment-test.txt', content: 'Line 1\nLine 2\nLine 3' }],
-      'Add comment test file',
+      'Add comment test file'
     )
 
     // Create PR
@@ -295,7 +307,7 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
       accessToken,
       projectId,
       'Test Add Line Comment',
-      'feature-add-comment',
+      'feature-add-comment'
     )
 
     // Navigate to PR detail page
@@ -320,7 +332,10 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
 
     // Verify inline comment form appears (yellow background)
     await expect(
-      page.locator('.bg-yellow-50,.bg-yellow-900\\/20').filter({ hasText: 'Adding comment on line' }).first(),
+      page
+        .locator('.bg-yellow-50,.bg-yellow-900\\/20')
+        .filter({ hasText: 'Adding comment on line' })
+        .first()
     ).toBeVisible({ timeout: 3000 })
 
     // Fill in comment body in textarea
@@ -337,12 +352,18 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
 
     // Verify inline form is closed (no longer visible)
     await expect(
-      page.locator('.bg-yellow-50,.bg-yellow-900\\/20').filter({ hasText: 'Adding comment on line' }).first(),
+      page
+        .locator('.bg-yellow-50,.bg-yellow-900\\/20')
+        .filter({ hasText: 'Adding comment on line' })
+        .first()
     ).not.toBeVisible()
 
     // Verify comment appears in blue comment section
     await expect(
-      page.locator('.bg-blue-50,.bg-blue-900\\/20').filter({ hasText: 'This is my inline comment on Line 2' }).first(),
+      page
+        .locator('.bg-blue-50,.bg-blue-900\\/20')
+        .filter({ hasText: 'This is my inline comment on Line 2' })
+        .first()
     ).toBeVisible({ timeout: 5000 })
 
     // Verify comment count indicator
@@ -358,7 +379,7 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
       projectId,
       'feature-cancel-test',
       [{ path: 'cancel-test.txt', content: 'Cancelable line' }],
-      'Add cancel test file',
+      'Add cancel test file'
     )
 
     // Create PR
@@ -367,7 +388,7 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
       accessToken,
       projectId,
       'Test Cancel Inline Form',
-      'feature-cancel-test',
+      'feature-cancel-test'
     )
 
     // Navigate to PR detail page
@@ -378,7 +399,9 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
     await expect(page.locator('text=cancel-test.txt').first()).toBeVisible({ timeout: 5000 })
 
     // Find the added line
-    const targetLine = page.locator('.bg-green-50,.bg-green-900\\/20').filter({ hasText: 'Cancelable line' })
+    const targetLine = page
+      .locator('.bg-green-50,.bg-green-900\\/20')
+      .filter({ hasText: 'Cancelable line' })
     await expect(targetLine).toBeVisible({ timeout: 5000 })
 
     // Hover and click "Add comment"
@@ -389,7 +412,10 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
 
     // Verify form appears
     await expect(
-      page.locator('.bg-yellow-50,.bg-yellow-900\\/20').filter({ hasText: 'Adding comment on line' }).first(),
+      page
+        .locator('.bg-yellow-50,.bg-yellow-900\\/20')
+        .filter({ hasText: 'Adding comment on line' })
+        .first()
     ).toBeVisible({ timeout: 3000 })
 
     // Fill in some text
@@ -402,12 +428,17 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
 
     // Verify form is closed
     await expect(
-      page.locator('.bg-yellow-50,.bg-yellow-900\\/20').filter({ hasText: 'Adding comment on line' }).first(),
+      page
+        .locator('.bg-yellow-50,.bg-yellow-900\\/20')
+        .filter({ hasText: 'Adding comment on line' })
+        .first()
     ).not.toBeVisible()
 
     // Verify no comment was added
     await expect(
-      page.locator('.bg-blue-50,.bg-blue-900\\/20').filter({ hasText: 'This text should be discarded' }),
+      page
+        .locator('.bg-blue-50,.bg-blue-900\\/20')
+        .filter({ hasText: 'This text should be discarded' })
     ).not.toBeVisible()
   })
 
@@ -419,7 +450,7 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
       projectId,
       'main',
       [{ path: 'deletion-test.txt', content: 'Original line\nTo be deleted\nAnother line' }],
-      'Add file on main',
+      'Add file on main'
     )
 
     // Create feature branch and delete a line
@@ -430,7 +461,7 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
       projectId,
       'feature-delete-test',
       [{ path: 'deletion-test.txt', content: 'Original line\nAnother line' }],
-      'Delete middle line',
+      'Delete middle line'
     )
 
     // Create PR
@@ -439,7 +470,7 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
       accessToken,
       projectId,
       'Test No Comment on Deletions',
-      'feature-delete-test',
+      'feature-delete-test'
     )
 
     // Navigate to PR detail page
@@ -450,7 +481,9 @@ test.describe('PR Line-Level Comments E2E Tests', () => {
     await expect(page.locator('text=deletion-test.txt').first()).toBeVisible({ timeout: 5000 })
 
     // Find the deletion line (red background, starts with -)
-    const deletionLine = page.locator('.bg-red-50,.bg-red-900\\/20').filter({ hasText: 'To be deleted' })
+    const deletionLine = page
+      .locator('.bg-red-50,.bg-red-900\\/20')
+      .filter({ hasText: 'To be deleted' })
     await expect(deletionLine).toBeVisible({ timeout: 5000 })
 
     // Hover over deletion line

@@ -9,6 +9,7 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { MultiSelect } from '@mantine/core'
 import { api } from '@/lib/api'
@@ -22,7 +23,12 @@ interface LabelSelectorProps {
   disabled?: boolean
 }
 
-export function LabelSelector({ projectId, value, onChange, disabled = false }: LabelSelectorProps) {
+export function LabelSelector({
+  projectId,
+  value,
+  onChange,
+  disabled = false,
+}: LabelSelectorProps) {
   const { t } = useLanguage()
   const [labels, setLabels] = useState<Label[]>([])
   const [loading, setLoading] = useState(true)
@@ -33,7 +39,7 @@ export function LabelSelector({ projectId, value, onChange, disabled = false }: 
       const data = await api.labels.list(projectId)
       setLabels(data)
     } catch (error) {
-      console.error('Failed to load labels:', error)
+      logger.error('Failed to load labels:', error)
     } finally {
       setLoading(false)
     }

@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
@@ -57,7 +58,7 @@ export default function PullRequestDetailPage() {
       )
       setPr(data)
     } catch (err) {
-      console.error('Failed to fetch PR:', err)
+      logger.error('Failed to fetch PR:', err)
       const error = err as Error
       setError(error.message || t.pullRequests.detail.notFound)
     } finally {
@@ -67,20 +68,25 @@ export default function PullRequestDetailPage() {
 
   const fetchDiff = useCallback(async () => {
     try {
-      console.log('[fetchDiff] Starting - projectId:', projectId, 'prNumber:', prNumber)
+      logger.log('[fetchDiff] Starting - projectId:', projectId, 'prNumber:', prNumber)
       const prData = await apiRequest<PullRequest>(
         `/pull-requests/project/${projectId}/number/${prNumber}`
       )
-      console.log('[fetchDiff] Got PR data:', prData?.id, prData?.sourceBranch, prData?.targetBranch)
+      logger.log('[fetchDiff] Got PR data:', prData?.id, prData?.sourceBranch, prData?.targetBranch)
       const data = await apiRequest<DiffResponseDto>(`/pull-requests/${prData.id}/diff`)
-      console.log('[fetchDiff] Got diff data - files:', data?.files?.length, 'comments:', data?.comments?.length)
+      logger.log(
+        '[fetchDiff] Got diff data - files:',
+        data?.files?.length,
+        'comments:',
+        data?.comments?.length
+      )
       setDiffData(data)
     } catch (err) {
-      console.error('[fetchDiff] FAILED:', err)
-      console.error('[fetchDiff] Error details:', {
+      logger.error('[fetchDiff] FAILED:', err)
+      logger.error('[fetchDiff] Error details:', {
         message: (err as Error).message,
         name: (err as Error).name,
-        stack: (err as Error).stack
+        stack: (err as Error).stack,
       })
     }
   }, [projectId, prNumber])
@@ -95,12 +101,10 @@ export default function PullRequestDetailPage() {
 
     try {
       setLoadingMergeStatus(true)
-      const data = await apiRequest<MergeStatus>(
-        `/pull-requests/${pr.id}/merge-status`
-      )
+      const data = await apiRequest<MergeStatus>(`/pull-requests/${pr.id}/merge-status`)
       setMergeStatus(data)
     } catch (err) {
-      console.error('Failed to fetch merge status:', err)
+      logger.error('Failed to fetch merge status:', err)
     } finally {
       setLoadingMergeStatus(false)
     }
@@ -140,7 +144,7 @@ export default function PullRequestDetailPage() {
       setReviewBody('')
       fetchPR() // Refresh PR data
     } catch (err) {
-      console.error('Failed to submit review:', err)
+      logger.error('Failed to submit review:', err)
       alert(t.pullRequests.reviews.createFailed)
     } finally {
       setSubmittingReview(false)
@@ -164,7 +168,7 @@ export default function PullRequestDetailPage() {
       setCommentBody('')
       fetchPR() // Refresh PR data
     } catch (err) {
-      console.error('Failed to submit comment:', err)
+      logger.error('Failed to submit comment:', err)
       alert(t.pullRequests.comments.createFailed)
     } finally {
       setSubmittingComment(false)
@@ -195,7 +199,7 @@ export default function PullRequestDetailPage() {
       // Refresh diff data to show new comment immediately
       await fetchDiff()
     } catch (err) {
-      console.error('Failed to add line comment:', err)
+      logger.error('Failed to add line comment:', err)
       throw err // Re-throw so DiffFileView can handle error
     }
   }
@@ -217,7 +221,7 @@ export default function PullRequestDetailPage() {
       setShowMergeDialog(false)
       fetchPR() // Refresh PR data
     } catch (err) {
-      console.error('Failed to merge PR:', err)
+      logger.error('Failed to merge PR:', err)
       alert(t.pullRequests.detail.mergeFailed)
     } finally {
       setMerging(false)
@@ -233,7 +237,7 @@ export default function PullRequestDetailPage() {
       })
       fetchPR() // Refresh PR data
     } catch (err) {
-      console.error('Failed to close PR:', err)
+      logger.error('Failed to close PR:', err)
       alert(t.pullRequests.detail.closeFailed)
     }
   }
@@ -317,7 +321,10 @@ export default function PullRequestDetailPage() {
             <h1 className="text-3xl font-bold">
               {pr.title} <span className="text-gray-500">#{pr.number}</span>
             </h1>
-            <span data-slot="badge" className={`px-3 py-1 rounded text-sm font-medium ${getStateStyle(pr.state)}`}>
+            <span
+              data-slot="badge"
+              className={`px-3 py-1 rounded text-sm font-medium ${getStateStyle(pr.state)}`}
+            >
               {getStateText(pr.state)}
             </span>
           </div>
@@ -383,11 +390,14 @@ export default function PullRequestDetailPage() {
                     {/* Progress Info */}
                     <div className="text-xs border-t border-gray-700 pt-2">
                       <div>
-                        {t.pullRequests.detail.commits || 'Approvals'}: {mergeStatus.approvalCount}/{mergeStatus.requiredApprovals}
+                        {t.pullRequests.detail.commits || 'Approvals'}: {mergeStatus.approvalCount}/
+                        {mergeStatus.requiredApprovals}
                       </div>
                       {mergeStatus.hasChangeRequests && (
                         <div className="text-red-300 mt-1">
-                          ⚠ {t.pullRequests.mergeStatus?.activeChangeRequests || 'Active change requests'}
+                          ⚠{' '}
+                          {t.pullRequests.mergeStatus?.activeChangeRequests ||
+                            'Active change requests'}
                         </div>
                       )}
                     </div>
@@ -435,10 +445,7 @@ export default function PullRequestDetailPage() {
 
       {/* Review Summary Card */}
       {pr.state === PRState.OPEN && (
-        <ReviewSummaryCard
-          prId={pr.id}
-          onRefresh={handleReviewSummaryRefresh}
-        />
+        <ReviewSummaryCard prId={pr.id} onRefresh={handleReviewSummaryRefresh} />
       )}
 
       {/* Reviews */}
@@ -467,14 +474,22 @@ export default function PullRequestDetailPage() {
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-6">
           <h2 className="text-xl font-bold mb-4">{t.pullRequests.diff.title}</h2>
           <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            {t.pullRequests.diff.filesChanged.replace('{count}', String(diffData.summary.totalFiles))}
+            {t.pullRequests.diff.filesChanged.replace(
+              '{count}',
+              String(diffData.summary.totalFiles)
+            )}
             {' · '}
             <span className="text-green-600">
-              {t.pullRequests.diff.additions.replace('{count}', String(diffData.summary.totalAdditions))}
-            </span>
-            {' '}
+              {t.pullRequests.diff.additions.replace(
+                '{count}',
+                String(diffData.summary.totalAdditions)
+              )}
+            </span>{' '}
             <span className="text-red-600">
-              {t.pullRequests.diff.deletions.replace('{count}', String(diffData.summary.totalDeletions))}
+              {t.pullRequests.diff.deletions.replace(
+                '{count}',
+                String(diffData.summary.totalDeletions)
+              )}
             </span>
           </div>
           <div className="space-y-4">
@@ -556,11 +571,15 @@ export default function PullRequestDetailPage() {
                   onChange={(e) => setReviewState(e.target.value as ReviewState)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
                 >
-                  <option value={ReviewState.APPROVED}>{t.pullRequests.reviews.approveLabel}</option>
+                  <option value={ReviewState.APPROVED}>
+                    {t.pullRequests.reviews.approveLabel}
+                  </option>
                   <option value={ReviewState.CHANGES_REQUESTED}>
                     {t.pullRequests.reviews.changesRequestedLabel}
                   </option>
-                  <option value={ReviewState.COMMENTED}>{t.pullRequests.reviews.commentLabel}</option>
+                  <option value={ReviewState.COMMENTED}>
+                    {t.pullRequests.reviews.commentLabel}
+                  </option>
                 </select>
               </div>
 
@@ -600,8 +619,14 @@ export default function PullRequestDetailPage() {
       {/* Merge Dialog */}
       {showMergeDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4" role="dialog" aria-labelledby="merge-dialog-title">
-            <h3 id="merge-dialog-title" className="text-xl font-bold mb-4">{t.pullRequests.detail.mergePR}</h3>
+          <div
+            className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4"
+            role="dialog"
+            aria-labelledby="merge-dialog-title"
+          >
+            <h3 id="merge-dialog-title" className="text-xl font-bold mb-4">
+              {t.pullRequests.detail.mergePR}
+            </h3>
 
             <div className="space-y-4">
               <div>
@@ -617,10 +642,12 @@ export default function PullRequestDetailPage() {
                     {t.pullRequests.mergeStrategy.merge} - {t.pullRequests.mergeStrategy.mergeDesc}
                   </option>
                   <option value={MergeStrategy.SQUASH}>
-                    {t.pullRequests.mergeStrategy.squash} - {t.pullRequests.mergeStrategy.squashDesc}
+                    {t.pullRequests.mergeStrategy.squash} -{' '}
+                    {t.pullRequests.mergeStrategy.squashDesc}
                   </option>
                   <option value={MergeStrategy.REBASE}>
-                    {t.pullRequests.mergeStrategy.rebase} - {t.pullRequests.mergeStrategy.rebaseDesc}
+                    {t.pullRequests.mergeStrategy.rebase} -{' '}
+                    {t.pullRequests.mergeStrategy.rebaseDesc}
                   </option>
                 </select>
               </div>

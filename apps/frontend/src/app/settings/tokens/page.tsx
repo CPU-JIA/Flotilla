@@ -3,13 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -134,9 +128,7 @@ export default function TokensPage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">API 令牌</h1>
-          <p className="mt-2 text-muted-foreground">
-            管理用于程序化访问 API 的个人访问令牌
-          </p>
+          <p className="mt-2 text-muted-foreground">管理用于程序化访问 API 的个人访问令牌</p>
         </div>
         <Button onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
@@ -210,9 +202,7 @@ export default function TokensPage() {
           <CardContent className="py-12 text-center">
             <Key className="mx-auto h-12 w-12 text-muted-foreground" />
             <h3 className="mt-4 text-lg font-semibold">暂无 API 令牌</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              创建一个令牌以开始使用 API
-            </p>
+            <p className="mt-2 text-sm text-muted-foreground">创建一个令牌以开始使用 API</p>
             <Button className="mt-4" onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               创建令牌
@@ -241,9 +231,7 @@ export default function TokensPage() {
                     <FormControl>
                       <Input placeholder="例如: CI/CD Pipeline" {...field} />
                     </FormControl>
-                    <FormDescription>
-                      用于识别此令牌的名称
-                    </FormDescription>
+                    <FormDescription>用于识别此令牌的名称</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -298,9 +286,7 @@ export default function TokensPage() {
                     <FormControl>
                       <Input type="datetime-local" {...field} />
                     </FormControl>
-                    <FormDescription>
-                      留空表示令牌永不过期
-                    </FormDescription>
+                    <FormDescription>留空表示令牌永不过期</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -355,9 +341,7 @@ export default function TokensPage() {
             </div>
           )}
           <DialogFooter>
-            <Button onClick={() => setCreatedToken(null)}>
-              我已保存此令牌
-            </Button>
+            <Button onClick={() => setCreatedToken(null)}>我已保存此令牌</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -65,9 +65,9 @@ test.describe('忘记密码功能测试', () => {
     await page.getByRole('button', { name: '发送重置邮件' }).click()
 
     // 等待成功消息（系统应该显示成功提示，即使邮箱不存在也显示相同消息）
-    await expect(
-      page.locator('text=如果该邮箱已注册，您将收到密码重置邮件')
-    ).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('text=如果该邮箱已注册，您将收到密码重置邮件')).toBeVisible({
+      timeout: 10000,
+    })
   })
 
   test('应该成功发送重置密码邮件（未注册邮箱 - 安全提示）', async ({ page }) => {
@@ -79,9 +79,9 @@ test.describe('忘记密码功能测试', () => {
     await page.getByRole('button', { name: '发送重置邮件' }).click()
 
     // 等待成功消息（为安全起见，系统不应该暴露邮箱是否存在）
-    await expect(
-      page.locator('text=如果该邮箱已注册，您将收到密码重置邮件')
-    ).toBeVisible({ timeout: 10000 })
+    await expect(page.locator('text=如果该邮箱已注册，您将收到密码重置邮件')).toBeVisible({
+      timeout: 10000,
+    })
   })
 
   test('应该在发送时禁用按钮', async ({ page }) => {
@@ -217,7 +217,9 @@ test.describe('邮箱验证功能测试', () => {
 
     // 验证token确实获取到了（防止null token导致测试失败）
     if (!token) {
-      throw new Error('Failed to get email verification token from test API - registration may need more time')
+      throw new Error(
+        'Failed to get email verification token from test API - registration may need more time'
+      )
     }
 
     // 3. 访问邮箱验证页面（使用有效token）
@@ -286,4 +288,3 @@ test.describe('邮箱验证功能测试', () => {
  * - 邮箱验证功能：3个测试 ✅（之前2个skip，现已启用）
  * 共计：12个E2E测试，全部启用
  */
-

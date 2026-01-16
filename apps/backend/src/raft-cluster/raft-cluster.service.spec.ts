@@ -6,7 +6,7 @@
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { RaftClusterService, ClusterStatus } from './raft-cluster.service';
+import { RaftClusterService } from './raft-cluster.service';
 import {
   ClusterConfigService,
   RaftClusterSettings,

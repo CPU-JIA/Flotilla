@@ -24,7 +24,7 @@ import { test, expect, APIRequestContext, Page } from '@playwright/test'
 async function loginViaAPI(
   request: APIRequestContext,
   username: string,
-  password: string,
+  password: string
 ): Promise<string> {
   const response = await request.post('http://localhost:4000/api/auth/login', {
     data: { usernameOrEmail: username, password },
@@ -40,7 +40,7 @@ async function loginViaAPI(
 async function createProjectViaAPI(
   request: APIRequestContext,
   token: string,
-  name: string,
+  name: string
 ): Promise<string> {
   const response = await request.post('http://localhost:4000/api/projects', {
     headers: {
@@ -66,7 +66,7 @@ async function createBranch(
   token: string,
   projectId: string,
   name: string,
-  startPoint: string,
+  startPoint: string
 ): Promise<void> {
   const response = await request.post(`http://localhost:4000/api/git/${projectId}/branches`, {
     headers: {
@@ -87,7 +87,7 @@ async function createCommit(
   projectId: string,
   branch: string,
   files: Array<{ path: string; content: string }>,
-  message: string,
+  message: string
 ): Promise<Record<string, unknown>> {
   const response = await request.post(`http://localhost:4000/api/git/${projectId}/commit`, {
     headers: {
@@ -109,7 +109,7 @@ async function createPullRequest(
   projectId: string,
   title: string,
   sourceBranch: string,
-  targetBranch: string = 'main',
+  targetBranch: string = 'main'
 ): Promise<{ id: string; number: number }> {
   const response = await request.post('http://localhost:4000/api/pull-requests', {
     headers: {
@@ -137,7 +137,7 @@ async function submitReview(
   token: string,
   prId: string,
   state: 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED',
-  body?: string,
+  body?: string
 ): Promise<void> {
   const response = await request.post(`http://localhost:4000/api/pull-requests/${prId}/reviews`, {
     headers: {
@@ -163,7 +163,7 @@ async function updateProjectSettings(
     requireApprovals?: number
     allowSelfMerge?: boolean
     requireReviewFromOwner?: boolean
-  },
+  }
 ): Promise<void> {
   const response = await request.put(`http://localhost:4000/api/projects/${projectId}`, {
     headers: {
@@ -181,7 +181,7 @@ async function updateProjectSettings(
 async function getUserIdByUsername(
   request: APIRequestContext,
   token: string,
-  username: string,
+  username: string
 ): Promise<string> {
   const response = await request.get(`http://localhost:4000/api/users?search=${username}`, {
     headers: {
@@ -251,9 +251,15 @@ test.describe('PR Review Enhancement E2E Tests', () => {
       projectId,
       'feature-approval-test',
       [{ path: 'test.txt', content: 'Test content' }],
-      'Add test file',
+      'Add test file'
     )
-    const pr = await createPullRequest(request, ownerToken, projectId, 'Test APPROVED Review', 'feature-approval-test')
+    const pr = await createPullRequest(
+      request,
+      ownerToken,
+      projectId,
+      'Test APPROVED Review',
+      'feature-approval-test'
+    )
 
     // Login as reviewer
     await loginViaUI(page, reviewerUser.username, reviewerUser.password)
@@ -268,7 +274,9 @@ test.describe('PR Review Enhancement E2E Tests', () => {
     await page.waitForTimeout(500) // Brief wait for form to appear
 
     // Scroll to review form section (heading level 3)
-    await page.getByRole('heading', { name: /提交审查|Submit.*Review/i, level: 3 }).scrollIntoViewIfNeeded()
+    await page
+      .getByRole('heading', { name: /提交审查|Submit.*Review/i, level: 3 })
+      .scrollIntoViewIfNeeded()
 
     // Select APPROVED state from combobox
     const reviewStateSelect = page.locator('[role="combobox"]').or(page.locator('select'))
@@ -287,12 +295,16 @@ test.describe('PR Review Enhancement E2E Tests', () => {
     await page.waitForTimeout(2000)
 
     // Verify Review Summary Card is visible
-    await expect(page.getByRole('heading', { name: /Review 摘要|Review Summary/i }).last()).toBeVisible({
+    await expect(
+      page.getByRole('heading', { name: /Review 摘要|Review Summary/i }).last()
+    ).toBeVisible({
       timeout: 5000,
     })
 
     // Verify approved count
-    await expect(page.locator('text=已批准').or(page.locator('text=Approved')).first()).toBeVisible()
+    await expect(
+      page.locator('text=已批准').or(page.locator('text=Approved')).first()
+    ).toBeVisible()
 
     // Verify reviewer appears in reviewer list
     await expect(page.locator(`text=${reviewerUser.username}`).first()).toBeVisible()
@@ -310,9 +322,15 @@ test.describe('PR Review Enhancement E2E Tests', () => {
       projectId,
       'feature-changes-test',
       [{ path: 'test.txt', content: 'Test content' }],
-      'Add test file',
+      'Add test file'
     )
-    const pr = await createPullRequest(request, ownerToken, projectId, 'Test CHANGES_REQUESTED', 'feature-changes-test')
+    const pr = await createPullRequest(
+      request,
+      ownerToken,
+      projectId,
+      'Test CHANGES_REQUESTED',
+      'feature-changes-test'
+    )
 
     // Submit CHANGES_REQUESTED review as reviewer
     await submitReview(request, reviewerToken, pr.id, 'CHANGES_REQUESTED', 'Please fix the bugs')
@@ -325,17 +343,24 @@ test.describe('PR Review Enhancement E2E Tests', () => {
     await page.waitForLoadState('networkidle', { timeout: 10000 })
 
     // Verify Review Summary Card shows changes requested
-    await expect(page.locator('text=需要修改').or(page.locator('text=Changes Requested'))).toBeVisible({
+    await expect(
+      page.locator('text=需要修改').or(page.locator('text=Changes Requested'))
+    ).toBeVisible({
       timeout: 5000,
     })
 
     // Verify merge button is disabled/blocked
-    const mergeButton = page.getByRole('button', { name: /Merge|合并/i }).filter({ hasText: /Cannot|无法/i })
+    const mergeButton = page
+      .getByRole('button', { name: /Merge|合并/i })
+      .filter({ hasText: /Cannot|无法/i })
     await expect(mergeButton).toBeVisible({ timeout: 5000 })
     await expect(mergeButton).toBeDisabled()
   })
 
-  test('should submit COMMENTED review without affecting merge status', async ({ page, request }) => {
+  test('should submit COMMENTED review without affecting merge status', async ({
+    page,
+    request,
+  }) => {
     // Create feature branch and PR
     await createBranch(request, ownerToken, projectId, 'feature-comment-test', 'main')
     await createCommit(
@@ -344,12 +369,21 @@ test.describe('PR Review Enhancement E2E Tests', () => {
       projectId,
       'feature-comment-test',
       [{ path: 'test.txt', content: 'Test content' }],
-      'Add test file',
+      'Add test file'
     )
-    const pr = await createPullRequest(request, ownerToken, projectId, 'Test COMMENTED Review', 'feature-comment-test')
+    const pr = await createPullRequest(
+      request,
+      ownerToken,
+      projectId,
+      'Test COMMENTED Review',
+      'feature-comment-test'
+    )
 
     // Set requireApprovals to 0 so merge is allowed by default
-    await updateProjectSettings(request, ownerToken, projectId, { requireApprovals: 0, allowSelfMerge: true })
+    await updateProjectSettings(request, ownerToken, projectId, {
+      requireApprovals: 0,
+      allowSelfMerge: true,
+    })
 
     // Submit COMMENTED review as reviewer
     await submitReview(request, reviewerToken, pr.id, 'COMMENTED', 'Just a comment')
@@ -362,7 +396,9 @@ test.describe('PR Review Enhancement E2E Tests', () => {
     await page.waitForLoadState('networkidle', { timeout: 10000 })
 
     // Verify Review Summary Card shows comment count
-    await expect(page.locator('text=已评论').or(page.locator('text=Commented')).first()).toBeVisible({
+    await expect(
+      page.locator('text=已评论').or(page.locator('text=Commented')).first()
+    ).toBeVisible({
       timeout: 5000,
     })
 
@@ -381,9 +417,15 @@ test.describe('PR Review Enhancement E2E Tests', () => {
       projectId,
       'feature-insufficient-approval',
       [{ path: 'test.txt', content: 'Test content' }],
-      'Add test file',
+      'Add test file'
     )
-    const pr = await createPullRequest(request, ownerToken, projectId, 'Test Insufficient Approvals', 'feature-insufficient-approval')
+    const pr = await createPullRequest(
+      request,
+      ownerToken,
+      projectId,
+      'Test Insufficient Approvals',
+      'feature-insufficient-approval'
+    )
 
     // Set requireApprovals to 2
     await updateProjectSettings(request, ownerToken, projectId, { requireApprovals: 2 })
@@ -407,7 +449,9 @@ test.describe('PR Review Enhancement E2E Tests', () => {
     await mergeButton.hover()
 
     // Verify tooltip shows approval count (1/2)
-    await expect(page.locator('text=1/2').or(page.locator('text=1 / 2'))).toBeVisible({ timeout: 3000 })
+    await expect(page.locator('text=1/2').or(page.locator('text=1 / 2'))).toBeVisible({
+      timeout: 3000,
+    })
   })
 
   test('should block merge when self-merge is not allowed', async ({ page, request }) => {
@@ -419,14 +463,20 @@ test.describe('PR Review Enhancement E2E Tests', () => {
       projectId,
       'feature-self-merge',
       [{ path: 'test.txt', content: 'Test content' }],
-      'Add test file',
+      'Add test file'
     )
-    const pr = await createPullRequest(request, ownerToken, projectId, 'Test Self-Merge Policy', 'feature-self-merge')
+    const pr = await createPullRequest(
+      request,
+      ownerToken,
+      projectId,
+      'Test Self-Merge Policy',
+      'feature-self-merge'
+    )
 
     // Set allowSelfMerge to false
     await updateProjectSettings(request, ownerToken, projectId, {
       requireApprovals: 0,
-      allowSelfMerge: false
+      allowSelfMerge: false,
     })
 
     // Login as owner (who is also the PR author)
@@ -446,7 +496,9 @@ test.describe('PR Review Enhancement E2E Tests', () => {
 
     // Verify tooltip shows self-merge blocking reason
     await expect(
-      page.locator('text=不能合并自己的 PR（项目策略）').or(page.locator('text=Cannot merge your own PR'))
+      page
+        .locator('text=不能合并自己的 PR（项目策略）')
+        .or(page.locator('text=Cannot merge your own PR'))
     ).toBeVisible({ timeout: 3000 })
   })
 
@@ -459,9 +511,15 @@ test.describe('PR Review Enhancement E2E Tests', () => {
       projectId,
       'feature-summary-test',
       [{ path: 'test.txt', content: 'Test content' }],
-      'Add test file',
+      'Add test file'
     )
-    const pr = await createPullRequest(request, ownerToken, projectId, 'Test Review Summary', 'feature-summary-test')
+    const pr = await createPullRequest(
+      request,
+      ownerToken,
+      projectId,
+      'Test Review Summary',
+      'feature-summary-test'
+    )
 
     // Submit multiple reviews
     await submitReview(request, reviewerToken, pr.id, 'APPROVED', 'First review - approved')
@@ -474,12 +532,16 @@ test.describe('PR Review Enhancement E2E Tests', () => {
     await page.waitForLoadState('networkidle', { timeout: 10000 })
 
     // Verify Review Summary Card is visible
-    await expect(page.getByRole('heading', { name: /Review 摘要|Review Summary/i }).last()).toBeVisible({
+    await expect(
+      page.getByRole('heading', { name: /Review 摘要|Review Summary/i }).last()
+    ).toBeVisible({
       timeout: 5000,
     })
 
     // Verify aggregated counts
-    await expect(page.locator('text=已批准').or(page.locator('text=Approved')).first()).toBeVisible()
+    await expect(
+      page.locator('text=已批准').or(page.locator('text=Approved')).first()
+    ).toBeVisible()
 
     // Verify total reviewer count
     await expect(page.locator('text=审查者').or(page.locator('text=Reviewers'))).toBeVisible()
@@ -500,7 +562,9 @@ test.describe('PR Review Enhancement E2E Tests', () => {
     await page.waitForLoadState('networkidle', { timeout: 10000 })
 
     // Verify page title
-    await expect(page.locator('text=PR 审批规则').or(page.locator('text=PR Approval Rules'))).toBeVisible({
+    await expect(
+      page.locator('text=PR 审批规则').or(page.locator('text=PR Approval Rules'))
+    ).toBeVisible({
       timeout: 5000,
     })
 
@@ -527,7 +591,7 @@ test.describe('PR Review Enhancement E2E Tests', () => {
     await page.waitForTimeout(2000)
 
     // Verify success (alert or toast)
-    page.on('dialog', async dialog => {
+    page.on('dialog', async (dialog) => {
       expect(dialog.message()).toContain('成功')
       await dialog.accept()
     })

@@ -6,6 +6,7 @@
  * ECP-C2: 系统化错误处理
  */
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
@@ -69,13 +70,13 @@ export default function ProjectDetailPage() {
           setDefaultBranchId(defaultBranch.id)
         }
       } catch (branchErr) {
-        console.error('Failed to fetch branches:', branchErr)
+        logger.error('Failed to fetch branches:', branchErr)
       }
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
         setHasRepository(false)
       } else {
-        console.error('Failed to check repository:', err)
+        logger.error('Failed to check repository:', err)
       }
     }
   }, [projectId])

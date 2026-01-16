@@ -14,8 +14,8 @@ export default function BlogPage() {
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold mb-4">Blog</h1>
           <p className="text-xl text-foreground/60 max-w-2xl mx-auto">
-            Insights on distributed systems, consensus algorithms, and building
-            production-ready infrastructure.
+            Insights on distributed systems, consensus algorithms, and building production-ready
+            infrastructure.
           </p>
         </div>
 
@@ -38,9 +38,7 @@ export default function BlogPage() {
                   <h2 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors">
                     {post.title}
                   </h2>
-                  <p className="text-foreground/70 leading-relaxed">
-                    {post.description}
-                  </p>
+                  <p className="text-foreground/70 leading-relaxed">{post.description}</p>
                 </div>
 
                 {/* Tags */}
@@ -85,9 +83,7 @@ export default function BlogPage() {
         {/* Empty State (shown when no posts) */}
         {posts.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-lg text-foreground/60">
-              No blog posts yet. Check back soon!
-            </p>
+            <p className="text-lg text-foreground/60">No blog posts yet. Check back soon!</p>
           </div>
         )}
 

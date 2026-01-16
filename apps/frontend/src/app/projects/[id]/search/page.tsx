@@ -13,6 +13,7 @@
  * ECP-B1: DRY - 复用全局搜索组件
  */
 
+import { logger } from '@/lib/logger'
 import React, { useState, useCallback, useEffect, useRef, Suspense } from 'react'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -59,7 +60,7 @@ function ProjectSearchPageContent() {
         const projectData = await api.projects.getById(projectId)
         setProject(projectData)
       } catch (err) {
-        console.error('Failed to fetch project:', err)
+        logger.error('Failed to fetch project:', err)
       }
     }
 
@@ -106,7 +107,7 @@ function ProjectSearchPageContent() {
           scroll: false,
         })
       } catch (err) {
-        console.error('Search failed:', err)
+        logger.error('Search failed:', err)
         setError(err instanceof Error ? err.message : 'Search failed')
         setResult(null)
       } finally {
@@ -175,10 +176,7 @@ function ProjectSearchPageContent() {
         <ChevronRight className="h-4 w-4" />
         {project ? (
           <>
-            <Link
-              href={`/projects/${projectId}`}
-              className="hover:text-foreground"
-            >
+            <Link href={`/projects/${projectId}`} className="hover:text-foreground">
               {project.name}
             </Link>
             <ChevronRight className="h-4 w-4" />
@@ -194,9 +192,7 @@ function ProjectSearchPageContent() {
         <h1 className="text-3xl font-bold mb-2">
           {project ? `Search in ${project.name}` : 'Project Search'}
         </h1>
-        <p className="text-muted-foreground">
-          Search code, files, and symbols in this project
-        </p>
+        <p className="text-muted-foreground">Search code, files, and symbols in this project</p>
       </div>
 
       {/* Search Bar */}
@@ -227,8 +223,7 @@ function ProjectSearchPageContent() {
           {result && !isLoading && (
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>
-                {result.totalHits} {result.totalHits === 1 ? 'result' : 'results'}{' '}
-                found
+                {result.totalHits} {result.totalHits === 1 ? 'result' : 'results'} found
                 {result.processingTimeMs && (
                   <span className="ml-2">({result.processingTimeMs}ms)</span>
                 )}
@@ -268,8 +263,7 @@ function ProjectSearchPageContent() {
               <FileSearch className="h-16 w-16 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">No results found</h3>
               <p className="text-muted-foreground max-w-md">
-                Try adjusting your search query or filters. Make sure the file is
-                indexed.
+                Try adjusting your search query or filters. Make sure the file is indexed.
               </p>
             </div>
           )}
@@ -278,7 +272,7 @@ function ProjectSearchPageContent() {
           {result && result.hits.length > 0 && (
             <>
               <div className="space-y-3">
-                {result.hits.map(hit => (
+                {result.hits.map((hit) => (
                   <SearchResultItem key={hit.id} hit={hit} query={query} />
                 ))}
               </div>

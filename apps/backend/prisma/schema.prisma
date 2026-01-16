@@ -56,6 +56,7 @@ model User {
 
   @@index([email])
   @@index([username])
+  @@index([role, createdAt]) // 🔒 ECP-C3: 复合索引优化用户列表按角色过滤 (WHERE role + ORDER BY createdAt)
   @@map("users")
 }
 
@@ -111,6 +112,7 @@ model Organization {
   @@index([slug])
   @@index([deletedAt])
   @@index([createdAt])
+  @@index([deletedAt, createdAt]) // 🔒 ECP-C3: 复合索引优化用户组织列表查询 (WHERE deletedAt + ORDER BY createdAt)
   @@map("organizations")
 }
 
@@ -126,6 +128,8 @@ model OrganizationMember {
   @@unique([organizationId, userId])
   @@index([userId])
   @@index([role])
+  @@index([userId, role]) // 🔒 ECP-C3: 复合索引优化配额检查 (WHERE userId + role)
+  @@index([organizationId, role, joinedAt]) // 🔒 ECP-C3: 复合索引优化组织成员列表排序 (WHERE organizationId + ORDER BY role, joinedAt)
   @@map("organization_members")
 }
 
@@ -160,6 +164,7 @@ model TeamMember {
   @@unique([teamId, userId])
   @@index([userId])
   @@index([role])
+  @@index([teamId, role, joinedAt]) // 🔒 ECP-C3: 复合索引优化团队成员列表排序 (WHERE teamId + ORDER BY role, joinedAt)
   @@map("team_members")
 }
 
@@ -174,6 +179,7 @@ model TeamProjectPermission {
 
   @@unique([teamId, projectId])
   @@index([projectId])
+  @@index([teamId, createdAt]) // 🔒 ECP-C3: 复合索引优化团队项目权限列表 (WHERE teamId + ORDER BY createdAt)
   @@map("team_project_permissions")
 }
 
@@ -192,6 +198,10 @@ model Project {
   allowSelfMerge         Boolean                 @default(true)
   requireApprovals       Int                     @default(1)
   requireReviewFromOwner Boolean                 @default(false)
+
+  // 🔒 ECP-A1防御编程: 原子计数器防止并发竞态
+  nextIssueNumber        Int                     @default(1)
+  nextPRNumber           Int                     @default(1)
   branchProtectionRules  BranchProtectionRule[]
   collaborationSessions  CollaborationSession[]
   issues                 Issue[]
@@ -227,6 +237,7 @@ model ProjectMember {
   @@unique([projectId, userId])
   @@index([projectId])
   @@index([userId])
+  @@index([projectId, joinedAt]) // 🔒 ECP-C3: 复合索引优化成员列表排序 (WHERE projectId + ORDER BY joinedAt)
   @@map("project_members")
 }
 
@@ -333,6 +344,7 @@ model SearchMetadata {
   @@index([repositoryId])
   @@index([status])
   @@index([indexedAt])
+  @@index([projectId, status, indexedAt]) // 🔒 ECP-C3: 复合索引优化索引状态查询 (WHERE projectId + status + ORDER BY indexedAt)
   @@map("search_metadata")
 }
 
@@ -412,6 +424,7 @@ model Issue {
   @@index([state])
   @@index([milestoneId])
   @@index([createdAt])
+  @@index([projectId, state, createdAt]) // 🔒 ECP-C3: 复合索引优化 Issue 列表查询 (WHERE projectId + state + ORDER BY createdAt)
   @@map("issues")
 }
 
@@ -540,6 +553,7 @@ model PullRequest {
   @@index([authorId])
   @@index([state])
   @@index([createdAt])
+  @@index([projectId, state, createdAt]) // 🔒 ECP-C3: 复合索引优化 PR 列表查询 (WHERE projectId + state + ORDER BY createdAt)
   @@map("pull_requests")
 }
 
@@ -590,6 +604,7 @@ model PRComment {
   @@index([pullRequestId])
   @@index([authorId])
   @@index([createdAt])
+  @@index([pullRequestId, filePath, createdAt]) // 🔒 ECP-C3: 复合索引优化 PR diff 行内评论查询 (WHERE pullRequestId + filePath + ORDER BY createdAt)
   @@map("pr_comments")
 }
 
@@ -632,6 +647,7 @@ model Notification {
   @@index([userId])
   @@index([read])
   @@index([createdAt])
+  @@index([userId, read, createdAt]) // 🔒 ECP-C3: 复合索引优化通知列表查询 (WHERE userId + read + ORDER BY createdAt)
   @@map("notifications")
 }
 
@@ -719,6 +735,10 @@ model AuditLog {
   user        User?           @relation("AuditLogUser", fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([userId, createdAt]) // 🔒 ECP-C3: 复合索引优化用户审计日志查询 (WHERE userId + ORDER BY createdAt)
+  @@index([entityType, entityId, createdAt]) // 🔒 ECP-C3: 复合索引优化实体审计日志查询 (WHERE entityType + entityId + ORDER BY createdAt)
+  @@index([success, createdAt]) // 🔒 ECP-C3: 复合索引优化失败日志查询 (WHERE success + ORDER BY createdAt)
+  @@index([createdAt]) // 🔒 ECP-C3: 单列索引优化日志清理和导出 (WHERE createdAt + ORDER BY)
   @@map("audit_logs")
 }
 
@@ -928,6 +948,7 @@ model WebhookDelivery {
   webhook        Webhook  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
 
   @@index([webhookId])
+  @@index([webhookId, deliveredAt]) // 🔒 ECP-C3: 复合索引优化 Webhook 投递历史查询 (WHERE webhookId + ORDER BY deliveredAt)
   @@map("webhook_deliveries")
 }
 
@@ -1089,6 +1110,9 @@ enum AuditAction {
   REVOKE
   APPROVE
   REJECT
+  LOGIN_FAILED
+  PERMISSION_DENIED
+  UNAUTHORIZED_ACCESS
 }
 
 enum AuditEntityType {

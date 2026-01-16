@@ -64,8 +64,11 @@ export class PipelinesService {
     // 创建流水线
     const pipeline = await this.prisma.pipeline.create({
       data: {
-        ...createPipelineDto,
         projectId,
+        name: createPipelineDto.name,
+        config: createPipelineDto.config as never, // 类型转换为 Prisma 的 JsonValue
+        triggers: createPipelineDto.triggers,
+        active: createPipelineDto.active,
       },
     });
 
@@ -144,7 +147,14 @@ export class PipelinesService {
 
     const updatedPipeline = await this.prisma.pipeline.update({
       where: { id: pipelineId },
-      data: updatePipelineDto,
+      data: {
+        name: updatePipelineDto.name,
+        config: updatePipelineDto.config
+          ? (updatePipelineDto.config as never)
+          : undefined,
+        triggers: updatePipelineDto.triggers,
+        active: updatePipelineDto.active,
+      },
     });
 
     this.logger.log(`Pipeline updated: ${pipelineId}`);

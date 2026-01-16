@@ -97,21 +97,31 @@ export default function ChangelogPage() {
 
   const getIconForType = (type: string) => {
     switch (type) {
-      case 'added': return Plus
-      case 'changed': return Wrench
-      case 'fixed': return Bug
-      case 'performance': return Zap
-      default: return FileText
+      case 'added':
+        return Plus
+      case 'changed':
+        return Wrench
+      case 'fixed':
+        return Bug
+      case 'performance':
+        return Zap
+      default:
+        return FileText
     }
   }
 
   const getColorForType = (type: string) => {
     switch (type) {
-      case 'added': return 'text-green-500'
-      case 'changed': return 'text-blue-500'
-      case 'fixed': return 'text-orange-500'
-      case 'performance': return 'text-purple-500'
-      default: return 'text-foreground/60'
+      case 'added':
+        return 'text-green-500'
+      case 'changed':
+        return 'text-blue-500'
+      case 'fixed':
+        return 'text-orange-500'
+      case 'performance':
+        return 'text-purple-500'
+      default:
+        return 'text-foreground/60'
     }
   }
 
@@ -124,9 +134,7 @@ export default function ChangelogPage() {
             <FileText className="h-4 w-4" />
             <span>Changelog</span>
           </div>
-          <h1 className="text-5xl sm:text-6xl font-bold mb-6">
-            What is New
-          </h1>
+          <h1 className="text-5xl sm:text-6xl font-bold mb-6">What is New</h1>
           <p className="text-xl text-foreground/60 max-w-2xl mx-auto">
             Track all changes, improvements, and fixes in Flotilla. We follow semantic versioning.
           </p>
@@ -141,8 +149,16 @@ export default function ChangelogPage() {
             <div>
               <h3 className="font-semibold mb-1">Versioning Scheme</h3>
               <p className="text-sm text-foreground/70">
-                We follow <a href="https://semver.org/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Semantic Versioning</a>.
-                Format: <code className="px-2 py-1 rounded bg-secondary">MAJOR.MINOR.PATCH</code>
+                We follow{' '}
+                <a
+                  href="https://semver.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  Semantic Versioning
+                </a>
+                . Format: <code className="px-2 py-1 rounded bg-secondary">MAJOR.MINOR.PATCH</code>
               </p>
             </div>
           </div>
@@ -196,26 +212,38 @@ export default function ChangelogPage() {
                             <ul className="space-y-2">
                               {items.map((item: string, index: number) => (
                                 <li key={index} className="flex items-start gap-3">
-                                  <span className={`mt-1.5 h-1.5 w-1.5 rounded-full ${color} flex-shrink-0`} />
+                                  <span
+                                    className={`mt-1.5 h-1.5 w-1.5 rounded-full ${color} flex-shrink-0`}
+                                  />
                                   <span className="text-foreground/70">{item}</span>
                                 </li>
                               ))}
                             </ul>
                           ) : (
                             <div className="space-y-6">
-                              {items.map((group: { category: string; items: string[] }, groupIndex: number) => (
-                                <div key={groupIndex} className="pl-4 border-l-2 border-border/40">
-                                  <h4 className="font-semibold mb-3">{group.category}</h4>
-                                  <ul className="space-y-2">
-                                    {group.items.map((item: string, itemIndex: number) => (
-                                      <li key={itemIndex} className="flex items-start gap-3">
-                                        <span className={`mt-1.5 h-1.5 w-1.5 rounded-full ${color} flex-shrink-0`} />
-                                        <span className="text-foreground/70 text-sm">{item}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              ))}
+                              {items.map(
+                                (
+                                  group: { category: string; items: string[] },
+                                  groupIndex: number
+                                ) => (
+                                  <div
+                                    key={groupIndex}
+                                    className="pl-4 border-l-2 border-border/40"
+                                  >
+                                    <h4 className="font-semibold mb-3">{group.category}</h4>
+                                    <ul className="space-y-2">
+                                      {group.items.map((item: string, itemIndex: number) => (
+                                        <li key={itemIndex} className="flex items-start gap-3">
+                                          <span
+                                            className={`mt-1.5 h-1.5 w-1.5 rounded-full ${color} flex-shrink-0`}
+                                          />
+                                          <span className="text-foreground/70 text-sm">{item}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )
+                              )}
                             </div>
                           )}
                         </div>
@@ -237,9 +265,17 @@ export default function ChangelogPage() {
             <div className="grid md:grid-cols-2 gap-4">
               {[
                 { type: 'added', label: 'Added', description: 'New features and capabilities' },
-                { type: 'changed', label: 'Changed', description: 'Changes to existing functionality' },
+                {
+                  type: 'changed',
+                  label: 'Changed',
+                  description: 'Changes to existing functionality',
+                },
                 { type: 'fixed', label: 'Fixed', description: 'Bug fixes and corrections' },
-                { type: 'performance', label: 'Performance', description: 'Performance improvements' },
+                {
+                  type: 'performance',
+                  label: 'Performance',
+                  description: 'Performance improvements',
+                },
               ].map((item) => {
                 const Icon = getIconForType(item.type)
                 const color = getColorForType(item.type)

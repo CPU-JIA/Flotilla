@@ -20,7 +20,10 @@ import { AdminService } from './admin.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { createMockUser, mockAdminUser } from '../test-utils/mock-user';
+import {
+  createMockUser,
+  mockAdminUser as _mockAdminUser,
+} from '../test-utils/mock-user';
 
 // Mock bcrypt at module level
 jest.mock('bcrypt', () => ({

@@ -51,12 +51,15 @@ pnpm tsc --noEmit
 ### Common Issues
 
 **Issue**: `Property 'xxx' does not exist on type 'yyy'`
+
 - **Fix**: Add proper type definitions or use optional chaining
 
 **Issue**: `Type 'any' is not allowed`
+
 - **Fix**: Replace `any` with specific types
 
 **Issue**: `Cannot find module '@/components/xxx'`
+
 - **Fix**: Check import path and file extension
 
 ### Quality Standards
@@ -88,12 +91,15 @@ pnpm lint
 ### Common Issues
 
 **Issue**: `React Hook useEffect has missing dependencies`
+
 - **Fix**: Add missing dependencies or use `// eslint-disable-next-line` with justification
 
 **Issue**: `'xxx' is defined but never used`
+
 - **Fix**: Remove unused variables or prefix with underscore `_xxx`
 
 **Issue**: `'xxx' is missing in props validation`
+
 - **Fix**: Add PropTypes or use TypeScript interface
 
 ### Quality Standards
@@ -141,6 +147,7 @@ pnpm format
 ### Files to Format
 
 All files in the following directories:
+
 - `src/app/**/*.{ts,tsx}`
 - `src/components/**/*.{ts,tsx}`
 - `src/hooks/**/*.{ts,tsx}`
@@ -186,6 +193,7 @@ find apps/frontend/src -name '*.tsx' -exec wc -l {} + | sort -nr | head -20
 ```
 
 **Exceptions**:
+
 - `/design-system/page.tsx` (showcase page, can be larger)
 
 ---
@@ -213,13 +221,13 @@ pnpm exec playwright test tests/language --headed
 
 ### New Files Coverage
 
-| File | Expected Coverage | Status |
-|------|------------------|---------|
-| `components/common/data-table.tsx` | 80% | 🟡 Pending |
-| `components/theme/theme-toggle.tsx` | 90% | ✅ E2E tests |
-| `components/language/language-toggle.tsx` | 90% | ✅ E2E tests |
-| `hooks/use-mantine-theme-sync.ts` | 100% | ✅ E2E tests |
-| `app/design-system/page.tsx` | 60% | 🟡 Manual test |
+| File                                      | Expected Coverage | Status         |
+| ----------------------------------------- | ----------------- | -------------- |
+| `components/common/data-table.tsx`        | 80%               | 🟡 Pending     |
+| `components/theme/theme-toggle.tsx`       | 90%               | ✅ E2E tests   |
+| `components/language/language-toggle.tsx` | 90%               | ✅ E2E tests   |
+| `hooks/use-mantine-theme-sync.ts`         | 100%              | ✅ E2E tests   |
+| `app/design-system/page.tsx`              | 60%               | 🟡 Manual test |
 
 ---
 
@@ -356,6 +364,7 @@ BREAKING CHANGE: None
 **Error**: `Cannot find module '@mantine/core'`
 
 **Fix**:
+
 ```bash
 cd apps/frontend
 pnpm install
@@ -366,20 +375,21 @@ pnpm install
 **Error**: `React Hook useEffect has a missing dependency`
 
 **Fix**: Add the dependency or use callback:
+
 ```tsx
 // Before
 useEffect(() => {
-  doSomething(value);
-}, []);
+  doSomething(value)
+}, [])
 
 // After
 const handleValue = useCallback(() => {
-  doSomething(value);
-}, [value]);
+  doSomething(value)
+}, [value])
 
 useEffect(() => {
-  handleValue();
-}, [handleValue]);
+  handleValue()
+}, [handleValue])
 ```
 
 ### Issue 3: Prettier conflicts with ESLint
@@ -387,6 +397,7 @@ useEffect(() => {
 **Error**: `Delete `;` prettier/prettier`
 
 **Fix**: Run Prettier first:
+
 ```bash
 pnpm format
 pnpm lint

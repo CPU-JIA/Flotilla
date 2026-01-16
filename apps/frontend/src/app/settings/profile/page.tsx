@@ -57,10 +57,8 @@ export default function ProfilePage() {
     setIsUploadingAvatar(true)
 
     try {
-      const formData = new FormData()
-      formData.append('avatar', file)
-
-      await api.users.update(user!.id, { avatar: '' }) // API调用待实现
+      // 调用头像上传API
+      await api.users.uploadAvatar(file)
       toast.success('头像上传成功')
       await refreshUser()
     } catch (err) {

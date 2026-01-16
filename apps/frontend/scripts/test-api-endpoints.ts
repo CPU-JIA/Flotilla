@@ -265,8 +265,7 @@ function printSummary() {
     console.log()
   }
 
-  const avgDuration =
-    results.reduce((sum, r) => sum + (r.duration || 0), 0) / results.length
+  const avgDuration = results.reduce((sum, r) => sum + (r.duration || 0), 0) / results.length
   console.log(`⏱️  Average Response Time: ${Math.round(avgDuration)}ms`)
 
   console.log('\n' + '='.repeat(80) + '\n')

@@ -7,7 +7,87 @@ import {
   IsObject,
   IsNotEmpty,
   MaxLength,
+  IsNumber,
+  Min,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+
+/**
+ * 流水线步骤配置
+ * ECP-C1: 类型安全 - 强类型配置替代 any
+ */
+export class PipelineStep {
+  @ApiProperty({ description: '步骤名称', example: 'Build' })
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @ApiProperty({ description: '执行命令', example: 'npm run build' })
+  @IsString()
+  @IsNotEmpty()
+  run: string;
+
+  @ApiPropertyOptional({
+    description: '环境变量',
+    example: { NODE_ENV: 'production' },
+  })
+  @IsOptional()
+  @IsObject()
+  env?: Record<string, string>;
+
+  @ApiPropertyOptional({ description: '工作目录', example: './apps/backend' })
+  @IsOptional()
+  @IsString()
+  workingDirectory?: string;
+
+  @ApiPropertyOptional({ description: '超时时间（秒）', example: 300 })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  timeout?: number;
+
+  @ApiPropertyOptional({ description: '失败时继续执行', example: false })
+  @IsOptional()
+  @IsBoolean()
+  continueOnError?: boolean;
+}
+
+/**
+ * 流水线配置
+ * ECP-C1: 类型安全 - 强类型配置结构
+ */
+export class PipelineConfig {
+  @ApiProperty({
+    description: '执行步骤',
+    type: [PipelineStep],
+    example: [
+      { name: 'Checkout', run: 'git checkout' },
+      { name: 'Build', run: 'npm run build' },
+    ],
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PipelineStep)
+  steps: PipelineStep[];
+
+  @ApiPropertyOptional({ description: '全局超时时间（秒）', example: 3600 })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  timeout?: number;
+
+  @ApiPropertyOptional({ description: '全局环境变量', example: { CI: 'true' } })
+  @IsOptional()
+  @IsObject()
+  environment?: Record<string, string>;
+
+  @ApiPropertyOptional({ description: '并发执行的最大步骤数', example: 1 })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  maxConcurrency?: number;
+}
 
 /**
  * 创建流水线配置 DTO
@@ -21,7 +101,8 @@ export class CreatePipelineDto {
   name: string;
 
   @ApiProperty({
-    description: '流水线配置（YAML转JSON）',
+    description: '流水线配置',
+    type: PipelineConfig,
     example: {
       steps: [
         { name: 'Checkout', run: 'git checkout' },
@@ -32,7 +113,9 @@ export class CreatePipelineDto {
   })
   @IsObject()
   @IsNotEmpty()
-  config: Record<string, any>;
+  @ValidateNested()
+  @Type(() => PipelineConfig)
+  config: PipelineConfig;
 
   @ApiProperty({
     description: '触发条件',

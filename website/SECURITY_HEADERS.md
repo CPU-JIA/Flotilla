@@ -13,6 +13,7 @@ Security headers are HTTP response headers that instruct browsers to enable buil
 **Purpose**: Prevent XSS attacks by controlling which resources can be loaded.
 
 **Configuration**:
+
 ```
 default-src 'self';
 script-src 'self' 'unsafe-inline' 'unsafe-eval' va.vercel-scripts.com;
@@ -28,11 +29,13 @@ upgrade-insecure-requests;
 ```
 
 **Allowed Third-Party Services**:
+
 - **Vercel Analytics**: `va.vercel-scripts.com`, `vitals.vercel-insights.com`
 - **Google Fonts**: `fonts.googleapis.com`, `fonts.gstatic.com`
 - **Next.js Images**: `data:`, `blob:`, `https:` (for image optimization)
 
 **Note**: `'unsafe-inline'` and `'unsafe-eval'` are required for:
+
 - Tailwind CSS dynamic styles
 - Next.js runtime chunks
 - React hot reload (development)
@@ -60,6 +63,7 @@ upgrade-insecure-requests;
 **Value**: `strict-origin-when-cross-origin`
 
 **Effect**:
+
 - Same-origin requests: Send full URL
 - Cross-origin HTTPS→HTTPS: Send origin only
 - Cross-origin HTTPS→HTTP: Send nothing
@@ -71,6 +75,7 @@ upgrade-insecure-requests;
 **Value**: `camera=(), microphone=(), geolocation=(), interest-cohort=()`
 
 **Disabled Features**:
+
 - **camera**: No camera access
 - **microphone**: No microphone access
 - **geolocation**: No geolocation access
@@ -83,6 +88,7 @@ upgrade-insecure-requests;
 **Value**: `max-age=31536000; includeSubDomains; preload`
 
 **Effect**:
+
 - **max-age=31536000**: 1 year duration
 - **includeSubDomains**: Apply to all subdomains
 - **preload**: Eligible for HSTS preload list
@@ -131,6 +137,7 @@ curl -I http://localhost:3003
 **Symptom**: Third-party scripts (analytics, widgets) don't load.
 
 **Solution**: Add the script domain to `script-src`:
+
 ```javascript
 "script-src 'self' 'unsafe-inline' example.com"
 ```
@@ -140,6 +147,7 @@ curl -I http://localhost:3003
 **Symptom**: External images return 404 or CSP errors.
 
 **Solution**: Verify `img-src` allows the image source:
+
 ```javascript
 "img-src 'self' data: blob: https: cdn.example.com"
 ```
@@ -149,8 +157,9 @@ curl -I http://localhost:3003
 **Symptom**: Can't access HTTP version of site.
 
 **Solution**: Reduce `max-age` during testing:
+
 ```javascript
-"max-age=300" // 5 minutes for testing
+'max-age=300' // 5 minutes for testing
 ```
 
 ### Issue 4: Frame-Ancestors Blocks Embedding
@@ -158,12 +167,14 @@ curl -I http://localhost:3003
 **Symptom**: Site can't be embedded in partner iframes.
 
 **Solution**: Change to `SAMEORIGIN` or allow specific origins:
+
 ```javascript
 key: 'X-Frame-Options',
 value: 'SAMEORIGIN',
 ```
 
 Or use CSP `frame-ancestors`:
+
 ```javascript
 "frame-ancestors 'self' trusted-partner.com"
 ```
@@ -188,6 +199,7 @@ When adding new third-party services:
    - Review service documentation
 
 2. **Update `next.config.ts`**:
+
    ```javascript
    "script-src 'self' new-service.com"
    ```
@@ -212,6 +224,7 @@ When adding new third-party services:
 ## Compliance
 
 These security headers help meet:
+
 - **OWASP Top 10** security risks mitigation
 - **PCI DSS** secure transmission requirements
 - **GDPR** security measures (Art. 32)

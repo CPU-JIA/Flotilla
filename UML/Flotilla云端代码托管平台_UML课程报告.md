@@ -4,13 +4,13 @@
 
 ---
 
-**学    院：** 计算机与人工智能学院
+**学 院：** 计算机与人工智能学院
 
-**专    业：** 软件工程
+**专 业：** 软件工程
 
-**完成人员：** _____________________
+**完成人员：** **********\_**********
 
-**题    目：** Flotilla云端代码托管与协作平台
+**题 目：** Flotilla云端代码托管与协作平台
 
 **指导教师：** 张倩敏
 
@@ -18,7 +18,7 @@
 
 ---
 
-# 摘    要
+# 摘 要
 
 随着软件开发团队规模的不断扩大和分布式协作需求的日益增长，传统的代码托管平台面临着数据一致性、高可用性和实时协作等方面的挑战。本课程报告选题"Flotilla云端代码托管与协作平台"正是针对这些痛点，旨在构建一个基于分布式共识算法的新一代代码托管解决方案，为软件开发团队提供安全、可靠、高效的协作环境。该项目的实施对于深入理解分布式系统原理、提升软件工程实践能力具有重要的学术价值和实践意义。
 
@@ -30,7 +30,7 @@
 
 ---
 
-# 目    录
+# 目 录
 
 - [第1章 绪论](#第1章-绪论)
   - [1.1 项目背景和意义](#11-项目背景和意义)
@@ -49,7 +49,7 @@
 
 ---
 
-# 第1章 绪    论
+# 第1章 绪 论
 
 ## 1.1 项目背景和意义
 
@@ -72,12 +72,14 @@ Raft共识算法作为Paxos的简化替代方案，由Stanford大学的Diego Ong
 ### 项目意义
 
 **业务目标：**
+
 - 为开发团队提供一个集中的代码托管和协作平台
 - 支持多人协作开发，提供版本控制和权限管理
 - 基于云计算实现高可用性和可扩展性
 - 降低团队协作成本，提升开发效率
 
 **技术目标：**
+
 - 构建可扩展的前后端分离架构
 - 实现简化版Raft分布式共识算法
 - 达到企业级代码质量标准（测试覆盖率80%+）
@@ -85,6 +87,7 @@ Raft共识算法作为Paxos的简化替代方案，由Stanford大学的Diego Ong
 
 **社会责任：**
 在系统设计过程中，充分考虑了对公众安全、健康和福祉以及环境保护的社会责任，包括：
+
 - GDPR合规的数据导出功能
 - 完整的安全审计日志（SOC2/ISO27001合规）
 - 前端遵循WCAG可访问性标准
@@ -122,6 +125,7 @@ Flotilla云端代码托管与协作平台旨在构建一个功能完善、架构
 > **说明**: ✅ 已实现 | ⚠️ 部分实现 | ❌ 未实现
 
 **核心功能（Phase 1-2 完成）：**
+
 - ✅ 用户认证和授权系统（JWT + 邮箱验证 + 密码重置）
 - ✅ 项目/仓库管理（CRUD + 文件管理）
 - ✅ Git HTTP Smart Protocol（clone/push/fetch）
@@ -136,6 +140,7 @@ Flotilla云端代码托管与协作平台旨在构建一个功能完善、架构
 - ✅ 文件管理（MinIO对象存储）
 
 **安全功能（Phase 3-4 完成）：**
+
 - ✅ HTTPS强制重定向
 - ✅ Security Headers中间件
 - ✅ CSRF保护
@@ -145,6 +150,7 @@ Flotilla云端代码托管与协作平台旨在构建一个功能完善、架构
 - ✅ Token版本控制（CWE-613防护）
 
 **高级功能（Phase 5 完成）：**
+
 - ✅ CI/CD流水线配置（Pipeline模块完整实现）
 - ✅ Wiki文档系统（层级文档、版本历史）
 - ✅ Webhook事件推送（支持重试机制）
@@ -158,20 +164,20 @@ Flotilla云端代码托管与协作平台旨在构建一个功能完善、架构
 
 **技术栈概览：**
 
-| 层次 | 技术选型 | 版本 | 选型理由 |
-|------|---------|------|----------|
-| 前端框架 | Next.js (App Router) | 15.5.x | SSR/SSG支持，App Router，性能优异 |
-| React | React | 19.x | Server Components，生态成熟 |
-| UI组件库 | Shadcn/ui + Mantine | 7.15 | 基于Radix UI，高质量组件 |
-| 状态管理 | TanStack Query + Zustand | 5.x | 服务器状态管理，缓存优化 |
-| 后端框架 | NestJS | 11.x | 企业级架构，模块化，依赖注入 |
-| ORM | Prisma | 6.x | 类型安全，自动迁移，性能好 |
-| 数据库 | PostgreSQL | 16.x | 功能强大，JSON支持，开源 |
-| 缓存 | Redis | 7.x | 高性能内存数据库 |
-| 对象存储 | MinIO | Latest | S3兼容，开源，易部署 |
-| 搜索引擎 | MeiliSearch | 1.10 | 全文代码搜索 |
-| 容器化 | Docker + Docker Compose | - | 容器化部署 |
-| 包管理 | pnpm (Monorepo) | 10.x | 比npm/yarn更快 |
+| 层次     | 技术选型                 | 版本   | 选型理由                          |
+| -------- | ------------------------ | ------ | --------------------------------- |
+| 前端框架 | Next.js (App Router)     | 15.5.x | SSR/SSG支持，App Router，性能优异 |
+| React    | React                    | 19.x   | Server Components，生态成熟       |
+| UI组件库 | Shadcn/ui + Mantine      | 7.15   | 基于Radix UI，高质量组件          |
+| 状态管理 | TanStack Query + Zustand | 5.x    | 服务器状态管理，缓存优化          |
+| 后端框架 | NestJS                   | 11.x   | 企业级架构，模块化，依赖注入      |
+| ORM      | Prisma                   | 6.x    | 类型安全，自动迁移，性能好        |
+| 数据库   | PostgreSQL               | 16.x   | 功能强大，JSON支持，开源          |
+| 缓存     | Redis                    | 7.x    | 高性能内存数据库                  |
+| 对象存储 | MinIO                    | Latest | S3兼容，开源，易部署              |
+| 搜索引擎 | MeiliSearch              | 1.10   | 全文代码搜索                      |
+| 容器化   | Docker + Docker Compose  | -      | 容器化部署                        |
+| 包管理   | pnpm (Monorepo)          | 10.x   | 比npm/yarn更快                    |
 
 ---
 
@@ -183,43 +189,45 @@ Flotilla云端代码托管与协作平台旨在构建一个功能完善、架构
 
 #### 平台层角色
 
-| 角色 | 描述 | 权限 |
-|------|------|------|
+| 角色                          | 描述                 | 权限                                       |
+| ----------------------------- | -------------------- | ------------------------------------------ |
 | **超级管理员（SUPER_ADMIN）** | 平台运维者，最高权限 | 用户管理、系统监控、配置管理、审计日志查看 |
-| **普通用户（USER）** | 平台注册用户 | 创建组织、创建项目、参与协作 |
+| **普通用户（USER）**          | 平台注册用户         | 创建组织、创建项目、参与协作               |
 
 #### 组织层角色
 
-| 角色 | 描述 | 权限 |
-|------|------|------|
-| **组织所有者（OWNER）** | 组织创建者 | 删除组织、转让所有权、所有管理操作 |
-| **组织管理员（ADMIN）** | 被授权管理组织的成员 | 管理成员、管理团队、管理设置 |
-| **组织成员（MEMBER）** | 组织的普通成员 | 创建项目、查看组织信息 |
+| 角色                    | 描述                 | 权限                               |
+| ----------------------- | -------------------- | ---------------------------------- |
+| **组织所有者（OWNER）** | 组织创建者           | 删除组织、转让所有权、所有管理操作 |
+| **组织管理员（ADMIN）** | 被授权管理组织的成员 | 管理成员、管理团队、管理设置       |
+| **组织成员（MEMBER）**  | 组织的普通成员       | 创建项目、查看组织信息             |
 
 #### 团队层角色
 
-| 角色 | 描述 | 权限 |
-|------|------|------|
-| **团队维护者（MAINTAINER）** | 团队管理者 | 管理团队成员、分配项目权限 |
-| **团队成员（MEMBER）** | 团队普通成员 | 继承团队被赋予的项目权限 |
+| 角色                         | 描述         | 权限                       |
+| ---------------------------- | ------------ | -------------------------- |
+| **团队维护者（MAINTAINER）** | 团队管理者   | 管理团队成员、分配项目权限 |
+| **团队成员（MEMBER）**       | 团队普通成员 | 继承团队被赋予的项目权限   |
 
 #### 项目层角色
 
-| 角色 | 描述 | 权限 |
-|------|------|------|
-| **项目所有者（OWNER）** | 项目创建者 | 完全控制权，包括删除项目、管理成员 |
-| **项目维护者（MAINTAINER）** | 项目核心维护者 | 审核PR、管理Issue、分支保护设置 |
-| **项目成员（MEMBER）** | 项目开发成员 | 读写代码、创建Issue和PR |
-| **项目查看者（VIEWER）** | 只读访问权限 | 查看代码和项目信息 |
+| 角色                         | 描述           | 权限                               |
+| ---------------------------- | -------------- | ---------------------------------- |
+| **项目所有者（OWNER）**      | 项目创建者     | 完全控制权，包括删除项目、管理成员 |
+| **项目维护者（MAINTAINER）** | 项目核心维护者 | 审核PR、管理Issue、分支保护设置    |
+| **项目成员（MEMBER）**       | 项目开发成员   | 读写代码、创建Issue和PR            |
+| **项目查看者（VIEWER）**     | 只读访问权限   | 查看代码和项目信息                 |
 
 ### 功能性需求（用户故事摘录）
 
 #### US-001: 用户注册
+
 **作为** 新用户
 **我想要** 通过邮箱和密码注册账号
 **以便** 开始使用平台功能
 
 **验收标准：**
+
 - 必填字段：用户名、邮箱、密码
 - 用户名唯一，3-20个字符，仅支持字母数字下划线
 - 邮箱格式验证且唯一
@@ -228,22 +236,26 @@ Flotilla云端代码托管与协作平台旨在构建一个功能完善、架构
 - 注册成功后自动登录
 
 #### US-018: 创建Pull Request
+
 **作为** 项目成员
 **我想要** 创建Pull Request提交代码变更
 **以便** 进行代码审查和合并
 
 **验收标准：**
+
 - 选择源分支和目标分支
 - 填写标题和描述（支持Markdown）
 - 显示变更文件和差异
 - 自动检测合并冲突
 
 #### US-020: 合并Pull Request
+
 **作为** 项目维护者
 **我想要** 合并审核通过的Pull Request
 **以便** 将代码变更合入主分支
 
 **验收标准：**
+
 - 支持多种合并策略（merge, squash, rebase）
 - 检查分支保护规则
 - 检查必需审批数量
@@ -252,11 +264,13 @@ Flotilla云端代码托管与协作平台旨在构建一个功能完善、架构
 ### 非功能性需求
 
 #### 性能需求
+
 - **响应时间：** API请求平均响应时间 < 200ms
 - **页面加载：** 首屏加载时间 < 2s
 - **并发能力：** 支持1000+并发用户
 
 #### 安全性需求
+
 - 密码强度要求（最少8位，复杂度）
 - JWT token加密传输
 - 防暴力破解（登录失败5次锁定10分钟）
@@ -264,6 +278,7 @@ Flotilla云端代码托管与协作平台旨在构建一个功能完善、架构
 - 防CSRF、XSS攻击
 
 #### 可用性需求
+
 - **系统可用性：** 99.9%（年均停机时间 < 8.76小时）
 - **数据可靠性：** 99.999%（数据丢失概率 < 0.001%）
 
@@ -274,6 +289,7 @@ Flotilla云端代码托管与协作平台旨在构建一个功能完善、架构
 本项目采用**前后端分离**的**微服务架构**，遵循**云原生**设计原则。
 
 **架构特点：**
+
 - **前后端分离：** 前端Next.js独立部署，通过API与后端通信
 - **服务模块化：** 后端按业务领域划分为32个NestJS模块
 - **分布式一致性：** 核心数据通过Raft算法保证强一致性
@@ -320,43 +336,43 @@ backend/src/
 
 #### 核心实体分类
 
-| 模块 | 模型数量 | 主要模型 |
-|------|----------|----------|
-| 用户与认证 | 6 | User, PasswordHistory, UserSession, ApiToken, OAuthAccount, TwoFactorAuth |
-| 组织与团队 | 5 | Organization, OrganizationMember, Team, TeamMember, TeamProjectPermission |
-| 项目与仓库 | 7 | Project, ProjectMember, Repository, Branch, Commit, File, ProjectFile |
-| Issue追踪 | 6 | Issue, Label, Milestone, IssueComment, IssueAssignee, IssueEvent |
-| Pull Request | 5 | PullRequest, PRReview, PRComment, PRAssignee, PREvent |
-| 代码搜索 | 1 | SearchMetadata |
-| 通知系统 | 2 | Notification, NotificationPreference |
-| 分支保护 | 1 | BranchProtectionRule |
-| Raft共识 | 2 | RaftLog, RaftState |
-| 审计日志 | 1 | AuditLog |
-| CI/CD流水线 | 2 | Pipeline, PipelineRun |
-| Wiki文档 | 2 | WikiPage, WikiPageHistory |
-| Webhook | 2 | Webhook, WebhookDelivery |
-| 实时协作 | 2 | CollaborationSession, CollaborationParticipant |
-| GDPR合规 | 1 | DataExportRequest |
+| 模块         | 模型数量 | 主要模型                                                                  |
+| ------------ | -------- | ------------------------------------------------------------------------- |
+| 用户与认证   | 6        | User, PasswordHistory, UserSession, ApiToken, OAuthAccount, TwoFactorAuth |
+| 组织与团队   | 5        | Organization, OrganizationMember, Team, TeamMember, TeamProjectPermission |
+| 项目与仓库   | 7        | Project, ProjectMember, Repository, Branch, Commit, File, ProjectFile     |
+| Issue追踪    | 6        | Issue, Label, Milestone, IssueComment, IssueAssignee, IssueEvent          |
+| Pull Request | 5        | PullRequest, PRReview, PRComment, PRAssignee, PREvent                     |
+| 代码搜索     | 1        | SearchMetadata                                                            |
+| 通知系统     | 2        | Notification, NotificationPreference                                      |
+| 分支保护     | 1        | BranchProtectionRule                                                      |
+| Raft共识     | 2        | RaftLog, RaftState                                                        |
+| 审计日志     | 1        | AuditLog                                                                  |
+| CI/CD流水线  | 2        | Pipeline, PipelineRun                                                     |
+| Wiki文档     | 2        | WikiPage, WikiPageHistory                                                 |
+| Webhook      | 2        | Webhook, WebhookDelivery                                                  |
+| 实时协作     | 2        | CollaborationSession, CollaborationParticipant                            |
+| GDPR合规     | 1        | DataExportRequest                                                         |
 
 #### 枚举类型（18个）
 
-| 枚举类型 | 值 | 用途 |
-|---------|-----|------|
-| UserRole | USER, SUPER_ADMIN | 平台角色 |
-| OrgRole | OWNER, ADMIN, MEMBER | 组织角色 |
-| TeamRole | MAINTAINER, MEMBER | 团队角色 |
-| MemberRole | OWNER, MAINTAINER, MEMBER, VIEWER | 项目角色 |
-| ProjectVisibility | PUBLIC, PRIVATE | 项目可见性 |
-| IssueState | OPEN, CLOSED | Issue状态 |
-| PRState | OPEN, MERGED, CLOSED | PR状态 |
-| ReviewState | APPROVED, CHANGES_REQUESTED, COMMENTED | 审查状态 |
-| MergeStrategy | MERGE, SQUASH, REBASE | 合并策略 |
-| RaftNodeState | FOLLOWER, CANDIDATE, LEADER | Raft节点状态 |
-| NotificationType | PR_CREATED, PR_MERGED, ISSUE_MENTIONED... | 通知类型 |
-| AuditAction | CREATE, UPDATE, DELETE, LOGIN... | 审计操作 |
-| PipelineStatus | PENDING, RUNNING, SUCCESS, FAILED, CANCELLED | CI/CD状态 |
-| DataExportFormat | JSON, CSV, ZIP | GDPR导出格式 |
-| DataExportStatus | PENDING, PROCESSING, COMPLETED, FAILED | 导出状态 |
+| 枚举类型          | 值                                           | 用途         |
+| ----------------- | -------------------------------------------- | ------------ |
+| UserRole          | USER, SUPER_ADMIN                            | 平台角色     |
+| OrgRole           | OWNER, ADMIN, MEMBER                         | 组织角色     |
+| TeamRole          | MAINTAINER, MEMBER                           | 团队角色     |
+| MemberRole        | OWNER, MAINTAINER, MEMBER, VIEWER            | 项目角色     |
+| ProjectVisibility | PUBLIC, PRIVATE                              | 项目可见性   |
+| IssueState        | OPEN, CLOSED                                 | Issue状态    |
+| PRState           | OPEN, MERGED, CLOSED                         | PR状态       |
+| ReviewState       | APPROVED, CHANGES_REQUESTED, COMMENTED       | 审查状态     |
+| MergeStrategy     | MERGE, SQUASH, REBASE                        | 合并策略     |
+| RaftNodeState     | FOLLOWER, CANDIDATE, LEADER                  | Raft节点状态 |
+| NotificationType  | PR_CREATED, PR_MERGED, ISSUE_MENTIONED...    | 通知类型     |
+| AuditAction       | CREATE, UPDATE, DELETE, LOGIN...             | 审计操作     |
+| PipelineStatus    | PENDING, RUNNING, SUCCESS, FAILED, CANCELLED | CI/CD状态    |
+| DataExportFormat  | JSON, CSV, ZIP                               | GDPR导出格式 |
+| DataExportStatus  | PENDING, PROCESSING, COMPLETED, FAILED       | 导出状态     |
 
 ## 2.3 系统流程图
 
@@ -484,6 +500,7 @@ UML（Unified Modeling Language，统一建模语言）是一种用于软件系�
 **基本概念**：用例图描述系统的功能需求，展示参与者（Actor）与用例（Use Case）之间的关系。
 
 **组成元素**：
+
 - **参与者（Actor）**：与系统交互的外部实体，用小人图标表示
 - **用例（Use Case）**：系统提供的功能，用椭圆表示
 - **关联（Association）**：参与者与用例的交互关系
@@ -495,6 +512,7 @@ UML（Unified Modeling Language，统一建模语言）是一种用于软件系�
 **基本概念**：类图是面向对象系统建模中最重要的图，描述系统的静态结构。
 
 **组成元素**：
+
 - **类（Class）**：用矩形表示，分为三栏（类名、属性、方法）
 - **关联（Association）**：类之间的结构关系
 - **聚合（Aggregation）**：整体与部分的关系，部分可独立存在
@@ -508,6 +526,7 @@ UML（Unified Modeling Language，统一建模语言）是一种用于软件系�
 **基本概念**：时序图描述对象之间按时间顺序的消息交互。
 
 **组成元素**：
+
 - **生命线（Lifeline）**：对象存在的时间线
 - **激活框（Activation）**：对象执行操作的时间段
 - **消息（Message）**：同步消息、异步消息、返回消息
@@ -518,6 +537,7 @@ UML（Unified Modeling Language，统一建模语言）是一种用于软件系�
 **基本概念**：状态图描述对象在其生命周期内的状态变化。
 
 **组成元素**：
+
 - **状态（State）**：对象的条件或情况
 - **转换（Transition）**：状态之间的变迁
 - **事件（Event）**：触发转换的条件
@@ -2544,7 +2564,7 @@ sequenceDiagram
 
 ---
 
-# 第3章 总    结
+# 第3章 总 结
 
 ## 3.1 完成情况总结
 
@@ -2552,21 +2572,21 @@ sequenceDiagram
 
 本课程设计项目已完成以下主要工作：
 
-| 模块 | 完成度 | 说明 |
-|------|--------|------|
-| 用户认证系统 | 100% | JWT认证、OAuth、2FA、密码重置、邮箱验证 |
-| 组织/团队管理 | 100% | 完整的三层权限架构 |
-| 项目管理 | 100% | CRUD、权限、归档、设置 |
-| Git版本控制 | 100% | HTTP Smart Protocol完整实现 |
-| Issue追踪 | 100% | 完整的Issue生命周期管理 |
-| Pull Request | 100% | 三种合并策略、代码审查 |
-| 代码搜索 | 100% | 基于MeiliSearch的全文搜索 |
-| 通知系统 | 100% | WebSocket实时通知 + 邮件 |
-| Raft共识 | 100% | Leader选举、日志复制、安全性保证 |
-| CI/CD流水线 | 100% | 配置和执行功能 |
-| Wiki文档 | 100% | 层级文档、版本历史 |
-| Webhook | 100% | 事件推送、重试机制 |
-| 安全审计 | 100% | 完整审计日志、SOC2合规 |
+| 模块          | 完成度 | 说明                                    |
+| ------------- | ------ | --------------------------------------- |
+| 用户认证系统  | 100%   | JWT认证、OAuth、2FA、密码重置、邮箱验证 |
+| 组织/团队管理 | 100%   | 完整的三层权限架构                      |
+| 项目管理      | 100%   | CRUD、权限、归档、设置                  |
+| Git版本控制   | 100%   | HTTP Smart Protocol完整实现             |
+| Issue追踪     | 100%   | 完整的Issue生命周期管理                 |
+| Pull Request  | 100%   | 三种合并策略、代码审查                  |
+| 代码搜索      | 100%   | 基于MeiliSearch的全文搜索               |
+| 通知系统      | 100%   | WebSocket实时通知 + 邮件                |
+| Raft共识      | 100%   | Leader选举、日志复制、安全性保证        |
+| CI/CD流水线   | 100%   | 配置和执行功能                          |
+| Wiki文档      | 100%   | 层级文档、版本历史                      |
+| Webhook       | 100%   | 事件推送、重试机制                      |
+| 安全审计      | 100%   | 完整审计日志、SOC2合规                  |
 
 **总体完成度：100%**
 
@@ -2577,6 +2597,7 @@ sequenceDiagram
 **问题描述**：在实现Raft日志复制时，发现在网络分区恢复后可能出现日志不一致的情况。
 
 **解决方案**：
+
 1. 严格按照Raft论文实现日志一致性检查
 2. 在AppendEntries RPC中增加prevLogIndex和prevLogTerm校验
 3. 实现日志回退机制，逐步同步不一致的日志
@@ -2587,6 +2608,7 @@ sequenceDiagram
 **问题描述**：Git客户端与Web应用使用不同的认证方式，需要统一处理。
 
 **解决方案**：
+
 1. 实现HTTP Basic Authentication解析
 2. 将Git请求与JWT Token验证系统集成
 3. 支持API Token作为Git密码使用
@@ -2597,6 +2619,7 @@ sequenceDiagram
 **问题描述**：代码仓库可能包含大量文件，需要优化存储和传输性能。
 
 **解决方案**：
+
 1. 使用MinIO对象存储，支持分片上传
 2. 实现内容寻址存储，去除重复文件
 3. 添加文件压缩和缓存机制
@@ -2622,23 +2645,25 @@ sequenceDiagram
 
 本项目采用敏捷开发模式，团队成员根据各自专长进行分工：
 
-| 成员角色 | 主要职责 | 负责模块 |
-|---------|---------|---------|
-| 项目负责人 | 架构设计、技术选型、进度把控 | Raft共识、系统架构 |
-| 后端开发 | API设计、业务逻辑实现 | 认证、项目管理、Git协议 |
-| 前端开发 | 界面设计、交互实现 | 用户界面、状态管理 |
-| 测试工程师 | 测试用例设计、质量保证 | 单元测试、E2E测试 |
-| 文档工程师 | 需求分析、文档编写 | 需求文档、设计文档 |
+| 成员角色   | 主要职责                     | 负责模块                |
+| ---------- | ---------------------------- | ----------------------- |
+| 项目负责人 | 架构设计、技术选型、进度把控 | Raft共识、系统架构      |
+| 后端开发   | API设计、业务逻辑实现        | 认证、项目管理、Git协议 |
+| 前端开发   | 界面设计、交互实现           | 用户界面、状态管理      |
+| 测试工程师 | 测试用例设计、质量保证       | 单元测试、E2E测试       |
+| 文档工程师 | 需求分析、文档编写           | 需求文档、设计文档      |
 
 ### 3.2.2 协作工具和流程
 
 **开发协作工具：**
+
 - **代码管理**：Git + GitHub，采用Git Flow分支管理策略
 - **项目管理**：GitHub Projects看板，跟踪任务进度
 - **文档协作**：Markdown文档，版本化管理
 - **即时通讯**：微信群组，快速沟通问题
 
 **开发流程：**
+
 1. **需求评审**：每周一进行需求评审，明确当周开发任务
 2. **技术方案**：复杂功能先输出技术设计文档
 3. **代码审查**：所有代码通过Pull Request合并，至少一人审核
@@ -2702,21 +2727,21 @@ sequenceDiagram
 
 #### 短期改进（1-2个月）
 
-| 优先级 | 改进项 | 预期效果 |
-|--------|--------|---------|
-| P0 | 实现Raft日志压缩 | 解决日志无限增长问题 |
-| P0 | 提升测试覆盖率至80% | 保证代码质量 |
-| P1 | 优化大文件Diff性能 | 提升用户体验 |
-| P1 | 添加监控告警系统 | 及时发现和处理问题 |
+| 优先级 | 改进项              | 预期效果             |
+| ------ | ------------------- | -------------------- |
+| P0     | 实现Raft日志压缩    | 解决日志无限增长问题 |
+| P0     | 提升测试覆盖率至80% | 保证代码质量         |
+| P1     | 优化大文件Diff性能  | 提升用户体验         |
+| P1     | 添加监控告警系统    | 及时发现和处理问题   |
 
 #### 中期改进（3-6个月）
 
-| 优先级 | 改进项 | 预期效果 |
-|--------|--------|---------|
-| P1 | 实现Raft动态成员变更 | 支持集群弹性伸缩 |
-| P1 | 添加代码审查模板 | 规范审查流程 |
-| P2 | 实现项目看板功能 | 增强项目管理能力 |
-| P2 | 添加PWA离线支持 | 改善弱网体验 |
+| 优先级 | 改进项               | 预期效果         |
+| ------ | -------------------- | ---------------- |
+| P1     | 实现Raft动态成员变更 | 支持集群弹性伸缩 |
+| P1     | 添加代码审查模板     | 规范审查流程     |
+| P2     | 实现项目看板功能     | 增强项目管理能力 |
+| P2     | 添加PWA离线支持      | 改善弱网体验     |
 
 #### 长期规划（6-12个月）
 

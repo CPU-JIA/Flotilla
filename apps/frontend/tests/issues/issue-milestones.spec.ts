@@ -62,12 +62,14 @@ test.describe('Issue Milestones Management', () => {
     await page.waitForLoadState('networkidle', { timeout: 10000 })
 
     // Verify page title
-    await expect(
-      page.getByRole('heading', { name: /Milestones|里程碑/i }).first()
-    ).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { name: /Milestones|里程碑/i }).first()).toBeVisible({
+      timeout: 5000,
+    })
 
     // Click "Create Milestone" button
-    await page.getByRole('button', { name: /新建.*里程碑|创建.*里程碑|Create.*Milestone|New.*Milestone/i }).click()
+    await page
+      .getByRole('button', { name: /新建.*里程碑|创建.*里程碑|Create.*Milestone|New.*Milestone/i })
+      .click()
 
     // Wait for dialog
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
@@ -84,7 +86,10 @@ test.describe('Issue Milestones Management', () => {
     // Due date can be tested via API in Test 2
 
     // Submit form
-    await page.getByRole('button', { name: /创建|Create/i }).last().click()
+    await page
+      .getByRole('button', { name: /创建|Create/i })
+      .last()
+      .click()
 
     // Wait for dialog to close
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 5000 })

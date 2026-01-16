@@ -85,9 +85,7 @@ export default function GeneralSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>修改密码</CardTitle>
-          <CardDescription>
-            定期更改密码有助于保护您的账户安全
-          </CardDescription>
+          <CardDescription>定期更改密码有助于保护您的账户安全</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleChangePassword} className="space-y-6">
@@ -148,18 +146,17 @@ export default function GeneralSettingsPage() {
                 minLength={8}
                 required
               />
-              {passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword && (
-                <p className="mt-1 text-xs text-red-600 dark:text-red-400">
-                  两次输入的密码不一致
-                </p>
-              )}
+              {passwordData.confirmPassword &&
+                passwordData.newPassword !== passwordData.confirmPassword && (
+                  <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                    两次输入的密码不一致
+                  </p>
+                )}
             </div>
 
             {/* 密码要求提示 */}
             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <p className="text-sm text-blue-800 dark:text-blue-300 font-medium mb-2">
-                密码要求
-              </p>
+              <p className="text-sm text-blue-800 dark:text-blue-300 font-medium mb-2">密码要求</p>
               <ul className="text-xs text-blue-700 dark:text-blue-400 space-y-1 list-disc list-inside">
                 <li>至少8个字符</li>
                 <li>包含大写字母 (A-Z)</li>
@@ -215,9 +212,7 @@ export default function GeneralSettingsPage() {
                   ✓ 活跃
                 </span>
               ) : (
-                <span className="text-xs font-medium text-red-600 dark:text-red-400">
-                  ✗ 已停用
-                </span>
+                <span className="text-xs font-medium text-red-600 dark:text-red-400">✗ 已停用</span>
               )}
             </div>
           </div>
@@ -229,7 +224,11 @@ export default function GeneralSettingsPage() {
             </div>
             <div>
               <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
-                {user.role === 'SUPER_ADMIN' ? '超级管理员' : user.role === 'USER' ? '普通用户' : user.role}
+                {user.role === 'SUPER_ADMIN'
+                  ? '超级管理员'
+                  : user.role === 'USER'
+                    ? '普通用户'
+                    : user.role}
               </span>
             </div>
           </div>

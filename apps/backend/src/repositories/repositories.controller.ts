@@ -15,9 +15,19 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { RepositoriesService } from './repositories.service';
-import { CreateBranchDto, RepositoryCreateCommitDto } from './dto';
+import {
+  CreateBranchDto,
+  RepositoryCreateCommitDto,
+  RepositoryDetailDto,
+  CommitsPageDto,
+  CommitDetailDto,
+  CommitDiffDto,
+  CommitFileContentDto,
+  CommitFilesListDto,
+} from './dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { User } from '@prisma/client';
@@ -49,10 +59,16 @@ export class RepositoriesController {
    * 获取仓库信息
    */
   @Get()
+  @ApiOperation({ summary: '获取仓库详情' })
+  @ApiResponse({
+    status: 200,
+    description: '成功返回仓库详情',
+    type: RepositoryDetailDto,
+  })
   async getRepository(
     @Param('projectId') projectId: string,
     @CurrentUser() currentUser: User,
-  ) {
+  ): Promise<RepositoryDetailDto> {
     this.logger.log(`📂 Fetching repository for project: ${projectId}`);
     return this.repositoriesService.getRepository(projectId, currentUser);
   }
@@ -174,13 +190,19 @@ export class RepositoriesController {
    * 获取提交历史
    */
   @Get('branches/:branchId/commits')
+  @ApiOperation({ summary: '获取提交历史' })
+  @ApiResponse({
+    status: 200,
+    description: '成功返回提交历史',
+    type: CommitsPageDto,
+  })
   async getCommits(
     @Param('projectId') projectId: string,
     @Param('branchId') branchId: string,
     @Query('page') page: number = 1,
     @Query('pageSize') pageSize: number = 20,
     @CurrentUser() currentUser: User,
-  ) {
+  ): Promise<CommitsPageDto> {
     this.logger.log(`📋 Fetching commits for branch ${branchId}`);
     return this.repositoriesService.getCommits(
       projectId,
@@ -195,12 +217,18 @@ export class RepositoriesController {
    * 获取提交详情
    */
   @Get('branches/:branchId/commits/:commitId')
+  @ApiOperation({ summary: '获取提交详情' })
+  @ApiResponse({
+    status: 200,
+    description: '成功返回提交详情',
+    type: CommitDetailDto,
+  })
   async getCommit(
     @Param('projectId') projectId: string,
     @Param('branchId') branchId: string,
     @Param('commitId') commitId: string,
     @CurrentUser() currentUser: User,
-  ) {
+  ): Promise<CommitDetailDto> {
     this.logger.log(`📋 Fetching commit ${commitId} details`);
     return this.repositoriesService.getCommit(
       projectId,
@@ -214,13 +242,19 @@ export class RepositoriesController {
    * 获取提交间差异
    */
   @Get('branches/:branchId/commits/:commitId/diff')
+  @ApiOperation({ summary: '获取提交间差异' })
+  @ApiResponse({
+    status: 200,
+    description: '成功返回提交差异',
+    type: CommitDiffDto,
+  })
   async getCommitDiff(
     @Param('projectId') projectId: string,
     @Param('branchId') branchId: string,
     @Param('commitId') commitId: string,
     @CurrentUser() currentUser: User,
     @Query('compareTo') compareTo?: string,
-  ) {
+  ): Promise<CommitDiffDto> {
     this.logger.log(`📊 Computing diff for commit ${commitId}`);
     return this.repositoriesService.getCommitDiff(
       projectId,
@@ -235,13 +269,24 @@ export class RepositoriesController {
    * 获取提交的文件内容
    */
   @Get('branches/:branchId/commits/:commitId/files')
+  @ApiOperation({ summary: '获取提交的文件内容' })
+  @ApiResponse({
+    status: 200,
+    description: '成功返回文件内容或文件列表',
+    schema: {
+      oneOf: [
+        { $ref: '#/components/schemas/CommitFileContentDto' },
+        { $ref: '#/components/schemas/CommitFilesListDto' },
+      ],
+    },
+  })
   async getCommitFiles(
     @Param('projectId') projectId: string,
     @Param('branchId') branchId: string,
     @Param('commitId') commitId: string,
     @CurrentUser() currentUser: User,
     @Query('path') filePath?: string,
-  ) {
+  ): Promise<CommitFileContentDto | CommitFilesListDto> {
     this.logger.log(`📋 Fetching files for commit ${commitId}`);
     return this.repositoriesService.getCommitFiles(
       projectId,

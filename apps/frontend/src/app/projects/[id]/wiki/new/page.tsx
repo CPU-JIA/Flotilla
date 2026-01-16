@@ -63,10 +63,7 @@ export default function WikiPageNew() {
   return (
     <div className="container mx-auto py-8">
       <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => router.push(`/projects/${projectId}/wiki`)}
-        >
+        <Button variant="ghost" onClick={() => router.push(`/projects/${projectId}/wiki`)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Wiki
         </Button>
@@ -123,10 +120,7 @@ Write your content here using Markdown syntax...
           </div>
 
           <div className="flex justify-end gap-4">
-            <Button
-              variant="outline"
-              onClick={() => router.push(`/projects/${projectId}/wiki`)}
-            >
+            <Button variant="outline" onClick={() => router.push(`/projects/${projectId}/wiki`)}>
               Cancel
             </Button>
             <Button onClick={handleCreate} disabled={creating}>

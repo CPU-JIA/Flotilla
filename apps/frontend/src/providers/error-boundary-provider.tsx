@@ -6,6 +6,7 @@
  * Why: 将ErrorBoundary封装为Provider，便于在layout中使用
  */
 
+import { logger } from '@/lib/logger'
 import { ReactNode } from 'react'
 import { ErrorBoundary } from '@/components/error-boundary'
 
@@ -18,8 +19,8 @@ export function ErrorBoundaryProvider({ children }: ErrorBoundaryProviderProps) 
     <ErrorBoundary
       onError={(error, errorInfo) => {
         // 可在此处接入错误监控服务
-        console.error('Global error caught:', error)
-        console.error('Error info:', errorInfo)
+        logger.error('Global error caught:', error)
+        logger.error('Error info:', errorInfo)
       }}
     >
       {children}

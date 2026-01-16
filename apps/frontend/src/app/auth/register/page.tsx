@@ -199,7 +199,10 @@ export default function RegisterPage() {
 
             <div className="text-sm text-center text-muted-foreground">
               {t.auth.alreadyHaveAccount}{' '}
-              <Link href="/auth/login" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              <Link
+                href="/auth/login"
+                className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+              >
                 {t.auth.loginNow}
               </Link>
             </div>

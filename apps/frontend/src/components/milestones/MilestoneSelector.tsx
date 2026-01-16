@@ -9,6 +9,7 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { Select } from '@mantine/core'
 import { api } from '@/lib/api'
@@ -39,7 +40,7 @@ export function MilestoneSelector({
       // ECP-C1: Only show OPEN milestones for selection
       setMilestones(data.filter((m) => m.state === 'OPEN'))
     } catch (error) {
-      console.error('Failed to load milestones:', error)
+      logger.error('Failed to load milestones:', error)
     } finally {
       setLoading(false)
     }

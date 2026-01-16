@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -27,6 +28,7 @@ interface Setup2FAResponse {
 }
 
 export default function TwoFactorPage() {
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'
   const [is2FAEnabled, setIs2FAEnabled] = useState(false)
   const [loading, setLoading] = useState(true)
   const [setupMode, setSetupMode] = useState(false)
@@ -46,10 +48,8 @@ export default function TwoFactorPage() {
   const check2FAStatus = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/auth/2fa/status', {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-        },
+      const response = await fetch(`${API_URL}/auth/2fa/status`, {
+        credentials: 'include', // 🔒 自动发送 HttpOnly Cookie
       })
 
       if (!response.ok) {
@@ -60,7 +60,7 @@ export default function TwoFactorPage() {
       setIs2FAEnabled(data.enabled)
     } catch (error) {
       toast.error('Failed to load 2FA status')
-      console.error(error)
+      logger.error(error)
     } finally {
       setLoading(false)
     }
@@ -69,10 +69,10 @@ export default function TwoFactorPage() {
   const startSetup = async () => {
     try {
       setProcessing(true)
-      const response = await fetch('/api/auth/2fa/setup', {
+      const response = await fetch(`${API_URL}/auth/2fa/setup`, {
         method: 'POST',
+        credentials: 'include', // 🔒 自动发送 HttpOnly Cookie
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json',
         },
       })
@@ -87,7 +87,7 @@ export default function TwoFactorPage() {
       setSetupMode(true)
     } catch (error) {
       toast.error('Failed to start 2FA setup')
-      console.error(error)
+      logger.error(error)
     } finally {
       setProcessing(false)
     }
@@ -101,10 +101,10 @@ export default function TwoFactorPage() {
 
     try {
       setProcessing(true)
-      const response = await fetch('/api/auth/2fa/enable', {
+      const response = await fetch(`${API_URL}/auth/2fa/enable`, {
         method: 'POST',
+        credentials: 'include', // 🔒 自动发送 HttpOnly Cookie
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -127,7 +127,7 @@ export default function TwoFactorPage() {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to enable 2FA'
       toast.error(errorMessage)
-      console.error(error)
+      logger.error(error)
     } finally {
       setProcessing(false)
     }
@@ -141,10 +141,10 @@ export default function TwoFactorPage() {
 
     try {
       setProcessing(true)
-      const response = await fetch('/api/auth/2fa/disable', {
+      const response = await fetch(`${API_URL}/auth/2fa/disable`, {
         method: 'DELETE',
+        credentials: 'include', // 🔒 自动发送 HttpOnly Cookie
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -164,7 +164,7 @@ export default function TwoFactorPage() {
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to disable 2FA'
       toast.error(errorMessage)
-      console.error(error)
+      logger.error(error)
     } finally {
       setProcessing(false)
     }
@@ -214,14 +214,21 @@ export default function TwoFactorPage() {
               <div>
                 <CardTitle>2FA Status</CardTitle>
                 <CardDescription>
-                  Two-factor authentication {is2FAEnabled ? 'is' : 'is not'} enabled for your account
+                  Two-factor authentication {is2FAEnabled ? 'is' : 'is not'} enabled for your
+                  account
                 </CardDescription>
               </div>
               <div>
                 {is2FAEnabled ? (
-                  <Badge className="bg-green-500"><CheckCircle2 className="w-4 h-4 mr-1" />Enabled</Badge>
+                  <Badge className="bg-green-500">
+                    <CheckCircle2 className="w-4 h-4 mr-1" />
+                    Enabled
+                  </Badge>
                 ) : (
-                  <Badge variant="secondary"><XCircle className="w-4 h-4 mr-1" />Disabled</Badge>
+                  <Badge variant="secondary">
+                    <XCircle className="w-4 h-4 mr-1" />
+                    Disabled
+                  </Badge>
                 )}
               </div>
             </div>
@@ -234,7 +241,8 @@ export default function TwoFactorPage() {
             <CardHeader>
               <CardTitle>Enable Two-Factor Authentication</CardTitle>
               <CardDescription>
-                Use an authenticator app like Google Authenticator or Authy to generate verification codes
+                Use an authenticator app like Google Authenticator or Authy to generate verification
+                codes
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -252,9 +260,7 @@ export default function TwoFactorPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Step 1: Scan QR Code</CardTitle>
-                <CardDescription>
-                  Scan this QR code with your authenticator app
-                </CardDescription>
+                <CardDescription>Scan this QR code with your authenticator app</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-center p-4 bg-white rounded-lg">
@@ -271,16 +277,8 @@ export default function TwoFactorPage() {
                 <div className="space-y-2">
                   <Label>Or enter this code manually:</Label>
                   <div className="flex gap-2">
-                    <Input
-                      value={secret}
-                      readOnly
-                      className="font-mono text-sm"
-                    />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => copyToClipboard(secret)}
-                    >
+                    <Input value={secret} readOnly className="font-mono text-sm" />
+                    <Button variant="outline" size="icon" onClick={() => copyToClipboard(secret)}>
                       <Copy className="w-4 h-4" />
                     </Button>
                   </div>
@@ -301,18 +299,27 @@ export default function TwoFactorPage() {
                   <Input
                     id="verificationCode"
                     value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    onChange={(e) =>
+                      setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))
+                    }
                     placeholder="000000"
                     maxLength={6}
                     className="text-center text-2xl font-mono tracking-widest"
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={enable2FA} disabled={processing || verificationCode.length !== 6}>
+                  <Button
+                    onClick={enable2FA}
+                    disabled={processing || verificationCode.length !== 6}
+                  >
                     {processing && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                     Enable 2FA
                   </Button>
-                  <Button variant="outline" onClick={() => setSetupMode(false)} disabled={processing}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setSetupMode(false)}
+                    disabled={processing}
+                  >
                     Cancel
                   </Button>
                 </div>
@@ -326,13 +333,17 @@ export default function TwoFactorPage() {
             <CardHeader>
               <CardTitle className="text-yellow-600">⚠️ Save Your Recovery Codes</CardTitle>
               <CardDescription>
-                Store these codes in a safe place. Each code can only be used once to access your account if you lose your authenticator.
+                Store these codes in a safe place. Each code can only be used once to access your
+                account if you lose your authenticator.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-2 p-4 bg-muted rounded font-mono text-sm">
                 {recoveryCodes.map((code, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-background rounded">
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-2 bg-background rounded"
+                  >
                     <span>{code}</span>
                     <Button
                       variant="ghost"
@@ -346,9 +357,7 @@ export default function TwoFactorPage() {
                 ))}
               </div>
               <div className="flex gap-2">
-                <Button onClick={downloadRecoveryCodes}>
-                  Download Codes
-                </Button>
+                <Button onClick={downloadRecoveryCodes}>Download Codes</Button>
                 <Button variant="outline" onClick={() => setShowRecoveryCodes(false)}>
                   I&apos;ve Saved My Codes
                 </Button>
@@ -361,15 +370,10 @@ export default function TwoFactorPage() {
           <Card>
             <CardHeader>
               <CardTitle>Disable Two-Factor Authentication</CardTitle>
-              <CardDescription>
-                Remove 2FA protection from your account
-              </CardDescription>
+              <CardDescription>Remove 2FA protection from your account</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button
-                variant="destructive"
-                onClick={() => setDisableDialogOpen(true)}
-              >
+              <Button variant="destructive" onClick={() => setDisableDialogOpen(true)}>
                 Disable 2FA
               </Button>
             </CardContent>

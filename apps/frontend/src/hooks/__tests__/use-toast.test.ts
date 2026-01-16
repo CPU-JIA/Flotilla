@@ -69,10 +69,7 @@ describe('useToast', () => {
         title: 'Simple notification',
       })
 
-      expect(sonnerToast).toHaveBeenCalledWith(
-        'Simple notification',
-        expect.any(Object)
-      )
+      expect(sonnerToast).toHaveBeenCalledWith('Simple notification', expect.any(Object))
     })
   })
 
@@ -129,10 +126,7 @@ describe('useToast', () => {
 
       result.current.error('Error occurred')
 
-      expect(sonnerErrorMock).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.any(Object)
-      )
+      expect(sonnerErrorMock).toHaveBeenCalledWith(expect.anything(), expect.any(Object))
     })
   })
 

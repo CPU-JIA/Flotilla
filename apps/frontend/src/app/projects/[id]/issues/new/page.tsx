@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
@@ -45,7 +46,7 @@ export default function NewIssuePage() {
       })
       router.push(`/projects/${projectId}/issues/${issue.number}`)
     } catch (error) {
-      console.error('Failed to create issue:', error)
+      logger.error('Failed to create issue:', error)
       setError('Failed to create issue. Please try again.')
     } finally {
       setSubmitting(false)
@@ -54,11 +55,7 @@ export default function NewIssuePage() {
 
   return (
     <div className="container mx-auto py-6 max-w-4xl">
-      <Button
-        variant="ghost"
-        onClick={() => router.back()}
-        className="mb-4"
-      >
+      <Button variant="ghost" onClick={() => router.back()} className="mb-4">
         <ArrowLeft className="mr-2 h-4 w-4" />
         Back
       </Button>
@@ -67,9 +64,7 @@ export default function NewIssuePage() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md">
-            {error}
-          </div>
+          <div className="bg-destructive/10 text-destructive px-4 py-3 rounded-md">{error}</div>
         )}
 
         <div className="space-y-2">
@@ -92,9 +87,7 @@ export default function NewIssuePage() {
             placeholder="Detailed description (supports Markdown)"
             rows={10}
           />
-          <p className="text-sm text-muted-foreground">
-            You can use Markdown formatting
-          </p>
+          <p className="text-sm text-muted-foreground">You can use Markdown formatting</p>
         </div>
 
         {/* Labels Field */}

@@ -15,15 +15,12 @@ export default function PrivacyPage() {
             <Shield className="h-4 w-4" />
             <span>Privacy Policy</span>
           </div>
-          <h1 className="text-5xl sm:text-6xl font-bold mb-6">
-            Privacy Policy
-          </h1>
+          <h1 className="text-5xl sm:text-6xl font-bold mb-6">Privacy Policy</h1>
           <p className="text-xl text-foreground/60 max-w-2xl mx-auto mb-4">
-            Your privacy is important to us. This policy explains how we collect, use, and protect your data.
+            Your privacy is important to us. This policy explains how we collect, use, and protect
+            your data.
           </p>
-          <p className="text-sm text-foreground/40">
-            Last updated: October 22, 2025
-          </p>
+          <p className="text-sm text-foreground/40">Last updated: October 22, 2025</p>
         </div>
       </section>
 
@@ -114,19 +111,31 @@ export default function PrivacyPage() {
                 <ul className="space-y-3 text-foreground/70">
                   <li className="flex items-start gap-3">
                     <span className="text-primary mt-1">•</span>
-                    <span><strong className="text-foreground">Provide Services:</strong> Enable you to use Flotilla features (repositories, collaboration, Raft consensus)</span>
+                    <span>
+                      <strong className="text-foreground">Provide Services:</strong> Enable you to
+                      use Flotilla features (repositories, collaboration, Raft consensus)
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-primary mt-1">•</span>
-                    <span><strong className="text-foreground">Improve Product:</strong> Analyze usage patterns to enhance performance and user experience</span>
+                    <span>
+                      <strong className="text-foreground">Improve Product:</strong> Analyze usage
+                      patterns to enhance performance and user experience
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-primary mt-1">•</span>
-                    <span><strong className="text-foreground">Security:</strong> Detect and prevent fraud, abuse, and security threats</span>
+                    <span>
+                      <strong className="text-foreground">Security:</strong> Detect and prevent
+                      fraud, abuse, and security threats
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-primary mt-1">•</span>
-                    <span><strong className="text-foreground">Communication:</strong> Send important updates, security alerts, and service notifications</span>
+                    <span>
+                      <strong className="text-foreground">Communication:</strong> Send important
+                      updates, security alerts, and service notifications
+                    </span>
                   </li>
                 </ul>
               </div>
@@ -139,24 +148,25 @@ export default function PrivacyPage() {
                 <div className="p-6 rounded-xl bg-card border border-border/40">
                   <h3 className="font-semibold mb-3 text-lg">Encryption</h3>
                   <p className="text-foreground/70 leading-relaxed">
-                    All data is encrypted in transit (HTTPS/TLS) and at rest. Passwords are hashed using bcrypt
-                    with salt. Database backups are encrypted with AES-256.
+                    All data is encrypted in transit (HTTPS/TLS) and at rest. Passwords are hashed
+                    using bcrypt with salt. Database backups are encrypted with AES-256.
                   </p>
                 </div>
 
                 <div className="p-6 rounded-xl bg-card border border-border/40">
                   <h3 className="font-semibold mb-3 text-lg">Infrastructure</h3>
                   <p className="text-foreground/70 leading-relaxed">
-                    Data is stored in secure data centers with PostgreSQL (user data), Redis (session cache),
-                    and MinIO (file storage). Regular backups are performed automatically.
+                    Data is stored in secure data centers with PostgreSQL (user data), Redis
+                    (session cache), and MinIO (file storage). Regular backups are performed
+                    automatically.
                   </p>
                 </div>
 
                 <div className="p-6 rounded-xl bg-card border border-border/40">
                   <h3 className="font-semibold mb-3 text-lg">Access Control</h3>
                   <p className="text-foreground/70 leading-relaxed">
-                    Only authorized team members have access to user data, and all access is logged and audited.
-                    We follow the principle of least privilege.
+                    Only authorized team members have access to user data, and all access is logged
+                    and audited. We follow the principle of least privilege.
                   </p>
                 </div>
               </div>
@@ -167,13 +177,24 @@ export default function PrivacyPage() {
               <h2 className="text-3xl font-bold mb-6">4. Data Sharing</h2>
               <div className="p-6 rounded-xl bg-card border border-border/40">
                 <p className="text-foreground/70 leading-relaxed mb-4">
-                  <strong className="text-foreground">We do NOT sell your data to third parties.</strong> Your data
-                  is only shared in the following limited circumstances:
+                  <strong className="text-foreground">
+                    We do NOT sell your data to third parties.
+                  </strong>{' '}
+                  Your data is only shared in the following limited circumstances:
                 </p>
                 <ul className="space-y-2 text-foreground/70">
-                  <li>• <strong>With your permission:</strong> When you explicitly share repositories or collaborate with others</li>
-                  <li>• <strong>Service providers:</strong> Cloud hosting, email delivery, analytics (anonymized)</li>
-                  <li>• <strong>Legal requirements:</strong> If required by law or to protect our rights</li>
+                  <li>
+                    • <strong>With your permission:</strong> When you explicitly share repositories
+                    or collaborate with others
+                  </li>
+                  <li>
+                    • <strong>Service providers:</strong> Cloud hosting, email delivery, analytics
+                    (anonymized)
+                  </li>
+                  <li>
+                    • <strong>Legal requirements:</strong> If required by law or to protect our
+                    rights
+                  </li>
                 </ul>
               </div>
             </div>
@@ -190,17 +211,15 @@ export default function PrivacyPage() {
                   { title: 'Opt-out', description: 'Unsubscribe from marketing emails' },
                   { title: 'Object', description: 'Object to certain data processing' },
                 ].map((right) => (
-                  <div
-                    key={right.title}
-                    className="p-4 rounded-lg bg-card border border-border/40"
-                  >
+                  <div key={right.title} className="p-4 rounded-lg bg-card border border-border/40">
                     <h4 className="font-semibold mb-1">{right.title}</h4>
                     <p className="text-sm text-foreground/70">{right.description}</p>
                   </div>
                 ))}
               </div>
               <div className="mt-6 p-4 rounded-lg bg-primary/10 border border-primary/20 text-sm">
-                <strong>To exercise your rights:</strong> Email us at privacy@flotilla.dev or use the account settings page.
+                <strong>To exercise your rights:</strong> Email us at privacy@flotilla.dev or use
+                the account settings page.
               </div>
             </div>
 
@@ -212,13 +231,20 @@ export default function PrivacyPage() {
                   We use cookies and similar technologies for:
                 </p>
                 <ul className="space-y-2 text-foreground/70">
-                  <li>• <strong>Authentication:</strong> Keep you logged in across sessions (httpOnly cookies)</li>
-                  <li>• <strong>Preferences:</strong> Remember your language, theme, and settings</li>
-                  <li>• <strong>Analytics:</strong> Understand how you use Flotilla (anonymized data)</li>
+                  <li>
+                    • <strong>Authentication:</strong> Keep you logged in across sessions (httpOnly
+                    cookies)
+                  </li>
+                  <li>
+                    • <strong>Preferences:</strong> Remember your language, theme, and settings
+                  </li>
+                  <li>
+                    • <strong>Analytics:</strong> Understand how you use Flotilla (anonymized data)
+                  </li>
                 </ul>
                 <p className="text-foreground/70 leading-relaxed mt-4">
-                  You can disable non-essential cookies in your browser settings. Essential cookies (authentication)
-                  are required for the service to function.
+                  You can disable non-essential cookies in your browser settings. Essential cookies
+                  (authentication) are required for the service to function.
                 </p>
               </div>
             </div>
@@ -228,9 +254,9 @@ export default function PrivacyPage() {
               <h2 className="text-3xl font-bold mb-6">7. Policy Changes</h2>
               <div className="p-6 rounded-xl bg-card border border-border/40">
                 <p className="text-foreground/70 leading-relaxed">
-                  We may update this privacy policy from time to time. We will notify you of significant changes
-                  via email or through the platform. Continued use of Flotilla after changes indicates acceptance
-                  of the updated policy.
+                  We may update this privacy policy from time to time. We will notify you of
+                  significant changes via email or through the platform. Continued use of Flotilla
+                  after changes indicates acceptance of the updated policy.
                 </p>
               </div>
             </div>
@@ -243,8 +269,23 @@ export default function PrivacyPage() {
                   If you have questions about this privacy policy or our data practices:
                 </p>
                 <ul className="space-y-2 text-foreground/70">
-                  <li>• Email: <a href="mailto:privacy@flotilla.dev" className="text-primary hover:underline">privacy@flotilla.dev</a></li>
-                  <li>• GitHub Issues: <a href="https://github.com/CPU-JIA/Cloud-Dev-Platform/issues" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Report a privacy concern</a></li>
+                  <li>
+                    • Email:{' '}
+                    <a href="mailto:privacy@flotilla.dev" className="text-primary hover:underline">
+                      privacy@flotilla.dev
+                    </a>
+                  </li>
+                  <li>
+                    • GitHub Issues:{' '}
+                    <a
+                      href="https://github.com/CPU-JIA/Cloud-Dev-Platform/issues"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      Report a privacy concern
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>
@@ -257,8 +298,8 @@ export default function PrivacyPage() {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-2xl font-bold mb-4">Questions About Privacy?</h2>
           <p className="text-foreground/60 mb-6 max-w-2xl mx-auto">
-            We are committed to transparency. If you have any concerns about how we handle your data,
-            please do not hesitate to reach out.
+            We are committed to transparency. If you have any concerns about how we handle your
+            data, please do not hesitate to reach out.
           </p>
           <a
             href="mailto:privacy@flotilla.dev"

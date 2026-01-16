@@ -23,10 +23,7 @@ export function Accordion({ items }: AccordionProps) {
         const isOpen = openIndex === index
 
         return (
-          <div
-            key={index}
-            className="rounded-2xl bg-card border border-border/40 overflow-hidden"
-          >
+          <div key={index} className="rounded-2xl bg-card border border-border/40 overflow-hidden">
             <button
               onClick={() => setOpenIndex(isOpen ? null : index)}
               className="w-full flex items-center justify-between p-6 text-left hover:bg-secondary/30 transition-colors"
@@ -48,9 +45,7 @@ export function Accordion({ items }: AccordionProps) {
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.3, ease: 'easeInOut' }}
                 >
-                  <div className="px-6 pb-6 text-foreground/70 leading-relaxed">
-                    {item.answer}
-                  </div>
+                  <div className="px-6 pb-6 text-foreground/70 leading-relaxed">{item.answer}</div>
                 </motion.div>
               )}
             </AnimatePresence>

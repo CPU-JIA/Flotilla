@@ -9,6 +9,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { PullRequestCreateCommentDto } from './dto/create-comment.dto';
 import { PRState } from '@prisma/client';
+import { USER_SELECT_BASIC } from './constants/pr-queries.constant';
 
 /**
  * PR审查服务
@@ -56,11 +57,7 @@ export class PRReviewService {
       },
       include: {
         reviewer: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
+          select: USER_SELECT_BASIC,
         },
       },
     });
@@ -96,10 +93,18 @@ export class PRReviewService {
             `${review.reviewer.username} ${reviewStateText}了您的 PR`,
           link: `/projects/${pr.projectId}/pull-requests/${pr.number}`,
           metadata: {
+            type: 'REVIEW_SUBMITTED' as const,
             prId: pr.id,
+            prNumber: pr.number,
             reviewId: review.id,
+            reviewStatus:
+              dto.state === 'APPROVED'
+                ? 'approved'
+                : dto.state === 'CHANGES_REQUESTED'
+                  ? 'changes_requested'
+                  : 'commented',
             reviewState: dto.state,
-            reviewerId,
+            reviewBy: review.reviewer.username,
           },
         });
         this.logger.log(
@@ -123,11 +128,7 @@ export class PRReviewService {
       where: { pullRequestId: prId },
       include: {
         reviewer: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
+          select: USER_SELECT_BASIC,
         },
       },
       orderBy: {
@@ -145,11 +146,7 @@ export class PRReviewService {
       where: { pullRequestId: prId },
       include: {
         reviewer: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
+          select: USER_SELECT_BASIC,
         },
       },
       orderBy: { createdAt: 'desc' },
@@ -220,11 +217,7 @@ export class PRReviewService {
       },
       include: {
         author: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
+          select: USER_SELECT_BASIC,
         },
       },
     });
@@ -239,10 +232,11 @@ export class PRReviewService {
           body: dto.body?.substring(0, 100) || '新评论',
           link: `/projects/${pr.projectId}/pull-requests/${pr.number}#comment-${comment.id}`,
           metadata: {
-            prId: pr.id,
+            type: 'COMMENT_REPLY' as const,
             commentId: comment.id,
+            parentCommentId: pr.id, // 使用 PR ID 作为父级 ID
+            replyBy: comment.author.username,
             filePath: dto.filePath,
-            lineNumber: dto.lineNumber,
           },
         });
         this.logger.log(
@@ -266,11 +260,7 @@ export class PRReviewService {
       where: { pullRequestId: prId },
       include: {
         author: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
+          select: USER_SELECT_BASIC,
         },
       },
       orderBy: {

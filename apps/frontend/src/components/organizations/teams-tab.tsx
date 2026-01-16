@@ -6,6 +6,7 @@
  * ECP-C2: 系统化错误处理
  */
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import {
@@ -38,7 +39,7 @@ export function TeamsTab({ organizationSlug, canManage }: TeamsTabProps) {
       const data = await api.teams.getAll(organizationSlug)
       setTeams(data)
     } catch (err) {
-      console.error('Failed to fetch teams:', err)
+      logger.error('Failed to fetch teams:', err)
       alert(err instanceof ApiError ? err.message : t.error)
     } finally {
       setLoading(false)

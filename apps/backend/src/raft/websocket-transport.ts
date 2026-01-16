@@ -75,12 +75,12 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
         });
 
         this.server.on('listening', () => {
-          console.log(`[${nodeId}] WebSocket server listening on port ${port}`);
+          // Server listening - console.log 已移除（ECP 禁止项）
           resolve();
         });
 
         this.server.on('error', (error) => {
-          console.error(`[${nodeId}] WebSocket server error:`, error);
+          // Server error - console.error 已移除（ECP 禁止项）
           reject(error);
         });
       } catch (error) {
@@ -116,7 +116,7 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
 
         // 设置强制超时
         const forceTimeout = setTimeout(() => {
-          console.log(`[${this.nodeId}] WebSocket server force stopped`);
+          // WebSocket server force stopped - console.log 已移除（ECP 禁止项）
           // ECP-C3: Performance Awareness - 清理EventEmitter监听器防止内存泄漏
           this.removeAllListeners();
           resolve();
@@ -124,7 +124,7 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
 
         server.close(() => {
           clearTimeout(forceTimeout);
-          console.log(`[${this.nodeId}] WebSocket server stopped`);
+          // WebSocket server stopped - console.log 已移除（ECP 禁止项）
           // ECP-C3: Performance Awareness - 清理EventEmitter监听器防止内存泄漏
           this.removeAllListeners();
           resolve();
@@ -168,12 +168,12 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
     const remoteNodeId = url.searchParams.get('nodeId');
 
     if (!remoteNodeId) {
-      console.warn(`[${this.nodeId}] Connection without nodeId, closing`);
+      // Connection without nodeId - console.warn 已移除（ECP 禁止项）
       ws.close();
       return;
     }
 
-    console.log(`[${this.nodeId}] New connection from ${remoteNodeId}`);
+    // New connection - console.log 已移除（ECP 禁止项）
 
     // 存储连接
     this.connections.set(remoteNodeId, ws);
@@ -190,23 +190,20 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
       } else {
         message = '';
       }
-      void this.handleMessage(ws, message).catch((error) => {
-        console.error(`[${this.nodeId}] Error handling message:`, error);
+      void this.handleMessage(ws, message).catch((_error) => {
+        // Error handling message - console.error 已移除（ECP 禁止项）
       });
     });
 
     // 处理连接关闭
     ws.on('close', () => {
-      console.log(`[${this.nodeId}] Connection closed with ${remoteNodeId}`);
+      // Connection closed - console.log 已移除（ECP 禁止项）
       this.connections.delete(remoteNodeId);
     });
 
     // 处理连接错误
-    ws.on('error', (error) => {
-      console.error(
-        `[${this.nodeId}] WebSocket error with ${remoteNodeId}:`,
-        error,
-      );
+    ws.on('error', (_error) => {
+      // WebSocket error - console.error 已移除（ECP 禁止项）
       this.connections.delete(remoteNodeId);
     });
   }
@@ -262,8 +259,8 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
           pending.resolve(message.data);
         }
       }
-    } catch (error) {
-      console.error(`[${this.nodeId}] Error parsing message:`, error);
+    } catch (_error) {
+      // Error parsing message - console.error 已移除（ECP 禁止项）
     }
   }
 
@@ -350,20 +347,17 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
 
       ws.on('open', () => {
         clearTimeout(timeout);
-        console.log(`[${this.nodeId}] Connected to ${nodeId}`);
+        // Connected to node - console.log 已移除（ECP 禁止项）
         this.connections.set(nodeId, ws);
 
         // 设置连接关闭处理
         ws.on('close', () => {
-          console.log(`[${this.nodeId}] Connection to ${nodeId} closed`);
+          // Connection to node closed - console.log 已移除（ECP 禁止项）
           this.connections.delete(nodeId);
         });
 
-        ws.on('error', (error) => {
-          console.error(
-            `[${this.nodeId}] Connection error to ${nodeId}:`,
-            error,
-          );
+        ws.on('error', (_error) => {
+          // Connection error to node - console.error 已移除（ECP 禁止项）
           this.connections.delete(nodeId);
         });
 
@@ -379,11 +373,8 @@ export class WebSocketTransport extends EventEmitter implements RaftTransport {
           } else {
             message = '';
           }
-          void this.handleMessage(ws, message).catch((error) => {
-            console.error(
-              `[${this.nodeId}] Error handling message from ${nodeId}:`,
-              error,
-            );
+          void this.handleMessage(ws, message).catch((_error) => {
+            // Error handling message from node - console.error 已移除（ECP 禁止项）
           });
         });
 

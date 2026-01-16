@@ -56,9 +56,7 @@ test.describe('Code Search', () => {
     await expect(searchInput).toBeFocused()
   })
 
-  test('should show "no results" when searching non-existent code', async ({
-    page,
-  }) => {
+  test('should show "no results" when searching non-existent code', async ({ page }) => {
     await page.goto('/search')
 
     // 输入不存在的搜索词
@@ -138,9 +136,7 @@ test.describe('Code Search', () => {
     await expect(filtersBadge).not.toBeVisible()
   })
 
-  test('should navigate to project search from project detail', async ({
-    page,
-  }) => {
+  test('should navigate to project search from project detail', async ({ page }) => {
     // 先访问项目列表（假设有项目存在）
     await page.goto('/projects')
 
@@ -167,9 +163,7 @@ test.describe('Code Search', () => {
     await expect(page.locator('input[aria-label="Search code"]')).toBeVisible()
   })
 
-  test('should show search results count and processing time', async ({
-    page,
-  }) => {
+  test('should show search results count and processing time', async ({ page }) => {
     await page.goto('/search')
 
     // 搜索常见关键词（假设至少有一些结果）
@@ -181,8 +175,7 @@ test.describe('Code Search', () => {
     await page.waitForTimeout(2000)
 
     // 验证结果计数或"无结果"提示出现
-    const hasResults =
-      (await page.locator('text=/\\d+ results? found/').count()) > 0
+    const hasResults = (await page.locator('text=/\\d+ results? found/').count()) > 0
     const hasNoResults = (await page.locator('text=No results found').count()) > 0
 
     expect(hasResults || hasNoResults).toBe(true)

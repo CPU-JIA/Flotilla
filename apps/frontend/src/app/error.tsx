@@ -8,6 +8,7 @@
  * Why: 此页面捕获根layout下的所有错误（包括服务器端和客户端错误）
  */
 
+import { logger } from '@/lib/logger'
 import { useEffect } from 'react'
 import { ErrorFallback } from '@/components/error-fallback'
 
@@ -19,7 +20,7 @@ interface ErrorPageProps {
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
   useEffect(() => {
     // 记录错误到控制台或错误监控服务
-    console.error('Root error:', error)
+    logger.error('Root error:', error)
   }, [error])
 
   return <ErrorFallback error={error} resetErrorBoundary={reset} />

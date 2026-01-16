@@ -25,17 +25,13 @@ test.describe('Branch Protection Management', () => {
   })
 
   test.describe('Create Branch Protection Rule', () => {
-    test('should create a basic protection rule successfully', async ({
-      page,
-    }) => {
+    test('should create a basic protection rule successfully', async ({ page }) => {
       // Click create rule button
       await page.getByRole('button', { name: /create rule/i }).click()
 
       // Verify dialog opened
       await expect(page.getByRole('dialog')).toBeVisible()
-      await expect(
-        page.getByText('Create Branch Protection Rule')
-      ).toBeVisible()
+      await expect(page.getByText('Create Branch Protection Rule')).toBeVisible()
 
       // Verify auto-focus on branch pattern field
       const branchPatternInput = page.getByLabel(/branch pattern/i)
@@ -50,50 +46,36 @@ test.describe('Branch Protection Management', () => {
 
       // Change required approvals
       await page.getByLabel(/required approving reviews/i).click()
-      await page
-        .getByRole('option', { name: `${testRule.requiredApprovals} approvals` })
-        .click()
+      await page.getByRole('option', { name: `${testRule.requiredApprovals} approvals` }).click()
 
       // Submit form
-      await page
-        .getByRole('button', { name: /^create rule$/i })
-        .click()
+      await page.getByRole('button', { name: /^create rule$/i }).click()
 
       // Verify success toast notification
-      await expect(
-        page.getByText(/branch protection rule created successfully/i)
-      ).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(/branch protection rule created successfully/i)).toBeVisible({
+        timeout: 5000,
+      })
 
       // Verify rule appears in list
       await expect(page.getByText(testRule.branchPattern)).toBeVisible()
     })
 
-    test('should show validation errors for invalid input', async ({
-      page,
-    }) => {
+    test('should show validation errors for invalid input', async ({ page }) => {
       // Open dialog
       await page.getByRole('button', { name: /create rule/i }).click()
 
       // Try to submit without filling anything
-      await page
-        .getByRole('button', { name: /^create rule$/i })
-        .click()
+      await page.getByRole('button', { name: /^create rule$/i }).click()
 
       // Verify validation error message
-      await expect(
-        page.getByText(/branch pattern is required/i)
-      ).toBeVisible()
+      await expect(page.getByText(/branch pattern is required/i)).toBeVisible()
 
       // Fill empty pattern
       await page.getByLabel(/branch pattern/i).fill('   ')
-      await page
-        .getByRole('button', { name: /^create rule$/i })
-        .click()
+      await page.getByRole('button', { name: /^create rule$/i }).click()
 
       // Verify validation error
-      await expect(
-        page.getByText(/branch pattern cannot be empty/i)
-      ).toBeVisible()
+      await expect(page.getByText(/branch pattern cannot be empty/i)).toBeVisible()
     })
 
     test('should handle wildcard patterns', async ({ page }) => {
@@ -102,14 +84,12 @@ test.describe('Branch Protection Management', () => {
       // Fill wildcard pattern
       await page.getByLabel(/branch pattern/i).fill(releaseRule.branchPattern)
 
-      await page
-        .getByRole('button', { name: /^create rule$/i })
-        .click()
+      await page.getByRole('button', { name: /^create rule$/i }).click()
 
       // Verify success
-      await expect(
-        page.getByText(/branch protection rule created successfully/i)
-      ).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(/branch protection rule created successfully/i)).toBeVisible({
+        timeout: 5000,
+      })
 
       await expect(page.getByText(releaseRule.branchPattern)).toBeVisible()
     })
@@ -124,37 +104,27 @@ test.describe('Branch Protection Management', () => {
       await branchPatternInput.press('Enter')
 
       // Verify form submitted
-      await expect(
-        page.getByText(/branch protection rule created successfully/i)
-      ).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(/branch protection rule created successfully/i)).toBeVisible({
+        timeout: 5000,
+      })
     })
   })
 
   test.describe('Conditional UI Logic', () => {
-    test('should show/hide PR review options based on "Require PR" checkbox', async ({
-      page,
-    }) => {
+    test('should show/hide PR review options based on "Require PR" checkbox', async ({ page }) => {
       await page.getByRole('button', { name: /create rule/i }).click()
 
       // PR review options should be visible by default
       await expect(page.getByLabel(/required approving reviews/i)).toBeVisible()
-      await expect(
-        page.getByLabel(/dismiss stale pull request approvals/i)
-      ).toBeVisible()
-      await expect(
-        page.getByLabel(/require review from code owners/i)
-      ).toBeVisible()
+      await expect(page.getByLabel(/dismiss stale pull request approvals/i)).toBeVisible()
+      await expect(page.getByLabel(/require review from code owners/i)).toBeVisible()
 
       // Uncheck "Require pull request"
       await page.getByLabel(/require pull request before merging/i).uncheck()
 
       // PR review options should be hidden
-      await expect(
-        page.getByLabel(/required approving reviews/i)
-      ).not.toBeVisible()
-      await expect(
-        page.getByLabel(/dismiss stale pull request approvals/i)
-      ).not.toBeVisible()
+      await expect(page.getByLabel(/required approving reviews/i)).not.toBeVisible()
+      await expect(page.getByLabel(/dismiss stale pull request approvals/i)).not.toBeVisible()
 
       // Check again
       await page.getByLabel(/require pull request before merging/i).check()
@@ -188,9 +158,7 @@ test.describe('Branch Protection Management', () => {
       ).not.toBeVisible()
     })
 
-    test('should show warning when enabling branch deletion', async ({
-      page,
-    }) => {
+    test('should show warning when enabling branch deletion', async ({ page }) => {
       await page.getByRole('button', { name: /create rule/i }).click()
 
       // Initially no warning
@@ -213,26 +181,20 @@ test.describe('Branch Protection Management', () => {
       // Create a rule first
       await page.getByRole('button', { name: /create rule/i }).click()
       await page.getByLabel(/branch pattern/i).fill(testRule.branchPattern)
-      await page
-        .getByRole('button', { name: /^create rule$/i })
-        .click()
-      await expect(
-        page.getByText(/branch protection rule created successfully/i)
-      ).toBeVisible({ timeout: 5000 })
+      await page.getByRole('button', { name: /^create rule$/i }).click()
+      await expect(page.getByText(/branch protection rule created successfully/i)).toBeVisible({
+        timeout: 5000,
+      })
     })
 
     test('should edit existing rule', async ({ page }) => {
       // Click edit button for the rule
-      const ruleRow = page
-        .locator(`text=${testRule.branchPattern}`)
-        .locator('..')
+      const ruleRow = page.locator(`text=${testRule.branchPattern}`).locator('..')
       await ruleRow.getByRole('button', { name: /edit/i }).click()
 
       // Verify edit dialog opened with existing data
       await expect(page.getByText('Edit Branch Protection Rule')).toBeVisible()
-      await expect(page.getByLabel(/branch pattern/i)).toHaveValue(
-        testRule.branchPattern
-      )
+      await expect(page.getByLabel(/branch pattern/i)).toHaveValue(testRule.branchPattern)
 
       // Update pattern
       await page.getByLabel(/branch pattern/i).fill('main-updated')
@@ -244,9 +206,9 @@ test.describe('Branch Protection Management', () => {
       await page.getByRole('button', { name: /update rule/i }).click()
 
       // Verify success toast
-      await expect(
-        page.getByText(/branch protection rule updated successfully/i)
-      ).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(/branch protection rule updated successfully/i)).toBeVisible({
+        timeout: 5000,
+      })
 
       // Verify updated rule appears in list
       await expect(page.getByText('main-updated')).toBeVisible()
@@ -254,9 +216,7 @@ test.describe('Branch Protection Management', () => {
 
     test('should validate on edit', async ({ page }) => {
       // Click edit
-      const ruleRow = page
-        .locator(`text=${testRule.branchPattern}`)
-        .locator('..')
+      const ruleRow = page.locator(`text=${testRule.branchPattern}`).locator('..')
       await ruleRow.getByRole('button', { name: /edit/i }).click()
 
       // Clear branch pattern
@@ -266,9 +226,7 @@ test.describe('Branch Protection Management', () => {
       await page.getByRole('button', { name: /update rule/i }).click()
 
       // Verify validation error
-      await expect(
-        page.getByText(/branch pattern is required/i)
-      ).toBeVisible()
+      await expect(page.getByText(/branch pattern is required/i)).toBeVisible()
     })
   })
 
@@ -277,25 +235,19 @@ test.describe('Branch Protection Management', () => {
       // Create a rule first
       await page.getByRole('button', { name: /create rule/i }).click()
       await page.getByLabel(/branch pattern/i).fill(testRule.branchPattern)
-      await page
-        .getByRole('button', { name: /^create rule$/i })
-        .click()
-      await expect(
-        page.getByText(/branch protection rule created successfully/i)
-      ).toBeVisible({ timeout: 5000 })
+      await page.getByRole('button', { name: /^create rule$/i }).click()
+      await expect(page.getByText(/branch protection rule created successfully/i)).toBeVisible({
+        timeout: 5000,
+      })
     })
 
     test('should delete rule with confirmation', async ({ page }) => {
       // Click delete button
-      const ruleRow = page
-        .locator(`text=${testRule.branchPattern}`)
-        .locator('..')
+      const ruleRow = page.locator(`text=${testRule.branchPattern}`).locator('..')
       await ruleRow.getByRole('button', { name: /delete/i }).click()
 
       // Verify confirmation dialog
-      await expect(
-        page.getByText(/are you sure you want to delete this rule/i)
-      ).toBeVisible()
+      await expect(page.getByText(/are you sure you want to delete this rule/i)).toBeVisible()
 
       // Confirm deletion
       await page
@@ -304,9 +256,9 @@ test.describe('Branch Protection Management', () => {
         .click()
 
       // Verify success toast
-      await expect(
-        page.getByText(/branch protection rule deleted successfully/i)
-      ).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(/branch protection rule deleted successfully/i)).toBeVisible({
+        timeout: 5000,
+      })
 
       // Verify rule is removed from list
       await expect(page.getByText(testRule.branchPattern)).not.toBeVisible()
@@ -314,9 +266,7 @@ test.describe('Branch Protection Management', () => {
 
     test('should cancel deletion', async ({ page }) => {
       // Click delete button
-      const ruleRow = page
-        .locator(`text=${testRule.branchPattern}`)
-        .locator('..')
+      const ruleRow = page.locator(`text=${testRule.branchPattern}`).locator('..')
       await ruleRow.getByRole('button', { name: /delete/i }).click()
 
       // Cancel deletion
@@ -367,9 +317,7 @@ test.describe('Branch Protection Management', () => {
   test.describe('Rule List', () => {
     test('should display empty state when no rules exist', async ({ page }) => {
       // Assuming no rules exist
-      await expect(
-        page.getByText(/no branch protection rules configured/i)
-      ).toBeVisible()
+      await expect(page.getByText(/no branch protection rules configured/i)).toBeVisible()
     })
 
     test('should display multiple rules', async ({ page }) => {
@@ -384,15 +332,11 @@ test.describe('Branch Protection Management', () => {
         await page.getByRole('button', { name: /create rule/i }).click()
         await page.getByLabel(/branch pattern/i).fill(rule.pattern)
         await page.getByLabel(/required approving reviews/i).click()
-        await page
-          .getByRole('option', { name: `${rule.approvals} approval` })
-          .click()
-        await page
-          .getByRole('button', { name: /^create rule$/i })
-          .click()
-        await expect(
-          page.getByText(/branch protection rule created successfully/i)
-        ).toBeVisible({ timeout: 5000 })
+        await page.getByRole('option', { name: `${rule.approvals} approval` }).click()
+        await page.getByRole('button', { name: /^create rule$/i }).click()
+        await expect(page.getByText(/branch protection rule created successfully/i)).toBeVisible({
+          timeout: 5000,
+        })
       }
 
       // Verify all rules are displayed
@@ -412,14 +356,10 @@ test.describe('Branch Protection Management', () => {
         route.abort('failed')
       })
 
-      await page
-        .getByRole('button', { name: /^create rule$/i })
-        .click()
+      await page.getByRole('button', { name: /^create rule$/i }).click()
 
       // Verify error message is displayed
-      await expect(
-        page.getByText(/failed to save branch protection rule/i)
-      ).toBeVisible()
+      await expect(page.getByText(/failed to save branch protection rule/i)).toBeVisible()
     })
   })
 
@@ -442,9 +382,7 @@ test.describe('Branch Protection Management', () => {
       await page.keyboard.press('Space') // Toggle it
     })
 
-    test('should have proper ARIA labels and error attributes', async ({
-      page,
-    }) => {
+    test('should have proper ARIA labels and error attributes', async ({ page }) => {
       await page.getByRole('button', { name: /create rule/i }).click()
 
       // Verify ARIA attributes
@@ -452,16 +390,11 @@ test.describe('Branch Protection Management', () => {
       await expect(branchPatternInput).toHaveAttribute('aria-invalid', 'false')
 
       // Trigger validation error
-      await page
-        .getByRole('button', { name: /^create rule$/i })
-        .click()
+      await page.getByRole('button', { name: /^create rule$/i }).click()
 
       // Verify error ARIA attributes
       await expect(branchPatternInput).toHaveAttribute('aria-invalid', 'true')
-      await expect(branchPatternInput).toHaveAttribute(
-        'aria-describedby',
-        'branchPattern-error'
-      )
+      await expect(branchPatternInput).toHaveAttribute('aria-describedby', 'branchPattern-error')
     })
   })
 
@@ -472,17 +405,13 @@ test.describe('Branch Protection Management', () => {
       await page.getByLabel(/branch pattern/i).fill(testRule.branchPattern)
 
       // Enable status checks
-      await page
-        .getByLabel(/require status checks to pass before merging/i)
-        .check()
+      await page.getByLabel(/require status checks to pass before merging/i).check()
 
-      await page
-        .getByRole('button', { name: /^create rule$/i })
-        .click()
+      await page.getByRole('button', { name: /^create rule$/i }).click()
 
-      await expect(
-        page.getByText(/branch protection rule created successfully/i)
-      ).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(/branch protection rule created successfully/i)).toBeVisible({
+        timeout: 5000,
+      })
     })
 
     test('should configure code owner review requirement', async ({ page }) => {
@@ -497,13 +426,11 @@ test.describe('Branch Protection Management', () => {
       // Enable code owner review
       await page.getByLabel(/require review from code owners/i).check()
 
-      await page
-        .getByRole('button', { name: /^create rule$/i })
-        .click()
+      await page.getByRole('button', { name: /^create rule$/i }).click()
 
-      await expect(
-        page.getByText(/branch protection rule created successfully/i)
-      ).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(/branch protection rule created successfully/i)).toBeVisible({
+        timeout: 5000,
+      })
     })
   })
 })

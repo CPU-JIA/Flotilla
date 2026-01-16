@@ -29,10 +29,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { status: response.status })
   } catch (error) {
     console.error('[Newsletter] Subscription error:', error)
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 })
   }
 }
 

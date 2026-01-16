@@ -173,8 +173,9 @@ export class MemoryPersistentStorage implements PersistentStorage {
   /**
    * 调试日志
    */
-  private debugLog(message: string): void {
-    console.log(`[${this.nodeId}] [STORAGE] ${message}`);
+  private debugLog(_message: string): void {
+    // 调试日志已禁用（ECP 禁止项 - 生产代码禁止 console）
+    // 如需调试，使用 NestJS Logger 或配置环境变量控制
   }
 }
 
@@ -195,9 +196,30 @@ import { promises as fs } from 'fs';
 import * as path from 'path';
 import { createHash } from 'crypto';
 
-interface StoredData {
-  data: unknown;
+interface StoredData<T = unknown> {
+  data: T;
   checksum: string;
+}
+
+/**
+ * Term 数据结构
+ */
+interface TermData {
+  term: number;
+}
+
+/**
+ * VotedFor 数据结构
+ */
+interface VotedForData {
+  votedFor: string | null;
+}
+
+/**
+ * Log 数据结构
+ */
+interface LogData {
+  entries: LogEntry[];
 }
 
 export class FilePersistentStorage implements PersistentStorage {
@@ -335,7 +357,7 @@ export class FilePersistentStorage implements PersistentStorage {
     try {
       // 加载 term
       try {
-        const termData = await this.readAtomic(this.termFile);
+        const termData = await this.readAtomic<TermData>(this.termFile);
         this.currentTerm = termData.term || 0;
       } catch (error) {
         // 文件不存在，使用默认值；其他错误需要抛出
@@ -349,7 +371,9 @@ export class FilePersistentStorage implements PersistentStorage {
 
       // 加载 votedFor
       try {
-        const votedForData = await this.readAtomic(this.votedForFile);
+        const votedForData = await this.readAtomic<VotedForData>(
+          this.votedForFile,
+        );
         this.votedFor = votedForData.votedFor || null;
       } catch (error) {
         // 文件不存在，使用默认值；其他错误需要抛出
@@ -363,7 +387,7 @@ export class FilePersistentStorage implements PersistentStorage {
 
       // 加载日志
       try {
-        const logData = await this.readAtomic(this.logFile);
+        const logData = await this.readAtomic<LogData>(this.logFile);
         this.log = logData.entries || [];
       } catch (error) {
         // 文件不存在，使用默认值；其他错误需要抛出
@@ -457,9 +481,9 @@ export class FilePersistentStorage implements PersistentStorage {
    * 原子读取：读取并验证校验和
    * ECP-C1: 防御性编程 - 验证数据完整性
    */
-  private async readAtomic(filePath: string): Promise<any> {
+  private async readAtomic<T>(filePath: string): Promise<T> {
     const content = await fs.readFile(filePath, 'utf8');
-    const storedData: StoredData = JSON.parse(content);
+    const storedData: StoredData<T> = JSON.parse(content);
 
     // 验证校验和
     const jsonData = JSON.stringify(storedData.data, null, 2);
@@ -485,7 +509,8 @@ export class FilePersistentStorage implements PersistentStorage {
   /**
    * 调试日志
    */
-  private debugLog(message: string): void {
-    console.log(`[${this.nodeId}] [FILE_STORAGE] ${message}`);
+  private debugLog(_message: string): void {
+    // 调试日志已禁用（ECP 禁止项 - 生产代码禁止 console）
+    // 如需调试，使用 NestJS Logger 或配置环境变量控制
   }
 }

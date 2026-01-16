@@ -4,6 +4,7 @@
  * ECP-C1: 防御性编程 - 错误处理和令牌管理
  */
 
+import { logger } from '@/lib/logger'
 import type { Project, ProjectsResponse, Branch, UpdateProjectRequest } from '@/types/project'
 import type { User, AuthResponse } from '@/types/auth'
 import type {
@@ -45,12 +46,7 @@ import type {
   Milestone,
   IssueComment,
 } from '@/types/issue'
-import type {
-  SearchResult,
-  SearchQuery,
-  IndexStatus,
-  ReindexResponse,
-} from '@/types/search'
+import type { SearchResult, SearchQuery, IndexStatus, ReindexResponse } from '@/types/search'
 
 // Commit interface for type safety
 interface Commit {
@@ -102,24 +98,24 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/a
 
 /** @deprecated Token 现在使用 HttpOnly Cookie，无需手动设置 */
 export const setTokens = (_accessToken: string, _refreshToken: string) => {
-  console.warn('setTokens() is deprecated. Tokens are now managed via HttpOnly cookies.')
+  logger.warn('setTokens() is deprecated. Tokens are now managed via HttpOnly cookies.')
 }
 
 /** @deprecated Token 现在使用 HttpOnly Cookie，无需手动获取 */
 export const getAccessToken = (): string | null => {
-  console.warn('getAccessToken() is deprecated. Tokens are now managed via HttpOnly cookies.')
+  logger.warn('getAccessToken() is deprecated. Tokens are now managed via HttpOnly cookies.')
   return null
 }
 
 /** @deprecated Token 现在使用 HttpOnly Cookie，无需手动获取 */
 export const getRefreshToken = (): string | null => {
-  console.warn('getRefreshToken() is deprecated. Tokens are now managed via HttpOnly cookies.')
+  logger.warn('getRefreshToken() is deprecated. Tokens are now managed via HttpOnly cookies.')
   return null
 }
 
 /** @deprecated Token 现在使用 HttpOnly Cookie，后端会自动清除 */
 export const clearTokens = () => {
-  console.warn('clearTokens() is deprecated. Call api.auth.logout() instead.')
+  logger.warn('clearTokens() is deprecated. Call api.auth.logout() instead.')
 }
 
 /**
@@ -128,17 +124,17 @@ export const clearTokens = () => {
  */
 function getCsrfToken(): string | null {
   if (typeof document === 'undefined') {
-    return null;
+    return null
   }
 
-  const cookies = document.cookie.split(';');
+  const cookies = document.cookie.split(';')
   for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=');
+    const [name, value] = cookie.trim().split('=')
     if (name === 'XSRF-TOKEN') {
-      return decodeURIComponent(value);
+      return decodeURIComponent(value)
     }
   }
-  return null;
+  return null
 }
 
 /**
@@ -190,11 +186,11 @@ async function refreshAccessToken(): Promise<boolean> {
  * @deprecated 无需前端定时刷新
  */
 export const startAutoRefresh = () => {
-  console.warn('startAutoRefresh() is deprecated. Token refresh is now handled automatically.')
+  logger.warn('startAutoRefresh() is deprecated. Token refresh is now handled automatically.')
 }
 
 export const stopAutoRefresh = () => {
-  console.warn('stopAutoRefresh() is deprecated.')
+  logger.warn('stopAutoRefresh() is deprecated.')
 }
 
 /**
@@ -224,12 +220,12 @@ export async function apiRequest<T = unknown>(
   }
 
   // 🔒 SECURITY FIX: 添加 CSRF Token (POST/PUT/PATCH/DELETE 请求)
-  const method = options.method?.toUpperCase() || 'GET';
-  const protectedMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
+  const method = options.method?.toUpperCase() || 'GET'
+  const protectedMethods = ['POST', 'PUT', 'PATCH', 'DELETE']
   if (protectedMethods.includes(method)) {
-    const csrfToken = getCsrfToken();
+    const csrfToken = getCsrfToken()
     if (csrfToken) {
-      headers['X-XSRF-TOKEN'] = csrfToken;
+      headers['X-XSRF-TOKEN'] = csrfToken
     }
   }
 
@@ -355,7 +351,7 @@ export const api = {
       try {
         await apiRequest('/auth/logout', { method: 'POST' })
       } catch (error) {
-        console.error('Logout error:', error)
+        logger.error('Logout error:', error)
       } finally {
         // 重定向到登录页
         if (typeof window !== 'undefined') {
@@ -366,17 +362,19 @@ export const api = {
 
     // 🔒 Phase 4: 获取所有活跃会话（设备列表）
     getSessions: () =>
-      apiRequest<Array<{
-        id: string
-        ipAddress: string
-        device: string | null
-        browser: string | null
-        os: string | null
-        location: string | null
-        lastUsedAt: string
-        createdAt: string
-        expiresAt: string
-      }>>('/auth/sessions'),
+      apiRequest<
+        Array<{
+          id: string
+          ipAddress: string
+          device: string | null
+          browser: string | null
+          os: string | null
+          location: string | null
+          lastUsedAt: string
+          createdAt: string
+          expiresAt: string
+        }>
+      >('/auth/sessions'),
 
     // 🔒 Phase 4: 撤销特定会话（单个设备登出）
     revokeSession: (sessionId: string) =>
@@ -466,6 +464,16 @@ export const api = {
         body: JSON.stringify(data),
       }),
 
+    uploadAvatar: (file: File) => {
+      const formData = new FormData()
+      formData.append('avatar', file)
+      return apiRequest<User>(`/users/profile/avatar`, {
+        method: 'PUT',
+        body: formData,
+        // Note: Don't set Content-Type header, let browser set it with boundary
+      })
+    },
+
     updatePassword: (id: string, data: { oldPassword: string; newPassword: string }) =>
       apiRequest<{ message: string }>(`/users/${id}/password`, {
         method: 'PUT',
@@ -516,18 +524,23 @@ export const api = {
       }),
 
     getMembers: (projectId: string) =>
-      apiRequest<Array<{
-        id: string
-        role: string
-        joinedAt: string
-        user: {
+      apiRequest<
+        Array<{
           id: string
-          username: string
-          email: string
-        }
-      }>>(`/projects/${projectId}/members`),
+          role: string
+          joinedAt: string
+          user: {
+            id: string
+            username: string
+            email: string
+          }
+        }>
+      >(`/projects/${projectId}/members`),
 
-    addMember: (projectId: string, data: { userId: string; role: 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER' }) =>
+    addMember: (
+      projectId: string,
+      data: { userId: string; role: 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER' }
+    ) =>
       apiRequest<{ message: string }>(`/projects/${projectId}/members`, {
         method: 'POST',
         body: JSON.stringify(data),
@@ -538,7 +551,11 @@ export const api = {
         method: 'DELETE',
       }),
 
-    updateMemberRole: (projectId: string, userId: string, role: 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER') =>
+    updateMemberRole: (
+      projectId: string,
+      userId: string,
+      role: 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER'
+    ) =>
       apiRequest<{ message: string }>(`/projects/${projectId}/members/${userId}/role`, {
         method: 'PUT',
         body: JSON.stringify({ role }),
@@ -556,49 +573,57 @@ export const api = {
 
     // Branch Protection Rules
     getBranchProtectionRules: (projectId: string) =>
-      apiRequest<Array<{
-        id: string
-        projectId: string
-        branchPattern: string
-        requirePullRequest: boolean
-        requiredApprovingReviews: number
-        dismissStaleReviews: boolean
-        requireCodeOwnerReview: boolean
-        allowForcePushes: boolean
-        allowDeletions: boolean
-        requireStatusChecks: boolean
-        requiredStatusChecks: string[]
-        createdAt: string
-        updatedAt: string
-      }>>(`/projects/${projectId}/branch-protection`),
+      apiRequest<
+        Array<{
+          id: string
+          projectId: string
+          branchPattern: string
+          requirePullRequest: boolean
+          requiredApprovingReviews: number
+          dismissStaleReviews: boolean
+          requireCodeOwnerReview: boolean
+          allowForcePushes: boolean
+          allowDeletions: boolean
+          requireStatusChecks: boolean
+          requiredStatusChecks: string[]
+          createdAt: string
+          updatedAt: string
+        }>
+      >(`/projects/${projectId}/branch-protection`),
 
-    createBranchProtectionRule: (projectId: string, data: {
-      branchPattern: string
-      requirePullRequest?: boolean
-      requiredApprovingReviews?: number
-      dismissStaleReviews?: boolean
-      requireCodeOwnerReview?: boolean
-      allowForcePushes?: boolean
-      allowDeletions?: boolean
-      requireStatusChecks?: boolean
-      requiredStatusChecks?: string[]
-    }) =>
+    createBranchProtectionRule: (
+      projectId: string,
+      data: {
+        branchPattern: string
+        requirePullRequest?: boolean
+        requiredApprovingReviews?: number
+        dismissStaleReviews?: boolean
+        requireCodeOwnerReview?: boolean
+        allowForcePushes?: boolean
+        allowDeletions?: boolean
+        requireStatusChecks?: boolean
+        requiredStatusChecks?: string[]
+      }
+    ) =>
       apiRequest<{ id: string }>(`/projects/${projectId}/branch-protection`, {
         method: 'POST',
         body: JSON.stringify(data),
       }),
 
-    updateBranchProtectionRule: (ruleId: string, data: {
-      branchPattern?: string
-      requirePullRequest?: boolean
-      requiredApprovingReviews?: number
-      dismissStaleReviews?: boolean
-      requireCodeOwnerReview?: boolean
-      allowForcePushes?: boolean
-      allowDeletions?: boolean
-      requireStatusChecks?: boolean
-      requiredStatusChecks?: string[]
-    }) =>
+    updateBranchProtectionRule: (
+      ruleId: string,
+      data: {
+        branchPattern?: string
+        requirePullRequest?: boolean
+        requiredApprovingReviews?: number
+        dismissStaleReviews?: boolean
+        requireCodeOwnerReview?: boolean
+        allowForcePushes?: boolean
+        allowDeletions?: boolean
+        requireStatusChecks?: boolean
+        requiredStatusChecks?: string[]
+      }
+    ) =>
       apiRequest<{ id: string }>(`/branch-protection/${ruleId}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
@@ -1041,9 +1066,7 @@ export const api = {
       if (params?.search) searchParams.append('search', params.search)
 
       const query = searchParams.toString()
-      return apiRequest<IssuesResponse>(
-        `/projects/${projectId}/issues${query ? `?${query}` : ''}`
-      )
+      return apiRequest<IssuesResponse>(`/projects/${projectId}/issues${query ? `?${query}` : ''}`)
     },
 
     // 获取单个Issue
@@ -1088,8 +1111,7 @@ export const api = {
   // ============================================
   labels: {
     // 获取标签列表
-    list: (projectId: string) =>
-      apiRequest<Label[]>(`/projects/${projectId}/labels`),
+    list: (projectId: string) => apiRequest<Label[]>(`/projects/${projectId}/labels`),
 
     // 获取单个标签
     get: (projectId: string, id: string) =>
@@ -1103,7 +1125,11 @@ export const api = {
       }),
 
     // 更新标签
-    update: (projectId: string, id: string, data: Partial<{ name: string; color: string; description?: string }>) =>
+    update: (
+      projectId: string,
+      id: string,
+      data: Partial<{ name: string; color: string; description?: string }>
+    ) =>
       apiRequest<Label>(`/projects/${projectId}/labels/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
@@ -1138,7 +1164,16 @@ export const api = {
       }),
 
     // 更新里程碑
-    update: (projectId: string, id: string, data: Partial<{ title: string; description?: string; dueDate?: string; state?: 'OPEN' | 'CLOSED' }>) =>
+    update: (
+      projectId: string,
+      id: string,
+      data: Partial<{
+        title: string
+        description?: string
+        dueDate?: string
+        state?: 'OPEN' | 'CLOSED'
+      }>
+    ) =>
       apiRequest<Milestone>(`/projects/${projectId}/milestones/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
@@ -1169,16 +1204,22 @@ export const api = {
 
     // 更新评论
     update: (projectId: string, issueNumber: number, commentId: string, data: { body: string }) =>
-      apiRequest<IssueComment>(`/projects/${projectId}/issues/${issueNumber}/comments/${commentId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-      }),
+      apiRequest<IssueComment>(
+        `/projects/${projectId}/issues/${issueNumber}/comments/${commentId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(data),
+        }
+      ),
 
     // 删除评论
     delete: (projectId: string, issueNumber: number, commentId: string) =>
-      apiRequest<{ message: string }>(`/projects/${projectId}/issues/${issueNumber}/comments/${commentId}`, {
-        method: 'DELETE',
-      }),
+      apiRequest<{ message: string }>(
+        `/projects/${projectId}/issues/${issueNumber}/comments/${commentId}`,
+        {
+          method: 'DELETE',
+        }
+      ),
   },
 
   // ============================================
@@ -1187,37 +1228,45 @@ export const api = {
   webhooks: {
     // 获取项目的所有Webhook
     list: (projectId: string) =>
-      apiRequest<Array<{
-        id: string
-        projectId: string
-        url: string
-        secret?: string
-        events: string[]
-        active: boolean
-        createdAt: string
-        updatedAt: string
-        _count?: { deliveries: number }
-      }>>(`/webhooks/projects/${projectId}`),
+      apiRequest<
+        Array<{
+          id: string
+          projectId: string
+          url: string
+          secret?: string
+          events: string[]
+          active: boolean
+          createdAt: string
+          updatedAt: string
+          _count?: { deliveries: number }
+        }>
+      >(`/webhooks/projects/${projectId}`),
 
     // 创建Webhook
-    create: (projectId: string, data: {
-      url: string
-      events: string[]
-      secret?: string
-      active?: boolean
-    }) =>
+    create: (
+      projectId: string,
+      data: {
+        url: string
+        events: string[]
+        secret?: string
+        active?: boolean
+      }
+    ) =>
       apiRequest<{ id: string }>(`/webhooks/projects/${projectId}`, {
         method: 'POST',
         body: JSON.stringify(data),
       }),
 
     // 更新Webhook
-    update: (webhookId: string, data: {
-      url?: string
-      events?: string[]
-      secret?: string
-      active?: boolean
-    }) =>
+    update: (
+      webhookId: string,
+      data: {
+        url?: string
+        events?: string[]
+        secret?: string
+        active?: boolean
+      }
+    ) =>
       apiRequest<{ id: string }>(`/webhooks/${webhookId}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
@@ -1231,18 +1280,20 @@ export const api = {
 
     // 获取Webhook投递记录
     deliveries: (webhookId: string) =>
-      apiRequest<Array<{
-        id: string
-        webhookId: string
-        event: string
-        payload: Record<string, unknown>
-        statusCode: number | null
-        response: string | null
-        success: boolean
-        duration: number | null
-        error: string | null
-        deliveredAt: string
-      }>>(`/webhooks/${webhookId}/deliveries`),
+      apiRequest<
+        Array<{
+          id: string
+          webhookId: string
+          event: string
+          payload: Record<string, unknown>
+          statusCode: number | null
+          response: string | null
+          success: boolean
+          duration: number | null
+          error: string | null
+          deliveredAt: string
+        }>
+      >(`/webhooks/${webhookId}/deliveries`),
   },
 
   // ============================================
@@ -1251,17 +1302,19 @@ export const api = {
   pipelines: {
     // 获取项目的所有Pipeline
     list: (projectId: string) =>
-      apiRequest<Array<{
-        id: string
-        projectId: string
-        name: string
-        config: Record<string, unknown>
-        triggers: string[]
-        active: boolean
-        createdAt: string
-        updatedAt: string
-        _count?: { runs: number }
-      }>>(`/projects/${projectId}/pipelines`),
+      apiRequest<
+        Array<{
+          id: string
+          projectId: string
+          name: string
+          config: Record<string, unknown>
+          triggers: string[]
+          active: boolean
+          createdAt: string
+          updatedAt: string
+          _count?: { runs: number }
+        }>
+      >(`/projects/${projectId}/pipelines`),
 
     // 获取Pipeline详情
     get: (pipelineId: string) =>
@@ -1290,24 +1343,30 @@ export const api = {
       }>(`/pipelines/${pipelineId}`),
 
     // 创建Pipeline
-    create: (projectId: string, data: {
-      name: string
-      config: Record<string, unknown>
-      triggers: string[]
-      active?: boolean
-    }) =>
+    create: (
+      projectId: string,
+      data: {
+        name: string
+        config: Record<string, unknown>
+        triggers: string[]
+        active?: boolean
+      }
+    ) =>
       apiRequest<{ id: string }>(`/projects/${projectId}/pipelines`, {
         method: 'POST',
         body: JSON.stringify(data),
       }),
 
     // 更新Pipeline
-    update: (pipelineId: string, data: {
-      name?: string
-      config?: Record<string, unknown>
-      triggers?: string[]
-      active?: boolean
-    }) =>
+    update: (
+      pipelineId: string,
+      data: {
+        name?: string
+        config?: Record<string, unknown>
+        triggers?: string[]
+        active?: boolean
+      }
+    ) =>
       apiRequest<{ id: string }>(`/pipelines/${pipelineId}`, {
         method: 'PATCH',
         body: JSON.stringify(data),
@@ -1417,18 +1476,20 @@ export const api = {
       if (params?.page) searchParams.append('page', params.page.toString())
       if (params?.limit) searchParams.append('limit', params.limit.toString())
       const query = searchParams.toString()
-      return apiRequest<Array<{
-        id: string
-        action: string
-        entityType: string
-        entityId: string | null
-        username: string | null
-        description: string
-        ipAddress: string | null
-        userAgent: string | null
-        success: boolean
-        createdAt: string
-      }>>(`/audit/user-logs${query ? `?${query}` : ''}`)
+      return apiRequest<
+        Array<{
+          id: string
+          action: string
+          entityType: string
+          entityId: string | null
+          username: string | null
+          description: string
+          ipAddress: string | null
+          userAgent: string | null
+          success: boolean
+          createdAt: string
+        }>
+      >(`/audit/user-logs${query ? `?${query}` : ''}`)
     },
 
     // 管理员获取系统审计日志
@@ -1438,18 +1499,20 @@ export const api = {
       if (params?.limit) searchParams.append('limit', params.limit.toString())
       if (params?.userId) searchParams.append('userId', params.userId)
       const query = searchParams.toString()
-      return apiRequest<Array<{
-        id: string
-        action: string
-        entityType: string
-        entityId: string | null
-        username: string | null
-        description: string
-        ipAddress: string | null
-        userAgent: string | null
-        success: boolean
-        createdAt: string
-      }>>(`/admin/audit${query ? `?${query}` : ''}`)
+      return apiRequest<
+        Array<{
+          id: string
+          action: string
+          entityType: string
+          entityId: string | null
+          username: string | null
+          description: string
+          ipAddress: string | null
+          userAgent: string | null
+          success: boolean
+          createdAt: string
+        }>
+      >(`/admin/audit${query ? `?${query}` : ''}`)
     },
   },
 
@@ -1469,10 +1532,10 @@ export const api = {
         searchParams.append('projectId', params.projectId)
       }
       if (params.language && params.language.length > 0) {
-        params.language.forEach(lang => searchParams.append('language', lang))
+        params.language.forEach((lang) => searchParams.append('language', lang))
       }
       if (params.extension && params.extension.length > 0) {
-        params.extension.forEach(ext => searchParams.append('extension', ext))
+        params.extension.forEach((ext) => searchParams.append('extension', ext))
       }
       if (params.branchName) {
         searchParams.append('branchName', params.branchName)
@@ -1497,8 +1560,7 @@ export const api = {
      * 获取项目索引状态
      * GET /api/search/status/:projectId
      */
-    getIndexStatus: (projectId: string) =>
-      apiRequest<IndexStatus>(`/search/status/${projectId}`),
+    getIndexStatus: (projectId: string) => apiRequest<IndexStatus>(`/search/status/${projectId}`),
 
     /**
      * 触发项目重索引

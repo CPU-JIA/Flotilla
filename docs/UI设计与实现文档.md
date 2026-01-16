@@ -19,16 +19,19 @@
 ### 1.1 核心设计理念
 
 **简洁高效（Simplicity & Efficiency）**
+
 - 减少用户认知负担
 - 最短路径完成任务
 - 信息层次清晰
 
 **专业可靠（Professional & Reliable）**
+
 - 面向开发者的专业工具
 - 稳定一致的交互体验
 - 清晰的视觉反馈
 
 **现代美观（Modern & Aesthetic）**
+
 - 遵循2025年设计趋势
 - 精致的视觉细节
 - 愉悦的使用体验
@@ -52,7 +55,7 @@
 --primary-200: #bfdbfe;
 --primary-300: #93c5fd;
 --primary-400: #60a5fa;
---primary-500: #3b82f6;  /* 主色 */
+--primary-500: #3b82f6; /* 主色 */
 --primary-600: #2563eb;
 --primary-700: #1d4ed8;
 --primary-800: #1e40af;
@@ -125,32 +128,24 @@ font-family:
   sans-serif;
 
 /* 代码字体 */
-font-family:
-  'JetBrains Mono',
-  'Fira Code',
-  'Courier New',
-  monospace;
+font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
 
 /* 中文字体 */
-font-family:
-  'Inter',
-  'PingFang SC',
-  'Microsoft YaHei',
-  sans-serif;
+font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 ```
 
 ### 3.2 字体大小
 
-| 级别 | 大小 | 行高 | 用途 |
-|------|------|------|------|
-| text-xs | 12px | 16px | 辅助文字 |
-| text-sm | 14px | 20px | 正文小字 |
-| text-base | 16px | 24px | 正文 |
-| text-lg | 18px | 28px | 小标题 |
-| text-xl | 20px | 28px | 标题 |
-| text-2xl | 24px | 32px | 大标题 |
-| text-3xl | 30px | 36px | 页面标题 |
-| text-4xl | 36px | 40px | Hero标题 |
+| 级别      | 大小 | 行高 | 用途     |
+| --------- | ---- | ---- | -------- |
+| text-xs   | 12px | 16px | 辅助文字 |
+| text-sm   | 14px | 20px | 正文小字 |
+| text-base | 16px | 24px | 正文     |
+| text-lg   | 18px | 28px | 小标题   |
+| text-xl   | 20px | 28px | 标题     |
+| text-2xl  | 24px | 32px | 大标题   |
+| text-3xl  | 30px | 36px | 页面标题 |
+| text-4xl  | 36px | 40px | Hero标题 |
 
 ### 3.3 字重（Font Weight）
 
@@ -167,13 +162,13 @@ font-family:
 采用8px网格系统：
 
 ```css
---spacing-1: 4px;   /* 0.5rem */
---spacing-2: 8px;   /* 1rem */
---spacing-3: 12px;  /* 1.5rem */
---spacing-4: 16px;  /* 2rem */
---spacing-5: 20px;  /* 2.5rem */
---spacing-6: 24px;  /* 3rem */
---spacing-8: 32px;  /* 4rem */
+--spacing-1: 4px; /* 0.5rem */
+--spacing-2: 8px; /* 1rem */
+--spacing-3: 12px; /* 1.5rem */
+--spacing-4: 16px; /* 2rem */
+--spacing-5: 20px; /* 2.5rem */
+--spacing-6: 24px; /* 3rem */
+--spacing-8: 32px; /* 4rem */
 --spacing-10: 40px; /* 5rem */
 --spacing-12: 48px; /* 6rem */
 --spacing-16: 64px; /* 8rem */
@@ -186,6 +181,7 @@ font-family:
 ### 5.1 按钮（Button）
 
 **主要按钮（Primary Button）**
+
 ```tsx
 <Button variant="primary" size="md">
   创建项目
@@ -193,6 +189,7 @@ font-family:
 ```
 
 **变体（Variants）:**
+
 - `primary` - 主要操作（蓝色）
 - `secondary` - 次要操作（灰色）
 - `outline` - 边框按钮
@@ -200,6 +197,7 @@ font-family:
 - `destructive` - 危险操作（红色）
 
 **尺寸（Sizes）:**
+
 - `sm` - 高度32px，padding 8px 12px
 - `md` - 高度40px，padding 10px 16px
 - `lg` - 高度48px，padding 12px 24px
@@ -207,13 +205,11 @@ font-family:
 ### 5.2 输入框（Input）
 
 ```tsx
-<Input
-  placeholder="输入项目名称"
-  error={errors.name?.message}
-/>
+<Input placeholder="输入项目名称" error={errors.name?.message} />
 ```
 
 **状态：**
+
 - Default（默认）
 - Focus（聚焦）- 蓝色边框
 - Error（错误）- 红色边框 + 错误提示
@@ -227,16 +223,13 @@ font-family:
     <CardTitle>项目名称</CardTitle>
     <CardDescription>项目描述</CardDescription>
   </CardHeader>
-  <CardContent>
-    {/* 内容 */}
-  </CardContent>
-  <CardFooter>
-    {/* 底部操作 */}
-  </CardFooter>
+  <CardContent>{/* 内容 */}</CardContent>
+  <CardFooter>{/* 底部操作 */}</CardFooter>
 </Card>
 ```
 
 **样式：**
+
 - 背景：white / dark-bg-secondary
 - 边框：1px solid neutral-200
 - 圆角：8px
@@ -246,12 +239,14 @@ font-family:
 ### 5.4 导航栏（Navigation）
 
 **顶部导航栏**
+
 - 高度：64px
 - Logo（左侧）
 - 搜索框（中间）
 - 用户菜单（右侧）
 
 **侧边栏**
+
 - 宽度：240px（可收起至60px）
 - 导航项：40px高度
 - Icon + 文字标签
@@ -268,13 +263,12 @@ font-family:
       <TableHead>操作</TableHead>
     </TableRow>
   </TableHeader>
-  <TableBody>
-    {/* 数据行 */}
-  </TableBody>
+  <TableBody>{/* 数据行 */}</TableBody>
 </Table>
 ```
 
 **特性：**
+
 - 斑马条纹（可选）
 - Hover高亮
 - 排序功能
@@ -283,14 +277,9 @@ font-family:
 ### 5.6 代码编辑器
 
 使用Monaco Editor：
+
 ```tsx
-<Editor
-  height="600px"
-  language="typescript"
-  theme="vs-dark"
-  value={code}
-  onChange={handleChange}
-/>
+<Editor height="600px" language="typescript" theme="vs-dark" value={code} onChange={handleChange} />
 ```
 
 ---
@@ -316,6 +305,7 @@ font-family:
 #### 6.2.1 认证页面 ✅
 
 **登录页面**
+
 - **布局：** 居中卡片式
 - Logo和标题（顶部）
 - 登录表单（用户名/邮箱、密码）
@@ -324,6 +314,7 @@ font-family:
 - "还没有账号？注册"链接
 
 **注册页面** ✅
+
 - **布局：** 居中卡片式
 - 用户名、邮箱、密码输入
 - 密码强度指示器（PasswordStrengthIndicator组件）
@@ -331,12 +322,14 @@ font-family:
 - 服务条款和隐私政策同意勾选
 
 **忘记密码页面** ✅
+
 - **路径：** `/auth/forgot-password`
 - 邮箱输入表单
 - 发送重置邮件按钮
 - 返回登录链接
 
 **重置密码页面** ✅
+
 - **路径：** `/auth/reset-password/[token]`
 - Token验证
 - 新密码输入（含强度指示器）
@@ -345,6 +338,7 @@ font-family:
 #### 6.2.2 仪表板页面 ✅
 
 **路径：** `/dashboard`
+
 - 欢迎消息 + 用户统计
 - 快速操作卡片（创建项目、浏览组织）
 - 最近项目列表
@@ -353,6 +347,7 @@ font-family:
 #### 6.2.3 项目列表页 ✅
 
 **路径：** `/projects`
+
 - **布局：** 列表视图
 - 页面标题 + 创建项目按钮（右上）
 - 创建项目对话框（CreateProjectDialog）
@@ -368,6 +363,7 @@ font-family:
 **路径：** `/projects/[id]`
 
 **文件浏览页面** ✅ `/projects/[id]/files`
+
 - 分支选择器（BranchSelector组件）
 - 创建分支对话框
 - 文件列表组件（FileList）
@@ -376,12 +372,14 @@ font-family:
 - 面包屑导航
 
 **代码编辑器页** ✅ `/projects/[id]/editor`
+
 - **布局：** 全屏式
 - 顶部工具栏：文件路径、保存按钮、格式化按钮
 - Monaco Editor（主区域）
 - 底部状态栏：行列号、文件编码、文件类型
 
 **提交历史页面** ✅ `/projects/[id]/history`
+
 - 提交列表（时间线展示）
 - 每条提交显示：hash、消息、作者、时间
 - 分支筛选
@@ -389,6 +387,7 @@ font-family:
 #### 6.2.5 Issue追踪页面 ✅
 
 **Issue列表页** ✅ `/projects/[id]/issues`
+
 - 页面标题 + 新建Issue按钮
 - 筛选器：状态（Open/Closed）、标签、里程碑
 - Issue列表
@@ -399,6 +398,7 @@ font-family:
   - 创建时间
 
 **Issue详情页** ✅ `/projects/[id]/issues/[number]`
+
 - Issue标题 + 编号 + 状态
 - Markdown内容渲染（MarkdownPreview组件）
 - 侧边栏：
@@ -410,6 +410,7 @@ font-family:
 - 关闭/重新打开按钮
 
 **创建Issue页** ✅ `/projects/[id]/issues/new`
+
 - 标题输入
 - Markdown编辑器（MarkdownEditor组件）
 - 标签选择器
@@ -418,12 +419,14 @@ font-family:
 - 提交按钮
 
 **标签管理页** ✅ `/projects/[id]/labels`
+
 - 标签列表（名称、颜色、描述、Issue数量）
 - 创建标签对话框（LabelDialog）
 - 颜色选择器（ColorPicker）
 - 编辑/删除操作
 
 **里程碑管理页** ✅ `/projects/[id]/milestones`
+
 - 里程碑列表
   - 标题、描述、截止日期
   - 进度条（完成的Issue百分比）
@@ -434,6 +437,7 @@ font-family:
 #### 6.2.6 Pull Request页面 ✅
 
 **PR列表页** ✅ `/projects/[id]/pulls`
+
 - 页面标题 + 新建PR按钮
 - 筛选器：状态（Open/Merged/Closed）
 - PR列表
@@ -442,6 +446,7 @@ font-family:
   - 作者、创建时间
 
 **PR详情页** ✅ `/projects/[id]/pulls/[number]`
+
 - PR标题 + 编号 + 状态
 - 描述（Markdown渲染）
 - 标签页切换：
@@ -454,6 +459,7 @@ font-family:
 - 关闭PR按钮
 
 **创建PR页** ✅ `/projects/[id]/pulls/new`
+
 - 源分支选择
 - 目标分支选择
 - 标题输入
@@ -463,14 +469,17 @@ font-family:
 #### 6.2.7 项目设置页 ✅
 
 **路径：** `/projects/[id]/settings`
+
 - **布局：** 侧边导航 + 内容区
 
 **通用设置** ✅ `/settings/general`
+
 - 项目名称
 - 描述
 - 可见性切换
 
 **成员管理** ✅ `/settings/members`
+
 - 成员列表（DataTable）
 - 角色标签（OWNER/MAINTAINER/MEMBER/VIEWER）
 - 邀请成员对话框（AddMemberDialog）
@@ -478,13 +487,15 @@ font-family:
 - 移除成员
 
 **Pull Request设置** ✅ `/settings/pull-requests`
+
 - 合并策略配置
 - 默认审查者设置
 
 **分支保护** ✅ `/settings/branch-protection`
+
 - 保护规则列表
 - 创建规则表单：
-  - 分支模式（如：main, release/*）
+  - 分支模式（如：main, release/\*）
   - 必须通过PR
   - 最少审批人数
   - 禁止强制推送
@@ -492,12 +503,14 @@ font-family:
 - 编辑/删除规则
 
 **危险操作** ✅ `/settings/danger`
+
 - 归档项目（黄色警告区）
 - 删除项目（红色警告区，需确认）
 
 #### 6.2.8 项目内搜索页 ✅
 
 **路径：** `/projects/[id]/search`
+
 - 搜索输入框（SearchBar组件）
 - 搜索结果列表（SearchResultItem）
 - 文件路径、匹配行号、代码上下文高亮
@@ -505,11 +518,13 @@ font-family:
 #### 6.2.9 组织与团队页面 ✅
 
 **组织列表页** ✅ `/organizations`
+
 - 我的组织列表
 - 创建组织对话框（CreateOrganizationDialog）
 - 组织卡片：名称、成员数、项目数
 
 **组织详情页** ✅ `/organizations/[slug]`
+
 - **标签页布局：**
   - Overview（概览）
   - Teams（团队列表）
@@ -522,6 +537,7 @@ font-family:
 - 组织设置（SettingsTab组件）
 
 **团队详情页** ✅ `/organizations/[slug]/teams/[teamSlug]`
+
 - **标签页布局：**
   - Overview（概览，OverviewTab）
   - Members（成员列表，MembersTab）
@@ -533,6 +549,7 @@ font-family:
 #### 6.2.10 全局搜索页 ✅
 
 **路径：** `/search`
+
 - 搜索栏（SearchBar组件）
 - 搜索过滤器（SearchFilters组件）
   - 项目筛选
@@ -543,11 +560,13 @@ font-family:
 #### 6.2.11 通知中心 ✅
 
 **通知图标** ✅ 全局导航栏
+
 - 通知铃铛（NotificationBell组件）
 - 未读数量Badge
 - 下拉预览
 
 **通知页面** ✅ `/notifications`
+
 - 通知列表
 - 类型图标（PR、Issue、评论等）
 - 已读/未读状态
@@ -557,12 +576,14 @@ font-family:
 #### 6.2.12 管理员页面 ✅
 
 **管理员首页** ✅ `/admin`
+
 - 系统统计卡片
 - 用户统计
 - 项目统计
 - 快速导航
 
 **用户管理** ✅ `/admin/users`
+
 - 用户列表（DataTable）
 - 角色筛选
 - 添加用户对话框（AddUserDialog）
@@ -570,17 +591,20 @@ font-family:
 - 封禁/解封用户
 
 **项目管理** ✅ `/admin/projects`
+
 - 项目列表
 - 按可见性筛选
 - 归档/删除操作
 
 **集群管理** ✅ `/admin/cluster`
+
 - Raft集群状态
 - 节点健康检查
 
 #### 6.2.13 Raft集群可视化页面 ✅
 
 **路径：** `/raft`
+
 - 集群拓扑图（ClusterTopology组件）
   - 节点状态（Leader/Follower/Candidate）
   - 节点连接线
@@ -597,6 +621,7 @@ font-family:
 #### 6.2.14 设计系统预览页 ✅
 
 **路径：** `/design-system`
+
 - 颜色系统展示
 - 排版规范展示
 - 组件库预览
@@ -610,32 +635,43 @@ font-family:
 
 ```css
 /* Mobile */
-@media (max-width: 640px) { /* sm */ }
+@media (max-width: 640px) {
+  /* sm */
+}
 
 /* Tablet */
-@media (min-width: 768px) { /* md */ }
+@media (min-width: 768px) {
+  /* md */
+}
 
 /* Laptop */
-@media (min-width: 1024px) { /* lg */ }
+@media (min-width: 1024px) {
+  /* lg */
+}
 
 /* Desktop */
-@media (min-width: 1280px) { /* xl */ }
+@media (min-width: 1280px) {
+  /* xl */
+}
 ```
 
 ### 7.2 响应式布局策略
 
 **移动端（< 768px）：**
+
 - 隐藏侧边栏，改用汉堡菜单
 - 单列布局
 - 全宽卡片
 - 简化导航栏
 
 **平板端（768px - 1024px）：**
+
 - 可收起侧边栏
 - 2列网格布局
 - 优化触控交互
 
 **桌面端（> 1024px）：**
+
 - 完整侧边栏
 - 3列网格布局
 - 支持键盘快捷键
@@ -647,12 +683,14 @@ font-family:
 ### 8.1 加载状态
 
 **骨架屏（Skeleton）**
+
 ```tsx
 <Skeleton className="h-4 w-full" />
 <Skeleton className="h-4 w-3/4" />
 ```
 
 **加载动画（Spinner）**
+
 ```tsx
 <Spinner size="md" />
 ```
@@ -660,21 +698,21 @@ font-family:
 ### 8.2 反馈提示
 
 **Toast通知**
+
 ```tsx
-toast.success("项目创建成功")
-toast.error("操作失败，请重试")
-toast.info("正在处理...")
+toast.success('项目创建成功')
+toast.error('操作失败，请重试')
+toast.info('正在处理...')
 ```
 
 **确认对话框**
+
 ```tsx
 <AlertDialog>
   <AlertDialogTrigger>删除项目</AlertDialogTrigger>
   <AlertDialogContent>
     <AlertDialogTitle>确认删除？</AlertDialogTitle>
-    <AlertDialogDescription>
-      此操作不可撤销
-    </AlertDialogDescription>
+    <AlertDialogDescription>此操作不可撤销</AlertDialogDescription>
     <AlertDialogActions>
       <AlertDialogCancel>取消</AlertDialogCancel>
       <AlertDialogAction>确认</AlertDialogAction>
@@ -686,16 +724,19 @@ toast.info("正在处理...")
 ### 8.3 动画效果
 
 **过渡动画**
+
 ```css
 transition: all 200ms ease-in-out;
 ```
 
 **Hover效果**
+
 - 按钮：轻微变暗 + 阴影提升
 - 卡片：阴影加深 + 轻微上移
 - 链接：颜色变化
 
 **页面切换**
+
 - 淡入淡出（Fade）
 - 滑动（Slide）
 
@@ -713,17 +754,16 @@ transition: all 200ms ease-in-out;
 
 ```html
 <nav aria-label="主导航">
-<button aria-label="关闭对话框">
-<img alt="项目图标" src="..." />
+  <button aria-label="关闭对话框">
+    <img alt="项目图标" src="..." />
+  </button>
+</nav>
 ```
 
 ### 9.3 ARIA属性
 
 ```tsx
-<button
-  aria-expanded={isOpen}
-  aria-controls="menu-content"
->
+<button aria-expanded={isOpen} aria-controls="menu-content">
   菜单
 </button>
 ```
@@ -741,18 +781,11 @@ transition: all 200ms ease-in-out;
 使用Lucide React图标库：
 
 ```tsx
-import {
-  Home,
-  Folder,
-  File,
-  Settings,
-  User,
-  GitBranch,
-  GitCommit
-} from 'lucide-react'
+import { Home, Folder, File, Settings, User, GitBranch, GitCommit } from 'lucide-react'
 ```
 
 **常用图标：**
+
 - 主页：Home
 - 项目：Folder
 - 文件：File / FileCode
@@ -771,143 +804,158 @@ import {
 
 ### 11.1 UI基础组件（Shadcn/ui） ✅
 
-| 组件 | 文件 | 说明 |
-|------|------|------|
-| Button | `ui/button.tsx` | 按钮（多变体、多尺寸） |
-| Input | `ui/input.tsx` | 输入框 |
-| Textarea | `ui/textarea.tsx` | 多行文本输入 |
-| Select | `ui/select.tsx` | 下拉选择 |
-| Label | `ui/label.tsx` | 表单标签 |
-| Form | `ui/form.tsx` | 表单封装（react-hook-form） |
-| Card | `ui/card.tsx` | 卡片容器 |
-| Dialog | `ui/dialog.tsx` | 对话框/模态框 |
-| Alert | `ui/alert.tsx` | 警告提示 |
-| Badge | `ui/badge.tsx` | 标签徽章 |
-| Table | `ui/table.tsx` | 表格 |
-| Tabs | `ui/tabs.tsx` | 标签页 |
-| Separator | `ui/separator.tsx` | 分隔线 |
-| Avatar | `ui/avatar.tsx` | 用户头像 |
-| AvatarUpload | `ui/avatar-upload.tsx` | 头像上传组件 |
+| 组件         | 文件                   | 说明                        |
+| ------------ | ---------------------- | --------------------------- |
+| Button       | `ui/button.tsx`        | 按钮（多变体、多尺寸）      |
+| Input        | `ui/input.tsx`         | 输入框                      |
+| Textarea     | `ui/textarea.tsx`      | 多行文本输入                |
+| Select       | `ui/select.tsx`        | 下拉选择                    |
+| Label        | `ui/label.tsx`         | 表单标签                    |
+| Form         | `ui/form.tsx`          | 表单封装（react-hook-form） |
+| Card         | `ui/card.tsx`          | 卡片容器                    |
+| Dialog       | `ui/dialog.tsx`        | 对话框/模态框               |
+| Alert        | `ui/alert.tsx`         | 警告提示                    |
+| Badge        | `ui/badge.tsx`         | 标签徽章                    |
+| Table        | `ui/table.tsx`         | 表格                        |
+| Tabs         | `ui/tabs.tsx`          | 标签页                      |
+| Separator    | `ui/separator.tsx`     | 分隔线                      |
+| Avatar       | `ui/avatar.tsx`        | 用户头像                    |
+| AvatarUpload | `ui/avatar-upload.tsx` | 头像上传组件                |
 
 ### 11.2 业务功能组件 ✅
 
 #### 认证相关
-| 组件 | 文件 | 说明 |
-|------|------|------|
+
+| 组件                      | 文件                                 | 说明           |
+| ------------------------- | ------------------------------------ | -------------- |
 | PasswordStrengthIndicator | `auth/PasswordStrengthIndicator.tsx` | 密码强度指示器 |
 
 #### 文件管理
-| 组件 | 文件 | 说明 |
-|------|------|------|
-| FileList | `files/file-list.tsx` | 文件列表展示 |
-| FileUpload | `files/file-upload.tsx` | 文件上传组件 |
+
+| 组件               | 文件                             | 说明             |
+| ------------------ | -------------------------------- | ---------------- |
+| FileList           | `files/file-list.tsx`            | 文件列表展示     |
+| FileUpload         | `files/file-upload.tsx`          | 文件上传组件     |
 | CreateFolderDialog | `files/create-folder-dialog.tsx` | 创建文件夹对话框 |
 
 #### Git相关
-| 组件 | 文件 | 说明 |
-|------|------|------|
-| BranchSelector | `git/branch-selector.tsx` | 分支选择器 |
+
+| 组件               | 文件                           | 说明           |
+| ------------------ | ------------------------------ | -------------- |
+| BranchSelector     | `git/branch-selector.tsx`      | 分支选择器     |
 | CreateBranchDialog | `git/create-branch-dialog.tsx` | 创建分支对话框 |
 
 #### 项目管理
-| 组件 | 文件 | 说明 |
-|------|------|------|
+
+| 组件                | 文件                                 | 说明           |
+| ------------------- | ------------------------------------ | -------------- |
 | CreateProjectDialog | `projects/create-project-dialog.tsx` | 创建项目对话框 |
-| ProjectMembersPanel | `projects/project-members-panel.tsx` | 项目成员面板 |
-| InviteMemberDialog | `projects/invite-member-dialog.tsx` | 邀请成员对话框 |
-| AddMemberDialog | `projects/add-member-dialog.tsx` | 添加成员对话框 |
+| ProjectMembersPanel | `projects/project-members-panel.tsx` | 项目成员面板   |
+| InviteMemberDialog  | `projects/invite-member-dialog.tsx`  | 邀请成员对话框 |
+| AddMemberDialog     | `projects/add-member-dialog.tsx`     | 添加成员对话框 |
 
 #### 组织管理
-| 组件 | 文件 | 说明 |
-|------|------|------|
-| CreateOrganizationDialog | `organizations/create-organization-dialog.tsx` | 创建组织对话框 |
-| AddOrganizationMemberDialog | `organizations/add-organization-member-dialog.tsx` | 添加组织成员 |
-| MembersTab | `organizations/members-tab.tsx` | 成员列表标签页 |
-| TeamsTab | `organizations/teams-tab.tsx` | 团队列表标签页 |
-| SettingsTab | `organizations/settings-tab.tsx` | 设置标签页 |
+
+| 组件                        | 文件                                               | 说明           |
+| --------------------------- | -------------------------------------------------- | -------------- |
+| CreateOrganizationDialog    | `organizations/create-organization-dialog.tsx`     | 创建组织对话框 |
+| AddOrganizationMemberDialog | `organizations/add-organization-member-dialog.tsx` | 添加组织成员   |
+| MembersTab                  | `organizations/members-tab.tsx`                    | 成员列表标签页 |
+| TeamsTab                    | `organizations/teams-tab.tsx`                      | 团队列表标签页 |
+| SettingsTab                 | `organizations/settings-tab.tsx`                   | 设置标签页     |
 
 #### 团队管理
-| 组件 | 文件 | 说明 |
-|------|------|------|
+
+| 组件             | 文件                           | 说明           |
+| ---------------- | ------------------------------ | -------------- |
 | CreateTeamDialog | `teams/create-team-dialog.tsx` | 创建团队对话框 |
-| OverviewTab | `teams/overview-tab.tsx` | 团队概览标签页 |
-| MembersTab | `teams/members-tab.tsx` | 团队成员标签页 |
-| PermissionsTab | `teams/permissions-tab.tsx` | 项目权限标签页 |
-| SettingsTab | `teams/settings-tab.tsx` | 团队设置标签页 |
+| OverviewTab      | `teams/overview-tab.tsx`       | 团队概览标签页 |
+| MembersTab       | `teams/members-tab.tsx`        | 团队成员标签页 |
+| PermissionsTab   | `teams/permissions-tab.tsx`    | 项目权限标签页 |
+| SettingsTab      | `teams/settings-tab.tsx`       | 团队设置标签页 |
 
 #### Issue追踪
-| 组件 | 文件 | 说明 |
-|------|------|------|
-| LabelSelector | `labels/LabelSelector.tsx` | 标签选择器 |
-| LabelDialog | `labels/LabelDialog.tsx` | 标签编辑对话框 |
-| ColorPicker | `labels/ColorPicker.tsx` | 颜色选择器 |
-| MilestoneSelector | `milestones/MilestoneSelector.tsx` | 里程碑选择器 |
-| MilestoneDialog | `milestones/MilestoneDialog.tsx` | 里程碑编辑对话框 |
-| AssigneesSelector | `assignees/AssigneesSelector.tsx` | 被分配人选择器 |
-| CommentForm | `comments/CommentForm.tsx` | 评论表单 |
-| CommentsList | `comments/CommentsList.tsx` | 评论列表 |
+
+| 组件              | 文件                               | 说明             |
+| ----------------- | ---------------------------------- | ---------------- |
+| LabelSelector     | `labels/LabelSelector.tsx`         | 标签选择器       |
+| LabelDialog       | `labels/LabelDialog.tsx`           | 标签编辑对话框   |
+| ColorPicker       | `labels/ColorPicker.tsx`           | 颜色选择器       |
+| MilestoneSelector | `milestones/MilestoneSelector.tsx` | 里程碑选择器     |
+| MilestoneDialog   | `milestones/MilestoneDialog.tsx`   | 里程碑编辑对话框 |
+| AssigneesSelector | `assignees/AssigneesSelector.tsx`  | 被分配人选择器   |
+| CommentForm       | `comments/CommentForm.tsx`         | 评论表单         |
+| CommentsList      | `comments/CommentsList.tsx`        | 评论列表         |
 
 #### Markdown
-| 组件 | 文件 | 说明 |
-|------|------|------|
-| MarkdownEditor | `markdown/MarkdownEditor.tsx` | Markdown编辑器 |
-| MarkdownPreview | `markdown/MarkdownPreview.tsx` | Markdown预览 |
+
+| 组件            | 文件                           | 说明           |
+| --------------- | ------------------------------ | -------------- |
+| MarkdownEditor  | `markdown/MarkdownEditor.tsx`  | Markdown编辑器 |
+| MarkdownPreview | `markdown/MarkdownPreview.tsx` | Markdown预览   |
 
 #### Pull Request
-| 组件 | 文件 | 说明 |
-|------|------|------|
+
+| 组件              | 文件                                    | 说明         |
+| ----------------- | --------------------------------------- | ------------ |
 | ReviewSummaryCard | `pull-requests/review-summary-card.tsx` | 审查摘要卡片 |
-| DiffFileView | `pull-requests/diff-file-view.tsx` | 代码差异视图 |
+| DiffFileView      | `pull-requests/diff-file-view.tsx`      | 代码差异视图 |
 
 #### 搜索
-| 组件 | 文件 | 说明 |
-|------|------|------|
-| SearchBar | `search/SearchBar.tsx` | 搜索输入框 |
+
+| 组件             | 文件                          | 说明       |
+| ---------------- | ----------------------------- | ---------- |
+| SearchBar        | `search/SearchBar.tsx`        | 搜索输入框 |
 | SearchResultItem | `search/SearchResultItem.tsx` | 搜索结果项 |
-| SearchFilters | `search/SearchFilters.tsx` | 搜索过滤器 |
+| SearchFilters    | `search/SearchFilters.tsx`    | 搜索过滤器 |
 
 #### 通知
-| 组件 | 文件 | 说明 |
-|------|------|------|
+
+| 组件             | 文件                                 | 说明     |
+| ---------------- | ------------------------------------ | -------- |
 | NotificationBell | `notifications/NotificationBell.tsx` | 通知铃铛 |
 
 #### Raft可视化
-| 组件 | 文件 | 说明 |
-|------|------|------|
-| ClusterTopology | `raft/cluster-topology.tsx` | 集群拓扑图 |
-| CommandPanel | `raft/command-panel.tsx` | 命令控制面板 |
+
+| 组件            | 文件                        | 说明         |
+| --------------- | --------------------------- | ------------ |
+| ClusterTopology | `raft/cluster-topology.tsx` | 集群拓扑图   |
+| CommandPanel    | `raft/command-panel.tsx`    | 命令控制面板 |
 
 #### 管理员
-| 组件 | 文件 | 说明 |
-|------|------|------|
+
+| 组件          | 文件                        | 说明           |
+| ------------- | --------------------------- | -------------- |
 | AddUserDialog | `admin/add-user-dialog.tsx` | 添加用户对话框 |
 
 #### 仪表板
-| 组件 | 文件 | 说明 |
-|------|------|------|
+
+| 组件         | 文件                         | 说明         |
+| ------------ | ---------------------------- | ------------ |
 | SystemStatus | `dashboard/SystemStatus.tsx` | 系统状态组件 |
 
 #### 通用组件
-| 组件 | 文件 | 说明 |
-|------|------|------|
-| LoadingSkeleton | `common/loading-skeleton.tsx` | 加载骨架屏 |
-| DataTable | `common/data-table.tsx` | 数据表格（含排序、分页） |
-| ThemeToggle | `theme/theme-toggle.tsx` | 主题切换 |
-| LanguageToggle | `language/language-toggle.tsx` | 语言切换 |
+
+| 组件            | 文件                           | 说明                     |
+| --------------- | ------------------------------ | ------------------------ |
+| LoadingSkeleton | `common/loading-skeleton.tsx`  | 加载骨架屏               |
+| DataTable       | `common/data-table.tsx`        | 数据表格（含排序、分页） |
+| ThemeToggle     | `theme/theme-toggle.tsx`       | 主题切换                 |
+| LanguageToggle  | `language/language-toggle.tsx` | 语言切换                 |
 
 ---
 
 ## 12. 实现技术栈
 
-| 技术 | 用途 |
-|------|------|
-| **Tailwind CSS 4.0** | 原子化CSS |
-| **Shadcn/ui** | 组件库基础 |
-| **Radix UI** | 无障碍组件原语 |
-| **Framer Motion** | 动画库（可选）|
-| **Monaco Editor** | 代码编辑器 |
-| **Lucide React** | 图标库 |
-| **React Syntax Highlighter** | 代码高亮 |
+| 技术                         | 用途           |
+| ---------------------------- | -------------- |
+| **Tailwind CSS 4.0**         | 原子化CSS      |
+| **Shadcn/ui**                | 组件库基础     |
+| **Radix UI**                 | 无障碍组件原语 |
+| **Framer Motion**            | 动画库（可选） |
+| **Monaco Editor**            | 代码编辑器     |
+| **Lucide React**             | 图标库         |
+| **React Syntax Highlighter** | 代码高亮       |
 
 ---
 
@@ -928,13 +976,12 @@ import {
 
 ## 14. 版本历史
 
-| 版本 | 日期 | 变更内容 | 作者 |
-|------|------|----------|------|
-| v1.0 | 2025-10-10 | 初始版本，基础UI规范定义 | JIA |
-| v2.0 | 2025-12-22 | 根据实现状态全面更新：<br>- 新增25+页面设计详细规格<br>- 新增50+组件库清单<br>- 标注所有页面实现状态<br>- 更新设计规范检查清单 | JIA |
+| 版本 | 日期       | 变更内容                                                                                                                       | 作者 |
+| ---- | ---------- | ------------------------------------------------------------------------------------------------------------------------------ | ---- |
+| v1.0 | 2025-10-10 | 初始版本，基础UI规范定义                                                                                                       | JIA  |
+| v2.0 | 2025-12-22 | 根据实现状态全面更新：<br>- 新增25+页面设计详细规格<br>- 新增50+组件库清单<br>- 标注所有页面实现状态<br>- 更新设计规范检查清单 | JIA  |
 
 ---
 
 **文档作者：** JIA
 **最后更新：** 2025-12-22
-

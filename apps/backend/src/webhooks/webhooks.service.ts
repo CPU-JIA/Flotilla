@@ -7,6 +7,30 @@ import * as crypto from 'crypto';
 import axios, { AxiosError } from 'axios';
 
 /**
+ * 可序列化值类型定义
+ * ECP-C1: 类型安全 - 确保 Webhook Payload 只包含可序列化的值
+ */
+type SerializableValue =
+  | string
+  | number
+  | boolean
+  | null
+  | SerializableArray
+  | SerializableObject;
+
+interface SerializableObject {
+  [key: string]: SerializableValue;
+}
+
+interface SerializableArray extends Array<SerializableValue> {}
+
+/**
+ * Webhook Payload 类型
+ * ECP-C1: 类型安全 - 使用可序列化类型替代 any
+ */
+export type WebhookPayload = SerializableObject;
+
+/**
  * Webhook Service
  * ECP-A1: SOLID - 单一职责，专注 Webhook 管理和投递
  * ECP-C1: Defensive Programming - 验证输入，处理错误
@@ -106,7 +130,7 @@ export class WebhookService {
   async triggerWebhook(
     projectId: string,
     event: string,
-    payload: Record<string, any>,
+    payload: WebhookPayload,
   ): Promise<void> {
     // 查找订阅了该事件的激活 Webhooks
     const webhooks = await this.prisma.webhook.findMany({
@@ -152,7 +176,7 @@ export class WebhookService {
   async deliverWebhook(
     webhook: Webhook,
     event: string,
-    payload: Record<string, any>,
+    payload: WebhookPayload,
   ): Promise<WebhookDelivery> {
     const startTime = Date.now();
 
@@ -241,7 +265,7 @@ export class WebhookService {
     return this.deliverWebhook(
       delivery.webhook,
       delivery.event,
-      delivery.payload as Record<string, any>,
+      delivery.payload as WebhookPayload,
     );
   }
 

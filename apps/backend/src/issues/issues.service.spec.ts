@@ -11,7 +11,6 @@ describe('IssuesService', () => {
 
   const mockPrisma = {
     issue: {
-      findFirst: jest.fn(),
       create: jest.fn(),
       findMany: jest.fn(),
       findUnique: jest.fn(),
@@ -25,6 +24,7 @@ describe('IssuesService', () => {
     projectMember: {
       findFirst: jest.fn(),
     },
+    $queryRaw: jest.fn(),
   };
 
   const mockNotificationsService = {
@@ -76,8 +76,7 @@ describe('IssuesService', () => {
         title: 'Test Issue',
         body: 'Test description',
       };
-
-      mockPrisma.issue.findFirst.mockResolvedValue(null); // No previous issues
+      mockPrisma.$queryRaw.mockResolvedValue([{ nextissuenumber: 1 }]);
       mockPrisma.issue.create.mockResolvedValue({
         id: 'issue-1',
         projectId,
@@ -97,17 +96,13 @@ describe('IssuesService', () => {
       const result = await service.create(projectId, authorId, createDto);
 
       expect(result.number).toBe(1);
-      expect(mockPrisma.issue.findFirst).toHaveBeenCalledWith({
-        where: { projectId },
-        orderBy: { number: 'desc' },
-      });
     });
 
     it('should increment issue number within the same project', async () => {
       const projectId = 'project-1';
       const authorId = 'user-1';
 
-      mockPrisma.issue.findFirst.mockResolvedValue({ number: 5 }); // Last issue was #5
+      mockPrisma.$queryRaw.mockResolvedValue([{ nextissuenumber: 6 }]);
       mockPrisma.issue.create.mockResolvedValue({
         id: 'issue-6',
         projectId,
@@ -138,8 +133,7 @@ describe('IssuesService', () => {
         assigneeIds: ['user-2', 'user-3'],
         labelIds: ['label-1', 'label-2'],
       };
-
-      mockPrisma.issue.findFirst.mockResolvedValue(null);
+      mockPrisma.$queryRaw.mockResolvedValue([{ nextissuenumber: 1 }]);
       mockPrisma.issue.create.mockResolvedValue({
         id: 'issue-1',
         projectId,

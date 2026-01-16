@@ -36,9 +36,7 @@ export function getAllPostSlugs(): string[] {
     return []
   }
   const files = fs.readdirSync(POSTS_PATH)
-  return files
-    .filter((file) => file.endsWith('.mdx'))
-    .map((file) => file.replace(/\.mdx$/, ''))
+  return files.filter((file) => file.endsWith('.mdx')).map((file) => file.replace(/\.mdx$/, ''))
 }
 
 /**
@@ -76,7 +74,7 @@ export function getAllPosts(): BlogPostMeta[] {
   const posts = slugs
     .map((slug) => getPostBySlug(slug))
     .filter((post): post is BlogPost => post !== null)
-    .sort((a, b) => (new Date(b.date).getTime() - new Date(a.date).getTime()))
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   // Return only metadata (without content)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

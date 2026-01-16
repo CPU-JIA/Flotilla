@@ -72,14 +72,18 @@ test.describe('Issue Comments', () => {
     issueNumber = parseInt(match![1])
 
     // Verify we're on the issue detail page
-    await expect(page.getByRole('heading').filter({ hasText: /Test Issue for Comments/ })).toBeVisible({
+    await expect(
+      page.getByRole('heading').filter({ hasText: /Test Issue for Comments/ })
+    ).toBeVisible({
       timeout: 5000,
     })
   })
 
   test('should create a comment and display it in timeline', async ({ page }) => {
     // Verify "Add a comment" section exists
-    await expect(page.getByRole('heading', { name: /Add a comment/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { name: /Add a comment/i })).toBeVisible({
+      timeout: 5000,
+    })
 
     // Fill comment form - locate textarea by role
     const commentText = 'This is my first comment on this issue'
@@ -93,7 +97,9 @@ test.describe('Issue Comments', () => {
     await expect(page.locator('text=' + commentText)).toBeVisible({ timeout: 3000 })
 
     // Verify comment count updated (Comments (1))
-    await expect(page.getByRole('heading', { name: /Comments.*\(1\)/i })).toBeVisible({ timeout: 3000 })
+    await expect(page.getByRole('heading', { name: /Comments.*\(1\)/i })).toBeVisible({
+      timeout: 3000,
+    })
   })
 
   test('should edit an existing comment', async ({ page }) => {
@@ -104,7 +110,10 @@ test.describe('Issue Comments', () => {
     await expect(page.locator('text=' + initialText)).toBeVisible({ timeout: 5000 })
 
     // Click Edit button (Edit icon button)
-    await page.getByRole('button', { name: /Edit|编辑/i }).first().click()
+    await page
+      .getByRole('button', { name: /Edit|编辑/i })
+      .first()
+      .click()
 
     // Verify edit mode - Cancel button should appear
     await page.getByRole('button', { name: /Cancel|取消/i }).waitFor({ timeout: 3000 })
@@ -143,7 +152,10 @@ test.describe('Issue Comments', () => {
     })
 
     // Click Delete button (Trash icon button)
-    await page.getByRole('button', { name: /Delete|删除/i }).first().click()
+    await page
+      .getByRole('button', { name: /Delete|删除/i })
+      .first()
+      .click()
 
     // Wait for comment to be removed from DOM
     await page.waitForTimeout(2000)
@@ -188,13 +200,17 @@ And an inline code: \`const x = 42\`
 
     // Verify Markdown rendered as HTML
     // Bold text
-    await expect(page.locator('strong').filter({ hasText: 'bold text' })).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('strong').filter({ hasText: 'bold text' })).toBeVisible({
+      timeout: 5000,
+    })
 
     // Italic text
     await expect(page.locator('em, i').filter({ hasText: 'italic text' })).toBeVisible()
 
     // Code block
-    await expect(page.locator('pre code, code[class*="language-"]').filter({ hasText: /hello/ })).toBeVisible()
+    await expect(
+      page.locator('pre code, code[class*="language-"]').filter({ hasText: /hello/ })
+    ).toBeVisible()
 
     // Inline code
     await expect(page.locator('code').filter({ hasText: 'const x = 42' })).toBeVisible()
@@ -203,7 +219,9 @@ And an inline code: \`const x = 42\`
     await expect(page.locator('ul li, ol li').filter({ hasText: 'List item 1' })).toBeVisible()
 
     // Link
-    await expect(page.locator('a[href="https://example.com"]').filter({ hasText: 'Link to example' })).toBeVisible()
+    await expect(
+      page.locator('a[href="https://example.com"]').filter({ hasText: 'Link to example' })
+    ).toBeVisible()
 
     // Headings - use .first() to avoid strict mode violation
     await expect(page.locator('h1, h2, h3').filter({ hasText: 'Heading' }).first()).toBeVisible()
@@ -211,11 +229,7 @@ And an inline code: \`const x = 42\`
 
   test('should display comments in chronological order', async ({ page }) => {
     // Create multiple comments with delays to ensure different timestamps
-    const comments = [
-      'First comment',
-      'Second comment',
-      'Third comment',
-    ]
+    const comments = ['First comment', 'Second comment', 'Third comment']
 
     for (const comment of comments) {
       await page.getByRole('textbox', { name: /留下评论|Leave a comment/i }).fill(comment)
@@ -230,23 +244,32 @@ And an inline code: \`const x = 42\`
     const commentContainers = page.locator('.border.rounded-lg.p-4') // CommentsList uses this class
 
     // Verify order: First comment should appear before Second, Second before Third
-    const firstCommentIndex = await commentContainers.locator('text=First comment').first().evaluate((el) => {
-      const parent = el.closest('.border.rounded-lg.p-4')
-      const allComments = Array.from(document.querySelectorAll('.border.rounded-lg.p-4'))
-      return parent ? allComments.indexOf(parent) : -1
-    })
+    const firstCommentIndex = await commentContainers
+      .locator('text=First comment')
+      .first()
+      .evaluate((el) => {
+        const parent = el.closest('.border.rounded-lg.p-4')
+        const allComments = Array.from(document.querySelectorAll('.border.rounded-lg.p-4'))
+        return parent ? allComments.indexOf(parent) : -1
+      })
 
-    const secondCommentIndex = await commentContainers.locator('text=Second comment').first().evaluate((el) => {
-      const parent = el.closest('.border.rounded-lg.p-4')
-      const allComments = Array.from(document.querySelectorAll('.border.rounded-lg.p-4'))
-      return parent ? allComments.indexOf(parent) : -1
-    })
+    const secondCommentIndex = await commentContainers
+      .locator('text=Second comment')
+      .first()
+      .evaluate((el) => {
+        const parent = el.closest('.border.rounded-lg.p-4')
+        const allComments = Array.from(document.querySelectorAll('.border.rounded-lg.p-4'))
+        return parent ? allComments.indexOf(parent) : -1
+      })
 
-    const thirdCommentIndex = await commentContainers.locator('text=Third comment').first().evaluate((el) => {
-      const parent = el.closest('.border.rounded-lg.p-4')
-      const allComments = Array.from(document.querySelectorAll('.border.rounded-lg.p-4'))
-      return parent ? allComments.indexOf(parent) : -1
-    })
+    const thirdCommentIndex = await commentContainers
+      .locator('text=Third comment')
+      .first()
+      .evaluate((el) => {
+        const parent = el.closest('.border.rounded-lg.p-4')
+        const allComments = Array.from(document.querySelectorAll('.border.rounded-lg.p-4'))
+        return parent ? allComments.indexOf(parent) : -1
+      })
 
     // Assert chronological order
     expect(firstCommentIndex).toBeLessThan(secondCommentIndex)

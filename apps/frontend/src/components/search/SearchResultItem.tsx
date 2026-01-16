@@ -95,9 +95,7 @@ export function SearchResultItem({ hit, query, onClick }: SearchResultItemProps)
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <File className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                <h3 className="font-medium truncate">
-                  {highlightText(fileName, query)}
-                </h3>
+                <h3 className="font-medium truncate">{highlightText(fileName, query)}</h3>
               </div>
               <p className="text-sm text-muted-foreground truncate mt-1">
                 {highlightText(filePath, query)}
@@ -115,10 +113,12 @@ export function SearchResultItem({ hit, query, onClick }: SearchResultItemProps)
           {/* Code Preview */}
           {previewLines && (
             <div className="relative">
-              <pre className={cn(
-                "text-xs bg-muted/50 rounded-md p-3 overflow-x-auto",
-                "border border-border/50"
-              )}>
+              <pre
+                className={cn(
+                  'text-xs bg-muted/50 rounded-md p-3 overflow-x-auto',
+                  'border border-border/50'
+                )}
+              >
                 <code className="language-{hit.language}">
                   {highlightText(previewLines, query)}
                   {hasMore && <span className="text-muted-foreground">...</span>}
@@ -162,9 +162,7 @@ export function SearchResultItem({ hit, query, onClick }: SearchResultItemProps)
 
           {/* Commit Message (if any) */}
           {hit.commitMessage && (
-            <p className="text-xs text-muted-foreground italic line-clamp-1">
-              {hit.commitMessage}
-            </p>
+            <p className="text-xs text-muted-foreground italic line-clamp-1">{hit.commitMessage}</p>
           )}
         </Link>
       </CardContent>

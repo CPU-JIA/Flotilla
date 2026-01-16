@@ -10,6 +10,7 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -102,7 +103,7 @@ export default function PipelineDetailPage() {
       setPipeline(pipelineData)
       setRuns(runsData.data || [])
     } catch (err) {
-      console.error('Failed to load pipeline:', err)
+      logger.error('Failed to load pipeline:', err)
       setError(err instanceof Error ? err.message : 'Failed to load pipeline')
     } finally {
       setLoading(false)
@@ -121,7 +122,7 @@ export default function PipelineDetailPage() {
       // Reload to show new run
       await loadPipeline()
     } catch (err) {
-      console.error('Failed to trigger pipeline:', err)
+      logger.error('Failed to trigger pipeline:', err)
       alert('Failed to trigger pipeline run')
     } finally {
       setTriggeringRun(false)
@@ -142,7 +143,7 @@ export default function PipelineDetailPage() {
       await api.pipelines.delete(pipelineId)
       router.push(`/projects/${projectId}/pipelines`)
     } catch (err) {
-      console.error('Failed to delete pipeline:', err)
+      logger.error('Failed to delete pipeline:', err)
       alert('Failed to delete pipeline')
     }
   }
@@ -205,16 +206,11 @@ export default function PipelineDetailPage() {
                 {pipeline.active ? 'Active' : 'Inactive'}
               </Badge>
             </div>
-            <p className="text-muted-foreground">
-              Triggers: {pipeline.triggers.join(', ')}
-            </p>
+            <p className="text-muted-foreground">Triggers: {pipeline.triggers.join(', ')}</p>
           </div>
 
           <div className="flex gap-2">
-            <Button
-              onClick={handleTriggerRun}
-              disabled={!pipeline.active || triggeringRun}
-            >
+            <Button onClick={handleTriggerRun} disabled={!pipeline.active || triggeringRun}>
               {triggeringRun ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
@@ -283,10 +279,7 @@ export default function PipelineDetailPage() {
               const StatusIcon = statusConfig.icon
 
               return (
-                <Link
-                  key={run.id}
-                  href={`/projects/${projectId}/pipelines/runs/${run.id}`}
-                >
+                <Link key={run.id} href={`/projects/${projectId}/pipelines/runs/${run.id}`}>
                   <Card className="p-4 hover:bg-muted/30 transition-colors cursor-pointer">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -296,9 +289,7 @@ export default function PipelineDetailPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="font-medium">Run #{run.id.slice(-8)}</span>
-                            <Badge className={statusConfig.className}>
-                              {statusConfig.label}
-                            </Badge>
+                            <Badge className={statusConfig.className}>{statusConfig.label}</Badge>
                           </div>
                           <div className="text-sm text-muted-foreground mt-1">
                             Triggered by {run.triggeredBy.username}

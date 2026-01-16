@@ -16,9 +16,7 @@ export default function LicensePage() {
             <FileText className="h-4 w-4" />
             <span>MIT License</span>
           </div>
-          <h1 className="text-5xl sm:text-6xl font-bold mb-6">
-            Open Source License
-          </h1>
+          <h1 className="text-5xl sm:text-6xl font-bold mb-6">Open Source License</h1>
           <p className="text-xl text-foreground/60 max-w-2xl mx-auto">
             Flotilla is 100% open source under the MIT License. Free to use, modify, and distribute.
           </p>
@@ -33,17 +31,15 @@ export default function LicensePage() {
               <h2 className="text-3xl font-bold mb-6">MIT License</h2>
 
               <div className="prose prose-invert max-w-none">
-                <p className="text-foreground/70 mb-6">
-                  Copyright (c) 2025 JIA
-                </p>
+                <p className="text-foreground/70 mb-6">Copyright (c) 2025 JIA</p>
 
                 <p className="text-foreground/70 leading-relaxed mb-6">
-                  Permission is hereby granted, free of charge, to any person obtaining a copy
-                  of this software and associated documentation files (the &quot;Software&quot;), to deal
-                  in the Software without restriction, including without limitation the rights
-                  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-                  copies of the Software, and to permit persons to whom the Software is
-                  furnished to do so, subject to the following conditions:
+                  Permission is hereby granted, free of charge, to any person obtaining a copy of
+                  this software and associated documentation files (the &quot;Software&quot;), to
+                  deal in the Software without restriction, including without limitation the rights
+                  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+                  of the Software, and to permit persons to whom the Software is furnished to do so,
+                  subject to the following conditions:
                 </p>
 
                 <p className="text-foreground/70 leading-relaxed mb-6">
@@ -52,13 +48,12 @@ export default function LicensePage() {
                 </p>
 
                 <p className="text-foreground/70 leading-relaxed mb-6">
-                  THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-                  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+                  THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+                  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
                   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-                  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-                  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-                  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-                  SOFTWARE.
+                  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+                  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+                  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                 </p>
               </div>
             </div>
@@ -123,27 +118,27 @@ export default function LicensePage() {
               <div className="p-6 rounded-xl bg-card border border-border/40">
                 <h4 className="font-semibold mb-3 text-lg">Maximum Freedom</h4>
                 <p className="text-foreground/70 leading-relaxed">
-                  The MIT License is one of the most permissive open source licenses. It allows you to do
-                  almost anything with the code, including using it in proprietary software, as long as you
-                  include the original copyright notice.
+                  The MIT License is one of the most permissive open source licenses. It allows you
+                  to do almost anything with the code, including using it in proprietary software,
+                  as long as you include the original copyright notice.
                 </p>
               </div>
 
               <div className="p-6 rounded-xl bg-card border border-border/40">
                 <h4 className="font-semibold mb-3 text-lg">No Vendor Lock-in</h4>
                 <p className="text-foreground/70 leading-relaxed">
-                  We do not believe in open-core bait-and-switch tactics. Every feature of Flotilla is and
-                  will remain open source under MIT. You can fork, modify, and self-host without any
-                  restrictions or concerns about future license changes.
+                  We do not believe in open-core bait-and-switch tactics. Every feature of Flotilla
+                  is and will remain open source under MIT. You can fork, modify, and self-host
+                  without any restrictions or concerns about future license changes.
                 </p>
               </div>
 
               <div className="p-6 rounded-xl bg-card border border-border/40">
                 <h4 className="font-semibold mb-3 text-lg">Community-Driven</h4>
                 <p className="text-foreground/70 leading-relaxed">
-                  True open source means transparent development and community collaboration. The MIT License
-                  encourages contributions by removing legal barriers and uncertainty about how the code can
-                  be used.
+                  True open source means transparent development and community collaboration. The
+                  MIT License encourages contributions by removing legal barriers and uncertainty
+                  about how the code can be used.
                 </p>
               </div>
             </div>

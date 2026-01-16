@@ -49,7 +49,7 @@ export default function PullRequestsPage() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        },
+        }
       )
 
       if (response.ok) {
@@ -97,9 +97,7 @@ export default function PullRequestsPage() {
     <div className="container mx-auto py-8 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">{t.pullRequests.title}</h1>
-        <Button
-          onClick={() => router.push(`/projects/${projectId}/pulls/new`)}
-        >
+        <Button onClick={() => router.push(`/projects/${projectId}/pulls/new`)}>
           {t.pullRequests.createNew}
         </Button>
       </div>
@@ -112,9 +110,7 @@ export default function PullRequestsPage() {
 
       {pullRequests.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">
-            {t.pullRequests.list.noPullRequestsDesc}
-          </p>
+          <p className="text-muted-foreground">{t.pullRequests.list.noPullRequestsDesc}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -122,9 +118,7 @@ export default function PullRequestsPage() {
             <div
               key={pr.id}
               className="border rounded-lg p-4 hover:bg-accent/50 cursor-pointer transition-colors"
-              onClick={() =>
-                router.push(`/projects/${projectId}/pulls/${pr.number}`)
-              }
+              onClick={() => router.push(`/projects/${projectId}/pulls/${pr.number}`)}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -137,10 +131,7 @@ export default function PullRequestsPage() {
                     {pr.sourceBranch} → {pr.targetBranch} •{' '}
                     {t.pullRequests.detail.openedBy
                       .replace('{author}', pr.author.username)
-                      .replace(
-                        '{date}',
-                        new Date(pr.createdAt).toLocaleDateString(),
-                      )}
+                      .replace('{date}', new Date(pr.createdAt).toLocaleDateString())}
                   </div>
                 </div>
               </div>

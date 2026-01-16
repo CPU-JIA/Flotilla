@@ -6,6 +6,7 @@
  * ECP-C3: 性能意识 - 按需加载文件内容
  */
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -97,7 +98,7 @@ export default function EditorPage() {
           setFileContent(response.content)
           setAutoOpenFileId(null) // 只自动打开一次
         } catch (err) {
-          console.error('Failed to auto-open file:', err)
+          logger.error('Failed to auto-open file:', err)
           setAutoOpenFileId(null)
         }
       }
@@ -365,7 +366,7 @@ export default function EditorPage() {
                 language={detectLanguage(currentFile.name)}
                 onSave={() => {
                   // 保存成功后的回调（可选）
-                  console.log('File saved:', currentFile.name)
+                  logger.log('File saved:', currentFile.name)
                 }}
               />
             </Suspense>

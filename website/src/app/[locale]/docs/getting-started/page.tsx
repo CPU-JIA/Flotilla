@@ -4,7 +4,8 @@ import Link from 'next/link'
 
 export const metadata = {
   title: 'Getting Started - Flotilla Documentation',
-  description: 'Get started with Flotilla in 10 minutes. Learn how to set up your local development environment.',
+  description:
+    'Get started with Flotilla in 10 minutes. Learn how to set up your local development environment.',
 }
 
 export default function GettingStartedPage() {
@@ -55,11 +56,10 @@ NEXT_PUBLIC_API_URL=http://localhost:4000`
           <Rocket className="h-4 w-4" />
           <span>10 Minutes Setup</span>
         </div>
-        <h1 className="text-5xl font-bold mb-4">
-          Getting Started
-        </h1>
+        <h1 className="text-5xl font-bold mb-4">Getting Started</h1>
         <p className="text-xl text-foreground/60 max-w-2xl">
-          Set up Flotilla locally and start building distributed applications with production-ready Raft consensus.
+          Set up Flotilla locally and start building distributed applications with production-ready
+          Raft consensus.
         </p>
       </div>
 
@@ -93,11 +93,7 @@ NEXT_PUBLIC_API_URL=http://localhost:4000`
         <div className="space-y-6">
           <div>
             <h3 className="text-xl font-semibold mb-4">1. Clone and Install</h3>
-            <CodeBlock
-              code={installCommands}
-              language="bash"
-              filename="terminal"
-            />
+            <CodeBlock code={installCommands} language="bash" filename="terminal" />
           </div>
 
           <div className="p-6 rounded-xl bg-accent/10 border border-accent/20">
@@ -107,7 +103,9 @@ NEXT_PUBLIC_API_URL=http://localhost:4000`
             </h4>
             <ul className="space-y-2 text-sm text-foreground/70">
               <li>• Clones the monorepo and installs all dependencies</li>
-              <li>• Starts PostgreSQL (port 5434), Redis (port 6380), and MinIO (ports 9000/9001)</li>
+              <li>
+                • Starts PostgreSQL (port 5434), Redis (port 6380), and MinIO (ports 9000/9001)
+              </li>
               <li>• Runs Prisma migrations to set up the database schema</li>
               <li>• Launches both frontend and backend in watch mode</li>
             </ul>
@@ -122,13 +120,11 @@ NEXT_PUBLIC_API_URL=http://localhost:4000`
           <p className="text-foreground/70">
             Copy the example environment files and configure your local settings:
           </p>
-          <CodeBlock
-            code={envSetup}
-            language="bash"
-            filename=".env files"
-          />
+          <CodeBlock code={envSetup} language="bash" filename=".env files" />
           <div className="p-4 rounded-lg bg-primary/10 border border-primary/20 text-sm">
-            <strong>💡 Pro Tip:</strong> Check <code className="px-2 py-1 rounded bg-secondary">.env.example</code> files in both apps for complete configuration options.
+            <strong>💡 Pro Tip:</strong> Check{' '}
+            <code className="px-2 py-1 rounded bg-secondary">.env.example</code> files in both apps
+            for complete configuration options.
           </div>
         </div>
       </section>
@@ -142,10 +138,26 @@ NEXT_PUBLIC_API_URL=http://localhost:4000`
           </p>
           <div className="grid gap-4">
             {[
-              { name: 'Frontend', url: 'http://localhost:3000', description: 'Main application UI' },
-              { name: 'Backend API', url: 'http://localhost:4000/api', description: 'REST API endpoints' },
-              { name: 'Swagger Docs', url: 'http://localhost:4000/api/docs', description: 'Interactive API documentation' },
-              { name: 'MinIO Console', url: 'http://localhost:9001', description: 'Object storage admin panel' },
+              {
+                name: 'Frontend',
+                url: 'http://localhost:3000',
+                description: 'Main application UI',
+              },
+              {
+                name: 'Backend API',
+                url: 'http://localhost:4000/api',
+                description: 'REST API endpoints',
+              },
+              {
+                name: 'Swagger Docs',
+                url: 'http://localhost:4000/api/docs',
+                description: 'Interactive API documentation',
+              },
+              {
+                name: 'MinIO Console',
+                url: 'http://localhost:9001',
+                description: 'Object storage admin panel',
+              },
             ].map((endpoint) => (
               <a
                 key={endpoint.url}
@@ -158,14 +170,10 @@ NEXT_PUBLIC_API_URL=http://localhost:4000`
                   <div className="font-semibold group-hover:text-primary transition-colors">
                     {endpoint.name}
                   </div>
-                  <div className="text-sm text-foreground/60">
-                    {endpoint.description}
-                  </div>
+                  <div className="text-sm text-foreground/60">{endpoint.description}</div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <code className="text-xs px-2 py-1 rounded bg-secondary">
-                    {endpoint.url}
-                  </code>
+                  <code className="text-xs px-2 py-1 rounded bg-secondary">{endpoint.url}</code>
                   <ArrowRight className="h-4 w-4 text-foreground/40 group-hover:text-primary group-hover:translate-x-1 transition-all" />
                 </div>
               </a>
@@ -215,9 +223,7 @@ NEXT_PUBLIC_API_URL=http://localhost:4000`
                 <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
                   {next.title}
                 </h3>
-                <p className="text-sm text-foreground/70 mb-4">
-                  {next.description}
-                </p>
+                <p className="text-sm text-foreground/70 mb-4">{next.description}</p>
                 <div className="flex items-center gap-2 text-sm font-medium text-primary">
                   Learn more
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -233,11 +239,12 @@ NEXT_PUBLIC_API_URL=http://localhost:4000`
         <h2 className="text-3xl font-bold mb-6">Troubleshooting</h2>
         <div className="space-y-4">
           <details className="p-4 rounded-lg border border-border/40 hover:border-border transition-colors">
-            <summary className="font-semibold cursor-pointer">
-              Port already in use errors
-            </summary>
+            <summary className="font-semibold cursor-pointer">Port already in use errors</summary>
             <div className="mt-3 text-sm text-foreground/70 space-y-2">
-              <p>If you see port conflicts, check if other services are running on the required ports:</p>
+              <p>
+                If you see port conflicts, check if other services are running on the required
+                ports:
+              </p>
               <CodeBlock
                 code={`# Check ports
 lsof -i :3000  # Frontend
@@ -253,9 +260,7 @@ lsof -i :6380  # Redis
           </details>
 
           <details className="p-4 rounded-lg border border-border/40 hover:border-border transition-colors">
-            <summary className="font-semibold cursor-pointer">
-              Database migration errors
-            </summary>
+            <summary className="font-semibold cursor-pointer">Database migration errors</summary>
             <div className="mt-3 text-sm text-foreground/70 space-y-2">
               <p>If migrations fail, reset the database and try again:</p>
               <CodeBlock

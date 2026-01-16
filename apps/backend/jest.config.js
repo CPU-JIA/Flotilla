@@ -37,4 +37,4 @@ module.exports = {
   testTimeout: 10000,
   // 更详细的错误输出
   verbose: true,
-}
+};

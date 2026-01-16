@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
@@ -29,7 +30,7 @@ export default function IssueDetailPage() {
       const data = await api.issues.get(projectId, number)
       setIssue(data)
     } catch (error) {
-      console.error('Failed to load issue:', error)
+      logger.error('Failed to load issue:', error)
     } finally {
       setLoading(false)
     }
@@ -41,7 +42,7 @@ export default function IssueDetailPage() {
       const data = await api.comments.list(projectId, number)
       setComments(data)
     } catch (error) {
-      console.error('Failed to load comments:', error)
+      logger.error('Failed to load comments:', error)
     } finally {
       setCommentsLoading(false)
     }
@@ -74,7 +75,7 @@ export default function IssueDetailPage() {
       await api.issues.close(projectId, number)
       await loadIssue()
     } catch (error) {
-      console.error('Failed to close issue:', error)
+      logger.error('Failed to close issue:', error)
     } finally {
       setActionLoading(false)
     }
@@ -87,7 +88,7 @@ export default function IssueDetailPage() {
       await api.issues.reopen(projectId, number)
       await loadIssue()
     } catch (error) {
-      console.error('Failed to reopen issue:', error)
+      logger.error('Failed to reopen issue:', error)
     } finally {
       setActionLoading(false)
     }
@@ -100,7 +101,7 @@ export default function IssueDetailPage() {
       await api.issues.delete(projectId, number)
       router.push(`/projects/${projectId}/issues`)
     } catch (error) {
-      console.error('Failed to delete issue:', error)
+      logger.error('Failed to delete issue:', error)
       setActionLoading(false)
     }
   }
@@ -169,29 +170,17 @@ export default function IssueDetailPage() {
       {/* Actions */}
       <div className="flex gap-2">
         {issue.state === 'OPEN' ? (
-          <Button
-            onClick={handleClose}
-            disabled={actionLoading}
-            variant="outline"
-          >
+          <Button onClick={handleClose} disabled={actionLoading} variant="outline">
             <Lock className="mr-2 h-4 w-4" />
             Close Issue
           </Button>
         ) : (
-          <Button
-            onClick={handleReopen}
-            disabled={actionLoading}
-            variant="outline"
-          >
+          <Button onClick={handleReopen} disabled={actionLoading} variant="outline">
             <Unlock className="mr-2 h-4 w-4" />
             Reopen Issue
           </Button>
         )}
-        <Button
-          onClick={handleDelete}
-          disabled={actionLoading}
-          variant="destructive"
-        >
+        <Button onClick={handleDelete} disabled={actionLoading} variant="destructive">
           <Trash2 className="mr-2 h-4 w-4" />
           Delete Issue
         </Button>
@@ -239,9 +228,7 @@ export default function IssueDetailPage() {
               </p>
             )}
             {issue.milestone.description && (
-              <p className="text-sm text-muted-foreground mt-1">
-                {issue.milestone.description}
-              </p>
+              <p className="text-sm text-muted-foreground mt-1">{issue.milestone.description}</p>
             )}
           </div>
         )}

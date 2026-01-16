@@ -10,6 +10,7 @@
  * Why: 记录错误到console，生产环境可接入错误监控服务（如Sentry）
  */
 
+import { logger } from '@/lib/logger'
 import React, { Component, ReactNode } from 'react'
 import { ErrorFallback } from './error-fallback'
 
@@ -57,8 +58,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
    */
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // 记录错误到控制台
-    console.error('ErrorBoundary caught an error:', error)
-    console.error('Component stack:', errorInfo.componentStack)
+    logger.error('ErrorBoundary caught an error:', error)
+    logger.error('Component stack:', errorInfo.componentStack)
 
     // 调用用户提供的错误回调
     this.props.onError?.(error, errorInfo)

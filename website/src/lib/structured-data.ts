@@ -93,11 +93,10 @@ export function generateOrganizationSchema(baseUrl: string): OrganizationSchema 
     name: 'Flotilla',
     url: baseUrl,
     logo: `${baseUrl}/images/logo-transparent.png`,
-    description: 'Production-ready distributed code hosting platform with Raft consensus algorithm. 150ms automatic failover. Open source. MIT License.',
+    description:
+      'Production-ready distributed code hosting platform with Raft consensus algorithm. 150ms automatic failover. Open source. MIT License.',
     foundingDate: '2024',
-    sameAs: [
-      'https://github.com/CPU-JIA/Cloud-Dev-Platform',
-    ],
+    sameAs: ['https://github.com/CPU-JIA/Cloud-Dev-Platform'],
     contactPoint: {
       '@type': 'ContactPoint',
       contactType: 'Technical Support',
@@ -115,7 +114,8 @@ export function generateWebSiteSchema(baseUrl: string): WebSiteSchema {
     '@type': 'WebSite',
     name: 'Flotilla',
     url: baseUrl,
-    description: 'Distributed code hosting with Raft consensus. Make distributed teams as reliable as distributed systems.',
+    description:
+      'Distributed code hosting with Raft consensus. Make distributed teams as reliable as distributed systems.',
     potentialAction: {
       '@type': 'SearchAction',
       target: `${baseUrl}/docs?q={search_term_string}`,

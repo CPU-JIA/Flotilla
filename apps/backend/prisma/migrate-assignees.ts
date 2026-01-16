@@ -121,7 +121,9 @@ async function main() {
 
     console.log('\n✅ All migrations completed successfully!');
     console.log('\n📝 Next steps:');
-    console.log('1. Verify data integrity: Check assignees count matches old assigneeIds count');
+    console.log(
+      '1. Verify data integrity: Check assignees count matches old assigneeIds count',
+    );
     console.log('2. Deploy new code with updated API');
     console.log('3. Update frontend to use new assignees structure');
   } catch (error) {

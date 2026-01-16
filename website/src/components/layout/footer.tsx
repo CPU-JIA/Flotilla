@@ -39,13 +39,9 @@ export function Footer() {
                 height={32}
                 className="w-8 h-8"
               />
-              <span className="font-bold text-lg">
-                Flotilla
-              </span>
+              <span className="font-bold text-lg">Flotilla</span>
             </Link>
-            <p className="text-sm text-foreground/60 max-w-xs">
-              {t('footer.tagline')}
-            </p>
+            <p className="text-sm text-foreground/60 max-w-xs">{t('footer.tagline')}</p>
 
             {/* Social Links */}
             <div className="flex items-center gap-3">
@@ -63,9 +59,7 @@ export function Footer() {
 
           {/* Column 2: Quick Links */}
           <div>
-            <h3 className="font-semibold text-sm mb-4">
-              {t('footer.quickLinks')}
-            </h3>
+            <h3 className="font-semibold text-sm mb-4">{t('footer.quickLinks')}</h3>
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.href}>
@@ -82,9 +76,7 @@ export function Footer() {
 
           {/* Column 3: More */}
           <div>
-            <h3 className="font-semibold text-sm mb-4">
-              {t('footer.more')}
-            </h3>
+            <h3 className="font-semibold text-sm mb-4">{t('footer.more')}</h3>
             <ul className="space-y-2">
               {moreLinks.map((link) => (
                 <li key={link.href}>
@@ -106,9 +98,7 @@ export function Footer() {
             <p className="text-sm text-foreground/60 text-center sm:text-left">
               {t('footer.copyright')}
             </p>
-            <p className="text-xs text-foreground/40">
-              v0.1.0
-            </p>
+            <p className="text-xs text-foreground/40">v0.1.0</p>
           </div>
         </div>
       </div>

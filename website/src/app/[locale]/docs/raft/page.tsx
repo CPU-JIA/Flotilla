@@ -5,7 +5,8 @@ import Image from 'next/image'
 
 export const metadata = {
   title: 'Raft Consensus Algorithm - Flotilla Documentation',
-  description: 'Learn how Flotilla implements production-ready Raft consensus for distributed coordination.',
+  description:
+    'Learn how Flotilla implements production-ready Raft consensus for distributed coordination.',
 }
 
 export default function RaftPage() {
@@ -77,12 +78,10 @@ Cluster Stability:
           <Network className="h-4 w-4" />
           <span>Production-Ready Consensus</span>
         </div>
-        <h1 className="text-5xl font-bold mb-4">
-          Raft Consensus Algorithm
-        </h1>
+        <h1 className="text-5xl font-bold mb-4">Raft Consensus Algorithm</h1>
         <p className="text-xl text-foreground/60 max-w-2xl">
-          Flotilla implements a production-grade Raft consensus algorithm for distributed coordination.
-          Learn how we achieve 150ms failover with zero downtime.
+          Flotilla implements a production-grade Raft consensus algorithm for distributed
+          coordination. Learn how we achieve 150ms failover with zero downtime.
         </p>
       </div>
 
@@ -94,19 +93,22 @@ Cluster Stability:
             {
               icon: Zap,
               title: 'Easy to Understand',
-              description: 'Unlike Paxos, Raft is designed for clarity. Clear state machine design with well-defined transitions.',
+              description:
+                'Unlike Paxos, Raft is designed for clarity. Clear state machine design with well-defined transitions.',
               color: 'text-yellow-500',
             },
             {
               icon: Shield,
               title: 'Battle-Tested',
-              description: 'Used by etcd (Kubernetes), Consul, and InfluxDB. Proven in large-scale production environments.',
+              description:
+                'Used by etcd (Kubernetes), Consul, and InfluxDB. Proven in large-scale production environments.',
               color: 'text-blue-500',
             },
             {
               icon: RefreshCw,
               title: 'Academic Rigor',
-              description: 'Complete theoretical foundation from Stanford research. Formal correctness proofs available.',
+              description:
+                'Complete theoretical foundation from Stanford research. Formal correctness proofs available.',
               color: 'text-green-500',
             },
           ].map((reason) => {
@@ -118,9 +120,7 @@ Cluster Stability:
               >
                 <Icon className={`h-8 w-8 ${reason.color} mb-4`} />
                 <h3 className="text-xl font-semibold mb-2">{reason.title}</h3>
-                <p className="text-sm text-foreground/70 leading-relaxed">
-                  {reason.description}
-                </p>
+                <p className="text-sm text-foreground/70 leading-relaxed">{reason.description}</p>
               </div>
             )
           })}
@@ -179,15 +179,24 @@ Cluster Stability:
             <ul className="space-y-3 text-foreground/70">
               <li className="flex items-start gap-3">
                 <span className="text-primary mt-1">•</span>
-                <span><strong className="text-foreground">Monotonically increasing</strong> - Terms never go backwards</span>
+                <span>
+                  <strong className="text-foreground">Monotonically increasing</strong> - Terms
+                  never go backwards
+                </span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-primary mt-1">•</span>
-                <span><strong className="text-foreground">At most one leader per term</strong> - Prevents split-brain scenarios</span>
+                <span>
+                  <strong className="text-foreground">At most one leader per term</strong> -
+                  Prevents split-brain scenarios
+                </span>
               </li>
               <li className="flex items-start gap-3">
                 <span className="text-primary mt-1">•</span>
-                <span><strong className="text-foreground">Automatic synchronization</strong> - Nodes update terms when discovering higher values</span>
+                <span>
+                  <strong className="text-foreground">Automatic synchronization</strong> - Nodes
+                  update terms when discovering higher values
+                </span>
               </li>
             </ul>
           </div>
@@ -277,9 +286,10 @@ Cluster Stability:
             Real-World Performance
           </h4>
           <p className="text-sm text-foreground/70 leading-relaxed">
-            Our Raft implementation achieves sub-second failover times in production. When a leader node fails,
-            the cluster detects the failure within 300ms and elects a new leader in approximately 150ms,
-            resulting in total downtime of less than 500ms—imperceptible to users.
+            Our Raft implementation achieves sub-second failover times in production. When a leader
+            node fails, the cluster detects the failure within 300ms and elects a new leader in
+            approximately 150ms, resulting in total downtime of less than 500ms—imperceptible to
+            users.
           </p>
         </div>
       </section>

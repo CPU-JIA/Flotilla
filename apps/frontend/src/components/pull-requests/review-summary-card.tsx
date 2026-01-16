@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { ReviewSummary, ReviewState } from '@/types/pull-request'
 import { apiRequest } from '@/lib/api'
@@ -20,13 +21,11 @@ export function ReviewSummaryCard({ prId, onRefresh }: ReviewSummaryCardProps) {
     try {
       setLoading(true)
       setError('')
-      const data = await apiRequest<ReviewSummary>(
-        `/pull-requests/${prId}/review-summary`
-      )
+      const data = await apiRequest<ReviewSummary>(`/pull-requests/${prId}/review-summary`)
       setReviewSummary(data)
       onRefresh?.()
     } catch (err) {
-      console.error('Failed to fetch review summary:', err)
+      logger.error('Failed to fetch review summary:', err)
       setError((err as Error).message || 'Failed to load review summary')
     } finally {
       setLoading(false)
@@ -108,9 +107,7 @@ export function ReviewSummaryCard({ prId, onRefresh }: ReviewSummaryCardProps) {
         <div className="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded">
           <span className="text-lg">✅</span>
           <span className="font-semibold">{reviewSummary.approved}</span>
-          <span className="text-sm">
-            {t.pullRequests?.reviewSummary?.approved || 'Approved'}
-          </span>
+          <span className="text-sm">{t.pullRequests?.reviewSummary?.approved || 'Approved'}</span>
         </div>
 
         <div className="flex items-center gap-2 px-3 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded">
@@ -124,9 +121,7 @@ export function ReviewSummaryCard({ prId, onRefresh }: ReviewSummaryCardProps) {
         <div className="flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded">
           <span className="text-lg">💬</span>
           <span className="font-semibold">{reviewSummary.commented}</span>
-          <span className="text-sm">
-            {t.pullRequests?.reviewSummary?.commented || 'Commented'}
-          </span>
+          <span className="text-sm">{t.pullRequests?.reviewSummary?.commented || 'Commented'}</span>
         </div>
       </div>
 
@@ -134,7 +129,8 @@ export function ReviewSummaryCard({ prId, onRefresh }: ReviewSummaryCardProps) {
       {reviewSummary.reviewers.length > 0 && (
         <div>
           <h3 className="font-semibold mb-3">
-            {t.pullRequests?.reviewSummary?.reviewers || 'Reviewers'} ({reviewSummary.totalReviewers})
+            {t.pullRequests?.reviewSummary?.reviewers || 'Reviewers'} (
+            {reviewSummary.totalReviewers})
           </h3>
           <div className="space-y-2">
             {reviewSummary.reviewers.map((reviewer) => (

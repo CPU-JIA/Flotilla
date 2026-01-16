@@ -10,6 +10,7 @@ import {
   ReindexResponseDto,
   DeleteIndexResponseDto,
 } from './dto/search-result.dto';
+import { CodeDocument } from './interfaces/code-document.interface';
 
 /**
  * 搜索服务
@@ -95,7 +96,7 @@ export class SearchService {
 
       // 4. 执行MeiliSearch搜索
       const index = this.meilisearch.getIndex();
-      const searchResult = await index.search(query.query, {
+      const searchResult = await index.search<CodeDocument>(query.query, {
         filter,
         sort,
         offset: query.offset || 0,
@@ -107,7 +108,7 @@ export class SearchService {
 
       // 5. 构建响应
       return {
-        hits: searchResult.hits as any[],
+        hits: searchResult.hits,
         totalHits: searchResult.estimatedTotalHits || 0,
         offset: query.offset || 0,
         limit: query.limit || 20,

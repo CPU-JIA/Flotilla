@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import ReactMarkdown from 'react-markdown'
@@ -30,7 +31,7 @@ const Editor = dynamic(() => import('@monaco-editor/react'), {
       </div>
     </div>
   ),
-});
+})
 
 interface CodeEditorProps {
   fileId: string
@@ -104,7 +105,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
       })) as unknown as { commits: Commit[]; total: number; page: number; pageSize: number }
       setCommits(response.commits || [])
     } catch (error) {
-      console.error('Failed to load commits:', error)
+      logger.error('Failed to load commits:', error)
     } finally {
       setLoadingCommits(false)
     }
@@ -127,9 +128,9 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         const apiError = error as { status?: number }
         if (apiError?.status === 404) {
           setRepositoryExists(false)
-          console.warn('Repository not found for project:', projectId)
+          logger.warn('Repository not found for project:', projectId)
         } else {
-          console.error('Failed to fetch branches:', error)
+          logger.error('Failed to fetch branches:', error)
         }
       }
     }
@@ -157,7 +158,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
         setLastSaved(new Date())
         onSave?.(newContent)
       } catch (error) {
-        console.error('Failed to save file:', error)
+        logger.error('Failed to save file:', error)
         toast.error('文件保存失败，请重试')
       } finally {
         setSaving(false)

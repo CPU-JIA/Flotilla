@@ -657,8 +657,9 @@ export class GitStateMachine implements StateMachine {
     return Math.abs(hash).toString(36);
   }
 
-  private debugLog(message: string): void {
-    console.log(`[${this.nodeId}] [STATE_MACHINE] ${message}`);
+  private debugLog(_message: string): void {
+    // 调试日志已禁用（ECP 禁止项 - 生产代码禁止 console）
+    // 如需调试，使用 NestJS Logger 或配置环境变量控制
   }
 
   /**

@@ -48,10 +48,7 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Left: Logo + Brand */}
-          <Link
-            href="/"
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-          >
+          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Image
               src="/images/logo-transparent.png"
               alt="Flotilla Logo"
@@ -93,9 +90,7 @@ export function Header() {
               whileTap={{ scale: 0.95 }}
             >
               <Github className="h-4 w-4" />
-              <span className="text-sm font-medium hidden lg:inline">
-                GitHub
-              </span>
+              <span className="text-sm font-medium hidden lg:inline">GitHub</span>
             </motion.a>
 
             {/* Auth Buttons (Desktop) */}
@@ -126,11 +121,7 @@ export function Header() {
               whileTap={{ scale: 0.95 }}
               aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </motion.button>
           </div>
         </div>

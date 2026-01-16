@@ -6,6 +6,7 @@
  * ECP-A1: 单一职责 - 专注于版本历史展示
  */
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useLanguage } from '@/contexts/language-context'
@@ -84,7 +85,7 @@ export default function VersionHistoryPage() {
       setTotal(data.total || 0)
     } catch (err) {
       setError(t.projects.history.loadFailed)
-      console.error(err)
+      logger.error(err)
     } finally {
       setLoading(false)
     }
@@ -100,7 +101,7 @@ export default function VersionHistoryPage() {
         const data = await api.repositories.getCommitDiff(projectId, branchId, commitId)
         setCommitDiff(data)
       } catch (err) {
-        console.error('加载diff失败:', err)
+        logger.error('加载diff失败:', err)
       } finally {
         setDiffLoading(false)
       }

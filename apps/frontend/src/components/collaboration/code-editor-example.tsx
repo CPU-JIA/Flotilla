@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useEffect } from 'react'
 import { useCollaboration } from '@/hooks/useCollaboration'
 import { CollaborationIndicator } from '@/components/collaboration/collaboration-indicator'
@@ -109,16 +110,16 @@ export function CodeEditorWithCollaboration({
     documentType: 'file',
     enabled: !readOnly,
     onUserJoined: (user) => {
-      console.log('User joined:', user)
+      logger.log('User joined:', user)
     },
     onUserLeft: (userId) => {
-      console.log('User left:', userId)
+      logger.log('User left:', userId)
     },
     onUpdate: (update) => {
-      console.log('Received update:', update)
+      logger.log('Received update:', update)
     },
     onError: (error) => {
-      console.error('Collaboration error:', error)
+      logger.error('Collaboration error:', error)
     },
   })
 

@@ -22,6 +22,93 @@ import { AuditAction, AuditEntityType } from '@prisma/client';
  * - GDPR: 记录个人数据访问
  */
 
+/**
+ * 审计元数据类型定义
+ * ECP-C1: 类型安全 - 使用联合类型替代 any
+ */
+type SerializableValue = string | number | boolean | null;
+
+export type AuditMetadata =
+  | { action: 'user.login'; ip: string; userAgent: string; sessionId?: string }
+  | { action: 'user.logout'; sessionDuration: number; sessionId: string }
+  | { action: 'user.register'; registrationMethod: string; verified: boolean }
+  | {
+      action: 'project.create';
+      projectId: string;
+      projectName: string;
+      visibility: string;
+    }
+  | {
+      action: 'project.delete';
+      projectId: string;
+      projectName: string;
+      memberCount: number;
+    }
+  | {
+      action: 'repository.create';
+      repositoryId: string;
+      repositoryName: string;
+      projectId: string;
+    }
+  | {
+      action: 'repository.delete';
+      repositoryId: string;
+      repositoryName: string;
+    }
+  | {
+      action: 'file.upload';
+      fileSize: number;
+      mimeType: string;
+      path: string;
+      repositoryId?: string;
+    }
+  | {
+      action: 'file.delete';
+      path: string;
+      fileSize: number;
+      repositoryId?: string;
+    }
+  | {
+      action: 'permission.change';
+      targetUserId: string;
+      targetUsername?: string;
+      oldRole: string;
+      newRole: string;
+      scope: string;
+    }
+  | {
+      action: 'team.create';
+      teamId: string;
+      teamName: string;
+      organizationId: string;
+    }
+  | {
+      action: 'team.delete';
+      teamId: string;
+      teamName: string;
+      memberCount: number;
+    }
+  | {
+      action: 'webhook.create';
+      webhookId: string;
+      url: string;
+      events: string[];
+    }
+  | { action: 'webhook.delete'; webhookId: string; url: string }
+  | {
+      action: 'api.key.create';
+      keyId: string;
+      scopes: string[];
+      expiresAt?: string;
+    }
+  | { action: 'api.key.revoke'; keyId: string; reason?: string }
+  | {
+      action: 'security.breach';
+      severity: 'low' | 'medium' | 'high' | 'critical';
+      details: string;
+    }
+  | { action: 'generic'; [key: string]: SerializableValue };
+
 export interface CreateAuditLogDto {
   action: AuditAction;
   entityType: AuditEntityType;
@@ -31,7 +118,7 @@ export interface CreateAuditLogDto {
   ipAddress?: string;
   userAgent?: string;
   description: string;
-  metadata?: Record<string, any>;
+  metadata?: AuditMetadata;
   success?: boolean;
   errorMsg?: string;
 }

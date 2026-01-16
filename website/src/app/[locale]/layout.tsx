@@ -19,7 +19,8 @@ import type { Metadata, Viewport } from 'next'
 
 export const metadata: Metadata = generateSEO({
   title: 'Flotilla',
-  description: 'Production-ready distributed code hosting with Raft consensus algorithm. 150ms automatic failover. Full-stack TypeScript. Academic rigor. MIT License.',
+  description:
+    'Production-ready distributed code hosting with Raft consensus algorithm. 150ms automatic failover. Full-stack TypeScript. Academic rigor. MIT License.',
   keywords: ['open source', 'self-hosted', 'monorepo', 'pnpm', 'Docker'],
 })
 
@@ -74,14 +75,9 @@ export default async function LocaleLayout({
           dangerouslySetInnerHTML={renderJsonLd(organizationSchema)}
         />
         {/* WebSite Schema */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={renderJsonLd(websiteSchema)}
-        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={renderJsonLd(websiteSchema)} />
       </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

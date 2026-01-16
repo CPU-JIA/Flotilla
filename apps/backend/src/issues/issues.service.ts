@@ -23,152 +23,151 @@ export class IssuesService {
   ) {}
 
   /**
-   * 获取项目中下一个Issue编号
+   * 🔒 ECP-A1防御编程: 使用原子操作获取下一个Issue编号
+   * 通过数据库原子更新避免并发竞态条件
    */
   private async getNextIssueNumber(projectId: string): Promise<number> {
-    const lastIssue = await this.prisma.issue.findFirst({
-      where: { projectId },
-      orderBy: { number: 'desc' },
-    });
+    const project = await this.prisma.$queryRaw<
+      Array<{ nextissuenumber: number }>
+    >`
+      UPDATE projects 
+      SET "nextIssueNumber" = "nextIssueNumber" + 1 
+      WHERE id = ${projectId}
+      RETURNING "nextIssueNumber"
+    `;
 
-    return (lastIssue?.number || 0) + 1;
+    if (!project || project.length === 0) {
+      throw new NotFoundException(`Project ${projectId} not found`);
+    }
+
+    return project[0].nextissuenumber;
   }
 
   /**
-   * 创建Issue（带重试机制处理并发）
+   * 创建Issue
    */
   async create(
     projectId: string,
     authorId: string,
     dto: CreateIssueDto,
   ): Promise<Issue> {
-    const maxRetries = 3;
-    let retries = 0;
+    const number = await this.getNextIssueNumber(projectId);
 
-    while (retries < maxRetries) {
-      try {
-        const number = await this.getNextIssueNumber(projectId);
-
-        const issue = await this.prisma.issue.create({
-          data: {
-            projectId,
-            authorId,
-            number,
-            title: dto.title,
-            body: dto.body,
-            // 🔒 REFACTOR: 使用关联表创建被分配人和标签
-            assignees: dto.assigneeIds
-              ? {
-                  create: dto.assigneeIds.map((userId) => ({ userId })),
-                }
-              : undefined,
-            labels: dto.labelIds
-              ? {
-                  create: dto.labelIds.map((labelId) => ({ labelId })),
-                }
-              : undefined,
-            milestoneId: dto.milestoneId,
+    const issue = await this.prisma.issue.create({
+      data: {
+        projectId,
+        authorId,
+        number,
+        title: dto.title,
+        body: dto.body,
+        // 🔒 REFACTOR: 使用关联表创建被分配人和标签
+        assignees: dto.assigneeIds
+          ? {
+              create: dto.assigneeIds.map((userId) => ({ userId })),
+            }
+          : undefined,
+        labels: dto.labelIds
+          ? {
+              create: dto.labelIds.map((labelId) => ({ labelId })),
+            }
+          : undefined,
+        milestoneId: dto.milestoneId,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            email: true,
+            avatar: true,
           },
+        },
+        milestone: true,
+        assignees: {
+          // 🔒 被分配人信息
           include: {
-            author: {
+            user: {
               select: {
                 id: true,
                 username: true,
                 email: true,
-                avatar: true,
-              },
-            },
-            milestone: true,
-            assignees: {
-              // 🔒 被分配人信息
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    username: true,
-                    email: true,
-                  },
-                },
-              },
-            },
-            labels: {
-              // 🔒 标签信息（使用关联表）
-              include: {
-                label: {
-                  select: {
-                    id: true,
-                    name: true,
-                    color: true,
-                    description: true,
-                  },
-                },
               },
             },
           },
-        });
+        },
+        labels: {
+          // 🔒 标签信息（使用关联表）
+          include: {
+            label: {
+              select: {
+                id: true,
+                name: true,
+                color: true,
+                description: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
-        // 🔔 发送Issue分配通知给所有assignees（排除作者自己）
-        try {
-          if (dto.assigneeIds && dto.assigneeIds.length > 0) {
-            const notifications = dto.assigneeIds
-              .filter((assigneeId) => assigneeId !== authorId)
-              .map((assigneeId) => ({
-                userId: assigneeId,
-                type: 'ISSUE_ASSIGNED' as const,
-                title: `[Issue #${issue.number}] 分配给您`,
-                body: issue.title,
-                link: `/projects/${projectId}/issues/${issue.number}`,
-                metadata: {
-                  issueId: issue.id,
-                  projectId,
-                  assignerId: authorId,
-                },
-              }));
+    // 🔔 发送Issue分配通知给所有assignees（排除作者自己）
+    try {
+      if (dto.assigneeIds && dto.assigneeIds.length > 0) {
+        const notifications = dto.assigneeIds
+          .filter((assigneeId) => assigneeId !== authorId)
+          .map((assigneeId) => ({
+            userId: assigneeId,
+            type: 'ISSUE_ASSIGNED' as const,
+            title: `[Issue #${issue.number}] 分配给您`,
+            body: issue.title,
+            link: `/projects/${projectId}/issues/${issue.number}`,
+            metadata: {
+              type: 'ISSUE_ASSIGNED' as const,
+              issueId: issue.id,
+              projectId,
+              assignerId: authorId,
+            },
+          }));
 
-            if (notifications.length > 0) {
-              await this.notificationsService.createBatch(notifications);
-              this.logger.log(
-                `📨 Sent ISSUE_ASSIGNED notifications for Issue #${issue.number} to ${notifications.length} assignees`,
-              );
-            }
-          }
-        } catch (error) {
-          this.logger.warn(
-            `⚠️ Failed to send ISSUE_ASSIGNED notification: ${error.message}`,
+        if (notifications.length > 0) {
+          await this.notificationsService.createBatch(notifications);
+          this.logger.log(
+            `📨 Sent ISSUE_ASSIGNED notifications for Issue #${issue.number} to ${notifications.length} assignees`,
           );
         }
-
-        // 🪝 触发 Webhook 事件 - issue.opened
-        try {
-          await this.webhookService.triggerWebhook(projectId, 'issue.opened', {
-            action: 'opened',
-            issue: {
-              id: issue.id,
-              number: issue.number,
-              title: issue.title,
-              body: issue.body,
-              state: issue.state,
-              author: issue.author,
-              createdAt: issue.createdAt,
-            },
-            project: { id: projectId },
-          });
-        } catch (error) {
-          this.logger.warn(`⚠️ Failed to trigger webhook: ${error.message}`);
-        }
-
-        return issue;
-      } catch (error) {
-        // P2002: Unique constraint violation
-        if (error.code === 'P2002' && retries < maxRetries - 1) {
-          retries++;
-          continue;
-        }
-        throw error;
       }
+    } catch (error) {
+      this.logger.warn(
+        `⚠️ Failed to send ISSUE_ASSIGNED notification: ${error.message}`,
+      );
     }
 
-    throw new BadRequestException('Failed to create issue after retries');
+    // 🪝 触发 Webhook 事件 - issue.opened
+    try {
+      await this.webhookService.triggerWebhook(projectId, 'issue.opened', {
+        action: 'opened',
+        issue: {
+          id: issue.id,
+          number: issue.number,
+          title: issue.title,
+          body: issue.body,
+          state: issue.state,
+          author: {
+            id: issue.author.id,
+            username: issue.author.username,
+            email: issue.author.email,
+            avatar: issue.author.avatar,
+          },
+          createdAt: issue.createdAt.toISOString(),
+        },
+        project: { id: projectId },
+      });
+    } catch (error) {
+      this.logger.warn(`⚠️ Failed to trigger webhook: ${error.message}`);
+    }
+
+    return issue;
   }
 
   /**
@@ -505,7 +504,7 @@ export class IssuesService {
           number: closedIssue.number,
           title: closedIssue.title,
           state: closedIssue.state,
-          closedAt: closedIssue.closedAt,
+          closedAt: closedIssue.closedAt?.toISOString() || null,
         },
         project: { id: projectId },
       });

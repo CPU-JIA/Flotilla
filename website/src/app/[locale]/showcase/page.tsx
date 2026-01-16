@@ -8,7 +8,8 @@ export default function ShowcasePage() {
   const projects = [
     {
       name: 'Flotilla',
-      description: 'Full-stack distributed code hosting platform with production-ready Raft consensus algorithm, organization/team management, and real-time collaboration.',
+      description:
+        'Full-stack distributed code hosting platform with production-ready Raft consensus algorithm, organization/team management, and real-time collaboration.',
       image: '/logo.svg',
       github: 'https://github.com/CPU-JIA/Cloud-Dev-Platform',
       demo: process.env.NEXT_PUBLIC_APP_URL || 'https://flotilla.dev',
@@ -17,7 +18,8 @@ export default function ShowcasePage() {
     },
     {
       name: 'Raft Consensus Engine',
-      description: 'Production-grade Raft consensus implementation with 150ms automatic failover, leader election, log replication, and persistent storage. WebSocket-based inter-node communication.',
+      description:
+        'Production-grade Raft consensus implementation with 150ms automatic failover, leader election, log replication, and persistent storage. WebSocket-based inter-node communication.',
       image: '/images/raft-cluster-3nodes.png',
       github: 'https://github.com/CPU-JIA/Cloud-Dev-Platform/tree/main/apps/backend/src/raft',
       demo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://flotilla.dev'}/raft`,
@@ -26,16 +28,19 @@ export default function ShowcasePage() {
     },
     {
       name: 'Organization & Team System',
-      description: 'Enterprise-grade hierarchical permission system with organizations, teams, and project-level access control. Supports OWNER/ADMIN/MEMBER roles.',
+      description:
+        'Enterprise-grade hierarchical permission system with organizations, teams, and project-level access control. Supports OWNER/ADMIN/MEMBER roles.',
       image: '/logo.svg',
-      github: 'https://github.com/CPU-JIA/Cloud-Dev-Platform/tree/main/apps/backend/src/organizations',
+      github:
+        'https://github.com/CPU-JIA/Cloud-Dev-Platform/tree/main/apps/backend/src/organizations',
       demo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://flotilla.dev'}/organizations`,
       tags: ['RBAC', 'Prisma', 'Authorization'],
       stats: { type: 'Permission System' },
     },
     {
       name: 'Issue Tracking System',
-      description: 'Complete issue management with labels, milestones, assignees, and comments. Markdown support with syntax highlighting. Real-time updates via WebSocket.',
+      description:
+        'Complete issue management with labels, milestones, assignees, and comments. Markdown support with syntax highlighting. Real-time updates via WebSocket.',
       image: '/logo.svg',
       github: 'https://github.com/CPU-JIA/Cloud-Dev-Platform/tree/main/apps/backend/src/issues',
       demo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://flotilla.dev'}/projects`,
@@ -44,7 +49,8 @@ export default function ShowcasePage() {
     },
     {
       name: 'File Storage System',
-      description: 'S3-compatible distributed object storage powered by MinIO. Automatic file versioning, metadata tracking, and access control integration.',
+      description:
+        'S3-compatible distributed object storage powered by MinIO. Automatic file versioning, metadata tracking, and access control integration.',
       image: '/logo.svg',
       github: 'https://github.com/CPU-JIA/Cloud-Dev-Platform/tree/main/apps/backend/src/files',
       demo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://flotilla.dev'}/files`,
@@ -53,7 +59,8 @@ export default function ShowcasePage() {
     },
     {
       name: 'Monitoring Dashboard',
-      description: 'Real-time system metrics and Raft cluster visualization with React Flow topology graphs, performance charts via Recharts, and WebSocket live updates.',
+      description:
+        'Real-time system metrics and Raft cluster visualization with React Flow topology graphs, performance charts via Recharts, and WebSocket live updates.',
       image: '/images/architecture-viz.png',
       github: 'https://github.com/CPU-JIA/Cloud-Dev-Platform/tree/main/apps/frontend/src/app/raft',
       demo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://flotilla.dev'}/monitoring`,
@@ -67,9 +74,7 @@ export default function ShowcasePage() {
       <div className="container mx-auto px-4">
         {/* Hero */}
         <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold mb-4">
-            Showcase
-          </h1>
+          <h1 className="text-5xl font-bold mb-4">Showcase</h1>
           <p className="text-xl text-foreground/60 max-w-2xl mx-auto">
             Real-world projects built with Flotilla. Production-ready distributed systems.
           </p>
@@ -153,11 +158,10 @@ export default function ShowcasePage() {
 
         {/* CTA */}
         <div className="text-center mt-16 p-8 rounded-2xl bg-secondary/20 border border-border/40">
-          <h2 className="text-2xl font-bold mb-4">
-            Built something with Flotilla?
-          </h2>
+          <h2 className="text-2xl font-bold mb-4">Built something with Flotilla?</h2>
           <p className="text-foreground/70 mb-6">
-            We would love to feature your project here. Submit a pull request or open an issue on GitHub.
+            We would love to feature your project here. Submit a pull request or open an issue on
+            GitHub.
           </p>
           <a
             href="https://github.com/CPU-JIA/Cloud-Dev-Platform/issues/new"

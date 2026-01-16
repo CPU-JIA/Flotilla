@@ -11,22 +11,26 @@ Thank you for your interest in contributing to Flotilla! We welcome contribution
 ## Getting Started
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/CPU-JIA/Flotilla.git
    cd Cloud-Dev-Platform
    ```
 
 2. **Install dependencies**
+
    ```bash
    pnpm install
    ```
 
 3. **Start infrastructure**
+
    ```bash
    docker-compose up -d
    ```
 
 4. **Initialize Database**
+
    ```bash
    cd apps/backend
    pnpm prisma migrate dev
@@ -40,12 +44,15 @@ Thank you for your interest in contributing to Flotilla! We welcome contribution
 ## Development Workflow
 
 ### 1. Branching Strategy
+
 - Main branch: `main` (Production-ready)
 - Feature branches: `feature/your-feature-name`
 - Fix branches: `fix/issue-number-description`
 
 ### 2. Commit Convention
+
 We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
 - `feat`: A new feature
 - `fix`: A bug fix
 - `docs`: Documentation only changes
@@ -56,6 +63,7 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) speci
 - `chore`: Changes to the build process or auxiliary tools
 
 ### 3. Testing
+
 - **Backend**: Jest for unit/integration tests
   ```bash
   cd apps/backend
@@ -69,6 +77,7 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) speci
 - **Coverage Requirement**: Maintain ≥70% unit test coverage.
 
 ### 4. Code Style
+
 - **Formatting**: Run `pnpm format` before committing.
 - **Linting**: Run `pnpm lint` to check for issues.
 

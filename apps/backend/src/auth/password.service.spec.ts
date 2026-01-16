@@ -12,7 +12,7 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { PasswordService, TokenValidationResult } from './password.service';
+import { PasswordService } from './password.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import * as bcrypt from 'bcrypt';
@@ -25,8 +25,8 @@ jest.mock('bcrypt', () => ({
 
 describe('PasswordService', () => {
   let service: PasswordService;
-  let prismaService: jest.Mocked<PrismaService>;
-  let emailService: jest.Mocked<EmailService>;
+  let _prismaService: jest.Mocked<PrismaService>;
+  let _emailService: jest.Mocked<EmailService>;
 
   // Mock 用户数据
   const mockUser = {
@@ -69,8 +69,8 @@ describe('PasswordService', () => {
     }).compile();
 
     service = module.get<PasswordService>(PasswordService);
-    prismaService = module.get(PrismaService);
-    emailService = module.get(EmailService);
+    _prismaService = module.get(PrismaService);
+    _emailService = module.get(EmailService);
   });
 
   afterEach(() => {
@@ -191,7 +191,7 @@ describe('PasswordService', () => {
       ).rejects.toThrow('重置链接已过期，请重新申请密码重置');
     });
 
-    it('should reject password that matches recent history', async () => {
+    it('should reject password that matches recent history', () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       mockPrismaService.passwordHistory.findMany.mockResolvedValue([
         { id: 'history-1', passwordHash: 'old-hash-1', createdAt: new Date() },
@@ -199,20 +199,20 @@ describe('PasswordService', () => {
       ]);
       (bcrypt.compare as jest.Mock).mockResolvedValueOnce(true); // 匹配历史密码
 
-      await expect(
+      return expect(
         service.resetPassword(
           'valid-reset-token-12345678901234567890',
           'ReusedPassword123!',
         ),
       ).rejects.toThrow('新密码不能与最近使用的3次密码相同');
-    });
+    }, 10000);
 
     it('should increment tokenVersion after password reset', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       mockPrismaService.passwordHistory.findMany.mockResolvedValue([]);
 
       let capturedUserUpdate: any = null;
-      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+      mockPrismaService.$transaction.mockImplementation((callback) => {
         const mockTx = {
           passwordHistory: {
             create: jest.fn(),
@@ -335,7 +335,7 @@ describe('PasswordService', () => {
       ]);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false); // 不匹配任何历史
 
-      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+      mockPrismaService.$transaction.mockImplementation((callback) => {
         const mockTx = {
           passwordHistory: {
             create: jest.fn(),
@@ -364,7 +364,7 @@ describe('PasswordService', () => {
       ]);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+      mockPrismaService.$transaction.mockImplementation((callback) => {
         const mockTx = {
           passwordHistory: {
             create: jest.fn(),

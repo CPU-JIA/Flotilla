@@ -3,7 +3,8 @@ import { CodeBlock } from '@/components/ui/code-block'
 
 export const metadata = {
   title: 'API Reference - Flotilla Documentation',
-  description: 'Complete API reference for Flotilla. Explore all available endpoints with examples.',
+  description:
+    'Complete API reference for Flotilla. Explore all available endpoints with examples.',
 }
 
 export default function APIPage() {
@@ -129,11 +130,10 @@ DELETE /api/files/:id`
           <Code className="h-4 w-4" />
           <span>REST API</span>
         </div>
-        <h1 className="text-5xl font-bold mb-4">
-          API Reference
-        </h1>
+        <h1 className="text-5xl font-bold mb-4">API Reference</h1>
         <p className="text-xl text-foreground/60 max-w-2xl">
-          Complete reference for all Flotilla API endpoints. All requests require JSON content type unless specified.
+          Complete reference for all Flotilla API endpoints. All requests require JSON content type
+          unless specified.
         </p>
       </div>
 
@@ -154,8 +154,9 @@ DELETE /api/files/:id`
           </div>
           <code className="text-lg font-mono">http://localhost:4000/api</code>
           <div className="mt-4 text-sm text-foreground/70">
-            All endpoints are prefixed with <code className="px-2 py-1 rounded bg-secondary">/api</code>.
-            For production, replace with your deployed backend URL.
+            All endpoints are prefixed with{' '}
+            <code className="px-2 py-1 rounded bg-secondary">/api</code>. For production, replace
+            with your deployed backend URL.
           </div>
         </div>
       </section>
@@ -169,8 +170,9 @@ DELETE /api/files/:id`
         <div className="space-y-6">
           <div>
             <p className="text-foreground/70 mb-4">
-              Flotilla uses JWT (JSON Web Tokens) for authentication. After login, include the access token
-              in the <code className="px-2 py-1 rounded bg-secondary">Authorization</code> header.
+              Flotilla uses JWT (JSON Web Tokens) for authentication. After login, include the
+              access token in the{' '}
+              <code className="px-2 py-1 rounded bg-secondary">Authorization</code> header.
             </p>
             <CodeBlock
               code={authExample}
@@ -184,7 +186,9 @@ DELETE /api/files/:id`
               <ul className="text-sm space-y-1 text-foreground/70">
                 <li>• Expires in: 7 days (default)</li>
                 <li>• Use in Authorization header</li>
-                <li>• Format: <code className="px-1 rounded bg-card">Bearer &lt;token&gt;</code></li>
+                <li>
+                  • Format: <code className="px-1 rounded bg-card">Bearer &lt;token&gt;</code>
+                </li>
               </ul>
             </div>
             <div className="p-4 rounded-lg bg-secondary/30 border border-border/40">
@@ -192,7 +196,9 @@ DELETE /api/files/:id`
               <ul className="text-sm space-y-1 text-foreground/70">
                 <li>• Expires in: 30 days (default)</li>
                 <li>• Use to get new access token</li>
-                <li>• Endpoint: <code className="px-1 rounded bg-card">/api/auth/refresh</code></li>
+                <li>
+                  • Endpoint: <code className="px-1 rounded bg-card">/api/auth/refresh</code>
+                </li>
               </ul>
             </div>
           </div>
@@ -205,17 +211,19 @@ DELETE /api/files/:id`
           <Users className="h-8 w-8 text-blue-500" />
           <h2 className="text-3xl font-bold">Organizations</h2>
         </div>
-        <CodeBlock
-          code={orgExample}
-          language="typescript"
-          filename="Organization Endpoints"
-        />
+        <CodeBlock code={orgExample} language="typescript" filename="Organization Endpoints" />
         <div className="mt-6 p-4 rounded-lg bg-accent/10 border border-accent/20 text-sm">
           <strong>💡 Organization Roles:</strong>
           <ul className="mt-2 space-y-1 text-foreground/70">
-            <li>• <strong>OWNER:</strong> Full control, can delete organization</li>
-            <li>• <strong>ADMIN:</strong> Can manage members and teams (but not delete org)</li>
-            <li>• <strong>MEMBER:</strong> Read-only access to organization</li>
+            <li>
+              • <strong>OWNER:</strong> Full control, can delete organization
+            </li>
+            <li>
+              • <strong>ADMIN:</strong> Can manage members and teams (but not delete org)
+            </li>
+            <li>
+              • <strong>MEMBER:</strong> Read-only access to organization
+            </li>
           </ul>
         </div>
       </section>
@@ -264,11 +272,7 @@ DELETE /api/files/:id`
           <FolderGit className="h-8 w-8 text-purple-500" />
           <h2 className="text-3xl font-bold">Projects</h2>
         </div>
-        <CodeBlock
-          code={projectExample}
-          language="typescript"
-          filename="Project Endpoints"
-        />
+        <CodeBlock code={projectExample} language="typescript" filename="Project Endpoints" />
       </section>
 
       {/* Files */}
@@ -277,14 +281,10 @@ DELETE /api/files/:id`
           <FileText className="h-8 w-8 text-orange-500" />
           <h2 className="text-3xl font-bold">Files</h2>
         </div>
-        <CodeBlock
-          code={filesExample}
-          language="typescript"
-          filename="File Endpoints"
-        />
+        <CodeBlock code={filesExample} language="typescript" filename="File Endpoints" />
         <div className="mt-6 p-4 rounded-lg bg-primary/10 border border-primary/20 text-sm">
-          <strong>📦 File Storage:</strong> Files are stored in MinIO (S3-compatible object storage).
-          Maximum file size: 100MB (configurable via environment variables).
+          <strong>📦 File Storage:</strong> Files are stored in MinIO (S3-compatible object
+          storage). Maximum file size: 100MB (configurable via environment variables).
         </div>
       </section>
 
@@ -296,7 +296,8 @@ DELETE /api/files/:id`
             <h4 className="font-semibold mb-4">System Metrics</h4>
             <code className="text-sm">GET /api/monitoring/metrics</code>
             <p className="text-sm text-foreground/70 mt-3">
-              Returns real-time system metrics including request counts, response times, and performance data.
+              Returns real-time system metrics including request counts, response times, and
+              performance data.
             </p>
           </div>
           <div className="p-6 rounded-xl bg-card border border-border/40">
@@ -317,13 +318,17 @@ DELETE /api/files/:id`
             <div className="flex items-center gap-2 mb-2">
               <span className="font-mono text-sm text-red-400">401 Unauthorized</span>
             </div>
-            <p className="text-sm text-foreground/70">Missing or invalid JWT token. Login required.</p>
+            <p className="text-sm text-foreground/70">
+              Missing or invalid JWT token. Login required.
+            </p>
           </div>
           <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/20">
             <div className="flex items-center gap-2 mb-2">
               <span className="font-mono text-sm text-orange-400">403 Forbidden</span>
             </div>
-            <p className="text-sm text-foreground/70">Insufficient permissions for this operation.</p>
+            <p className="text-sm text-foreground/70">
+              Insufficient permissions for this operation.
+            </p>
           </div>
           <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
             <div className="flex items-center gap-2 mb-2">
@@ -335,7 +340,9 @@ DELETE /api/files/:id`
             <div className="flex items-center gap-2 mb-2">
               <span className="font-mono text-sm text-blue-400">422 Unprocessable Entity</span>
             </div>
-            <p className="text-sm text-foreground/70">Validation failed. Check request body format.</p>
+            <p className="text-sm text-foreground/70">
+              Validation failed. Check request body format.
+            </p>
           </div>
         </div>
       </section>
@@ -345,8 +352,8 @@ DELETE /api/files/:id`
         <div className="p-8 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 border border-border/40">
           <h2 className="text-3xl font-bold mb-4">Interactive API Documentation</h2>
           <p className="text-foreground/70 mb-6">
-            For a fully interactive API experience with live testing, explore our Swagger documentation.
-            Test endpoints directly from your browser with authentication support.
+            For a fully interactive API experience with live testing, explore our Swagger
+            documentation. Test endpoints directly from your browser with authentication support.
           </p>
           <a
             href="http://localhost:4000/api/docs"

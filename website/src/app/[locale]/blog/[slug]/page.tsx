@@ -54,101 +54,99 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       />
 
       <div className="py-16">
-      <div className="container mx-auto px-4">
-        {/* Back Button */}
-        <Link
-          href="/blog"
-          className="inline-flex items-center gap-2 text-sm text-foreground/60 hover:text-foreground mb-8 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Blog
-        </Link>
+        <div className="container mx-auto px-4">
+          {/* Back Button */}
+          <Link
+            href="/blog"
+            className="inline-flex items-center gap-2 text-sm text-foreground/60 hover:text-foreground mb-8 transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Blog
+          </Link>
 
-        {/* Article Header */}
-        <article className="max-w-3xl mx-auto">
-          <header className="mb-12">
-            <h1 className="text-5xl font-bold mb-4">{post.title}</h1>
-            <p className="text-xl text-foreground/70 mb-6">
-              {post.description}
-            </p>
+          {/* Article Header */}
+          <article className="max-w-3xl mx-auto">
+            <header className="mb-12">
+              <h1 className="text-5xl font-bold mb-4">{post.title}</h1>
+              <p className="text-xl text-foreground/70 mb-6">{post.description}</p>
 
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-secondary/50 text-sm font-medium"
-                >
-                  <Tag className="h-3 w-3" />
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            {/* Post Meta */}
-            <div className="flex items-center gap-6 text-sm text-foreground/60 pb-6 border-b border-border/40">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <time dateTime={post.date}>
-                  {new Date(post.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </time>
+              {/* Tags */}
+              <div className="flex flex-wrap gap-2 mb-6">
+                {post.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-secondary/50 text-sm font-medium"
+                  >
+                    <Tag className="h-3 w-3" />
+                    {tag}
+                  </span>
+                ))}
               </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                <span>{post.readingTime}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span>By {post.author}</span>
-              </div>
-            </div>
-          </header>
 
-          {/* Article Content */}
-          <div className="prose prose-lg prose-invert max-w-none">
-            <MDXRemote
-              source={post.content}
-              options={{
-                mdxOptions: {
-                  remarkPlugins: [remarkGfm],
-                  rehypePlugins: [
-                    rehypeHighlight,
-                    rehypeSlug,
-                    [
-                      rehypeAutolinkHeadings,
-                      {
-                        behavior: 'wrap',
-                        properties: {
-                          className: ['anchor'],
+              {/* Post Meta */}
+              <div className="flex items-center gap-6 text-sm text-foreground/60 pb-6 border-b border-border/40">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  <time dateTime={post.date}>
+                    {new Date(post.date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </time>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  <span>{post.readingTime}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span>By {post.author}</span>
+                </div>
+              </div>
+            </header>
+
+            {/* Article Content */}
+            <div className="prose prose-lg prose-invert max-w-none">
+              <MDXRemote
+                source={post.content}
+                options={{
+                  mdxOptions: {
+                    remarkPlugins: [remarkGfm],
+                    rehypePlugins: [
+                      rehypeHighlight,
+                      rehypeSlug,
+                      [
+                        rehypeAutolinkHeadings,
+                        {
+                          behavior: 'wrap',
+                          properties: {
+                            className: ['anchor'],
+                          },
                         },
-                      },
+                      ],
                     ],
-                  ],
-                },
-              }}
-            />
-          </div>
-
-          {/* Article Footer */}
-          <footer className="mt-12 pt-8 border-t border-border/40">
-            <div className="text-center">
-              <p className="text-foreground/70 mb-4">
-                Found this article helpful? Share it with your team!
-              </p>
-              <Link
-                href="/blog"
-                className="inline-flex items-center gap-2 px-6 h-11 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
-              >
-                Read More Articles
-              </Link>
+                  },
+                }}
+              />
             </div>
-          </footer>
-        </article>
+
+            {/* Article Footer */}
+            <footer className="mt-12 pt-8 border-t border-border/40">
+              <div className="text-center">
+                <p className="text-foreground/70 mb-4">
+                  Found this article helpful? Share it with your team!
+                </p>
+                <Link
+                  href="/blog"
+                  className="inline-flex items-center gap-2 px-6 h-11 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-medium"
+                >
+                  Read More Articles
+                </Link>
+              </div>
+            </footer>
+          </article>
+        </div>
       </div>
-    </div>
     </>
   )
 }

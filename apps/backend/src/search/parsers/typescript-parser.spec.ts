@@ -158,9 +158,6 @@ describe('typescript-parser', () => {
     });
 
     it('should return empty array for syntax errors (silent failure)', () => {
-      // Mock console.warn to verify error handling without polluting test output
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-
       const content = `
         class {{{{{ invalid syntax
         function @#$%^
@@ -168,17 +165,9 @@ describe('typescript-parser', () => {
 
       const symbols = extractTypeScriptSymbols(content, 'test.ts');
 
-      // Verify silent failure behavior
+      // Verify silent failure behavior (ECP-C2: errors handled gracefully)
       expect(Array.isArray(symbols)).toBe(true);
       expect(symbols.length).toBe(0);
-
-      // Verify that warning was logged (error handling works correctly)
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to parse TypeScript file'),
-        expect.any(String),
-      );
-
-      warnSpy.mockRestore();
     });
 
     it('should handle empty file', () => {

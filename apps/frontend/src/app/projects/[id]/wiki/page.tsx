@@ -42,7 +42,7 @@ export default function WikiPage() {
       // 默认展开所有节点
       const allIds = new Set<string>()
       const collectIds = (nodes: WikiTreeNode[]) => {
-        nodes.forEach(node => {
+        nodes.forEach((node) => {
           allIds.add(node.id)
           if (node.children?.length > 0) {
             collectIds(node.children)
@@ -63,7 +63,7 @@ export default function WikiPage() {
   }, [fetchWikiTree])
 
   const toggleNode = (nodeId: string) => {
-    setExpandedNodes(prev => {
+    setExpandedNodes((prev) => {
       const next = new Set(prev)
       if (next.has(nodeId)) {
         next.delete(nodeId)
@@ -75,7 +75,7 @@ export default function WikiPage() {
   }
 
   const renderTree = (nodes: WikiTreeNode[], depth = 0) => {
-    return nodes.map(node => {
+    return nodes.map((node) => {
       const isExpanded = expandedNodes.has(node.id)
       const hasChildren = node.children?.length > 0
 
@@ -83,10 +83,7 @@ export default function WikiPage() {
         <div key={node.id} style={{ marginLeft: `${depth * 20}px` }}>
           <div className="flex items-center gap-2 py-2 hover:bg-gray-50 rounded px-2 group">
             {hasChildren && (
-              <button
-                onClick={() => toggleNode(node.id)}
-                className="p-1 hover:bg-gray-200 rounded"
-              >
+              <button onClick={() => toggleNode(node.id)} className="p-1 hover:bg-gray-200 rounded">
                 {isExpanded ? (
                   <ChevronDown className="h-4 w-4" />
                 ) : (
@@ -131,9 +128,7 @@ export default function WikiPage() {
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Project Wiki</h1>
-        <Button
-          onClick={() => router.push(`/projects/${projectId}/wiki/new`)}
-        >
+        <Button onClick={() => router.push(`/projects/${projectId}/wiki/new`)}>
           <Plus className="h-4 w-4 mr-2" />
           New Page
         </Button>
@@ -144,12 +139,8 @@ export default function WikiPage() {
           <div className="text-center py-12 text-gray-500">
             <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
             <p className="text-lg mb-2">No wiki pages yet</p>
-            <p className="text-sm mb-4">
-              Create your first wiki page to get started
-            </p>
-            <Button
-              onClick={() => router.push(`/projects/${projectId}/wiki/new`)}
-            >
+            <p className="text-sm mb-4">Create your first wiki page to get started</p>
+            <Button onClick={() => router.push(`/projects/${projectId}/wiki/new`)}>
               <Plus className="h-4 w-4 mr-2" />
               Create Page
             </Button>

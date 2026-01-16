@@ -10,6 +10,7 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect } from 'react'
 import {
   Dialog,
@@ -102,7 +103,7 @@ export function MilestoneDialog({
       })
       onOpenChange(false)
     } catch (err: unknown) {
-      console.error('Failed to submit milestone:', err)
+      logger.error('Failed to submit milestone:', err)
       setError(err instanceof Error ? err.message : t.issues.milestones.createFailed)
     } finally {
       setSubmitting(false)
@@ -171,9 +172,7 @@ export function MilestoneDialog({
               disabled={submitting}
               valueFormat="YYYY-MM-DD"
             />
-            <p className="text-xs text-muted-foreground">
-              Optional. Leave empty for no due date.
-            </p>
+            <p className="text-xs text-muted-foreground">Optional. Leave empty for no due date.</p>
           </div>
 
           {/* Dialog Footer */}

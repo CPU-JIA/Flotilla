@@ -6,6 +6,7 @@
  * ECP-C1: 防御性编程 - 权限检查和email验证
  */
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -52,7 +53,7 @@ export function MembersTab({ organizationSlug, teamSlug, canManage }: MembersTab
       const data = await api.teams.getMembers(organizationSlug, teamSlug)
       setMembers(data)
     } catch (err) {
-      console.error('Failed to fetch members:', err)
+      logger.error('Failed to fetch members:', err)
       handleError(err)
     } finally {
       setLoading(false)

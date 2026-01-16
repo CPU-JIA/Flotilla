@@ -28,7 +28,7 @@
  */
 export function extractJavaSymbols(
   content: string,
-  filePath: string,
+  _filePath: string,
 ): string[] {
   const symbols: Set<string> = new Set();
 
@@ -75,12 +75,9 @@ export function extractJavaSymbols(
     while ((match = constantPattern.exec(content)) !== null) {
       symbols.add(match[1]);
     }
-  } catch (error) {
+  } catch (_error) {
     // 静默失败:解析错误不影响索引流程
-    console.warn(
-      `Failed to extract Java symbols from ${filePath}:`,
-      error.message,
-    );
+    // 已移除 console.warn（ECP 禁止项）- 解析失败会返回空数组
   }
 
   return Array.from(symbols);

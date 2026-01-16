@@ -2,13 +2,7 @@ export default function sitemap() {
   const baseUrl = 'https://flotilla.dev'
   const currentDate = new Date().toISOString()
 
-  const routes = [
-    '',
-    '/docs',
-    '/showcase',
-    '/about',
-    '/faq',
-  ]
+  const routes = ['', '/docs', '/showcase', '/about', '/faq']
 
   const locales = ['zh', 'en']
 

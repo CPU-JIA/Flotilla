@@ -134,156 +134,150 @@ export default function DevicesPage() {
     <div className="space-y-6">
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">设备管理</h1>
-            <p className="text-muted-foreground mt-1">
-              管理您的所有登录设备，确保账户安全
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={loadSessions}
-            disabled={isLoading}
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            刷新
-          </Button>
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">设备管理</h1>
+          <p className="text-muted-foreground mt-1">管理您的所有登录设备，确保账户安全</p>
         </div>
+        <Button variant="outline" size="sm" onClick={loadSessions} disabled={isLoading}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          刷新
+        </Button>
+      </div>
 
-        {/* 安全提示 */}
-        <Card className="border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-900/20">
-          <CardContent className="pt-6">
-            <div className="flex gap-3">
-              <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 flex-shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                  安全提示
+      {/* 安全提示 */}
+      <Card className="border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-900/20">
+        <CardContent className="pt-6">
+          <div className="flex gap-3">
+            <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-500 flex-shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">安全提示</p>
+              <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                如果您发现任何不熟悉的设备，请立即撤销其登录状态并修改密码。 您的访问令牌有效期为 15
+                分钟，刷新令牌有效期为 30 天。
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 设备列表 */}
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <p className="mt-4 text-muted-foreground">加载设备列表...</p>
+        </div>
+      ) : sessions.length === 0 ? (
+        <Card>
+          <CardContent className="py-12">
+            <div className="text-center text-muted-foreground">
+              <Smartphone className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>暂无活跃设备</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {sessions.map((session) => {
+            const isCurrent = isCurrentDevice(session)
+            return (
+              <Card
+                key={session.id}
+                className={isCurrent ? 'border-blue-200 dark:border-blue-800' : ''}
+              >
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex gap-4">
+                      <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-800">
+                        {getDeviceIcon(session.device)}
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <CardTitle className="text-lg">
+                            {session.browser || 'Unknown'} - {session.os || 'Unknown'}
+                          </CardTitle>
+                          {isCurrent && (
+                            <Badge variant="default" className="bg-blue-500 text-white">
+                              当前设备
+                            </Badge>
+                          )}
+                        </div>
+                        <CardDescription className="space-y-1">
+                          <div className="flex items-center gap-1 text-sm">
+                            <Globe className="h-3.5 w-3.5" />
+                            <span>{session.ipAddress}</span>
+                          </div>
+                          {session.location && (
+                            <div className="flex items-center gap-1 text-sm">
+                              <MapPin className="h-3.5 w-3.5" />
+                              <span>{session.location}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-1 text-sm">
+                            <Clock className="h-3.5 w-3.5" />
+                            <span>最后活跃: {formatTime(session.lastUsedAt)}</span>
+                          </div>
+                        </CardDescription>
+                      </div>
+                    </div>
+                    {!isCurrent && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleRevokeSession(session.id)}
+                        disabled={revokingSessionId === session.id}
+                      >
+                        {revokingSessionId === session.id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            撤销中...
+                          </>
+                        ) : (
+                          '撤销'
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+              </Card>
+            )
+          })}
+        </div>
+      )}
+
+      {/* 设备统计 */}
+      {!isLoading && sessions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">设备统计</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div>
+                <p className="text-2xl font-bold text-foreground">{sessions.length}</p>
+                <p className="text-sm text-muted-foreground">活跃设备</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">
+                  {sessions.filter((s) => s.device?.toLowerCase().includes('mobile')).length}
                 </p>
-                <p className="text-sm text-yellow-700 dark:text-yellow-300">
-                  如果您发现任何不熟悉的设备，请立即撤销其登录状态并修改密码。
-                  您的访问令牌有效期为 15 分钟，刷新令牌有效期为 30 天。
+                <p className="text-sm text-muted-foreground">移动设备</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">
+                  {sessions.filter((s) => s.device?.toLowerCase().includes('desktop')).length}
                 </p>
+                <p className="text-sm text-muted-foreground">桌面设备</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">
+                  {new Set(sessions.map((s) => s.ipAddress)).size}
+                </p>
+                <p className="text-sm text-muted-foreground">不同IP</p>
               </div>
             </div>
           </CardContent>
         </Card>
-
-        {/* 设备列表 */}
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <p className="mt-4 text-muted-foreground">加载设备列表...</p>
-          </div>
-        ) : sessions.length === 0 ? (
-          <Card>
-            <CardContent className="py-12">
-              <div className="text-center text-muted-foreground">
-                <Smartphone className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>暂无活跃设备</p>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {sessions.map((session) => {
-              const isCurrent = isCurrentDevice(session)
-              return (
-                <Card key={session.id} className={isCurrent ? 'border-blue-200 dark:border-blue-800' : ''}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex gap-4">
-                        <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-800">
-                          {getDeviceIcon(session.device)}
-                        </div>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <CardTitle className="text-lg">
-                              {session.browser || 'Unknown'} - {session.os || 'Unknown'}
-                            </CardTitle>
-                            {isCurrent && (
-                              <Badge variant="default" className="bg-blue-500 text-white">
-                                当前设备
-                              </Badge>
-                            )}
-                          </div>
-                          <CardDescription className="space-y-1">
-                            <div className="flex items-center gap-1 text-sm">
-                              <Globe className="h-3.5 w-3.5" />
-                              <span>{session.ipAddress}</span>
-                            </div>
-                            {session.location && (
-                              <div className="flex items-center gap-1 text-sm">
-                                <MapPin className="h-3.5 w-3.5" />
-                                <span>{session.location}</span>
-                              </div>
-                            )}
-                            <div className="flex items-center gap-1 text-sm">
-                              <Clock className="h-3.5 w-3.5" />
-                              <span>最后活跃: {formatTime(session.lastUsedAt)}</span>
-                            </div>
-                          </CardDescription>
-                        </div>
-                      </div>
-                      {!isCurrent && (
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleRevokeSession(session.id)}
-                          disabled={revokingSessionId === session.id}
-                        >
-                          {revokingSessionId === session.id ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              撤销中...
-                            </>
-                          ) : (
-                            '撤销'
-                          )}
-                        </Button>
-                      )}
-                    </div>
-                  </CardHeader>
-                </Card>
-              )
-            })}
-          </div>
-        )}
-
-        {/* 设备统计 */}
-        {!isLoading && sessions.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">设备统计</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{sessions.length}</p>
-                  <p className="text-sm text-muted-foreground">活跃设备</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {sessions.filter((s) => s.device?.toLowerCase().includes('mobile')).length}
-                  </p>
-                  <p className="text-sm text-muted-foreground">移动设备</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {sessions.filter((s) => s.device?.toLowerCase().includes('desktop')).length}
-                  </p>
-                  <p className="text-sm text-muted-foreground">桌面设备</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {new Set(sessions.map((s) => s.ipAddress)).size}
-                  </p>
-                  <p className="text-sm text-muted-foreground">不同IP</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+      )}
     </div>
   )
 }

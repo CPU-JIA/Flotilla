@@ -12,6 +12,7 @@
  */
 
 import { Logger } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 
 const logger = new Logger('SecretValidator');
 
@@ -102,7 +103,7 @@ export function validateJwtSecret(
       message: `SECURITY ERROR: ${name} is not configured. Please set ${name} in environment variables.`,
       suggestions: [
         `Generate a strong secret using: openssl rand -base64 43`,
-        `Or use: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`,
+        `Or use: node -e "const crypto = require('crypto'); console.log(crypto.randomBytes(32).toString('base64'))"`,
       ],
     };
   }

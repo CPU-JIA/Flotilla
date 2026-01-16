@@ -12,6 +12,7 @@
  * ECP-C1: 防御性编程 - 错误处理和超时控制
  */
 
+import { logger } from '@/lib/logger'
 import { NextRequest, NextResponse } from 'next/server'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000'
@@ -65,15 +66,13 @@ async function handleRequest(
     // 构建后端API URL
     const backendUrl = `${BACKEND_URL}/api/${path}${queryString}`
 
-    console.log(`[API Proxy] ${method} ${backendUrl}`)
+    logger.log(`[API Proxy] ${method} ${backendUrl}`)
 
     // 准备headers（排除host等浏览器专用headers）
     const headers = new Headers()
     request.headers.forEach((value, key) => {
       // 跳过这些headers，由fetch自动处理
-      if (
-        !['host', 'connection', 'content-length'].includes(key.toLowerCase())
-      ) {
+      if (!['host', 'connection', 'content-length'].includes(key.toLowerCase())) {
         headers.set(key, value)
       }
     })
@@ -92,7 +91,7 @@ async function handleRequest(
             body = text
           }
         } catch (error) {
-          console.warn('[API Proxy] Failed to read request body:', error)
+          logger.warn('[API Proxy] Failed to read request body:', error)
           // body 保持为 null
         }
       } else if (contentType.includes('multipart/form-data')) {
@@ -130,21 +129,18 @@ async function handleRequest(
       headers: responseHeaders,
     })
   } catch (error) {
-    console.error('[API Proxy Error]:', error)
+    logger.error('[API Proxy Error]:', error)
 
     // 超时错误
     if (error instanceof Error && error.name === 'AbortError') {
-      return NextResponse.json(
-        { message: 'Request timeout' },
-        { status: 504 }
-      )
+      return NextResponse.json({ message: 'Request timeout' }, { status: 504 })
     }
 
     // 其他错误
     return NextResponse.json(
       {
         message: 'Proxy error',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 502 }
     )

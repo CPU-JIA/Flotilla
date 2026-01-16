@@ -10,6 +10,7 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect } from 'react'
 import {
   Dialog,
@@ -96,7 +97,7 @@ export function LabelDialog({ open, onOpenChange, mode, label, onSubmit }: Label
       })
       onOpenChange(false)
     } catch (err: unknown) {
-      console.error('Failed to submit label:', err)
+      logger.error('Failed to submit label:', err)
       setError(err instanceof Error ? err.message : t.issues.labels.createFailed)
     } finally {
       setSubmitting(false)
@@ -154,9 +155,7 @@ export function LabelDialog({ open, onOpenChange, mode, label, onSubmit }: Label
               maxLength={200}
               disabled={submitting}
             />
-            <p className="text-xs text-muted-foreground">
-              {description.length}/200 characters
-            </p>
+            <p className="text-xs text-muted-foreground">{description.length}/200 characters</p>
           </div>
 
           {/* Dialog Footer */}

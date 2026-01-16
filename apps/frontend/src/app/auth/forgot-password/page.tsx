@@ -72,9 +72,7 @@ export default function ForgotPasswordPage() {
         {!isSuccess ? (
           <>
             <div className="space-y-1 mb-6">
-              <h1 className="text-2xl font-bold text-center text-foreground">
-                忘记密码？
-              </h1>
+              <h1 className="text-2xl font-bold text-center text-foreground">忘记密码？</h1>
               <p className="text-center text-muted-foreground">
                 输入您的邮箱地址，我们将发送密码重置链接
               </p>
@@ -146,9 +144,7 @@ export default function ForgotPasswordPage() {
               <h1 className="text-2xl font-bold text-green-600 dark:text-green-400">
                 ✓ 邮件已发送！
               </h1>
-              <p className="text-muted-foreground">
-                如果该邮箱已注册，您将收到密码重置邮件
-              </p>
+              <p className="text-muted-foreground">如果该邮箱已注册，您将收到密码重置邮件</p>
               <p className="text-sm text-muted-foreground">
                 请检查您的收件箱（包括垃圾邮件文件夹）
               </p>

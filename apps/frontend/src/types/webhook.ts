@@ -57,4 +57,4 @@ export const WEBHOOK_EVENTS = [
   'release.published',
 ] as const
 
-export type WebhookEvent = typeof WEBHOOK_EVENTS[number]
+export type WebhookEvent = (typeof WEBHOOK_EVENTS)[number]

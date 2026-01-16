@@ -46,9 +46,7 @@ export function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps)
           <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {t.errorBoundary.title}
           </CardTitle>
-          <CardDescription className="text-base">
-            {t.errorBoundary.subtitle}
-          </CardDescription>
+          <CardDescription className="text-base">{t.errorBoundary.subtitle}</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6">

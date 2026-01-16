@@ -12,11 +12,7 @@ interface CodeBlockProps {
   filename?: string
 }
 
-export function CodeBlock({
-  code,
-  language = 'typescript',
-  filename,
-}: CodeBlockProps) {
+export function CodeBlock({ code, language = 'typescript', filename }: CodeBlockProps) {
   const { theme } = useTheme()
   const [html, setHtml] = React.useState<string>('')
   const [copied, setCopied] = React.useState(false)
@@ -57,9 +53,7 @@ export function CodeBlock({
   }
 
   if (!mounted) {
-    return (
-      <div className="rounded-xl bg-secondary/50 animate-pulse h-64" />
-    )
+    return <div className="rounded-xl bg-secondary/50 animate-pulse h-64" />
   }
 
   return (

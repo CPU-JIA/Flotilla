@@ -15,6 +15,7 @@ Flotilla API 使用 **URI 版本控制** 策略来管理 API 的演进和向后�
 ```
 
 **示例：**
+
 - `POST /api/v1/auth/login` - 用户登录
 - `GET /api/v1/projects` - 获取项目列表
 - `POST /api/v1/projects/{id}/issues` - 创建 Issue
@@ -52,22 +53,26 @@ Flotilla API 使用 **URI 版本控制** 策略来管理 API 的演进和向后�
 ## 版本生命周期
 
 ### 阶段 1: 稳定（Stable）
+
 - 完全支持和维护
 - 接收 Bug 修复和安全补丁
 - 推荐用于生产环境
 
 ### 阶段 2: 弃用（Deprecated）
+
 - 宣布弃用日期（通常在新版本发布时）
 - 继续支持至少 **6 个月**
 - 响应头包含弃用警告：`X-API-Deprecated: true; version=v1; sunset=2025-12-31`
 - 建议客户端迁移到新版本
 
 ### 阶段 3: 停用（Sunset）
+
 - 不再接受新的集成
 - 仅提供严重 Bug 和安全修复
 - 最后支持日期明确公布
 
 ### 阶段 4: 下线（Retired）
+
 - API 端点返回 410 Gone 状态码
 - 强制要求升级到新版本
 
@@ -78,11 +83,13 @@ Flotilla API 使用 **URI 版本控制** 策略来管理 API 的演进和向后�
 #### 1. 更新 API 基础 URL
 
 **之前（无版本）：**
+
 ```javascript
 const API_BASE_URL = 'http://localhost:4000/api'
 ```
 
 **现在（v1）：**
+
 ```javascript
 const API_BASE_URL = 'http://localhost:4000/api/v1'
 ```
@@ -90,6 +97,7 @@ const API_BASE_URL = 'http://localhost:4000/api/v1'
 #### 2. 更新所有 API 调用
 
 **之前：**
+
 ```http
 POST /api/auth/login
 GET /api/projects
@@ -97,6 +105,7 @@ POST /api/projects/123/issues
 ```
 
 **现在：**
+
 ```http
 POST /api/v1/auth/login
 GET /api/v1/projects
@@ -106,6 +115,7 @@ POST /api/v1/projects/123/issues
 #### 3. 更新环境变量
 
 **.env 文件：**
+
 ```bash
 # 之前
 NEXT_PUBLIC_API_URL=http://localhost:4000/api
@@ -117,9 +127,10 @@ NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
 #### 4. 更新 Cookie 路径（如果使用认证）
 
 **后端 Cookie 路径：**
+
 ```javascript
 // refreshToken Cookie 路径
-path: '/api/v1/auth/refresh'  // 之前: '/api/auth/refresh'
+path: '/api/v1/auth/refresh' // 之前: '/api/auth/refresh'
 ```
 
 ## 版本检测
@@ -146,11 +157,13 @@ http://localhost:4000/api/docs
 ### 客户端实现建议
 
 1. **使用环境变量管理 API URL**
+
    ```javascript
    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'
    ```
 
 2. **集中管理 API 调用**
+
    ```javascript
    // lib/api.ts
    export const api = {
@@ -163,6 +176,7 @@ http://localhost:4000/api/docs
    ```
 
 3. **监听弃用警告**
+
    ```javascript
    function apiRequest(endpoint, options) {
      const response = await fetch(`${API_BASE_URL}${endpoint}`, options)
@@ -211,6 +225,7 @@ http://localhost:4000/api/docs
 **发布日期**: 2024
 
 **主要特性**:
+
 - 完整的 REST API
 - JWT 认证（HttpOnly Cookie）
 - 基于角色的权限控制（RBAC）
@@ -220,6 +235,7 @@ http://localhost:4000/api/docs
 - Raft 分布式共识
 
 **端点总览**:
+
 - **认证**: `/api/v1/auth/*`
 - **用户**: `/api/v1/users/*`
 - **项目**: `/api/v1/projects/*`
@@ -240,12 +256,14 @@ http://localhost:4000/api/docs
 ### v2 (计划中)
 
 **可能包含的变更**:
+
 - GraphQL API 支持
 - 改进的分页机制（Cursor-based pagination）
 - 批量操作端点
 - Webhook 系统
 
 **迁移时间表**:
+
 - v2 Beta: TBD
 - v2 Stable: TBD
 - v1 弃用: v2 稳定后 6 个月

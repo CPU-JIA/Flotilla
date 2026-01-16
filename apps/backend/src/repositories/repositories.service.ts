@@ -8,7 +8,16 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { MinioService } from '../minio/minio.service';
 import { GitService } from '../git/git.service';
-import { CreateBranchDto, RepositoryCreateCommitDto } from './dto';
+import {
+  CreateBranchDto,
+  RepositoryCreateCommitDto,
+  RepositoryDetailDto,
+  CommitsPageDto,
+  CommitDetailDto,
+  CommitDiffDto,
+  CommitFileContentDto,
+  CommitFilesListDto,
+} from './dto';
 import type { User, Repository, Branch, Commit, File } from '@prisma/client';
 import { MemberRole, UserRole } from '@prisma/client';
 
@@ -103,7 +112,10 @@ export class RepositoriesService {
   /**
    * 获取仓库信息
    */
-  async getRepository(projectId: string, currentUser: User): Promise<any> {
+  async getRepository(
+    projectId: string,
+    currentUser: User,
+  ): Promise<RepositoryDetailDto> {
     // 检查项目权限
     await this.checkProjectPermission(projectId, currentUser);
 
@@ -369,7 +381,7 @@ export class RepositoriesService {
     currentUser: User,
     page: number = 1,
     pageSize: number = 20,
-  ): Promise<any> {
+  ): Promise<CommitsPageDto> {
     await this.checkProjectPermission(projectId, currentUser);
 
     const skip = (page - 1) * pageSize;
@@ -436,7 +448,7 @@ export class RepositoriesService {
     branchId: string,
     commitId: string,
     currentUser: User,
-  ): Promise<any> {
+  ): Promise<CommitDetailDto> {
     await this.checkProjectPermission(projectId, currentUser);
 
     const commit = await this.prisma.commit.findUnique({
@@ -498,7 +510,7 @@ export class RepositoriesService {
     commitId: string,
     compareTo: string | undefined,
     currentUser: User,
-  ): Promise<any> {
+  ): Promise<CommitDiffDto> {
     await this.checkProjectPermission(projectId, currentUser);
 
     // Step 1: Fetch commit info first (need createdAt for subsequent queries)
@@ -610,7 +622,7 @@ export class RepositoriesService {
     commitId: string,
     filePath: string | undefined,
     currentUser: User,
-  ): Promise<any> {
+  ): Promise<CommitFileContentDto | CommitFilesListDto> {
     await this.checkProjectPermission(projectId, currentUser);
 
     const commit = await this.prisma.commit.findUnique({

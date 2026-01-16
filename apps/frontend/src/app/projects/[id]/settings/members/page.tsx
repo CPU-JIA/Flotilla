@@ -6,19 +6,14 @@
  * ECP-C1: 防御性编程 - 权限验证和错误处理
  */
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 // Table component removed - using native HTML table instead
 import {
   Select,
@@ -64,7 +59,7 @@ export default function MembersManagementPage() {
       const data = await api.projects.getMembers(projectId)
       setMembers(data)
     } catch (err) {
-      console.error('Failed to fetch members:', err)
+      logger.error('Failed to fetch members:', err)
     } finally {
       setLoading(false)
     }
@@ -75,7 +70,10 @@ export default function MembersManagementPage() {
   }, [fetchMembers])
 
   // 更改成员角色
-  const handleChangeRole = async (memberId: string, newRole: 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER') => {
+  const handleChangeRole = async (
+    memberId: string,
+    newRole: 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER'
+  ) => {
     if (!projectId) return
 
     if (!confirm(t.projects.settings.changeRole + '?')) return
@@ -114,12 +112,13 @@ export default function MembersManagementPage() {
 
   // 角色显示
   const getRoleBadge = (role: string) => {
-    const roleMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> = {
-      OWNER: { label: t.projects.settings.roleOwner, variant: 'default' },
-      MAINTAINER: { label: t.projects.settings.roleMaintainer, variant: 'secondary' },
-      MEMBER: { label: t.projects.settings.roleMember, variant: 'outline' },
-      VIEWER: { label: t.projects.settings.roleViewer, variant: 'outline' },
-    }
+    const roleMap: Record<string, { label: string; variant: 'default' | 'secondary' | 'outline' }> =
+      {
+        OWNER: { label: t.projects.settings.roleOwner, variant: 'default' },
+        MAINTAINER: { label: t.projects.settings.roleMaintainer, variant: 'secondary' },
+        MEMBER: { label: t.projects.settings.roleMember, variant: 'outline' },
+        VIEWER: { label: t.projects.settings.roleViewer, variant: 'outline' },
+      }
     const roleInfo = roleMap[role] || { label: role, variant: 'outline' }
     return <Badge variant={roleInfo.variant}>{roleInfo.label}</Badge>
   }
@@ -202,7 +201,12 @@ export default function MembersManagementPage() {
                         {canManage && !isMemberOwner ? (
                           <Select
                             value={member.role}
-                            onValueChange={(newRole) => handleChangeRole(member.user.id, newRole as 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER')}
+                            onValueChange={(newRole) =>
+                              handleChangeRole(
+                                member.user.id,
+                                newRole as 'OWNER' | 'MAINTAINER' | 'MEMBER' | 'VIEWER'
+                              )
+                            }
                           >
                             <SelectTrigger className="w-[140px]">
                               <SelectValue />

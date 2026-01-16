@@ -4,7 +4,8 @@ import Link from 'next/link'
 
 export const metadata = {
   title: 'Testing Guide - Flotilla Documentation',
-  description: 'Learn how to test Flotilla with Playwright E2E tests, Jest unit tests, and CI/CD integration.',
+  description:
+    'Learn how to test Flotilla with Playwright E2E tests, Jest unit tests, and CI/CD integration.',
 }
 
 export default function TestingPage() {
@@ -124,9 +125,7 @@ jobs:
           <TestTube className="h-4 w-4" />
           <span>80%+ Test Coverage</span>
         </div>
-        <h1 className="text-5xl font-bold mb-4">
-          Testing Guide
-        </h1>
+        <h1 className="text-5xl font-bold mb-4">Testing Guide</h1>
         <p className="text-xl text-foreground/60 max-w-2xl">
           Flotilla maintains high code quality with comprehensive test coverage. Learn how to run,
           write, and debug tests for both frontend and backend.
@@ -144,8 +143,12 @@ jobs:
               <h3 className="text-2xl font-semibold">Frontend (Playwright)</h3>
             </div>
             <ul className="space-y-2 text-sm text-foreground/70">
-              <li>• <strong className="text-foreground">9 test suites</strong> covering all features</li>
-              <li>• <strong className="text-foreground">50+ test cases</strong> for E2E scenarios</li>
+              <li>
+                • <strong className="text-foreground">9 test suites</strong> covering all features
+              </li>
+              <li>
+                • <strong className="text-foreground">50+ test cases</strong> for E2E scenarios
+              </li>
               <li>• Tests: Auth, Organizations, Teams, Projects, Files, Admin, Dashboard, Theme</li>
               <li>• Interactive UI mode for debugging</li>
               <li>• Auto-screenshots on failure</li>
@@ -159,8 +162,13 @@ jobs:
               <h3 className="text-2xl font-semibold">Backend (Jest)</h3>
             </div>
             <ul className="space-y-2 text-sm text-foreground/70">
-              <li>• <strong className="text-foreground">Unit tests</strong> for services and controllers</li>
-              <li>• <strong className="text-foreground">Integration tests</strong> with test database</li>
+              <li>
+                • <strong className="text-foreground">Unit tests</strong> for services and
+                controllers
+              </li>
+              <li>
+                • <strong className="text-foreground">Integration tests</strong> with test database
+              </li>
               <li>• Raft consensus algorithm tests</li>
               <li>• API endpoint tests with supertest</li>
               <li>• 80%+ code coverage target</li>
@@ -172,19 +180,17 @@ jobs:
       {/* Running Tests */}
       <section className="mb-12">
         <h2 className="text-3xl font-bold mb-6">Running Tests</h2>
-        <CodeBlock
-          code={runTestsCommands}
-          language="bash"
-          filename="Test Commands"
-        />
+        <CodeBlock code={runTestsCommands} language="bash" filename="Test Commands" />
         <div className="mt-6 grid md:grid-cols-2 gap-4">
           <div className="p-4 rounded-lg bg-primary/10 border border-primary/20 text-sm">
-            <strong>💡 Pro Tip:</strong> Use <code className="px-2 py-1 rounded bg-secondary">pnpm test:ui</code> for
-            interactive debugging. You can pause, step through, and inspect element states.
+            <strong>💡 Pro Tip:</strong> Use{' '}
+            <code className="px-2 py-1 rounded bg-secondary">pnpm test:ui</code> for interactive
+            debugging. You can pause, step through, and inspect element states.
           </div>
           <div className="p-4 rounded-lg bg-accent/10 border border-accent/20 text-sm">
-            <strong>⚡ Fast Feedback:</strong> Run <code className="px-2 py-1 rounded bg-secondary">pnpm test:watch</code> for
-            instant feedback during development. Tests re-run on file changes.
+            <strong>⚡ Fast Feedback:</strong> Run{' '}
+            <code className="px-2 py-1 rounded bg-secondary">pnpm test:watch</code> for instant
+            feedback during development. Tests re-run on file changes.
           </div>
         </div>
       </section>
@@ -194,7 +200,8 @@ jobs:
         <h2 className="text-3xl font-bold mb-6">Writing E2E Tests</h2>
         <div className="space-y-6">
           <p className="text-foreground/70">
-            Playwright E2E tests simulate real user interactions. Follow these patterns for consistent test structure:
+            Playwright E2E tests simulate real user interactions. Follow these patterns for
+            consistent test structure:
           </p>
           <CodeBlock
             code={playwrightExample}
@@ -210,7 +217,10 @@ jobs:
                 <CheckCircle className="h-6 w-6 text-green-400 mb-3" />
                 <h4 className="font-semibold mb-2">✓ Do</h4>
                 <ul className="text-sm space-y-1 text-foreground/70">
-                  <li>• Use role-based selectors: <code className="px-1 rounded bg-secondary">role=&quot;button&quot;</code></li>
+                  <li>
+                    • Use role-based selectors:{' '}
+                    <code className="px-1 rounded bg-secondary">role=&quot;button&quot;</code>
+                  </li>
                   <li>• Test user flows, not implementation</li>
                   <li>• Clean up test data after each test</li>
                   <li>• Use descriptive test names</li>
@@ -218,7 +228,9 @@ jobs:
                 </ul>
               </div>
               <div className="p-4 rounded-lg bg-card border border-border/40">
-                <div className="h-6 w-6 text-red-400 mb-3 flex items-center justify-center text-2xl">✗</div>
+                <div className="h-6 w-6 text-red-400 mb-3 flex items-center justify-center text-2xl">
+                  ✗
+                </div>
                 <h4 className="font-semibold mb-2">✗ Avoid</h4>
                 <ul className="text-sm space-y-1 text-foreground/70">
                   <li>• Using CSS class selectors (brittle)</li>
@@ -240,14 +252,30 @@ jobs:
           <h4 className="font-semibold mb-4">Frontend Test Structure</h4>
           <div className="space-y-2 text-sm font-mono">
             <div className="text-foreground/70">apps/frontend/tests/</div>
-            <div className="pl-4 text-foreground/70">├── auth/ <span className="text-foreground/50">(login, register)</span></div>
-            <div className="pl-4 text-foreground/70">├── organizations/ <span className="text-foreground/50">(CRUD, members, teams)</span></div>
-            <div className="pl-4 text-foreground/70">├── teams/ <span className="text-foreground/50">(CRUD, members, permissions)</span></div>
-            <div className="pl-4 text-foreground/70">├── projects/ <span className="text-foreground/50">(project operations)</span></div>
-            <div className="pl-4 text-foreground/70">├── files/ <span className="text-foreground/50">(file management)</span></div>
-            <div className="pl-4 text-foreground/70">├── admin/ <span className="text-foreground/50">(admin panel)</span></div>
-            <div className="pl-4 text-foreground/70">├── dashboard/ <span className="text-foreground/50">(dashboard features)</span></div>
-            <div className="pl-4 text-foreground/70">└── theme-language/ <span className="text-foreground/50">(theme & i18n)</span></div>
+            <div className="pl-4 text-foreground/70">
+              ├── auth/ <span className="text-foreground/50">(login, register)</span>
+            </div>
+            <div className="pl-4 text-foreground/70">
+              ├── organizations/ <span className="text-foreground/50">(CRUD, members, teams)</span>
+            </div>
+            <div className="pl-4 text-foreground/70">
+              ├── teams/ <span className="text-foreground/50">(CRUD, members, permissions)</span>
+            </div>
+            <div className="pl-4 text-foreground/70">
+              ├── projects/ <span className="text-foreground/50">(project operations)</span>
+            </div>
+            <div className="pl-4 text-foreground/70">
+              ├── files/ <span className="text-foreground/50">(file management)</span>
+            </div>
+            <div className="pl-4 text-foreground/70">
+              ├── admin/ <span className="text-foreground/50">(admin panel)</span>
+            </div>
+            <div className="pl-4 text-foreground/70">
+              ├── dashboard/ <span className="text-foreground/50">(dashboard features)</span>
+            </div>
+            <div className="pl-4 text-foreground/70">
+              └── theme-language/ <span className="text-foreground/50">(theme & i18n)</span>
+            </div>
           </div>
         </div>
       </section>
@@ -257,13 +285,10 @@ jobs:
         <h2 className="text-3xl font-bold mb-6">CI/CD Integration</h2>
         <div className="space-y-6">
           <p className="text-foreground/70">
-            Flotilla uses GitHub Actions for continuous integration. All tests must pass before merging to main.
+            Flotilla uses GitHub Actions for continuous integration. All tests must pass before
+            merging to main.
           </p>
-          <CodeBlock
-            code={cicdExample}
-            language="yaml"
-            filename=".github/workflows/test.yml"
-          />
+          <CodeBlock code={cicdExample} language="yaml" filename=".github/workflows/test.yml" />
           <div className="p-6 rounded-xl bg-primary/10 border border-primary/20">
             <h4 className="font-semibold mb-3 flex items-center gap-2">
               <Play className="h-5 w-5 text-primary" />
@@ -305,12 +330,15 @@ jobs:
           <div className="p-4 rounded-lg border border-border/40">
             <h4 className="font-semibold mb-2">3. View Screenshots</h4>
             <p className="text-sm text-foreground/70">
-              Failed tests automatically capture screenshots in <code className="px-2 py-1 rounded bg-secondary">test-results/</code> directory.
+              Failed tests automatically capture screenshots in{' '}
+              <code className="px-2 py-1 rounded bg-secondary">test-results/</code> directory.
             </p>
           </div>
           <div className="p-4 rounded-lg border border-border/40">
             <h4 className="font-semibold mb-2">4. Check Database State</h4>
-            <code className="text-sm">docker exec flotilla-postgres psql -U devplatform -d cloud_dev_platform</code>
+            <code className="text-sm">
+              docker exec flotilla-postgres psql -U devplatform -d cloud_dev_platform
+            </code>
             <p className="text-sm text-foreground/70 mt-2">
               Inspect database for test data cleanup issues.
             </p>
@@ -332,9 +360,7 @@ jobs:
               <div className="font-semibold group-hover:text-primary transition-colors">
                 Playwright Docs
               </div>
-              <div className="text-sm text-foreground/60">
-                Official Playwright documentation
-              </div>
+              <div className="text-sm text-foreground/60">Official Playwright documentation</div>
             </div>
             <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </a>
@@ -346,9 +372,7 @@ jobs:
               <div className="font-semibold group-hover:text-primary transition-colors">
                 Contributing Guide
               </div>
-              <div className="text-sm text-foreground/60">
-                Learn how to contribute to Flotilla
-              </div>
+              <div className="text-sm text-foreground/60">Learn how to contribute to Flotilla</div>
             </div>
             <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Link>

@@ -1,31 +1,45 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState } from 'react'
 import { FileDiff, PRCommentWithAuthor } from '@/types/pull-request'
 
 interface DiffFileViewProps {
   file: FileDiff
   comments: PRCommentWithAuthor[]
-  pullRequestId: string  // Used for API calls (kept for future use)
+  pullRequestId: string // Used for API calls (kept for future use)
   commitHash?: string
-  onAddComment: (filePath: string, lineNumber: number, body: string, commitHash?: string) => Promise<void>
+  onAddComment: (
+    filePath: string,
+    lineNumber: number,
+    body: string,
+    commitHash?: string
+  ) => Promise<void>
 }
 
-export function DiffFileView({ file, comments, commitHash, onAddComment }: Omit<DiffFileViewProps, 'pullRequestId'>) {
+export function DiffFileView({
+  file,
+  comments,
+  commitHash,
+  onAddComment,
+}: Omit<DiffFileViewProps, 'pullRequestId'>) {
   const [activeLineNumber, setActiveLineNumber] = useState<number | null>(null)
   const [commentBody, setCommentBody] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [hoveredLine, setHoveredLine] = useState<number | null>(null)
 
   // Group comments by line number
-  const commentsByLine = comments.reduce((acc, comment) => {
-    if (comment.filePath === file.path && comment.lineNumber) {
-      const key = comment.lineNumber
-      if (!acc[key]) acc[key] = []
-      acc[key].push(comment)
-    }
-    return acc
-  }, {} as Record<number, PRCommentWithAuthor[]>)
+  const commentsByLine = comments.reduce(
+    (acc, comment) => {
+      if (comment.filePath === file.path && comment.lineNumber) {
+        const key = comment.lineNumber
+        if (!acc[key]) acc[key] = []
+        acc[key].push(comment)
+      }
+      return acc
+    },
+    {} as Record<number, PRCommentWithAuthor[]>
+  )
 
   // Parse patch into lines with proper line number tracking
   const lines = file.patch ? file.patch.split('\n') : []
@@ -67,7 +81,7 @@ export function DiffFileView({ file, comments, commitHash, onAddComment }: Omit<
       setCommentBody('')
       setActiveLineNumber(null)
     } catch (err) {
-      console.error('Failed to add comment:', err)
+      logger.error('Failed to add comment:', err)
       alert('Failed to add comment. Please try again.')
     } finally {
       setSubmitting(false)
@@ -83,8 +97,7 @@ export function DiffFileView({ file, comments, commitHash, onAddComment }: Omit<
           <span className="ml-2 text-gray-600 dark:text-gray-400">({file.status})</span>
         </div>
         <div className="text-sm">
-          <span className="text-green-600 dark:text-green-400">+{file.additions}</span>
-          {' '}
+          <span className="text-green-600 dark:text-green-400">+{file.additions}</span>{' '}
           <span className="text-red-600 dark:text-red-400">-{file.deletions}</span>
         </div>
       </div>
@@ -102,14 +115,15 @@ export function DiffFileView({ file, comments, commitHash, onAddComment }: Omit<
               const lineClass = isAddition
                 ? 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200'
                 : isDeletion
-                ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200'
-                : isHunkHeader
-                ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200'
-                : 'bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200'
+                  ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200'
+                  : isHunkHeader
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200'
+                    : 'bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200'
 
               const canComment = lineNumber !== null && !isDeletion && !isHunkHeader
               const hasComments = lineNumber && commentsByLine[lineNumber]
-              const isCommentFormActive = activeLineNumber !== null && activeLineNumber === lineNumber
+              const isCommentFormActive =
+                activeLineNumber !== null && activeLineNumber === lineNumber
 
               return (
                 <div key={idx}>
@@ -119,8 +133,8 @@ export function DiffFileView({ file, comments, commitHash, onAddComment }: Omit<
                       isAddition
                         ? 'border-green-500'
                         : isDeletion
-                        ? 'border-red-500'
-                        : 'border-transparent'
+                          ? 'border-red-500'
+                          : 'border-transparent'
                     }`}
                     onMouseEnter={() => canComment && setHoveredLine(lineNumber)}
                     onMouseLeave={() => setHoveredLine(null)}
@@ -131,9 +145,7 @@ export function DiffFileView({ file, comments, commitHash, onAddComment }: Omit<
                     </span>
 
                     {/* Code Content */}
-                    <span className="flex-1 px-2 py-1 whitespace-pre-wrap break-all">
-                      {line}
-                    </span>
+                    <span className="flex-1 px-2 py-1 whitespace-pre-wrap break-all">{line}</span>
 
                     {/* Add Comment Button (visible on hover) */}
                     {canComment && hoveredLine === lineNumber && !isCommentFormActive && (

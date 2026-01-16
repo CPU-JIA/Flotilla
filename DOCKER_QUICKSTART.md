@@ -28,16 +28,16 @@ docker-compose logs -f
 
 启动后可访问以下服务：
 
-| 服务 | 端口 | 访问地址 | 说明 |
-|------|------|---------|------|
-| **Frontend** | 3000 | http://localhost:3000 | 前端应用 (Next.js) |
-| **Website** | 3003 | http://localhost:3003 | 官网 (Next.js + i18n) |
-| **Backend API** | 4000 | http://localhost:4000/api | 后端 API (NestJS) |
-| **Swagger Docs** | 4000 | http://localhost:4000/api/docs | API 文档 |
-| **PostgreSQL** | 5434 | localhost:5434 | 主数据库 |
-| **Redis** | 6380 | localhost:6380 | 缓存/会话 |
-| **MinIO Console** | 9001 | http://localhost:9001 | 对象存储控制台 |
-| **MinIO API** | 9000 | localhost:9000 | S3 兼容 API |
+| 服务              | 端口 | 访问地址                       | 说明                  |
+| ----------------- | ---- | ------------------------------ | --------------------- |
+| **Frontend**      | 3000 | http://localhost:3000          | 前端应用 (Next.js)    |
+| **Website**       | 3003 | http://localhost:3003          | 官网 (Next.js + i18n) |
+| **Backend API**   | 4000 | http://localhost:4000/api      | 后端 API (NestJS)     |
+| **Swagger Docs**  | 4000 | http://localhost:4000/api/docs | API 文档              |
+| **PostgreSQL**    | 5434 | localhost:5434                 | 主数据库              |
+| **Redis**         | 6380 | localhost:6380                 | 缓存/会话             |
+| **MinIO Console** | 9001 | http://localhost:9001          | 对象存储控制台        |
+| **MinIO API**     | 9000 | localhost:9000                 | S3 兼容 API           |
 
 ## 常用命令
 
@@ -307,6 +307,7 @@ docker-compose logs -f
 - `minio_data`: MinIO 对象存储数据
 
 数据存储位置：
+
 ```bash
 # Windows: C:\ProgramData\docker\volumes\
 # Linux: /var/lib/docker/volumes/

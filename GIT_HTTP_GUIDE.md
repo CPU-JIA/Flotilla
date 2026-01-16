@@ -7,6 +7,7 @@ Flotilla 支持标准的 Git HTTP Smart Protocol，可以使用 git clone/fetch/
 Git HTTP 端点使用 **HTTP Basic Authentication** 进行认证。
 
 #### 方式1: URL内嵌凭据
+
 ```bash
 # Clone (读取)
 git clone http://username:password@localhost:4000/repo/projectId
@@ -16,6 +17,7 @@ git push http://username:password@localhost:4000/repo/projectId
 ```
 
 #### 方式2: Git Credential Helper (推荐)
+
 ```bash
 # 配置credential helper (凭据存储)
 git config --global credential.helper store
@@ -31,6 +33,7 @@ git push
 ```
 
 #### 方式3: Public 项目 (仅读取)
+
 ```bash
 # Public 项目无需认证即可clone
 git clone http://localhost:4000/repo/publicProjectId
@@ -38,11 +41,11 @@ git clone http://localhost:4000/repo/publicProjectId
 
 ### 🔐 权限说明
 
-| 操作 | 所需权限 | 说明 |
-|------|---------|------|
-| **git clone / git fetch** | READ | 任何项目成员或Public项目匿名用户 |
-| **git push** | WRITE | MEMBER及以上角色 (VIEWER只读) |
-| **分支保护检查** | - | push时自动验证分支保护规则 |
+| 操作                      | 所需权限 | 说明                             |
+| ------------------------- | -------- | -------------------------------- |
+| **git clone / git fetch** | READ     | 任何项目成员或Public项目匿名用户 |
+| **git push**              | WRITE    | MEMBER及以上角色 (VIEWER只读)    |
+| **分支保护检查**          | -        | push时自动验证分支保护规则       |
 
 ### ⚠️ 安全建议
 

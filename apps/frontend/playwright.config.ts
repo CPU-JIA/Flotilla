@@ -26,10 +26,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
 
   // 报告器
-  reporter: [
-    ['html', { outputFolder: 'playwright-report' }],
-    ['list'],
-  ],
+  reporter: [['html', { outputFolder: 'playwright-report' }], ['list']],
 
   // 全局配置
   use: {

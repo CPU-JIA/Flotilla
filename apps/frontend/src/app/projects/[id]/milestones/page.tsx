@@ -10,12 +10,19 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { MilestoneDialog } from '@/components/milestones/MilestoneDialog'
 import { useLanguage } from '@/contexts/language-context'
 import { Plus, Edit, Trash2, Lock, Unlock } from 'lucide-react'
@@ -42,7 +49,7 @@ export default function MilestonesPage() {
       const data = await api.milestones.list(projectId)
       setMilestones(data)
     } catch (error) {
-      console.error('Failed to load milestones:', error)
+      logger.error('Failed to load milestones:', error)
     } finally {
       setLoading(false)
     }
@@ -78,7 +85,7 @@ export default function MilestonesPage() {
       await api.milestones.update(projectId, milestone.id, { state: 'CLOSED' })
       await loadMilestones()
     } catch (error) {
-      console.error('Failed to close milestone:', error)
+      logger.error('Failed to close milestone:', error)
       alert(t.issues.milestones.closeFailed)
     }
   }
@@ -88,14 +95,16 @@ export default function MilestonesPage() {
       await api.milestones.update(projectId, milestone.id, { state: 'OPEN' })
       await loadMilestones()
     } catch (error) {
-      console.error('Failed to reopen milestone:', error)
+      logger.error('Failed to reopen milestone:', error)
       alert(t.issues.milestones.reopenFailed)
     }
   }
 
   const handleDelete = async (milestone: Milestone) => {
     const confirmed = confirm(
-      t.issues.milestones.confirmDelete + '\n\n' + t.issues.milestones.usedBy.replace('{count}', '?')
+      t.issues.milestones.confirmDelete +
+        '\n\n' +
+        t.issues.milestones.usedBy.replace('{count}', '?')
     )
     if (!confirmed) return
 
@@ -103,7 +112,7 @@ export default function MilestonesPage() {
       await api.milestones.delete(projectId, milestone.id)
       await loadMilestones()
     } catch (error) {
-      console.error('Failed to delete milestone:', error)
+      logger.error('Failed to delete milestone:', error)
       alert(t.issues.milestones.deleteFailed)
     }
   }
@@ -223,12 +232,17 @@ export default function MilestonesPage() {
               <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                 {milestone.dueDate && (
                   <span>
-                    {milestone.state === 'OPEN' ? t.issues.milestones.due : t.issues.milestones.closed}:{' '}
-                    {formatDate(milestone.dueDate)}
+                    {milestone.state === 'OPEN'
+                      ? t.issues.milestones.due
+                      : t.issues.milestones.closed}
+                    : {formatDate(milestone.dueDate)}
                   </span>
                 )}
                 <span>
-                  {t.issues.milestones.usedBy.replace('{count}', String(milestone._count?.issues || 0))}
+                  {t.issues.milestones.usedBy.replace(
+                    '{count}',
+                    String(milestone._count?.issues || 0)
+                  )}
                 </span>
               </div>
 

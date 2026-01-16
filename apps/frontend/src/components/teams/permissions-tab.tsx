@@ -6,6 +6,7 @@
  * ECP-C1: 防御性编程 - 权限级别验证
  */
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -49,7 +50,7 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
       const data = await api.teams.getPermissions(organizationSlug, teamSlug)
       setPermissions(data)
     } catch (err) {
-      console.error('Failed to fetch permissions:', err)
+      logger.error('Failed to fetch permissions:', err)
       alert(err instanceof ApiError ? err.message : t.error)
     } finally {
       setLoading(false)
@@ -145,8 +146,14 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
         color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
         icon: '🔑',
       },
-      MEMBER: { color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', icon: '✏️' },
-      VIEWER: { color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200', icon: '👁️' },
+      MEMBER: {
+        color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+        icon: '✏️',
+      },
+      VIEWER: {
+        color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200',
+        icon: '👁️',
+      },
     }
 
     // 角色翻译映射
@@ -226,18 +233,10 @@ export function PermissionsTab({ organizationSlug, teamSlug, canManage }: Permis
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="VIEWER">
-                      👁️ Viewer - Read-only access
-                    </SelectItem>
-                    <SelectItem value="MEMBER">
-                      ✏️ Member - Read and write access
-                    </SelectItem>
-                    <SelectItem value="MAINTAINER">
-                      🔑 Maintainer - Maintainer access
-                    </SelectItem>
-                    <SelectItem value="OWNER">
-                      👑 Owner - Full control
-                    </SelectItem>
+                    <SelectItem value="VIEWER">👁️ Viewer - Read-only access</SelectItem>
+                    <SelectItem value="MEMBER">✏️ Member - Read and write access</SelectItem>
+                    <SelectItem value="MAINTAINER">🔑 Maintainer - Maintainer access</SelectItem>
+                    <SelectItem value="OWNER">👑 Owner - Full control</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

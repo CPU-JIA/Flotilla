@@ -6,6 +6,7 @@
  * ECP-C2: 系统化错误处理
  */
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
@@ -51,34 +52,59 @@ export default function NotificationSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
-  const [originalPreferences, setOriginalPreferences] = useState<NotificationPreferences>(defaultPreferences)
+  const [originalPreferences, setOriginalPreferences] =
+    useState<NotificationPreferences>(defaultPreferences)
   const hasFetched = useRef(false)
 
   const t = {
     title: language === 'zh' ? '通知偏好' : 'Notification Preferences',
-    description: language === 'zh' ? '管理您希望接收的通知类型' : 'Manage which notifications you want to receive',
+    description:
+      language === 'zh'
+        ? '管理您希望接收的通知类型'
+        : 'Manage which notifications you want to receive',
     prSection: language === 'zh' ? 'Pull Request 通知' : 'Pull Request Notifications',
-    prSectionDesc: language === 'zh' ? '与 Pull Request 相关的通知' : 'Notifications related to Pull Requests',
+    prSectionDesc:
+      language === 'zh' ? '与 Pull Request 相关的通知' : 'Notifications related to Pull Requests',
     issueSection: language === 'zh' ? 'Issue 通知' : 'Issue Notifications',
     issueSectionDesc: language === 'zh' ? '与 Issue 相关的通知' : 'Notifications related to Issues',
     emailSection: language === 'zh' ? '邮件通知' : 'Email Notifications',
     emailSectionDesc: language === 'zh' ? '通过邮件接收通知' : 'Receive notifications via email',
     prCreated: language === 'zh' ? 'PR 创建通知' : 'PR Created',
-    prCreatedDesc: language === 'zh' ? '当新的 Pull Request 创建时通知' : 'Notify when a new Pull Request is created',
+    prCreatedDesc:
+      language === 'zh'
+        ? '当新的 Pull Request 创建时通知'
+        : 'Notify when a new Pull Request is created',
     prMerged: language === 'zh' ? 'PR 合并通知' : 'PR Merged',
-    prMergedDesc: language === 'zh' ? '当 Pull Request 被合并时通知' : 'Notify when a Pull Request is merged',
+    prMergedDesc:
+      language === 'zh' ? '当 Pull Request 被合并时通知' : 'Notify when a Pull Request is merged',
     prReviewed: language === 'zh' ? 'PR 审查通知' : 'PR Reviewed',
-    prReviewedDesc: language === 'zh' ? '当 Pull Request 收到审查时通知' : 'Notify when a Pull Request receives a review',
+    prReviewedDesc:
+      language === 'zh'
+        ? '当 Pull Request 收到审查时通知'
+        : 'Notify when a Pull Request receives a review',
     prCommented: language === 'zh' ? 'PR 评论通知' : 'PR Commented',
-    prCommentedDesc: language === 'zh' ? '当 Pull Request 收到评论时通知' : 'Notify when a Pull Request receives a comment',
+    prCommentedDesc:
+      language === 'zh'
+        ? '当 Pull Request 收到评论时通知'
+        : 'Notify when a Pull Request receives a comment',
     issueMentioned: language === 'zh' ? '被提及时通知' : 'Mentioned',
-    issueMentionedDesc: language === 'zh' ? '当您在 Issue 中被 @ 提及时通知' : 'Notify when you are @mentioned in an Issue',
+    issueMentionedDesc:
+      language === 'zh'
+        ? '当您在 Issue 中被 @ 提及时通知'
+        : 'Notify when you are @mentioned in an Issue',
     issueAssigned: language === 'zh' ? '被分配时通知' : 'Assigned',
-    issueAssignedDesc: language === 'zh' ? '当 Issue 被分配给您时通知' : 'Notify when an Issue is assigned to you',
+    issueAssignedDesc:
+      language === 'zh' ? '当 Issue 被分配给您时通知' : 'Notify when an Issue is assigned to you',
     issueCommented: language === 'zh' ? 'Issue 评论通知' : 'Issue Commented',
-    issueCommentedDesc: language === 'zh' ? '当您关注的 Issue 收到评论时通知' : 'Notify when an Issue you watch receives a comment',
+    issueCommentedDesc:
+      language === 'zh'
+        ? '当您关注的 Issue 收到评论时通知'
+        : 'Notify when an Issue you watch receives a comment',
     emailEnabled: language === 'zh' ? '启用邮件通知' : 'Enable Email Notifications',
-    emailEnabledDesc: language === 'zh' ? '除了站内通知外，还通过邮件发送通知' : 'Send notifications via email in addition to in-app',
+    emailEnabledDesc:
+      language === 'zh'
+        ? '除了站内通知外，还通过邮件发送通知'
+        : 'Send notifications via email in addition to in-app',
     save: language === 'zh' ? '保存更改' : 'Save Changes',
     saving: language === 'zh' ? '保存中...' : 'Saving...',
     saved: language === 'zh' ? '已保存' : 'Saved',
@@ -105,7 +131,7 @@ export default function NotificationSettingsPage() {
           setPreferences(prefs)
           setOriginalPreferences(prefs)
         } catch (error) {
-          console.error('Failed to fetch preferences:', error)
+          logger.error('Failed to fetch preferences:', error)
           toast({
             title: language === 'zh' ? '加载失败' : 'Failed to load',
             variant: 'destructive',
@@ -120,7 +146,9 @@ export default function NotificationSettingsPage() {
 
   useEffect(() => {
     const changed = Object.keys(preferences).some(
-      (key) => preferences[key as keyof NotificationPreferences] !== originalPreferences[key as keyof NotificationPreferences]
+      (key) =>
+        preferences[key as keyof NotificationPreferences] !==
+        originalPreferences[key as keyof NotificationPreferences]
     )
     setHasChanges(changed)
   }, [preferences, originalPreferences])
@@ -145,7 +173,7 @@ export default function NotificationSettingsPage() {
         title: t.saveSuccess,
       })
     } catch (error) {
-      console.error('Failed to save preferences:', error)
+      logger.error('Failed to save preferences:', error)
       toast({
         title: t.saveError,
         variant: 'destructive',
@@ -180,149 +208,149 @@ export default function NotificationSettingsPage() {
         </Button>
       </div>
 
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Pull Request Notifications */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <GitPullRequest className="h-5 w-5 text-purple-500" />
-                  {t.prSection}
-                </CardTitle>
-                <CardDescription>{t.prSectionDesc}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>{t.prCreated}</Label>
-                    <p className="text-sm text-muted-foreground">{t.prCreatedDesc}</p>
-                  </div>
-                  <Switch
-                    checked={preferences.prCreated}
-                    onCheckedChange={() => handleToggle('prCreated')}
-                  />
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Pull Request Notifications */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <GitPullRequest className="h-5 w-5 text-purple-500" />
+                {t.prSection}
+              </CardTitle>
+              <CardDescription>{t.prSectionDesc}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>{t.prCreated}</Label>
+                  <p className="text-sm text-muted-foreground">{t.prCreatedDesc}</p>
                 </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>{t.prMerged}</Label>
-                    <p className="text-sm text-muted-foreground">{t.prMergedDesc}</p>
-                  </div>
-                  <Switch
-                    checked={preferences.prMerged}
-                    onCheckedChange={() => handleToggle('prMerged')}
-                  />
+                <Switch
+                  checked={preferences.prCreated}
+                  onCheckedChange={() => handleToggle('prCreated')}
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>{t.prMerged}</Label>
+                  <p className="text-sm text-muted-foreground">{t.prMergedDesc}</p>
                 </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="flex items-center gap-2">
-                      <MessageCircle className="h-4 w-4" />
-                      {t.prReviewed}
-                    </Label>
-                    <p className="text-sm text-muted-foreground">{t.prReviewedDesc}</p>
-                  </div>
-                  <Switch
-                    checked={preferences.prReviewed}
-                    onCheckedChange={() => handleToggle('prReviewed')}
-                  />
+                <Switch
+                  checked={preferences.prMerged}
+                  onCheckedChange={() => handleToggle('prMerged')}
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4" />
+                    {t.prReviewed}
+                  </Label>
+                  <p className="text-sm text-muted-foreground">{t.prReviewedDesc}</p>
                 </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>{t.prCommented}</Label>
-                    <p className="text-sm text-muted-foreground">{t.prCommentedDesc}</p>
-                  </div>
-                  <Switch
-                    checked={preferences.prCommented}
-                    onCheckedChange={() => handleToggle('prCommented')}
-                  />
+                <Switch
+                  checked={preferences.prReviewed}
+                  onCheckedChange={() => handleToggle('prReviewed')}
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>{t.prCommented}</Label>
+                  <p className="text-sm text-muted-foreground">{t.prCommentedDesc}</p>
                 </div>
-              </CardContent>
-            </Card>
+                <Switch
+                  checked={preferences.prCommented}
+                  onCheckedChange={() => handleToggle('prCommented')}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Issue Notifications */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AtSign className="h-5 w-5 text-blue-500" />
-                  {t.issueSection}
-                </CardTitle>
-                <CardDescription>{t.issueSectionDesc}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="flex items-center gap-2">
-                      <AtSign className="h-4 w-4" />
-                      {t.issueMentioned}
-                    </Label>
-                    <p className="text-sm text-muted-foreground">{t.issueMentionedDesc}</p>
-                  </div>
-                  <Switch
-                    checked={preferences.issueMentioned}
-                    onCheckedChange={() => handleToggle('issueMentioned')}
-                  />
+          {/* Issue Notifications */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AtSign className="h-5 w-5 text-blue-500" />
+                {t.issueSection}
+              </CardTitle>
+              <CardDescription>{t.issueSectionDesc}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-2">
+                    <AtSign className="h-4 w-4" />
+                    {t.issueMentioned}
+                  </Label>
+                  <p className="text-sm text-muted-foreground">{t.issueMentionedDesc}</p>
                 </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="flex items-center gap-2">
-                      <UserPlus className="h-4 w-4" />
-                      {t.issueAssigned}
-                    </Label>
-                    <p className="text-sm text-muted-foreground">{t.issueAssignedDesc}</p>
-                  </div>
-                  <Switch
-                    checked={preferences.issueAssigned}
-                    onCheckedChange={() => handleToggle('issueAssigned')}
-                  />
+                <Switch
+                  checked={preferences.issueMentioned}
+                  onCheckedChange={() => handleToggle('issueMentioned')}
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    {t.issueAssigned}
+                  </Label>
+                  <p className="text-sm text-muted-foreground">{t.issueAssignedDesc}</p>
                 </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="flex items-center gap-2">
-                      <MessageCircle className="h-4 w-4" />
-                      {t.issueCommented}
-                    </Label>
-                    <p className="text-sm text-muted-foreground">{t.issueCommentedDesc}</p>
-                  </div>
-                  <Switch
-                    checked={preferences.issueCommented}
-                    onCheckedChange={() => handleToggle('issueCommented')}
-                  />
+                <Switch
+                  checked={preferences.issueAssigned}
+                  onCheckedChange={() => handleToggle('issueAssigned')}
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4" />
+                    {t.issueCommented}
+                  </Label>
+                  <p className="text-sm text-muted-foreground">{t.issueCommentedDesc}</p>
                 </div>
-              </CardContent>
-            </Card>
+                <Switch
+                  checked={preferences.issueCommented}
+                  onCheckedChange={() => handleToggle('issueCommented')}
+                />
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Email Notifications */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Mail className="h-5 w-5 text-green-500" />
-                  {t.emailSection}
-                </CardTitle>
-                <CardDescription>{t.emailSectionDesc}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>{t.emailEnabled}</Label>
-                    <p className="text-sm text-muted-foreground">{t.emailEnabledDesc}</p>
-                  </div>
-                  <Switch
-                    checked={preferences.emailNotifications}
-                    onCheckedChange={() => handleToggle('emailNotifications')}
-                  />
+          {/* Email Notifications */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5 text-green-500" />
+                {t.emailSection}
+              </CardTitle>
+              <CardDescription>{t.emailSectionDesc}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>{t.emailEnabled}</Label>
+                  <p className="text-sm text-muted-foreground">{t.emailEnabledDesc}</p>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+                <Switch
+                  checked={preferences.emailNotifications}
+                  onCheckedChange={() => handleToggle('emailNotifications')}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

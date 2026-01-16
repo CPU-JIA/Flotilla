@@ -28,9 +28,7 @@ pnpm dev
     <div className="py-12 px-8">
       {/* Hero */}
       <div className="mb-16">
-        <h1 className="text-5xl font-bold mb-4">
-          Documentation
-        </h1>
+        <h1 className="text-5xl font-bold mb-4">Documentation</h1>
         <p className="text-xl text-foreground/60 max-w-2xl">
           Everything you need to know about Flotilla. From quick start to advanced architecture.
         </p>
@@ -50,11 +48,7 @@ pnpm dev
           </div>
         </div>
 
-        <CodeBlock
-          code={installCommand}
-          language="bash"
-          filename="terminal"
-        />
+        <CodeBlock code={installCommand} language="bash" filename="terminal" />
 
         <div className="mt-6 flex gap-3">
           <Link
@@ -84,25 +78,29 @@ pnpm dev
             {
               icon: BookOpen,
               title: 'Raft Consensus Algorithm',
-              description: 'Production-ready distributed consensus with 150ms failover. Real WebSocket communication, persistent logs, automatic leader election.',
+              description:
+                'Production-ready distributed consensus with 150ms failover. Real WebSocket communication, persistent logs, automatic leader election.',
               href: '/docs/raft',
             },
             {
               icon: Code,
               title: 'Full-Stack TypeScript',
-              description: 'Next.js 15 + React 19 frontend. NestJS 11 + Prisma 6 backend. End-to-end type safety with monorepo architecture.',
+              description:
+                'Next.js 15 + React 19 frontend. NestJS 11 + Prisma 6 backend. End-to-end type safety with monorepo architecture.',
               href: '/docs/architecture',
             },
             {
               icon: TestTube,
               title: 'Comprehensive Testing',
-              description: 'Playwright E2E tests, Jest unit tests, 80%+ coverage. Every feature is battle-tested before merge.',
+              description:
+                'Playwright E2E tests, Jest unit tests, 80%+ coverage. Every feature is battle-tested before merge.',
               href: '/docs/testing',
             },
             {
               icon: Github,
               title: 'Open Source & Self-Hosted',
-              description: 'MIT License. Fork, modify, build, sell. No vendor lock-in. Complete control over your infrastructure.',
+              description:
+                'MIT License. Fork, modify, build, sell. No vendor lock-in. Complete control over your infrastructure.',
               href: '/docs/contributing',
             },
           ].map((feature) => {
@@ -117,9 +115,7 @@ pnpm dev
                 <h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
                   {feature.title}
                 </h3>
-                <p className="text-sm text-foreground/70 leading-relaxed">
-                  {feature.description}
-                </p>
+                <p className="text-sm text-foreground/70 leading-relaxed">{feature.description}</p>
                 <div className="mt-4 flex items-center gap-2 text-sm font-medium text-primary">
                   Learn more
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />

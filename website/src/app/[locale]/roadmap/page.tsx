@@ -72,19 +72,27 @@ export default function RoadmapPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'text-green-500'
-      case 'in_progress': return 'text-yellow-500'
-      case 'planned': return 'text-blue-500'
-      default: return 'text-foreground/40'
+      case 'completed':
+        return 'text-green-500'
+      case 'in_progress':
+        return 'text-yellow-500'
+      case 'planned':
+        return 'text-blue-500'
+      default:
+        return 'text-foreground/40'
     }
   }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'completed': return CheckCircle
-      case 'in_progress': return Clock
-      case 'planned': return Circle
-      default: return Circle
+      case 'completed':
+        return CheckCircle
+      case 'in_progress':
+        return Clock
+      case 'planned':
+        return Circle
+      default:
+        return Circle
     }
   }
 
@@ -97,9 +105,7 @@ export default function RoadmapPage() {
             <Rocket className="h-4 w-4" />
             <span>Product Roadmap</span>
           </div>
-          <h1 className="text-5xl sm:text-6xl font-bold mb-6">
-            Flotilla 2.0 Roadmap
-          </h1>
+          <h1 className="text-5xl sm:text-6xl font-bold mb-6">Flotilla 2.0 Roadmap</h1>
           <p className="text-xl text-foreground/60 max-w-2xl mx-auto mb-8">
             24-month strategic plan from academic demo to AI-powered development platform
           </p>
@@ -167,17 +173,17 @@ export default function RoadmapPage() {
                 <div
                   key={phase.number}
                   className={`p-8 rounded-2xl border ${
-                    isActive
-                      ? 'bg-primary/5 border-primary/30'
-                      : 'bg-card border-border/40'
+                    isActive ? 'bg-primary/5 border-primary/30' : 'bg-card border-border/40'
                   }`}
                 >
                   {/* Phase Header */}
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex items-start gap-4">
-                      <div className={`flex-shrink-0 w-16 h-16 rounded-2xl ${
-                        isActive ? 'bg-primary' : 'bg-secondary'
-                      } text-${isActive ? 'primary-foreground' : 'foreground'} flex items-center justify-center text-2xl font-bold`}>
+                      <div
+                        className={`flex-shrink-0 w-16 h-16 rounded-2xl ${
+                          isActive ? 'bg-primary' : 'bg-secondary'
+                        } text-${isActive ? 'primary-foreground' : 'foreground'} flex items-center justify-center text-2xl font-bold`}
+                      >
                         {phase.number}
                       </div>
                       <div>
@@ -212,10 +218,14 @@ export default function RoadmapPage() {
                             key={feature.name}
                             className="flex items-start gap-3 p-3 rounded-lg bg-secondary/20 hover:bg-secondary/30 transition-colors"
                           >
-                            <StatusIcon className={`h-5 w-5 mt-0.5 ${getStatusColor(feature.status)}`} />
+                            <StatusIcon
+                              className={`h-5 w-5 mt-0.5 ${getStatusColor(feature.status)}`}
+                            />
                             <div className="flex-1">
                               <div className="font-medium text-sm">{feature.name}</div>
-                              <div className="text-xs text-foreground/50 capitalize">{feature.status.replace('_', ' ')}</div>
+                              <div className="text-xs text-foreground/50 capitalize">
+                                {feature.status.replace('_', ' ')}
+                              </div>
                             </div>
                           </div>
                         )
@@ -236,9 +246,21 @@ export default function RoadmapPage() {
             <h3 className="text-2xl font-bold mb-6 text-center">Status Legend</h3>
             <div className="grid md:grid-cols-3 gap-6">
               {[
-                { status: 'completed', label: 'Completed', description: 'Feature is live in production' },
-                { status: 'in_progress', label: 'In Progress', description: 'Currently under active development' },
-                { status: 'planned', label: 'Planned', description: 'Scheduled for future development' },
+                {
+                  status: 'completed',
+                  label: 'Completed',
+                  description: 'Feature is live in production',
+                },
+                {
+                  status: 'in_progress',
+                  label: 'In Progress',
+                  description: 'Currently under active development',
+                },
+                {
+                  status: 'planned',
+                  label: 'Planned',
+                  description: 'Scheduled for future development',
+                },
               ].map((item) => {
                 const Icon = getStatusIcon(item.status)
                 return (
@@ -264,7 +286,8 @@ export default function RoadmapPage() {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Want to Contribute?</h2>
           <p className="text-foreground/60 mb-8 max-w-2xl mx-auto">
-            We are building Flotilla in public. Join us in shaping the future of distributed collaboration.
+            We are building Flotilla in public. Join us in shaping the future of distributed
+            collaboration.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

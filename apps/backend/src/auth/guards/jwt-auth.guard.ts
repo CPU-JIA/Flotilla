@@ -25,6 +25,12 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   canActivate(context: ExecutionContext) {
+    // ECP-C1: 跳过 CORS 预检请求 (OPTIONS)
+    const request = context.switchToHttp().getRequest();
+    if (request.method === 'OPTIONS') {
+      return true;
+    }
+
     // 检查是否标记为公开路由
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),

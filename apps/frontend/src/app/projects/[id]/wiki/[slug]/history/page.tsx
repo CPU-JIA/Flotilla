@@ -37,16 +37,12 @@ export default function WikiPageHistory() {
   const [history, setHistory] = useState<WikiPageHistory[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedVersion, setSelectedVersion] = useState<WikiPageHistory | null>(
-    null,
-  )
+  const [selectedVersion, setSelectedVersion] = useState<WikiPageHistory | null>(null)
 
   const fetchHistory = useCallback(async () => {
     try {
       setLoading(true)
-      const data = await api.get<WikiPageHistory[]>(
-        `/projects/${projectId}/wiki/${slug}/history`,
-      )
+      const data = await api.get<WikiPageHistory[]>(`/projects/${projectId}/wiki/${slug}/history`)
       setHistory(data)
       if (data.length > 0) {
         setSelectedVersion(data[0])
@@ -83,10 +79,7 @@ export default function WikiPageHistory() {
   return (
     <div className="container mx-auto py-8">
       <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => router.push(`/projects/${projectId}/wiki/${slug}`)}
-        >
+        <Button variant="ghost" onClick={() => router.push(`/projects/${projectId}/wiki/${slug}`)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Page
         </Button>
@@ -132,9 +125,7 @@ export default function WikiPageHistory() {
           {selectedVersion ? (
             <>
               <div className="mb-6">
-                <h1 className="text-3xl font-bold mb-2">
-                  {selectedVersion.title}
-                </h1>
+                <h1 className="text-3xl font-bold mb-2">{selectedVersion.title}</h1>
                 <div className="flex items-center gap-4 text-sm text-gray-500">
                   <div className="flex items-center gap-1">
                     <User className="h-4 w-4" />
@@ -157,9 +148,7 @@ export default function WikiPageHistory() {
               </div>
             </>
           ) : (
-            <div className="text-center text-gray-500 py-12">
-              Select a version to view
-            </div>
+            <div className="text-center text-gray-500 py-12">Select a version to view</div>
           )}
         </Card>
       </div>

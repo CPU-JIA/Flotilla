@@ -9,6 +9,7 @@
  * 不再需要手动管理 localStorage 和定时刷新
  */
 
+import { logger } from '@/lib/logger'
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { api } from '@/lib/api'
 import type { User, LoginRequest, RegisterRequest } from '@/types/auth'
@@ -44,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userData = await api.auth.me()
       setUser(userData)
     } catch (error) {
-      console.error('Failed to fetch user:', error)
+      logger.error('Failed to fetch user:', error)
       setUser(null)
     } finally {
       setIsLoading(false)

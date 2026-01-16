@@ -126,7 +126,12 @@ async function bootstrap() {
     origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'X-XSRF-TOKEN', // CSRF protection token
+    ],
     exposedHeaders: ['X-Total-Count', 'X-Page', 'X-Page-Size'],
     maxAge: 3600, // 预检请求缓存 1 小时
   });
@@ -239,6 +244,28 @@ async function bootstrap() {
   logger.log(`🚀 Application is running on: http://localhost:${port}/api`);
   logger.log(`📚 Swagger API documentation: http://localhost:${port}/api/docs`);
   logger.log(`🔐 Authentication endpoints: http://localhost:${port}/api/auth`);
+
+  // 🔍 ECP-C1: 优雅关闭处理
+  const gracefulShutdown = async (signal: string) => {
+    logger.log(`\n📡 Received ${signal}, starting graceful shutdown...`);
+
+    try {
+      // 停止接受新请求
+      await app.close();
+      logger.log('✅ Application closed successfully');
+
+      process.exit(0);
+    } catch (err) {
+      logger.error(
+        `❌ Error during shutdown: ${err instanceof Error ? err.message : String(err)}`,
+      );
+      process.exit(1);
+    }
+  };
+
+  // 监听终止信号
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 }
 
 bootstrap().catch((err) => {

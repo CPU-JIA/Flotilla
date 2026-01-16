@@ -6,6 +6,7 @@
  * ECP-C2: 系统化错误处理 - API 调用错误处理
  */
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect } from 'react'
 import {
   Select,
@@ -57,7 +58,7 @@ export function BranchSelector({
         } else {
           setError(t.git.branch.error)
         }
-        console.error('Failed to fetch branches:', err)
+        logger.error('Failed to fetch branches:', err)
       } finally {
         setLoading(false)
       }
@@ -100,7 +101,9 @@ export function BranchSelector({
 
   if (branches.length === 0) {
     return (
-      <div className={`inline-flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground ${className}`}>
+      <div
+        className={`inline-flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground ${className}`}
+      >
         <span>🌿</span>
         <span>{t.git.branch.noBranches}</span>
       </div>

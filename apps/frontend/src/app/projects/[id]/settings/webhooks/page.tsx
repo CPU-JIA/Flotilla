@@ -6,6 +6,7 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { api } from '@/lib/api'
@@ -32,7 +33,7 @@ export default function WebhooksPage() {
       const data = await api.webhooks.list(projectId)
       setWebhooks(data)
     } catch (error) {
-      console.error('Failed to load webhooks:', error)
+      logger.error('Failed to load webhooks:', error)
       toast({
         title: 'Error',
         description: 'Failed to load webhooks',
@@ -76,7 +77,7 @@ export default function WebhooksPage() {
       await loadWebhooks()
       setDialogOpen(false)
     } catch (error) {
-      console.error('Failed to save webhook:', error)
+      logger.error('Failed to save webhook:', error)
       toast({
         title: 'Error',
         description: 'Failed to save webhook',
@@ -89,9 +90,12 @@ export default function WebhooksPage() {
   }
 
   const handleDelete = async (webhook: Webhook) => {
-    if (!confirm(`Delete webhook?
+    if (
+      !confirm(`Delete webhook?
 
-URL: ${webhook.url}`)) return
+URL: ${webhook.url}`)
+    )
+      return
     try {
       await api.webhooks.delete(webhook.id)
       toast({
@@ -100,7 +104,7 @@ URL: ${webhook.url}`)) return
       })
       await loadWebhooks()
     } catch (error) {
-      console.error('Failed to delete webhook:', error)
+      logger.error('Failed to delete webhook:', error)
       toast({
         title: 'Error',
         description: 'Failed to delete webhook',
@@ -109,11 +113,12 @@ URL: ${webhook.url}`)) return
     }
   }
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="text-muted-foreground">Loading webhooks...</div>
-    </div>
-  )
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-muted-foreground">Loading webhooks...</div>
+      </div>
+    )
 
   return (
     <>
@@ -147,7 +152,10 @@ URL: ${webhook.url}`)) return
         ) : (
           <div className="space-y-4">
             {webhooks.map((webhook) => (
-              <div key={webhook.id} className="border rounded-lg p-6 hover:bg-muted/30 transition-colors">
+              <div
+                key={webhook.id}
+                className="border rounded-lg p-6 hover:bg-muted/30 transition-colors"
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0 space-y-3">
                     <div className="flex items-center gap-3">
@@ -155,16 +163,24 @@ URL: ${webhook.url}`)) return
                       <code className="text-sm bg-muted px-2 py-1 rounded font-mono break-all">
                         {webhook.url}
                       </code>
-                      <Badge variant={webhook.active ? "default" : "secondary"}>
-                        {webhook.active ? <Check className="h-3 w-3 mr-1" /> : <X className="h-3 w-3 mr-1" />}
+                      <Badge variant={webhook.active ? 'default' : 'secondary'}>
+                        {webhook.active ? (
+                          <Check className="h-3 w-3 mr-1" />
+                        ) : (
+                          <X className="h-3 w-3 mr-1" />
+                        )}
                         {webhook.active ? 'Active' : 'Inactive'}
                       </Badge>
                     </div>
                     <div className="flex items-start gap-2">
-                      <span className="text-sm text-muted-foreground whitespace-nowrap">Events:</span>
+                      <span className="text-sm text-muted-foreground whitespace-nowrap">
+                        Events:
+                      </span>
                       <div className="flex flex-wrap gap-2">
                         {webhook.events.map((event) => (
-                          <Badge key={event} variant="outline" className="font-normal">{event}</Badge>
+                          <Badge key={event} variant="outline" className="font-normal">
+                            {event}
+                          </Badge>
                         ))}
                       </div>
                     </div>
@@ -179,11 +195,7 @@ URL: ${webhook.url}`)) return
                     </div>
                   </div>
                   <div className="flex gap-2 flex-shrink-0 ml-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(webhook)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => handleEdit(webhook)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button

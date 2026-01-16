@@ -6,6 +6,7 @@
  * ECP-C1: 防御性编程 - 权限检查
  */
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -41,7 +42,7 @@ export function MembersTab({ organizationSlug, canManage, currentUserRole }: Mem
       const data = await api.organizations.getMembers(organizationSlug)
       setMembers(data)
     } catch (err) {
-      console.error('Failed to fetch members:', err)
+      logger.error('Failed to fetch members:', err)
       alert(err instanceof ApiError ? err.message : t.error)
     } finally {
       setLoading(false)
@@ -158,66 +159,66 @@ export function MembersTab({ organizationSlug, canManage, currentUserRole }: Mem
 
               return (
                 <Card key={member.userId} className="hover:shadow-md transition-shadow">
-                <CardContent className="pt-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xl font-bold">
-                        {member.user.username.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-semibold text-gray-900 dark:text-gray-100">
-                            {member.user.username}
-                          </p>
-                          {getRoleBadge(member.role)}
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 flex-1">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-xl font-bold">
+                          {member.user.username.charAt(0).toUpperCase()}
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          📧 {member.user.email}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                          📅 {t.loading === t.loading ? '加入于' : 'Joined'}{' '}
-                          {new Date(member.joinedAt).toLocaleDateString()}
-                        </p>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-gray-900 dark:text-gray-100">
+                              {member.user.username}
+                            </p>
+                            {getRoleBadge(member.role)}
+                          </div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            📧 {member.user.email}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                            📅 {t.loading === t.loading ? '加入于' : 'Joined'}{' '}
+                            {new Date(member.joinedAt).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
-                    </div>
 
-                    {canModifyThisMember && (
-                      <div className="flex items-center gap-3">
-                        <Select
-                          value={member.role}
-                          onValueChange={(value) =>
-                            handleUpdateRole(member.userId, value as OrgRole)
-                          }
-                          disabled={updating === member.userId}
-                        >
-                          <SelectTrigger className="w-32">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="ADMIN">{t.organizations.roles.ADMIN}</SelectItem>
-                            <SelectItem value="MEMBER">{t.organizations.roles.MEMBER}</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
-                          onClick={() => handleRemoveMember(member.userId, member.user!.username)}
-                          disabled={removing === member.userId}
-                        >
-                          {removing === member.userId
-                            ? t.loading === t.loading
-                              ? '移除中...'
-                              : 'Removing...'
-                            : t.organizations.removeMember}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
+                      {canModifyThisMember && (
+                        <div className="flex items-center gap-3">
+                          <Select
+                            value={member.role}
+                            onValueChange={(value) =>
+                              handleUpdateRole(member.userId, value as OrgRole)
+                            }
+                            disabled={updating === member.userId}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="ADMIN">{t.organizations.roles.ADMIN}</SelectItem>
+                              <SelectItem value="MEMBER">{t.organizations.roles.MEMBER}</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+                            onClick={() => handleRemoveMember(member.userId, member.user!.username)}
+                            disabled={removing === member.userId}
+                          >
+                            {removing === member.userId
+                              ? t.loading === t.loading
+                                ? '移除中...'
+                                : 'Removing...'
+                              : t.organizations.removeMember}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
         </div>
       )}
     </div>

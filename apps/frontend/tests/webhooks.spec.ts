@@ -53,9 +53,7 @@ test.describe('Webhook Management', () => {
       await page.getByRole('button', { name: /^create webhook$/i }).click()
 
       // Verify success toast notification
-      await expect(
-        page.getByText(/webhook created successfully/i)
-      ).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(/webhook created successfully/i)).toBeVisible({ timeout: 5000 })
 
       // Verify webhook appears in list
       await expect(page.getByText(testWebhook.url)).toBeVisible()
@@ -70,9 +68,7 @@ test.describe('Webhook Management', () => {
 
       // Verify validation error messages
       await expect(page.getByText(/url is required/i)).toBeVisible()
-      await expect(
-        page.getByText(/at least one event must be selected/i)
-      ).toBeVisible()
+      await expect(page.getByText(/at least one event must be selected/i)).toBeVisible()
 
       // Fill invalid URL
       await page.getByLabel(/webhook url/i).fill('invalid-url')
@@ -86,9 +82,7 @@ test.describe('Webhook Management', () => {
       await page.getByRole('button', { name: /^create webhook$/i }).click()
 
       // Verify protocol validation error
-      await expect(
-        page.getByText(/url must start with http:\/\/ or https:\/\//i)
-      ).toBeVisible()
+      await expect(page.getByText(/url must start with http:\/\/ or https:\/\//i)).toBeVisible()
     })
 
     test('should submit form on Enter key', async ({ page }) => {
@@ -105,9 +99,7 @@ test.describe('Webhook Management', () => {
       await urlInput.press('Enter')
 
       // Verify form submitted
-      await expect(
-        page.getByText(/webhook created successfully/i)
-      ).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(/webhook created successfully/i)).toBeVisible({ timeout: 5000 })
     })
 
     test('should show loading state during submission', async ({ page }) => {
@@ -169,9 +161,7 @@ test.describe('Webhook Management', () => {
       await page.getByLabel(/webhook url/i).fill(testWebhook.url)
       await page.getByLabel(/^push$/i).check()
       await page.getByRole('button', { name: /^create webhook$/i }).click()
-      await expect(
-        page.getByText(/webhook created successfully/i)
-      ).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(/webhook created successfully/i)).toBeVisible({ timeout: 5000 })
     })
 
     test('should edit existing webhook', async ({ page }) => {
@@ -195,9 +185,7 @@ test.describe('Webhook Management', () => {
       await page.getByRole('button', { name: /update webhook/i }).click()
 
       // Verify success toast
-      await expect(
-        page.getByText(/webhook updated successfully/i)
-      ).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(/webhook updated successfully/i)).toBeVisible({ timeout: 5000 })
 
       // Verify updated webhook appears in list
       await expect(page.getByText(updatedWebhook.url)).toBeVisible()
@@ -226,9 +214,7 @@ test.describe('Webhook Management', () => {
       await page.getByLabel(/webhook url/i).fill(testWebhook.url)
       await page.getByLabel(/^push$/i).check()
       await page.getByRole('button', { name: /^create webhook$/i }).click()
-      await expect(
-        page.getByText(/webhook created successfully/i)
-      ).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(/webhook created successfully/i)).toBeVisible({ timeout: 5000 })
     })
 
     test('should delete webhook with confirmation', async ({ page }) => {
@@ -237,9 +223,7 @@ test.describe('Webhook Management', () => {
       await webhookRow.getByRole('button', { name: /delete/i }).click()
 
       // Verify confirmation dialog
-      await expect(
-        page.getByText(/are you sure you want to delete this webhook/i)
-      ).toBeVisible()
+      await expect(page.getByText(/are you sure you want to delete this webhook/i)).toBeVisible()
 
       // Confirm deletion
       await page
@@ -248,9 +232,7 @@ test.describe('Webhook Management', () => {
         .click()
 
       // Verify success toast
-      await expect(
-        page.getByText(/webhook deleted successfully/i)
-      ).toBeVisible({ timeout: 5000 })
+      await expect(page.getByText(/webhook deleted successfully/i)).toBeVisible({ timeout: 5000 })
 
       // Verify webhook is removed from list
       await expect(page.getByText(testWebhook.url)).not.toBeVisible()
@@ -270,13 +252,9 @@ test.describe('Webhook Management', () => {
   })
 
   test.describe('Webhook List', () => {
-    test('should display empty state when no webhooks exist', async ({
-      page,
-    }) => {
+    test('should display empty state when no webhooks exist', async ({ page }) => {
       // Assuming no webhooks exist
-      await expect(
-        page.getByText(/no webhooks configured/i)
-      ).toBeVisible()
+      await expect(page.getByText(/no webhooks configured/i)).toBeVisible()
     })
 
     test('should display webhook list', async ({ page }) => {
@@ -297,9 +275,7 @@ test.describe('Webhook Management', () => {
         await page.getByLabel(/webhook url/i).fill(webhook.url)
         await page.getByLabel(new RegExp(`^${webhook.event}$`, 'i')).check()
         await page.getByRole('button', { name: /^create webhook$/i }).click()
-        await expect(
-          page.getByText(/webhook created successfully/i)
-        ).toBeVisible({ timeout: 5000 })
+        await expect(page.getByText(/webhook created successfully/i)).toBeVisible({ timeout: 5000 })
       }
 
       // Verify all webhooks are displayed
@@ -326,9 +302,7 @@ test.describe('Webhook Management', () => {
       await page.getByRole('button', { name: /^create webhook$/i }).click()
 
       // Verify error message is displayed
-      await expect(
-        page.getByText(/failed to save webhook/i)
-      ).toBeVisible()
+      await expect(page.getByText(/failed to save webhook/i)).toBeVisible()
     })
 
     test('should handle network timeout', async ({ page }) => {
@@ -345,9 +319,7 @@ test.describe('Webhook Management', () => {
 
       // Verify timeout error (depends on implementation)
       // This is a placeholder - actual implementation may vary
-      await expect(
-        page.getByText(/request timeout|took too long/i)
-      ).toBeVisible({ timeout: 70000 })
+      await expect(page.getByText(/request timeout|took too long/i)).toBeVisible({ timeout: 70000 })
     })
   })
 

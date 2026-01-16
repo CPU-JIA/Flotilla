@@ -26,7 +26,7 @@ const tables = [
           <tr><td>包管理</td><td>pnpm (Monorepo)</td><td>10.x</td><td>比npm/yarn更快</td></tr>
         </tbody>
       </table>
-    `
+    `,
   },
   {
     name: '表2-1_平台层角色',
@@ -40,7 +40,7 @@ const tables = [
           <tr><td><strong>普通用户（USER）</strong></td><td>平台注册用户</td><td>创建组织、创建项目、参与协作</td></tr>
         </tbody>
       </table>
-    `
+    `,
   },
   {
     name: '表2-2_组织层角色',
@@ -55,7 +55,7 @@ const tables = [
           <tr><td><strong>组织成员（MEMBER）</strong></td><td>组织的普通成员</td><td>创建项目、查看组织信息</td></tr>
         </tbody>
       </table>
-    `
+    `,
   },
   {
     name: '表2-3_团队层角色',
@@ -69,7 +69,7 @@ const tables = [
           <tr><td><strong>团队成员（MEMBER）</strong></td><td>团队普通成员</td><td>继承团队被赋予的项目权限</td></tr>
         </tbody>
       </table>
-    `
+    `,
   },
   {
     name: '表2-4_项目层角色',
@@ -85,7 +85,7 @@ const tables = [
           <tr><td><strong>项目查看者（VIEWER）</strong></td><td>只读访问权限</td><td>查看代码和项目信息</td></tr>
         </tbody>
       </table>
-    `
+    `,
   },
   {
     name: '表2-5_后端模块统计',
@@ -105,7 +105,7 @@ const tables = [
           <tr><td>其他</td><td>5</td><td>File, Webhook, Pipeline, Wiki, Collaboration</td></tr>
         </tbody>
       </table>
-    `
+    `,
   },
   {
     name: '表3-1_改进方向',
@@ -122,8 +122,8 @@ const tables = [
           <tr><td>P2</td><td>实现Raft动态成员变更</td><td>支持集群弹性伸缩</td></tr>
         </tbody>
       </table>
-    `
-  }
+    `,
+  },
 ]
 
 const css = `
@@ -182,7 +182,7 @@ async function renderTables() {
     const element = await page.$('table')
     await element.screenshot({
       path: path.join(__dirname, `${table.name}.png`),
-      type: 'png'
+      type: 'png',
     })
 
     console.log(`✓ ${table.name}.png`)

@@ -136,7 +136,9 @@ function TwoFactorVerifyContent() {
 
       // 显示恢复码使用提示
       if (useRecoveryCode) {
-        toast.success('Logged in with recovery code. Please disable and re-enable 2FA to get new recovery codes.')
+        toast.success(
+          'Logged in with recovery code. Please disable and re-enable 2FA to get new recovery codes.'
+        )
       } else {
         toast.success('Login successful')
       }

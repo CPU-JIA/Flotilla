@@ -38,7 +38,9 @@ export default function WikiPageEdit() {
   const fetchPage = useCallback(async () => {
     try {
       setLoading(true)
-      const page = await api.get<{ title: string; content: string; slug: string }>(`/projects/${projectId}/wiki/${slug}`)
+      const page = await api.get<{ title: string; content: string; slug: string }>(
+        `/projects/${projectId}/wiki/${slug}`
+      )
       setTitle(page.title)
       setContent(page.content)
       setNewSlug(page.slug)
@@ -103,10 +105,7 @@ export default function WikiPageEdit() {
   return (
     <div className="container mx-auto py-8">
       <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => router.push(`/projects/${projectId}/wiki/${slug}`)}
-        >
+        <Button variant="ghost" onClick={() => router.push(`/projects/${projectId}/wiki/${slug}`)}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Cancel
         </Button>

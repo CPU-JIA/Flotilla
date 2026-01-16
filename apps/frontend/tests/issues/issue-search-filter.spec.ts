@@ -87,33 +87,41 @@ test.describe('Issue Search & Filter', () => {
     })
 
     // Issue 3: Create as OPEN, then close it
-    const response3 = await page.request.post(`http://localhost:4000/api/projects/${projectId}/issues`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      data: {
-        title: 'Closed Issue 1 - Completed Task',
-        body: 'This issue is closed',
-      },
-    })
+    const response3 = await page.request.post(
+      `http://localhost:4000/api/projects/${projectId}/issues`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          title: 'Closed Issue 1 - Completed Task',
+          body: 'This issue is closed',
+        },
+      }
+    )
     const issue3Data = await response3.json()
     const issue3Number = issue3Data.number
 
     // Close Issue 3
-    await page.request.post(`http://localhost:4000/api/projects/${projectId}/issues/${issue3Number}/close`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    await page.request.post(
+      `http://localhost:4000/api/projects/${projectId}/issues/${issue3Number}/close`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
 
     // Navigate to issues page
     await page.goto(`/projects/${projectId}/issues`)
     await page.waitForLoadState('networkidle', { timeout: 10000 })
 
     // Verify page title
-    await expect(page.getByRole('heading', { name: /Issues|问题/i }).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { name: /Issues|问题/i }).first()).toBeVisible({
+      timeout: 5000,
+    })
 
     // Test 1: OPEN tab (default) - should show 2 issues
     const openTab = page.getByRole('tab', { name: /Open|开放/i })
@@ -138,7 +146,9 @@ test.describe('Issue Search & Filter', () => {
     await expect(closedTab).toContainText('1')
 
     // Verify 1 CLOSED issue displayed
-    await expect(page.locator('text=Closed Issue 1 - Completed Task')).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('text=Closed Issue 1 - Completed Task')).toBeVisible({
+      timeout: 5000,
+    })
 
     // Verify OPEN issues NOT displayed
     await expect(page.locator('text=Open Issue 1 - Bug Fix Needed')).not.toBeVisible()
@@ -172,23 +182,29 @@ test.describe('Issue Search & Filter', () => {
       },
     })
 
-    const response2 = await page.request.post(`http://localhost:4000/api/projects/${projectId}/issues`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      data: {
-        title: 'Test Closed Issue',
-        body: 'This issue is closed',
-      },
-    })
+    const response2 = await page.request.post(
+      `http://localhost:4000/api/projects/${projectId}/issues`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        data: {
+          title: 'Test Closed Issue',
+          body: 'This issue is closed',
+        },
+      }
+    )
     const issue2Data = await response2.json()
-    await page.request.post(`http://localhost:4000/api/projects/${projectId}/issues/${issue2Data.number}/close`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    await page.request.post(
+      `http://localhost:4000/api/projects/${projectId}/issues/${issue2Data.number}/close`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
 
     // Navigate to ALL issues tab
     await page.goto(`/projects/${projectId}/issues`)

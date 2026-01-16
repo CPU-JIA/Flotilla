@@ -148,7 +148,9 @@ test.describe('Issue CRUD Operations', () => {
     await page.getByRole('button', { name: /Close.*Issue/i }).click()
 
     // Verify CLOSED badge appears (use specific selector)
-    await expect(page.locator('[data-slot="badge"]').filter({ hasText: /^Closed$/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('[data-slot="badge"]').filter({ hasText: /^Closed$/i })).toBeVisible({
+      timeout: 5000,
+    })
 
     // Verify Reopen button appears
     await expect(page.getByRole('button', { name: /Reopen/i })).toBeVisible()
@@ -161,13 +163,17 @@ test.describe('Issue CRUD Operations', () => {
     await page.getByRole('button', { name: /Create Issue/i }).click()
     await expect(page).toHaveURL(/\/issues\/\d+/, { timeout: 10000 })
     await page.getByRole('button', { name: /Close.*Issue/i }).click()
-    await expect(page.locator('[data-slot="badge"]').filter({ hasText: /^Closed$/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('[data-slot="badge"]').filter({ hasText: /^Closed$/i })).toBeVisible({
+      timeout: 5000,
+    })
 
     // Click Reopen button
     await page.getByRole('button', { name: /Reopen/i }).click()
 
     // Verify OPEN badge appears (use specific selector)
-    await expect(page.locator('[data-slot="badge"]').filter({ hasText: /^Open$/i })).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('[data-slot="badge"]').filter({ hasText: /^Open$/i })).toBeVisible({
+      timeout: 5000,
+    })
 
     // Verify Close button appears again
     await expect(page.getByRole('button', { name: /Close.*Issue/i })).toBeVisible()

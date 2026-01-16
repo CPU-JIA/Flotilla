@@ -10,6 +10,7 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { MarkdownEditor } from '@/components/markdown/MarkdownEditor'
@@ -70,7 +71,7 @@ export function CommentForm({
         setBody('')
       }
     } catch (err: unknown) {
-      console.error('Failed to submit comment:', err)
+      logger.error('Failed to submit comment:', err)
       setError(err instanceof Error ? err.message : t.issues.comments.createFailed)
     } finally {
       setSubmitting(false)

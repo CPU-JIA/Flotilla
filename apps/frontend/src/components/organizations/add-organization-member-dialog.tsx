@@ -58,7 +58,9 @@ export function AddOrganizationMemberDialog({
     // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email.trim())) {
-      setError(t.loading === t.loading ? '请输入有效的邮箱地址' : 'Please enter a valid email address')
+      setError(
+        t.loading === t.loading ? '请输入有效的邮箱地址' : 'Please enter a valid email address'
+      )
       return
     }
 
@@ -108,9 +110,7 @@ export function AddOrganizationMemberDialog({
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">
-                {t.loading === t.loading ? '用户邮箱' : 'User Email'} *
-              </Label>
+              <Label htmlFor="email">{t.loading === t.loading ? '用户邮箱' : 'User Email'} *</Label>
               <Input
                 id="email"
                 type="email"

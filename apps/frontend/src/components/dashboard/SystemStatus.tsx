@@ -7,6 +7,7 @@
  * ECP-C3: 性能意识 - 30秒自动刷新避免频繁请求
  */
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState } from 'react'
 import { useLanguage } from '@/contexts/language-context'
 
@@ -90,7 +91,7 @@ export function SystemStatus() {
       setServices(updatedServices)
     } catch (error) {
       // ECP-C2: 网络错误处理 - 标记所有服务不可达
-      console.error('Failed to check system health:', error)
+      logger.error('Failed to check system health:', error)
 
       setServices(
         services.map((service) => ({

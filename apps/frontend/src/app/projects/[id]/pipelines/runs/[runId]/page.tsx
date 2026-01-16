@@ -1,18 +1,12 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { api } from '@/lib/api'
-import {
-  CheckCircle,
-  XCircle,
-  Clock,
-  PlayCircle,
-  AlertCircle,
-  ChevronLeft,
-} from 'lucide-react'
+import { CheckCircle, XCircle, Clock, PlayCircle, AlertCircle, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 
 interface PipelineRunDetail {
@@ -68,7 +62,7 @@ export default function PipelineRunDetailPage() {
       const data = await api.pipelines.getRun(runId)
       setRun(data)
     } catch (error) {
-      console.error('Failed to load run details:', error)
+      logger.error('Failed to load run details:', error)
     } finally {
       setLoading(false)
     }

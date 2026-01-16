@@ -6,6 +6,7 @@
  * ECP-C1: 防御性编程 - 完整的状态机和错误处理
  */
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -65,7 +66,7 @@ export default function ResetPasswordPage() {
       } catch (error) {
         setTokenState('INVALID')
         setTokenMessage('验证链接失败，请重试')
-        console.error('Token verification error:', error)
+        logger.error('Token verification error:', error)
       }
     }
 
@@ -159,16 +160,24 @@ export default function ResetPasswordPage() {
         <div className="space-y-6">
           <div className="flex flex-col items-center py-4">
             <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-8 h-8 text-red-600 dark:text-red-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-foreground mb-2">
               {tokenState === 'EXPIRED' ? '链接已过期' : '链接无效'}
             </h3>
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              {tokenMessage}
-            </p>
+            <p className="text-sm text-muted-foreground text-center mb-4">{tokenMessage}</p>
             {expiresAt && (
               <p className="text-xs text-muted-foreground">
                 过期时间: {new Date(expiresAt).toLocaleString('zh-CN')}
@@ -177,10 +186,7 @@ export default function ResetPasswordPage() {
           </div>
 
           <div className="flex flex-col space-y-3">
-            <Button
-              onClick={() => router.push('/auth/forgot-password')}
-              className="w-full"
-            >
+            <Button onClick={() => router.push('/auth/forgot-password')} className="w-full">
               重新申请密码重置
             </Button>
             <Link
@@ -262,9 +268,7 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-blue-50 via-yellow-50 to-gray-100 dark:from-blue-950 dark:via-gray-950 dark:to-yellow-950">
       <div className="bg-card rounded-[14px] p-8 max-w-md w-full border border-border shadow-2xl">
         <div className="space-y-1 mb-6">
-          <h1 className="text-2xl font-bold text-center text-foreground">
-            重置密码
-          </h1>
+          <h1 className="text-2xl font-bold text-center text-foreground">重置密码</h1>
           <p className="text-center text-muted-foreground">
             {tokenState === 'VALID' ? '请输入您的新密码' : '验证重置链接'}
           </p>

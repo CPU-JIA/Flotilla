@@ -9,6 +9,7 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { MultiSelect } from '@mantine/core'
 import { api } from '@/lib/api'
@@ -39,7 +40,7 @@ export function AssigneesSelector({
       const data = await api.projects.getById(projectId)
       setProject(data)
     } catch (error) {
-      console.error('Failed to load project:', error)
+      logger.error('Failed to load project:', error)
     } finally {
       setLoading(false)
     }

@@ -11,6 +11,7 @@ Flotilla is a cloud-based code hosting and collaboration platform implementing d
 ## Development Commands
 
 ### Quick Start
+
 ```bash
 pnpm install                    # Install all dependencies
 docker-compose up -d            # Start infrastructure (PostgreSQL, Redis, MinIO, MeiliSearch)
@@ -19,6 +20,7 @@ pnpm dev                        # Start frontend (3000) + backend (4000) in para
 ```
 
 ### Root Level (Monorepo)
+
 ```bash
 pnpm dev          # Start all apps in development mode
 pnpm build        # Build all apps
@@ -28,6 +30,7 @@ pnpm format       # Format all code (Prettier)
 ```
 
 ### Backend (apps/backend)
+
 ```bash
 pnpm start:dev           # Development with hot reload
 pnpm test                # Run Jest unit tests
@@ -41,6 +44,7 @@ pnpm prisma generate     # Regenerate client after schema changes
 ```
 
 ### Frontend (apps/frontend)
+
 ```bash
 pnpm dev                 # Next.js dev with Turbopack
 pnpm test                # Run Playwright E2E tests
@@ -50,6 +54,7 @@ pnpm lint                # ESLint
 ```
 
 ### Running Single Tests
+
 ```bash
 # Backend (Jest) - run specific test file
 cd apps/backend && pnpm jest path/to/file.spec.ts
@@ -61,6 +66,7 @@ cd apps/frontend && pnpm playwright test tests/specific-test.spec.ts
 ## Architecture
 
 ### Monorepo Structure
+
 ```
 apps/backend/     # NestJS 11 API server (port 4000)
 apps/frontend/    # Next.js 15.5 App Router (port 3000)
@@ -72,12 +78,14 @@ docs/             # Project documentation
 ### Backend Architecture (NestJS Modular)
 
 Each domain is a **Feature Module** with:
+
 - `.controller.ts` - REST endpoints with Swagger decorators
 - `.service.ts` - Business logic
 - `.module.ts` - Module definition & DI
 - `dto/` - Data Transfer Objects with class-validator
 
 **Key Modules**:
+
 - `auth/` - JWT authentication, Passport guards, decorators (@CurrentUser, @Roles)
 - `git/` - Git HTTP Smart Protocol (info/refs, upload-pack, receive-pack)
 - `raft/` & `raft-cluster/` - Distributed consensus implementation
@@ -108,25 +116,30 @@ Schema location: `apps/backend/prisma/schema.prisma`
 **Core Models**: User → Organization → Team → Project → Repository → Issue/PullRequest
 
 ### Infrastructure Services
-| Service | Port | Purpose |
-|---------|------|---------|
-| PostgreSQL | 5434 | Primary database |
-| Redis | 6380 | Cache, sessions, pub/sub |
-| MinIO | 9000/9001 | S3-compatible object storage |
-| MeiliSearch | 7700 | Full-text code search |
+
+| Service     | Port      | Purpose                      |
+| ----------- | --------- | ---------------------------- |
+| PostgreSQL  | 5434      | Primary database             |
+| Redis       | 6380      | Cache, sessions, pub/sub     |
+| MinIO       | 9000/9001 | S3-compatible object storage |
+| MeiliSearch | 7700      | Full-text code search        |
 
 ## Key Patterns
 
 ### Git HTTP Smart Protocol
+
 Custom implementation in `git/git-http.controller.ts` using isomorphic-git. Endpoints: `/git/{org}/{repo}.git/info/refs`, `upload-pack`, `receive-pack`.
 
 ### Raft Consensus
+
 Distributed state replication across nodes. Core in `raft/raft-node.ts`, cluster management in `raft-cluster/`. Real-time visualization available in frontend.
 
 ### Permission System
+
 Role-based (Admin, Maintainer, Developer, Viewer) with scopes at Organization, Team, and Project levels. Enforced via NestJS guards.
 
 ### Rate Limiting
+
 Global: 100 requests/minute via ThrottlerGuard in `app.module.ts`.
 
 ## Code Style

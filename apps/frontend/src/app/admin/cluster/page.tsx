@@ -8,14 +8,26 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { useLanguage } from '@/contexts/language-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { AlertCircle, Play, Square, RotateCcw, Activity, Users, Clock, Zap } from 'lucide-react'
+import {
+  AlertCircle,
+  Play,
+  Square,
+  RotateCcw,
+  Activity,
+  Users,
+  Clock,
+  Zap,
+  ArrowLeft,
+} from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { ClusterTopology } from '@/components/raft/cluster-topology'
 import { RaftCommandPanel } from '@/components/raft/command-panel'
@@ -76,7 +88,9 @@ export default function RaftClusterPage() {
   // 获取集群状态 - ECP-D1: 使用useCallback确保函数引用稳定
   const fetchClusterStatus = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/raft-cluster/status`)
+      const response = await fetch(`${API_URL}/raft-cluster/status`, {
+        credentials: 'include', // 🔒 自动发送 HttpOnly Cookie
+      })
       const result = await response.json()
       if (result.success) {
         setStatus(result.data)
@@ -91,26 +105,30 @@ export default function RaftClusterPage() {
   // 获取集群指标 - ECP-D1: 使用useCallback确保函数引用稳定
   const fetchClusterMetrics = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/raft-cluster/metrics`)
+      const response = await fetch(`${API_URL}/raft-cluster/metrics`, {
+        credentials: 'include', // 🔒 自动发送 HttpOnly Cookie
+      })
       const result = await response.json()
       if (result.success) {
         setMetrics(result.data)
       }
     } catch (err) {
-      console.error('Failed to fetch metrics:', err)
+      logger.error('Failed to fetch metrics:', err)
     }
   }, [API_URL])
 
   // 获取集群配置 - ECP-D1: 使用useCallback确保函数引用稳定
   const fetchClusterConfig = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/raft-cluster/config`)
+      const response = await fetch(`${API_URL}/raft-cluster/config`, {
+        credentials: 'include', // 🔒 自动发送 HttpOnly Cookie
+      })
       const result = await response.json()
       if (result.success) {
         setConfig(result.data)
       }
     } catch (err) {
-      console.error('Failed to fetch config:', err)
+      logger.error('Failed to fetch config:', err)
     }
   }, [API_URL])
 
@@ -122,6 +140,10 @@ export default function RaftClusterPage() {
     try {
       const response = await fetch(`${API_URL}/raft-cluster/${action}`, {
         method: 'POST',
+        credentials: 'include', // 🔒 自动发送 HttpOnly Cookie
+        headers: {
+          'Content-Type': 'application/json',
+        },
       })
       const result = await response.json()
 
@@ -189,9 +211,17 @@ export default function RaftClusterPage() {
     <div className="container mx-auto p-6 space-y-6">
       {/* 页面标题 */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{t.raft.management.title}</h1>
-          <p className="text-muted-foreground">{t.raft.management.description}</p>
+        <div className="flex items-center gap-4">
+          {/* 返回按钮 */}
+          <Link href="/dashboard">
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold">{t.raft.management.title}</h1>
+            <p className="text-muted-foreground">{t.raft.management.description}</p>
+          </div>
         </div>
 
         {/* 集群控制按钮 */}

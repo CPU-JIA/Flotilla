@@ -34,12 +34,13 @@
 
 ```tsx
 // Usage in components
-className="bg-primary-500 text-white"
-className="hover:bg-primary-600"
-className="border-primary-500"
+className = 'bg-primary-500 text-white'
+className = 'hover:bg-primary-600'
+className = 'border-primary-500'
 ```
 
 **Full Palette**:
+
 - `primary-50` to `primary-950` (11 shades)
 - Primary (500): `#3b82f6`
 - Use lighter shades (100-300) for backgrounds
@@ -91,37 +92,39 @@ className="border-primary-500"
 ### Neutral Color System
 
 **Light Mode**:
+
 ```css
---background: #ffffff;           /* Main background */
---foreground: #111827;           /* Main text (gray-900) */
---muted: #f9fafb;                /* Secondary background (gray-50) */
---muted-foreground: #6b7280;     /* Secondary text (gray-500) */
---border: #e5e7eb;               /* Border color (gray-200) */
+--background: #ffffff; /* Main background */
+--foreground: #111827; /* Main text (gray-900) */
+--muted: #f9fafb; /* Secondary background (gray-50) */
+--muted-foreground: #6b7280; /* Secondary text (gray-500) */
+--border: #e5e7eb; /* Border color (gray-200) */
 ```
 
 **Dark Mode**:
+
 ```css
---background: #18181b;           /* Main background (zinc-900) */
---foreground: #fafafa;           /* Main text (zinc-50) */
---muted: #27272a;                /* Secondary background (zinc-800) */
---muted-foreground: #a1a1aa;     /* Secondary text (zinc-400) */
---border: #3f3f46;               /* Border color (zinc-700) */
+--background: #18181b; /* Main background (zinc-900) */
+--foreground: #fafafa; /* Main text (zinc-50) */
+--muted: #27272a; /* Secondary background (zinc-800) */
+--muted-foreground: #a1a1aa; /* Secondary text (zinc-400) */
+--border: #3f3f46; /* Border color (zinc-700) */
 ```
 
 **Text Color Usage**:
 
 ```tsx
 // Primary text (highest contrast)
-className="text-gray-900 dark:text-gray-50"
+className = 'text-gray-900 dark:text-gray-50'
 
 // Secondary text (medium contrast)
-className="text-gray-600 dark:text-gray-400"
+className = 'text-gray-600 dark:text-gray-400'
 
 // Tertiary text (low contrast, disabled states)
-className="text-gray-500 dark:text-gray-500"
+className = 'text-gray-500 dark:text-gray-500'
 
 // Placeholder text
-className="text-gray-400 dark:text-gray-600"
+className = 'text-gray-400 dark:text-gray-600'
 ```
 
 ---
@@ -132,28 +135,28 @@ className="text-gray-400 dark:text-gray-600"
 
 ```css
 /* Design System Spacing Tokens */
---spacing-1: 0.25rem;   /* 4px  */
---spacing-2: 0.5rem;    /* 8px  */
---spacing-3: 0.75rem;   /* 12px */
---spacing-4: 1rem;      /* 16px */
---spacing-6: 1.5rem;    /* 24px */
---spacing-8: 2rem;      /* 32px */
---spacing-10: 2.5rem;   /* 40px */
---spacing-12: 3rem;     /* 48px */
---spacing-16: 4rem;     /* 64px */
---spacing-20: 5rem;     /* 80px */
+--spacing-1: 0.25rem; /* 4px  */
+--spacing-2: 0.5rem; /* 8px  */
+--spacing-3: 0.75rem; /* 12px */
+--spacing-4: 1rem; /* 16px */
+--spacing-6: 1.5rem; /* 24px */
+--spacing-8: 2rem; /* 32px */
+--spacing-10: 2.5rem; /* 40px */
+--spacing-12: 3rem; /* 48px */
+--spacing-16: 4rem; /* 64px */
+--spacing-20: 5rem; /* 80px */
 ```
 
 **Usage Guidelines**:
 
-| Use Case | Spacing | Tailwind Class |
-|----------|---------|----------------|
-| Component padding (small) | 12px | `p-3` |
-| Component padding (default) | 16px | `p-4` |
-| Component padding (large) | 24px | `p-6` |
-| Section spacing | 32px | `space-y-8` |
-| Page section gaps | 48px | `space-y-12` |
-| Hero/Feature gaps | 64px | `space-y-16` |
+| Use Case                    | Spacing | Tailwind Class |
+| --------------------------- | ------- | -------------- |
+| Component padding (small)   | 12px    | `p-3`          |
+| Component padding (default) | 16px    | `p-4`          |
+| Component padding (large)   | 24px    | `p-6`          |
+| Section spacing             | 32px    | `space-y-8`    |
+| Page section gaps           | 48px    | `space-y-12`   |
+| Hero/Feature gaps           | 64px    | `space-y-16`   |
 
 ---
 
@@ -163,41 +166,43 @@ className="text-gray-400 dark:text-gray-600"
 
 ```css
 /* Sans-serif (UI) */
---font-sans: var(--font-geist-sans), -apple-system, BlinkMacSystemFont,
-             "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+--font-sans:
+  var(--font-geist-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+  Arial, sans-serif;
 
 /* Monospace (Code) */
---font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular,
-             Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+--font-mono:
+  var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+  'Courier New', monospace;
 ```
 
 ### Font Sizes & Line Heights
 
-| Size | Font Size | Line Height | Use Case |
-|------|-----------|-------------|----------|
-| `text-xs` | 12px | 16px | Small labels, badges |
-| `text-sm` | 14px | 20px | Secondary text, form labels |
-| `text-base` | 16px | 24px | Body text (default) |
-| `text-lg` | 18px | 28px | Emphasized text |
-| `text-xl` | 20px | 28px | Subheadings |
-| `text-2xl` | 24px | 32px | Card titles |
-| `text-3xl` | 30px | 36px | Page section titles |
-| `text-4xl` | 36px | 40px | Page titles |
+| Size        | Font Size | Line Height | Use Case                    |
+| ----------- | --------- | ----------- | --------------------------- |
+| `text-xs`   | 12px      | 16px        | Small labels, badges        |
+| `text-sm`   | 14px      | 20px        | Secondary text, form labels |
+| `text-base` | 16px      | 24px        | Body text (default)         |
+| `text-lg`   | 18px      | 28px        | Emphasized text             |
+| `text-xl`   | 20px      | 28px        | Subheadings                 |
+| `text-2xl`  | 24px      | 32px        | Card titles                 |
+| `text-3xl`  | 30px      | 36px        | Page section titles         |
+| `text-4xl`  | 36px      | 40px        | Page titles                 |
 
 ### Font Weights
 
 ```tsx
 // Normal (400) - Default body text
-className="font-normal"
+className = 'font-normal'
 
 // Medium (500) - Labels, navigation items
-className="font-medium"
+className = 'font-medium'
 
 // Semibold (600) - Headings, emphasis
-className="font-semibold"
+className = 'font-semibold'
 
 // Bold (700) - Strong emphasis, CTAs
-className="font-bold"
+className = 'font-bold'
 ```
 
 ### Typography Examples
@@ -236,6 +241,7 @@ className="font-bold"
 ### When to Use Shadcn/ui
 
 ✅ **Use Shadcn/ui for**:
+
 - Basic UI components (Button, Input, Card, Dialog, Dropdown, etc.)
 - Need full control over styling with Tailwind classes
 - Lightweight components without complex logic
@@ -243,11 +249,12 @@ className="font-bold"
 - Forms with simple validation
 
 **Example**:
-```tsx
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
-<Card className="hover:shadow-elegant-lg transition-all duration-200">
+```tsx
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+
+;<Card className="hover:shadow-elegant-lg transition-all duration-200">
   <CardHeader>
     <CardTitle>Project Statistics</CardTitle>
   </CardHeader>
@@ -262,6 +269,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 ### When to Use Mantine
 
 ✅ **Use Mantine for**:
+
 - Complex data display (DataTable with sorting, filtering, pagination)
 - Advanced date/time inputs (DatePicker, DateRangePicker)
 - Rich form components (MultiSelect, TransferList, Chip Input)
@@ -270,6 +278,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 - Modals with complex interactions
 
 **Example**:
+
 ```tsx
 import { DataTable } from '@mantine/datatable';
 import { DatePickerInput } from '@mantine/dates';
@@ -311,73 +320,73 @@ notifications.show({
 
 ```tsx
 // Main background
-className="bg-white dark:bg-gray-900"
+className = 'bg-white dark:bg-gray-900'
 
 // Secondary background (cards, panels)
-className="bg-gray-50 dark:bg-gray-800"
+className = 'bg-gray-50 dark:bg-gray-800'
 
 // Tertiary background (hover states)
-className="bg-gray-100 dark:bg-gray-700"
+className = 'bg-gray-100 dark:bg-gray-700'
 
 // Elevated surfaces (modals, popovers)
-className="bg-white dark:bg-gray-800 shadow-lg"
+className = 'bg-white dark:bg-gray-800 shadow-lg'
 ```
 
 ### Border Colors
 
 ```tsx
 // Default borders
-className="border border-gray-200 dark:border-gray-800"
+className = 'border border-gray-200 dark:border-gray-800'
 
 // Subtle borders
-className="border-gray-100 dark:border-gray-700"
+className = 'border-gray-100 dark:border-gray-700'
 
 // Hover borders
-className="hover:border-gray-300 dark:hover:border-gray-700"
+className = 'hover:border-gray-300 dark:hover:border-gray-700'
 ```
 
 ### Interactive States
 
 ```tsx
 // Hover background
-className="hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+className = 'hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors'
 
 // Active/Selected state
-className="bg-primary-50 dark:bg-primary-950 border-primary-500"
+className = 'bg-primary-50 dark:bg-primary-950 border-primary-500'
 
 // Focus ring
-className="focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+className = 'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2'
 ```
 
 ### Card Component Example
 
 ```tsx
-<Card className="
+<Card
+  className="
   group
   bg-white dark:bg-gray-900
   border border-gray-200 dark:border-gray-800
   hover:shadow-elegant-lg
   transition-all duration-200
-">
+"
+>
   <CardHeader className="border-b border-gray-200 dark:border-gray-800">
-    <CardTitle className="text-gray-900 dark:text-gray-50">
-      Card Title
-    </CardTitle>
+    <CardTitle className="text-gray-900 dark:text-gray-50">Card Title</CardTitle>
     <CardDescription className="text-gray-500 dark:text-gray-400">
       Card description text
     </CardDescription>
   </CardHeader>
 
   <CardContent className="pt-6">
-    <p className="text-gray-600 dark:text-gray-400">
-      Card content goes here.
-    </p>
+    <p className="text-gray-600 dark:text-gray-400">Card content goes here.</p>
   </CardContent>
 
-  <CardFooter className="
+  <CardFooter
+    className="
     border-t border-gray-200 dark:border-gray-800
     justify-between
-  ">
+  "
+  >
     <Button variant="ghost">Cancel</Button>
     <Button variant="default">Confirm</Button>
   </CardFooter>
@@ -391,27 +400,28 @@ className="focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-off
 ```css
 /* Available radius tokens */
 --radius-none: 0;
---radius-sm: 0.375rem;    /* 6px  - Small elements */
---radius-md: 0.5rem;      /* 8px  - Default */
---radius-lg: 0.75rem;     /* 12px - Cards, modals */
---radius-xl: 1rem;        /* 16px - Large containers */
---radius-2xl: 1.5rem;     /* 24px - Hero sections */
---radius-full: 9999px;    /* Circular (pills, avatars) */
+--radius-sm: 0.375rem; /* 6px  - Small elements */
+--radius-md: 0.5rem; /* 8px  - Default */
+--radius-lg: 0.75rem; /* 12px - Cards, modals */
+--radius-xl: 1rem; /* 16px - Large containers */
+--radius-2xl: 1.5rem; /* 24px - Hero sections */
+--radius-full: 9999px; /* Circular (pills, avatars) */
 ```
 
 **Usage**:
+
 ```tsx
 // Buttons, inputs
-className="rounded-md"
+className = 'rounded-md'
 
 // Cards, panels
-className="rounded-lg"
+className = 'rounded-lg'
 
 // Pills, badges
-className="rounded-full"
+className = 'rounded-full'
 
 // Avatar
-className="rounded-full w-10 h-10"
+className = 'rounded-full w-10 h-10'
 ```
 
 ---
@@ -435,21 +445,23 @@ className="rounded-full w-10 h-10"
 
 **Usage Guidelines**:
 
-| Component | Shadow | Tailwind Class |
-|-----------|--------|----------------|
-| Subtle cards | Elegant | `shadow-elegant` |
-| Hover cards | Elegant Large | `hover:shadow-elegant-lg` |
-| Modals, popovers | XL | `shadow-xl` |
-| Dropdown menus | Large | `shadow-lg` |
-| Buttons (raised) | Medium | `shadow-md` |
+| Component        | Shadow        | Tailwind Class            |
+| ---------------- | ------------- | ------------------------- |
+| Subtle cards     | Elegant       | `shadow-elegant`          |
+| Hover cards      | Elegant Large | `hover:shadow-elegant-lg` |
+| Modals, popovers | XL            | `shadow-xl`               |
+| Dropdown menus   | Large         | `shadow-lg`               |
+| Buttons (raised) | Medium        | `shadow-md`               |
 
 ```tsx
 // Hover elevation effect
-<Card className="
+<Card
+  className="
   shadow-elegant
   hover:shadow-elegant-lg
   transition-shadow duration-200
-">
+"
+>
   Content
 </Card>
 ```
@@ -461,43 +473,45 @@ className="rounded-full w-10 h-10"
 ### Transition Duration
 
 ```css
---duration-fast: 150ms;     /* Micro-interactions (hover, focus) */
---duration-default: 200ms;  /* Standard transitions */
---duration-slow: 300ms;     /* Page transitions, modals */
---duration-slower: 500ms;   /* Complex animations */
+--duration-fast: 150ms; /* Micro-interactions (hover, focus) */
+--duration-default: 200ms; /* Standard transitions */
+--duration-slow: 300ms; /* Page transitions, modals */
+--duration-slower: 500ms; /* Complex animations */
 ```
 
 ### Common Transition Patterns
 
 ```tsx
 // Hover color change
-className="transition-colors duration-200 hover:bg-gray-100"
+className = 'transition-colors duration-200 hover:bg-gray-100'
 
 // Hover scale
-className="transition-transform duration-150 hover:scale-105"
+className = 'transition-transform duration-150 hover:scale-105'
 
 // Hover shadow
-className="transition-shadow duration-200 hover:shadow-elegant-lg"
+className = 'transition-shadow duration-200 hover:shadow-elegant-lg'
 
 // All properties
-className="transition-all duration-200"
+className = 'transition-all duration-200'
 
 // Slide-in animation
-className="transform transition-transform duration-300 translate-x-0"
+className = 'transform transition-transform duration-300 translate-x-0'
 
 // Fade-in animation
-className="transition-opacity duration-300 opacity-100"
+className = 'transition-opacity duration-300 opacity-100'
 ```
 
 ### Button Animations
 
 ```tsx
-<Button className="
+<Button
+  className="
   transition-all duration-200
   hover:scale-105
   active:scale-95
   hover:shadow-md
-">
+"
+>
   Interactive Button
 </Button>
 ```
@@ -505,17 +519,21 @@ className="transition-opacity duration-300 opacity-100"
 ### Card Hover Effects
 
 ```tsx
-<Card className="
+<Card
+  className="
   group
   transition-all duration-200
   hover:shadow-elegant-lg
   hover:-translate-y-1
-">
-  <CardTitle className="
+"
+>
+  <CardTitle
+    className="
     text-gray-900 dark:text-gray-50
     group-hover:text-primary-600
     transition-colors duration-200
-  ">
+  "
+  >
     Card Title
   </CardTitle>
 </Card>
@@ -529,11 +547,11 @@ className="transition-opacity duration-300 opacity-100"
 
 ```css
 /* Tailwind CSS 4 breakpoints */
-xs: 480px;   /* Mobile devices */
-sm: 640px;   /* Mobile landscape / Small tablets */
-md: 768px;   /* Tablets */
-lg: 1024px;  /* Small desktop */
-xl: 1280px;  /* Desktop */
+xs: 480px; /* Mobile devices */
+sm: 640px; /* Mobile landscape / Small tablets */
+md: 768px; /* Tablets */
+lg: 1024px; /* Small desktop */
+xl: 1280px; /* Desktop */
 2xl: 1536px; /* Large desktop */
 ```
 
@@ -546,6 +564,7 @@ xl: 1280px;  /* Desktop */
 ```
 
 **Container Widths**:
+
 - Default: 100% with responsive padding
 - Max width: 1400px (aligned with GitHub/GitLab)
 
@@ -599,21 +618,23 @@ xl: 1280px;  /* Desktop */
 ### WCAG 2.1 AA Compliance
 
 **Color Contrast Requirements**:
+
 - Normal text (16px+): Minimum 4.5:1 contrast ratio
 - Large text (24px+): Minimum 3:1 contrast ratio
 - UI components: Minimum 3:1 contrast ratio
 
 **Verified Contrast Ratios**:
+
 ```tsx
 // Light mode
-"text-gray-900 bg-white"        // 21:1 ✅
-"text-gray-600 bg-white"        // 7.0:1 ✅
-"text-primary-600 bg-white"     // 4.5:1 ✅
+'text-gray-900 bg-white' // 21:1 ✅
+'text-gray-600 bg-white' // 7.0:1 ✅
+'text-primary-600 bg-white' // 4.5:1 ✅
 
 // Dark mode
-"text-gray-50 bg-gray-900"      // 17.7:1 ✅
-"text-gray-400 bg-gray-900"     // 7.2:1 ✅
-"text-primary-400 bg-gray-900"  // 5.1:1 ✅
+'text-gray-50 bg-gray-900' // 17.7:1 ✅
+'text-gray-400 bg-gray-900' // 7.2:1 ✅
+'text-primary-400 bg-gray-900' // 5.1:1 ✅
 ```
 
 ### Semantic HTML
@@ -718,19 +739,13 @@ xl: 1280px;  /* Desktop */
 ```tsx
 <div className="min-h-screen bg-white dark:bg-gray-900">
   <header className="border-b border-gray-200 dark:border-gray-800">
-    <div className="container mx-auto px-4 py-4">
-      {/* Header content */}
-    </div>
+    <div className="container mx-auto px-4 py-4">{/* Header content */}</div>
   </header>
 
-  <main className="container mx-auto px-4 py-8">
-    {/* Main content */}
-  </main>
+  <main className="container mx-auto px-4 py-8">{/* Main content */}</main>
 
   <footer className="border-t border-gray-200 dark:border-gray-800 mt-auto">
-    <div className="container mx-auto px-4 py-6">
-      {/* Footer content */}
-    </div>
+    <div className="container mx-auto px-4 py-6">{/* Footer content */}</div>
   </footer>
 </div>
 ```
@@ -740,31 +755,33 @@ xl: 1280px;  /* Desktop */
 ```tsx
 <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
   {/* Sidebar */}
-  <aside className="
+  <aside
+    className="
     w-64
     bg-white dark:bg-gray-900
     border-r border-gray-200 dark:border-gray-800
     overflow-y-auto
-  ">
+  "
+  >
     {/* Navigation */}
   </aside>
 
   {/* Main content */}
   <div className="flex-1 flex flex-col overflow-hidden">
     {/* Header */}
-    <header className="
+    <header
+      className="
       h-16
       bg-white dark:bg-gray-900
       border-b border-gray-200 dark:border-gray-800
       flex items-center px-6
-    ">
+    "
+    >
       {/* Header content */}
     </header>
 
     {/* Scrollable content */}
-    <main className="flex-1 overflow-y-auto p-6">
-      {/* Dashboard content */}
-    </main>
+    <main className="flex-1 overflow-y-auto p-6">{/* Dashboard content */}</main>
   </div>
 </div>
 ```
@@ -781,21 +798,12 @@ xl: 1280px;  /* Desktop */
   <CardContent className="space-y-4">
     <div>
       <Label htmlFor="name">Name</Label>
-      <Input
-        id="name"
-        placeholder="Enter your name"
-        className="mt-2"
-      />
+      <Input id="name" placeholder="Enter your name" className="mt-2" />
     </div>
 
     <div>
       <Label htmlFor="email">Email</Label>
-      <Input
-        id="email"
-        type="email"
-        placeholder="your@email.com"
-        className="mt-2"
-      />
+      <Input id="email" type="email" placeholder="your@email.com" className="mt-2" />
     </div>
   </CardContent>
 
@@ -815,6 +823,7 @@ xl: 1280px;  /* Desktop */
 **Target**: < 15KB compressed CSS
 
 **Strategies**:
+
 1. Use Tailwind's JIT mode (default in v4)
 2. Purge unused classes automatically
 3. Avoid `@apply` in components (use utility classes directly)
@@ -824,9 +833,9 @@ xl: 1280px;  /* Desktop */
 
 ```tsx
 // Use Next.js Image component
-import Image from 'next/image';
+import Image from 'next/image'
 
-<Image
+;<Image
   src="/images/hero.jpg"
   alt="Hero image"
   width={1200}
@@ -840,12 +849,12 @@ import Image from 'next/image';
 
 ```tsx
 // Lazy load heavy components
-import dynamic from 'next/dynamic';
+import dynamic from 'next/dynamic'
 
-const MonacoEditor = dynamic(
-  () => import('@/components/editor/monaco-editor'),
-  { ssr: false, loading: () => <LoadingSpinner /> }
-);
+const MonacoEditor = dynamic(() => import('@/components/editor/monaco-editor'), {
+  ssr: false,
+  loading: () => <LoadingSpinner />,
+})
 ```
 
 ---
@@ -855,28 +864,39 @@ const MonacoEditor = dynamic(
 ### Complete Card Component
 
 ```tsx
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 
 export function ProjectCard({ project }) {
   return (
-    <Card className="
+    <Card
+      className="
       group
       bg-white dark:bg-gray-900
       border border-gray-200 dark:border-gray-800
       hover:shadow-elegant-lg
       hover:-translate-y-1
       transition-all duration-200
-    ">
+    "
+    >
       <CardHeader className="border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-start justify-between">
-          <CardTitle className="
+          <CardTitle
+            className="
             text-xl font-semibold
             text-gray-900 dark:text-gray-50
             group-hover:text-primary-600 dark:group-hover:text-primary-400
             transition-colors duration-200
-          ">
+          "
+          >
             {project.name}
           </CardTitle>
           <Badge variant={project.status === 'active' ? 'default' : 'secondary'}>
@@ -896,10 +916,12 @@ export function ProjectCard({ project }) {
         </div>
       </CardContent>
 
-      <CardFooter className="
+      <CardFooter
+        className="
         border-t border-gray-200 dark:border-gray-800
         justify-between
-      ">
+      "
+      >
         <Button variant="ghost" size="sm">
           View Details
         </Button>
@@ -908,7 +930,7 @@ export function ProjectCard({ project }) {
         </Button>
       </CardFooter>
     </Card>
-  );
+  )
 }
 ```
 
@@ -917,11 +939,13 @@ export function ProjectCard({ project }) {
 ## 📚 Resources
 
 ### Internal Links
+
 - [Mantine Theme Config](./src/config/mantine-theme.ts)
 - [Design System Tokens](./src/config/design-system.ts)
 - [Global CSS](./src/app/globals.css)
 
 ### External References
+
 - [Tailwind CSS 4 Documentation](https://tailwindcss.com/docs)
 - [Shadcn/ui Components](https://ui.shadcn.com)
 - [Mantine Documentation](https://mantine.dev)
@@ -934,4 +958,4 @@ export function ProjectCard({ project }) {
 **Last Updated**: 2025-10-21
 **Maintained by**: Flotilla Design Team
 
-*"We don't just host code. We build consensus."* 🎨
+_"We don't just host code. We build consensus."_ 🎨

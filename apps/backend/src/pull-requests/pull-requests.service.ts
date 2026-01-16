@@ -115,8 +115,12 @@ export class PullRequestsService {
           body: `${pullRequest.author.username} 创建了一个新的 Pull Request`,
           link: `/projects/${pullRequest.projectId}/pull-requests/${pullRequest.number}`,
           metadata: {
+            type: 'PR_CREATED' as const,
             prId: pullRequest.id,
-            projectId: pullRequest.projectId,
+            prNumber: pullRequest.number,
+            prTitle: pullRequest.title,
+            sourceBranch: pullRequest.sourceBranch,
+            targetBranch: pullRequest.targetBranch,
             authorId: pullRequest.authorId,
           },
         });
@@ -277,7 +281,10 @@ export class PullRequestsService {
           body: `${closer?.username || '管理员'} 关闭了您的 Pull Request`,
           link: `/projects/${pr.projectId}/pull-requests/${pr.number}`,
           metadata: {
+            type: 'PR_CLOSED' as const,
             prId: pr.id,
+            prNumber: pr.number,
+            closedBy: closer?.username || '管理员',
             closerId: userId,
           },
         });

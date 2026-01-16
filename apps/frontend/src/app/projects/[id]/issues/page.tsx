@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
@@ -29,7 +30,7 @@ export default function IssuesPage() {
       const response = await api.issues.list(projectId)
       setIssues(response.data)
     } catch (error) {
-      console.error('Failed to load issues:', error)
+      logger.error('Failed to load issues:', error)
     } finally {
       setLoading(false)
     }
@@ -77,7 +78,11 @@ export default function IssuesPage() {
       </div>
 
       {/* State Filter Tabs */}
-      <Tabs value={stateFilter} onValueChange={(value) => setStateFilter(value as IssueState)} className="mb-6">
+      <Tabs
+        value={stateFilter}
+        onValueChange={(value) => setStateFilter(value as IssueState)}
+        className="mb-6"
+      >
         <TabsList>
           <TabsTrigger value="OPEN">
             {t.issues.list.openIssues} ({openIssueCount})

@@ -5,7 +5,8 @@ import Image from 'next/image'
 
 export const metadata = {
   title: 'Architecture - Flotilla Documentation',
-  description: 'Explore Flotilla architecture: monorepo structure, backend/frontend separation, and microservices design.',
+  description:
+    'Explore Flotilla architecture: monorepo structure, backend/frontend separation, and microservices design.',
 }
 
 export default function ArchitecturePage() {
@@ -102,9 +103,7 @@ Returns new { accessToken, refreshToken }`
           <Layers className="h-4 w-4" />
           <span>System Design</span>
         </div>
-        <h1 className="text-5xl font-bold mb-4">
-          Architecture
-        </h1>
+        <h1 className="text-5xl font-bold mb-4">Architecture</h1>
         <p className="text-xl text-foreground/60 max-w-2xl">
           Flotilla is built on a modern monorepo architecture with clear separation of concerns,
           microservices principles, and production-grade infrastructure.
@@ -127,7 +126,8 @@ Returns new { accessToken, refreshToken }`
             {
               icon: Code,
               title: 'Frontend (Next.js)',
-              description: 'Server-side rendering, static generation, and client-side interactivity with React 19.',
+              description:
+                'Server-side rendering, static generation, and client-side interactivity with React 19.',
               color: 'text-cyan-500',
             },
             {
@@ -139,21 +139,17 @@ Returns new { accessToken, refreshToken }`
             {
               icon: Database,
               title: 'Infrastructure',
-              description: 'PostgreSQL for data, Redis for cache, MinIO for object storage, all in Docker.',
+              description:
+                'PostgreSQL for data, Redis for cache, MinIO for object storage, all in Docker.',
               color: 'text-green-500',
             },
           ].map((layer) => {
             const Icon = layer.icon
             return (
-              <div
-                key={layer.title}
-                className="p-6 rounded-xl bg-card border border-border/40"
-              >
+              <div key={layer.title} className="p-6 rounded-xl bg-card border border-border/40">
                 <Icon className={`h-8 w-8 ${layer.color} mb-4`} />
                 <h3 className="text-xl font-semibold mb-2">{layer.title}</h3>
-                <p className="text-sm text-foreground/70 leading-relaxed">
-                  {layer.description}
-                </p>
+                <p className="text-sm text-foreground/70 leading-relaxed">{layer.description}</p>
               </div>
             )
           })}
@@ -165,14 +161,11 @@ Returns new { accessToken, refreshToken }`
         <h2 className="text-3xl font-bold mb-6">Monorepo Structure</h2>
         <div className="space-y-6">
           <p className="text-foreground/70">
-            Flotilla uses <strong className="text-foreground">pnpm workspace</strong> for efficient dependency management and code sharing.
-            All apps share a common <code className="px-2 py-1 rounded bg-secondary">node_modules</code> at the root.
+            Flotilla uses <strong className="text-foreground">pnpm workspace</strong> for efficient
+            dependency management and code sharing. All apps share a common{' '}
+            <code className="px-2 py-1 rounded bg-secondary">node_modules</code> at the root.
           </p>
-          <CodeBlock
-            code={monorepoStructure}
-            language="bash"
-            filename="Project Structure"
-          />
+          <CodeBlock code={monorepoStructure} language="bash" filename="Project Structure" />
           <div className="grid md:grid-cols-2 gap-4">
             <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
               <h4 className="font-semibold mb-2">Benefits of Monorepo</h4>
@@ -199,25 +192,23 @@ Returns new { accessToken, refreshToken }`
       {/* Tech Stack */}
       <section className="mb-12">
         <h2 className="text-3xl font-bold mb-6">Tech Stack</h2>
-        <CodeBlock
-          code={techStackCode}
-          language="yaml"
-          filename="Technology Stack"
-        />
+        <CodeBlock code={techStackCode} language="yaml" filename="Technology Stack" />
         <div className="mt-6 p-6 rounded-xl bg-secondary/20 border border-border/40">
           <h4 className="font-semibold mb-3">Why These Technologies?</h4>
           <div className="space-y-3 text-sm text-foreground/70">
             <p>
-              <strong className="text-foreground">Next.js 15 + React 19:</strong> Latest features including Server Components,
-              Turbopack for instant dev server startup, and improved performance.
+              <strong className="text-foreground">Next.js 15 + React 19:</strong> Latest features
+              including Server Components, Turbopack for instant dev server startup, and improved
+              performance.
             </p>
             <p>
-              <strong className="text-foreground">NestJS 11:</strong> Enterprise-grade framework with built-in dependency injection,
-              module system, and excellent TypeScript support. Perfect for scalable APIs.
+              <strong className="text-foreground">NestJS 11:</strong> Enterprise-grade framework
+              with built-in dependency injection, module system, and excellent TypeScript support.
+              Perfect for scalable APIs.
             </p>
             <p>
-              <strong className="text-foreground">Prisma 6:</strong> Type-safe database access with automatic migrations,
-              introspection, and excellent DX (Developer Experience).
+              <strong className="text-foreground">Prisma 6:</strong> Type-safe database access with
+              automatic migrations, introspection, and excellent DX (Developer Experience).
             </p>
           </div>
         </div>
@@ -253,10 +244,7 @@ Returns new { accessToken, refreshToken }`
                 routes: ['/raft (WebSocket)', '/api/monitoring/metrics'],
               },
             ].map((mod) => (
-              <div
-                key={mod.module}
-                className="p-4 rounded-lg bg-card border border-border/40"
-              >
+              <div key={mod.module} className="p-4 rounded-lg bg-card border border-border/40">
                 <div className="font-semibold text-primary mb-2">{mod.module}</div>
                 <div className="text-sm text-foreground/70 mb-3">{mod.description}</div>
                 <div className="space-y-1">
@@ -274,11 +262,7 @@ Returns new { accessToken, refreshToken }`
         {/* Authentication Flow */}
         <div>
           <h3 className="text-2xl font-semibold mb-4">Authentication Flow</h3>
-          <CodeBlock
-            code={authFlowCode}
-            language="typescript"
-            filename="Authentication Process"
-          />
+          <CodeBlock code={authFlowCode} language="typescript" filename="Authentication Process" />
         </div>
       </section>
 
@@ -290,22 +274,26 @@ Returns new { accessToken, refreshToken }`
             {[
               {
                 title: 'App Router',
-                description: 'Next.js 15 App Router with Server Components for improved performance and SEO',
+                description:
+                  'Next.js 15 App Router with Server Components for improved performance and SEO',
                 icon: Box,
               },
               {
                 title: 'API Client',
-                description: 'Centralized fetch wrapper (src/lib/api.ts) handles authentication and error handling',
+                description:
+                  'Centralized fetch wrapper (src/lib/api.ts) handles authentication and error handling',
                 icon: Server,
               },
               {
                 title: 'State Management',
-                description: 'React Context for auth/language/theme, TanStack Query for server state',
+                description:
+                  'React Context for auth/language/theme, TanStack Query for server state',
                 icon: Database,
               },
               {
                 title: 'i18n Support',
-                description: 'React Context-based i18n with zh/en translations, auto-persisted to localStorage',
+                description:
+                  'React Context-based i18n with zh/en translations, auto-persisted to localStorage',
                 icon: Layers,
               },
             ].map((feature) => {
@@ -342,17 +330,17 @@ Returns new { accessToken, refreshToken }`
               { model: 'Repository', fields: 'id, projectId, gitUrl' },
               { model: 'File', fields: 'id, path, minioPath, size' },
             ].map((schema) => (
-              <div
-                key={schema.model}
-                className="p-3 rounded-lg bg-card border border-border/40"
-              >
+              <div key={schema.model} className="p-3 rounded-lg bg-card border border-border/40">
                 <div className="font-mono font-semibold text-accent">{schema.model}</div>
                 <div className="text-xs text-foreground/60 mt-1">{schema.fields}</div>
               </div>
             ))}
           </div>
           <div className="mt-4 text-sm text-foreground/60">
-            📄 Full schema: <code className="px-2 py-1 rounded bg-secondary">apps/backend/prisma/schema.prisma</code>
+            📄 Full schema:{' '}
+            <code className="px-2 py-1 rounded bg-secondary">
+              apps/backend/prisma/schema.prisma
+            </code>
           </div>
         </div>
       </section>
@@ -366,7 +354,10 @@ Returns new { accessToken, refreshToken }`
             <ul className="space-y-2 text-sm text-foreground/70">
               <li>• Global performance middleware (tracks request duration)</li>
               <li>• Slow query logging (&gt;1000ms threshold)</li>
-              <li>• Metrics endpoint: <code className="px-2 py-1 rounded bg-secondary">/api/monitoring/metrics</code></li>
+              <li>
+                • Metrics endpoint:{' '}
+                <code className="px-2 py-1 rounded bg-secondary">/api/monitoring/metrics</code>
+              </li>
               <li>• Raft cluster health monitoring</li>
             </ul>
           </div>
@@ -394,9 +385,7 @@ Returns new { accessToken, refreshToken }`
               <div className="font-semibold group-hover:text-primary transition-colors">
                 Raft Consensus
               </div>
-              <div className="text-sm text-foreground/60">
-                Learn about distributed consensus
-              </div>
+              <div className="text-sm text-foreground/60">Learn about distributed consensus</div>
             </div>
             <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Link>
@@ -408,9 +397,7 @@ Returns new { accessToken, refreshToken }`
               <div className="font-semibold group-hover:text-primary transition-colors">
                 API Reference
               </div>
-              <div className="text-sm text-foreground/60">
-                Explore all API endpoints
-              </div>
+              <div className="text-sm text-foreground/60">Explore all API endpoints</div>
             </div>
             <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </Link>

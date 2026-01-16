@@ -36,17 +36,12 @@ const SORT_OPTIONS = [
   { value: 'size', label: 'File Size' },
 ] as const
 
-export function SearchFilters({
-  filters,
-  onChange,
-  onReset,
-  className,
-}: SearchFiltersProps) {
+export function SearchFilters({ filters, onChange, onReset, className }: SearchFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(true)
 
   const handleLanguageToggle = (language: string) => {
     const newLanguages = filters.languages.includes(language)
-      ? filters.languages.filter(l => l !== language)
+      ? filters.languages.filter((l) => l !== language)
       : [...filters.languages, language]
 
     onChange({ ...filters, languages: newLanguages })
@@ -54,7 +49,7 @@ export function SearchFilters({
 
   const handleExtensionToggle = (extension: string) => {
     const newExtensions = filters.extensions.includes(extension)
-      ? filters.extensions.filter(e => e !== extension)
+      ? filters.extensions.filter((e) => e !== extension)
       : [...filters.extensions, extension]
 
     onChange({ ...filters, extensions: newExtensions })
@@ -65,9 +60,7 @@ export function SearchFilters({
   }
 
   const hasActiveFilters =
-    filters.languages.length > 0 ||
-    filters.extensions.length > 0 ||
-    filters.sort !== 'relevance'
+    filters.languages.length > 0 || filters.extensions.length > 0 || filters.sort !== 'relevance'
 
   return (
     <Card className={cn('', className)}>
@@ -101,10 +94,7 @@ export function SearchFilters({
               className="h-7 w-7 p-0"
             >
               <ChevronDown
-                className={cn(
-                  'h-4 w-4 transition-transform',
-                  isExpanded ? 'rotate-180' : ''
-                )}
+                className={cn('h-4 w-4 transition-transform', isExpanded ? 'rotate-180' : '')}
               />
             </Button>
           </div>
@@ -115,11 +105,9 @@ export function SearchFilters({
         <CardContent className="space-y-4 pt-0">
           {/* Sort */}
           <div className="space-y-2">
-            <Label className="text-xs font-medium text-muted-foreground">
-              Sort by
-            </Label>
+            <Label className="text-xs font-medium text-muted-foreground">Sort by</Label>
             <div className="flex gap-2">
-              {SORT_OPTIONS.map(option => (
+              {SORT_OPTIONS.map((option) => (
                 <Button
                   key={option.value}
                   variant={filters.sort === option.value ? 'default' : 'outline'}
@@ -137,11 +125,9 @@ export function SearchFilters({
 
           {/* Languages */}
           <div className="space-y-2">
-            <Label className="text-xs font-medium text-muted-foreground">
-              Languages
-            </Label>
+            <Label className="text-xs font-medium text-muted-foreground">Languages</Label>
             <div className="flex flex-wrap gap-1.5">
-              {SUPPORTED_LANGUAGES.slice(0, 12).map(lang => {
+              {SUPPORTED_LANGUAGES.slice(0, 12).map((lang) => {
                 const isActive = filters.languages.includes(lang)
                 return (
                   <Button
@@ -162,14 +148,12 @@ export function SearchFilters({
 
           {/* File Extensions */}
           <div className="space-y-3">
-            <Label className="text-xs font-medium text-muted-foreground">
-              File Extensions
-            </Label>
+            <Label className="text-xs font-medium text-muted-foreground">File Extensions</Label>
             {Object.entries(EXTENSION_GROUPS).map(([groupName, extensions]) => (
               <div key={groupName} className="space-y-1.5">
                 <p className="text-xs text-muted-foreground">{groupName}</p>
                 <div className="flex flex-wrap gap-1.5">
-                  {extensions.map(ext => {
+                  {extensions.map((ext) => {
                     const isActive = filters.extensions.includes(ext)
                     return (
                       <Button

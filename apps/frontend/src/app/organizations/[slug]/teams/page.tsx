@@ -140,7 +140,10 @@ export default function TeamsListPage() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => router.push(`/organizations/${organizationSlug}`)}>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push(`/organizations/${organizationSlug}`)}
+                >
                   {t.loading === t.loading ? '← 返回组织' : '← Back'}
                 </Button>
                 {canManage && teams.length > 0 && (
@@ -170,7 +173,10 @@ export default function TeamsListPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {teams.map((team) => (
-                  <Link key={team.id} href={`/organizations/${organizationSlug}/teams/${team.slug}`}>
+                  <Link
+                    key={team.id}
+                    href={`/organizations/${organizationSlug}/teams/${team.slug}`}
+                  >
                     <Card className="hover:shadow-lg transition-all cursor-pointer h-full">
                       <CardHeader>
                         <div className="flex justify-between items-start">
@@ -182,7 +188,8 @@ export default function TeamsListPage() {
                           )}
                         </div>
                         <CardDescription className="line-clamp-2">
-                          {team.description || (t.loading === t.loading ? '暂无描述' : 'No description')}
+                          {team.description ||
+                            (t.loading === t.loading ? '暂无描述' : 'No description')}
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
@@ -205,9 +212,7 @@ export default function TeamsListPage() {
                           <span>{new Date(team.createdAt).toLocaleDateString()}</span>
                         </div>
                       </CardContent>
-                      <CardFooter className="text-xs text-muted-foreground">
-                        {team.slug}
-                      </CardFooter>
+                      <CardFooter className="text-xs text-muted-foreground">{team.slug}</CardFooter>
                     </Card>
                   </Link>
                 ))}

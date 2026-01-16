@@ -22,9 +22,7 @@ async function main() {
   const adminPassword = process.env.SEED_ADMIN_PASSWORD;
 
   if (!adminEmail || !adminPassword) {
-    console.log(
-      '⏭️  SEED_ADMIN_EMAIL or SEED_ADMIN_PASSWORD not set in .env',
-    );
+    console.log('⏭️  SEED_ADMIN_EMAIL or SEED_ADMIN_PASSWORD not set in .env');
     console.log(
       '   Skipping admin creation. Use first-user auto-promotion or register manually.\n',
     );
@@ -53,9 +51,7 @@ async function main() {
 
   console.log('🚨 SECURITY WARNING:');
   console.log('   Change the admin password immediately after first login!');
-  console.log(
-    '   Remove SEED_ADMIN_PASSWORD from .env after initial setup.\n',
-  );
+  console.log('   Remove SEED_ADMIN_PASSWORD from .env after initial setup.\n');
 }
 
 main()

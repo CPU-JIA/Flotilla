@@ -1,19 +1,13 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
-import {
-  CheckCircle,
-  XCircle,
-  Clock,
-  PlayCircle,
-  AlertCircle,
-  ChevronRight,
-} from 'lucide-react'
+import { CheckCircle, XCircle, Clock, PlayCircle, AlertCircle, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
 interface PipelineRun {
@@ -41,7 +35,10 @@ interface Pipeline {
   triggers: string[]
 }
 
-const statusConfig: Record<string, { icon: typeof Clock; color: string; bg: string; label: string }> = {
+const statusConfig: Record<
+  string,
+  { icon: typeof Clock; color: string; bg: string; label: string }
+> = {
   PENDING: { icon: Clock, color: 'text-gray-500', bg: 'bg-gray-100', label: '等待中' },
   RUNNING: {
     icon: PlayCircle,
@@ -83,7 +80,7 @@ export default function PipelineRunsPage() {
       setPipeline(pipelineRes)
       setRuns(runsRes.runs || [])
     } catch (error) {
-      console.error('Failed to load data:', error)
+      logger.error('Failed to load data:', error)
     } finally {
       setLoading(false)
     }
@@ -147,19 +144,13 @@ export default function PipelineRunsPage() {
                           {run.commitSha.substring(0, 7)}
                         </span>
                         <Badge variant="outline">{run.branch}</Badge>
-                        <Badge className={config.bg + ' ' + config.color}>
-                          {config.label}
-                        </Badge>
+                        <Badge className={config.bg + ' ' + config.color}>{config.label}</Badge>
                       </div>
 
                       <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span>
-                          开始时间: {new Date(run.startedAt).toLocaleString()}
-                        </span>
+                        <span>开始时间: {new Date(run.startedAt).toLocaleString()}</span>
                         {run.finishedAt && (
-                          <span>
-                            结束时间: {new Date(run.finishedAt).toLocaleString()}
-                          </span>
+                          <span>结束时间: {new Date(run.finishedAt).toLocaleString()}</span>
                         )}
                         <span>耗时: {formatDuration(run.duration)}</span>
                       </div>

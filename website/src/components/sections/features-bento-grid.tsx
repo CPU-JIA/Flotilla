@@ -4,14 +4,7 @@ import * as React from 'react'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import { motion } from 'framer-motion'
-import {
-  Zap,
-  Globe,
-  BookOpen,
-  Code,
-  CheckCircle,
-  Heart,
-} from 'lucide-react'
+import { Zap, Globe, BookOpen, Code, CheckCircle, Heart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const features = [
@@ -87,8 +80,8 @@ export function FeaturesBentoGrid() {
               </span>
             </h2>
             <p className="text-lg text-foreground/60 max-w-3xl mx-auto">
-              Production-ready distributed consensus with Raft algorithm, academic rigor, and modern tooling.
-              Every feature is battle-tested and documented.
+              Production-ready distributed consensus with Raft algorithm, academic rigor, and modern
+              tooling. Every feature is battle-tested and documented.
             </p>
           </motion.div>
         </div>
@@ -142,13 +135,16 @@ export function FeaturesBentoGrid() {
                     {featureData.title}
                   </h3>
 
-                  <p className="text-foreground/70 leading-relaxed">
-                    {featureData.description}
-                  </p>
+                  <p className="text-foreground/70 leading-relaxed">{featureData.description}</p>
 
                   {/* Highlight Badge */}
                   <div className="flex items-center gap-2 pt-2">
-                    <div className={cn('w-1.5 h-1.5 rounded-full', feature.color.replace('text-', 'bg-'))} />
+                    <div
+                      className={cn(
+                        'w-1.5 h-1.5 rounded-full',
+                        feature.color.replace('text-', 'bg-')
+                      )}
+                    />
                     <span className={cn('text-sm font-medium', feature.color)}>
                       {featureData.highlight}
                     </span>
@@ -177,9 +173,7 @@ export function FeaturesBentoGrid() {
           transition={{ duration: 0.5, delay: 0.6 }}
           className="text-center mt-16"
         >
-          <p className="text-foreground/60 mb-6">
-            Want to see it in action?
-          </p>
+          <p className="text-foreground/60 mb-6">Want to see it in action?</p>
           <Link
             href="/docs"
             className="inline-flex items-center gap-2 px-8 h-12 rounded-lg bg-foreground text-background hover:bg-foreground/90 transition-colors font-medium shadow-lg"

@@ -27,24 +27,24 @@ type NodeState = 'LEADER' | 'FOLLOWER' | 'CANDIDATE'
 ```typescript
 interface RaftState {
   // 持久化状态（所有服务器）
-  currentTerm: number      // 服务器已知最新任期
-  votedFor: string | null  // 当前任期内收到选票的候选者ID
-  log: LogEntry[]         // 日志条目数组
+  currentTerm: number // 服务器已知最新任期
+  votedFor: string | null // 当前任期内收到选票的候选者ID
+  log: LogEntry[] // 日志条目数组
 
   // 易失性状态（所有服务器）
-  commitIndex: number     // 已知已提交的最高日志条目索引
-  lastApplied: number     // 已应用到状态机的最高日志条目索引
+  commitIndex: number // 已知已提交的最高日志条目索引
+  lastApplied: number // 已应用到状态机的最高日志条目索引
 
   // 易失性状态（Leader专用）
-  nextIndex: number[]     // 发送到各服务器的下一个日志条目索引
-  matchIndex: number[]    // 已知在各服务器上复制的最高日志条目索引
+  nextIndex: number[] // 发送到各服务器的下一个日志条目索引
+  matchIndex: number[] // 已知在各服务器上复制的最高日志条目索引
 }
 
 interface LogEntry {
-  term: number           // 接收到该条目时的任期
-  index: number         // 在日志中的位置
-  command: Command      // 状态机命令
-  timestamp: number     // 时间戳
+  term: number // 接收到该条目时的任期
+  index: number // 在日志中的位置
+  command: Command // 状态机命令
+  timestamp: number // 时间戳
 }
 ```
 
@@ -394,28 +394,28 @@ private async applyCommand(command: Command): Promise<any> {
 
 ```typescript
 interface RequestVoteRequest {
-  term: number         // 候选者的任期
-  candidateId: string  // 候选者ID
+  term: number // 候选者的任期
+  candidateId: string // 候选者ID
   lastLogIndex: number // 候选者最后日志条目的索引
-  lastLogTerm: number  // 候选者最后日志条目的任期
+  lastLogTerm: number // 候选者最后日志条目的任期
 }
 
 interface RequestVoteResponse {
-  term: number        // 当前任期，候选者用来更新自己
+  term: number // 当前任期，候选者用来更新自己
   voteGranted: boolean // true表示候选者收到了选票
 }
 
 interface AppendEntriesRequest {
-  term: number         // Leader的任期
-  leaderId: string     // Leader的ID
+  term: number // Leader的任期
+  leaderId: string // Leader的ID
   prevLogIndex: number // 紧接着新条目之前的日志条目的索引
-  prevLogTerm: number  // prevLogIndex处日志条目的任期
-  entries: LogEntry[]  // 需要存储的日志条目
+  prevLogTerm: number // prevLogIndex处日志条目的任期
+  entries: LogEntry[] // 需要存储的日志条目
   leaderCommit: number // Leader的commitIndex
 }
 
 interface AppendEntriesResponse {
-  term: number    // 当前任期，Leader用来更新自己
+  term: number // 当前任期，Leader用来更新自己
   success: boolean // true表示Follower包含与prevLogIndex和prevLogTerm匹配的条目
 }
 ```
@@ -426,10 +426,7 @@ interface AppendEntriesResponse {
 export class RaftRPCClient {
   private connections: Map<string, WebSocket> = new Map()
 
-  async requestVote(
-    nodeId: string,
-    request: RequestVoteRequest
-  ): Promise<RequestVoteResponse> {
+  async requestVote(nodeId: string, request: RequestVoteRequest): Promise<RequestVoteResponse> {
     const ws = await this.getConnection(nodeId)
 
     return new Promise((resolve, reject) => {
@@ -437,10 +434,12 @@ export class RaftRPCClient {
         reject(new Error('RequestVote timeout'))
       }, 5000)
 
-      ws.send(JSON.stringify({
-        type: 'REQUEST_VOTE',
-        data: request
-      }))
+      ws.send(
+        JSON.stringify({
+          type: 'REQUEST_VOTE',
+          data: request,
+        })
+      )
 
       const handler = (event: MessageEvent) => {
         const response = JSON.parse(event.data)
@@ -466,10 +465,12 @@ export class RaftRPCClient {
         reject(new Error('AppendEntries timeout'))
       }, 5000)
 
-      ws.send(JSON.stringify({
-        type: 'APPEND_ENTRIES',
-        data: request
-      }))
+      ws.send(
+        JSON.stringify({
+          type: 'APPEND_ENTRIES',
+          data: request,
+        })
+      )
 
       const handler = (event: MessageEvent) => {
         const response = JSON.parse(event.data)
@@ -512,6 +513,7 @@ export class RaftRPCClient {
 **原则**：在给定任期内，最多只能选出一个Leader
 
 **实现**：
+
 - 每个节点在给定任期内最多投票给一个候选者
 - 只有获得多数票的候选者才能成为Leader
 - 使用随机选举超时避免选票分裂
@@ -521,6 +523,7 @@ export class RaftRPCClient {
 **原则**：如果某个日志条目在给定任期内被提交，那么这个条目必须出现在所有更高任期的Leader日志中
 
 **实现**：
+
 - 候选者必须拥有所有已提交条目才能赢得选举
 - 通过比较日志的最后任期和索引确定日志新旧程度
 
@@ -529,6 +532,7 @@ export class RaftRPCClient {
 **原则**：如果服务器已经将给定索引位置的日志条目应用到状态机，其他服务器不会在同一索引位置应用不同的日志条目
 
 **实现**：
+
 - 只有Leader才能接受新的日志条目
 - 日志条目必须按顺序提交和应用
 - 使用严格的日志匹配机制
@@ -572,7 +576,7 @@ class BatchProcessor {
         term: this.currentTerm,
         index: this.log.length + index,
         command,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }))
 
       const success = await this.appendEntries(entries)
@@ -583,7 +587,7 @@ class BatchProcessor {
           resolve({
             success: true,
             index: entries[index].index,
-            term: this.currentTerm
+            term: this.currentTerm,
           })
         })
       } else {
@@ -629,7 +633,7 @@ class PipelineReplicator {
 
   private async waitForInFlightReduction(nodeId: string): Promise<void> {
     while ((this.inFlightRequests.get(nodeId) || 0) >= this.maxInFlight) {
-      await new Promise(resolve => setTimeout(resolve, 1))
+      await new Promise((resolve) => setTimeout(resolve, 1))
     }
   }
 }
@@ -671,19 +675,17 @@ class MetricsCollector {
     commandsPerSecond: 0,
     averageLatency: 0,
     rpcSuccessRate: 100,
-    networkPartitions: 0
+    networkPartitions: 0,
   }
 
   recordElection(duration: number): void {
     this.metrics.electionCount++
     this.metrics.lastElectionTime = duration
-    this.metrics.averageElectionTime =
-      (this.metrics.averageElectionTime + duration) / 2
+    this.metrics.averageElectionTime = (this.metrics.averageElectionTime + duration) / 2
   }
 
   recordCommand(latency: number): void {
-    this.metrics.averageLatency =
-      (this.metrics.averageLatency + latency) / 2
+    this.metrics.averageLatency = (this.metrics.averageLatency + latency) / 2
   }
 
   getMetrics(): RaftMetrics {
@@ -707,7 +709,9 @@ class RaftLogger {
   }
 
   logElection(term: number, votesReceived: number, totalNodes: number): void {
-    console.log(`[${this.nodeId}] Election result: ${votesReceived}/${totalNodes} votes (term: ${term})`)
+    console.log(
+      `[${this.nodeId}] Election result: ${votesReceived}/${totalNodes} votes (term: ${term})`
+    )
   }
 
   logHeartbeat(term: number, followers: string[]): void {
@@ -715,7 +719,9 @@ class RaftLogger {
   }
 
   logCommandExecution(command: Command, success: boolean, latency: number): void {
-    console.log(`[${this.nodeId}] Command ${command.type}: ${success ? 'SUCCESS' : 'FAILED'} (${latency}ms)`)
+    console.log(
+      `[${this.nodeId}] Command ${command.type}: ${success ? 'SUCCESS' : 'FAILED'} (${latency}ms)`
+    )
   }
 }
 ```
@@ -725,6 +731,7 @@ class RaftLogger {
 本文档详细介绍了Raft分布式共识算法在云计算开发协作平台中的实现。通过模块化设计和完善的错误处理机制，确保了算法的正确性和系统的可靠性。
 
 关键特性：
+
 - ✅ 完整的Leader选举机制
 - ✅ 可靠的日志复制协议
 - ✅ 严格的安全性保证

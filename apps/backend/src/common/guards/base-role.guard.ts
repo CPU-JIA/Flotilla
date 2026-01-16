@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { User } from '@prisma/client';
+import { User, Organization, Team, Project } from '@prisma/client';
 import { PermissionService } from '../services/permission.service';
 
 /**
@@ -12,10 +12,20 @@ export type AuthenticatedUser = User;
 
 /**
  * Express Request with authenticated user attached
- * ECP-P0: Type Safety - Provides type-safe access to request.user
+ * ECP-P0: Type Safety - Provides type-safe access to request.user and cached entities
+ *
+ * Guards cache fetched entities in request to avoid duplicate queries:
+ * - organization: Cached by OrganizationRoleGuard
+ * - team: Cached by TeamRoleGuard
+ * - project: Cached by ProjectRoleGuard
  */
 export interface AuthenticatedRequest extends Request {
   user: AuthenticatedUser;
+
+  // Entity cache (populated by respective guards)
+  organization?: Organization;
+  team?: Team;
+  project?: Project;
 }
 
 /**
@@ -28,9 +38,9 @@ export interface AuthenticatedRequest extends Request {
  * - getRequiredRole(): Extract required role from decorator metadata
  * - checkPermission(): Call appropriate PermissionService method and cache entity
  */
-export abstract class BaseRoleGuard<
-  TRole extends string,
-> implements CanActivate {
+export abstract class BaseRoleGuard<TRole extends string>
+  implements CanActivate
+{
   constructor(
     protected readonly reflector: Reflector,
     protected readonly permissionService: PermissionService,

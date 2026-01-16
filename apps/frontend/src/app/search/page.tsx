@@ -14,6 +14,7 @@
  * ECP-C1: Defensive Programming - 错误处理和加载状态
  */
 
+import { logger } from '@/lib/logger'
 import React, { useState, useCallback, useEffect, useRef, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { SearchBar } from '@/components/search/SearchBar'
@@ -84,7 +85,7 @@ function SearchPageContent() {
         params.set('q', searchQuery)
         router.replace(`/search?${params.toString()}`, { scroll: false })
       } catch (err) {
-        console.error('Search failed:', err)
+        logger.error('Search failed:', err)
         setError(err instanceof Error ? err.message : 'Search failed')
         setResult(null)
       } finally {
@@ -155,9 +156,7 @@ function SearchPageContent() {
           <SearchIcon className="h-8 w-8" />
           Code Search
         </h1>
-        <p className="text-muted-foreground">
-          Search across all your projects and repositories
-        </p>
+        <p className="text-muted-foreground">Search across all your projects and repositories</p>
       </div>
 
       {/* Search Bar */}
@@ -190,9 +189,7 @@ function SearchPageContent() {
               <span>
                 {result.totalHits} {result.totalHits === 1 ? 'result' : 'results'} found
                 {result.processingTimeMs && (
-                  <span className="ml-2">
-                    ({result.processingTimeMs}ms)
-                  </span>
+                  <span className="ml-2">({result.processingTimeMs}ms)</span>
                 )}
               </span>
             </div>
@@ -218,8 +215,8 @@ function SearchPageContent() {
               <FileSearch className="h-16 w-16 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">Start searching</h3>
               <p className="text-muted-foreground max-w-md">
-                Enter a search query to find code, files, and symbols across all your
-                projects. Use Cmd+K to focus the search bar.
+                Enter a search query to find code, files, and symbols across all your projects. Use
+                Cmd+K to focus the search bar.
               </p>
             </div>
           )}
@@ -230,8 +227,8 @@ function SearchPageContent() {
               <FileSearch className="h-16 w-16 text-muted-foreground mb-4" />
               <h3 className="text-lg font-medium mb-2">No results found</h3>
               <p className="text-muted-foreground max-w-md">
-                Try adjusting your search query or filters. Make sure the file is indexed
-                and you have access to the project.
+                Try adjusting your search query or filters. Make sure the file is indexed and you
+                have access to the project.
               </p>
             </div>
           )}
@@ -240,7 +237,7 @@ function SearchPageContent() {
           {result && result.hits.length > 0 && (
             <>
               <div className="space-y-3">
-                {result.hits.map(hit => (
+                {result.hits.map((hit) => (
                   <SearchResultItem key={hit.id} hit={hit} query={query} />
                 ))}
               </div>

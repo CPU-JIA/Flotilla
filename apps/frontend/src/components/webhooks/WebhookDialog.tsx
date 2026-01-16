@@ -11,6 +11,7 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -34,15 +35,15 @@ import { WEBHOOK_EVENTS } from '@/types/webhook'
 
 // ECP-C1: Form validation schema using Zod
 const webhookSchema = z.object({
-  url: z.string()
+  url: z
+    .string()
     .min(1, 'URL is required')
     .url('Must be a valid URL')
     .refine(
       (url) => url.startsWith('http://') || url.startsWith('https://'),
       'URL must start with http:// or https://'
     ),
-  events: z.array(z.string())
-    .min(1, 'At least one event must be selected'),
+  events: z.array(z.string()).min(1, 'At least one event must be selected'),
   active: z.boolean().optional(),
 })
 
@@ -56,13 +57,7 @@ interface WebhookDialogProps {
   onSubmit: (data: CreateWebhookDto) => Promise<void>
 }
 
-export function WebhookDialog({
-  open,
-  onOpenChange,
-  mode,
-  webhook,
-  onSubmit,
-}: WebhookDialogProps) {
+export function WebhookDialog({ open, onOpenChange, mode, webhook, onSubmit }: WebhookDialogProps) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -124,7 +119,10 @@ export function WebhookDialog({
     if (checked) {
       setValue('events', [...currentEvents, event])
     } else {
-      setValue('events', currentEvents.filter((e) => e !== event))
+      setValue(
+        'events',
+        currentEvents.filter((e) => e !== event)
+      )
     }
   }
 
@@ -141,12 +139,8 @@ export function WebhookDialog({
       })
       onOpenChange(false)
     } catch (err: unknown) {
-      console.error('Failed to submit webhook:', err)
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to save webhook. Please try again.'
-      )
+      logger.error('Failed to submit webhook:', err)
+      setError(err instanceof Error ? err.message : 'Failed to save webhook. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -154,11 +148,7 @@ export function WebhookDialog({
 
   // ECP-D1: Handle Enter key submission (except in textarea)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
-    if (
-      e.key === 'Enter' &&
-      !e.shiftKey &&
-      e.target instanceof HTMLInputElement
-    ) {
+    if (e.key === 'Enter' && !e.shiftKey && e.target instanceof HTMLInputElement) {
       e.preventDefault()
       handleSubmit(onFormSubmit)()
     }
@@ -168,9 +158,7 @@ export function WebhookDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>
-            {mode === 'create' ? 'Create Webhook' : 'Edit Webhook'}
-          </DialogTitle>
+          <DialogTitle>{mode === 'create' ? 'Create Webhook' : 'Edit Webhook'}</DialogTitle>
           <DialogDescription>
             {mode === 'create'
               ? 'Configure a webhook to receive real-time events from this project'
@@ -178,11 +166,7 @@ export function WebhookDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit(onFormSubmit)}
-          onKeyDown={handleKeyDown}
-          className="space-y-6"
-        >
+        <form onSubmit={handleSubmit(onFormSubmit)} onKeyDown={handleKeyDown} className="space-y-6">
           {/* Error Display */}
           {error && (
             <Alert variant="destructive">
@@ -237,9 +221,7 @@ export function WebhookDialog({
                   <Checkbox
                     id={`event-${event}`}
                     checked={selectedEvents?.includes(event)}
-                    onCheckedChange={(checked) =>
-                      handleEventToggle(event, checked as boolean)
-                    }
+                    onCheckedChange={(checked) => handleEventToggle(event, checked as boolean)}
                     disabled={submitting}
                   />
                   <label
@@ -286,11 +268,7 @@ export function WebhookDialog({
             </Button>
             <Button type="submit" disabled={submitting}>
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {submitting
-                ? 'Saving...'
-                : mode === 'create'
-                  ? 'Create Webhook'
-                  : 'Update Webhook'}
+              {submitting ? 'Saving...' : mode === 'create' ? 'Create Webhook' : 'Update Webhook'}
             </Button>
           </DialogFooter>
         </form>

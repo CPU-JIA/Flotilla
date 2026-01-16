@@ -175,7 +175,10 @@ test.describe('Git UI功能测试', () => {
     await page.waitForTimeout(1000)
 
     // 验证分支选择器存在（查找包含"main"或"选择分支"的按钮）
-    const branchSelector = page.locator('button').filter({ hasText: /main|选择分支|Select/ }).first()
+    const branchSelector = page
+      .locator('button')
+      .filter({ hasText: /main|选择分支|Select/ })
+      .first()
     await expect(branchSelector).toBeVisible({ timeout: 5000 })
   })
 
@@ -190,9 +193,9 @@ test.describe('Git UI功能测试', () => {
     await page.waitForTimeout(1000)
 
     // 验证创建分支按钮存在
-    await expect(
-      page.getByRole('button', { name: /创建.*分支|Create.*Branch/i })
-    ).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('button', { name: /创建.*分支|Create.*Branch/i })).toBeVisible({
+      timeout: 5000,
+    })
   })
 
   test('应该能够打开创建分支对话框', async ({ page }) => {
@@ -231,29 +234,47 @@ test.describe('Git UI功能测试', () => {
 
     // 测试空分支名：按钮应该被禁用
     await branchNameInput.fill('')
-    const emptyButton = page.locator('[role="dialog"]').getByRole('button', { name: /创建|Create/i }).last()
+    const emptyButton = page
+      .locator('[role="dialog"]')
+      .getByRole('button', { name: /创建|Create/i })
+      .last()
     await expect(emptyButton).toBeDisabled({ timeout: 2000 })
 
     // 测试无效字符：填入内容启用按钮，点击后显示错误
     await branchNameInput.fill('invalid@branch#name')
-    await page.locator('[role="dialog"]').getByRole('button', { name: /创建|Create/i }).last().click()
+    await page
+      .locator('[role="dialog"]')
+      .getByRole('button', { name: /创建|Create/i })
+      .last()
+      .click()
     await expect(
       page.locator('text=/只能包含|can only contain|字母|letters|数字|numbers/i').first()
     ).toBeVisible({ timeout: 2000 })
 
     // 测试以斜杠开头
     await branchNameInput.fill('/invalid-branch')
-    await page.locator('[role="dialog"]').getByRole('button', { name: /创建|Create/i }).last().click()
+    await page
+      .locator('[role="dialog"]')
+      .getByRole('button', { name: /创建|Create/i })
+      .last()
+      .click()
     await expect(page.locator('text=/斜杠|slash/i').first()).toBeVisible({ timeout: 2000 })
 
     // 测试连续斜杠
     await branchNameInput.fill('feature//invalid')
-    await page.locator('[role="dialog"]').getByRole('button', { name: /创建|Create/i }).last().click()
+    await page
+      .locator('[role="dialog"]')
+      .getByRole('button', { name: /创建|Create/i })
+      .last()
+      .click()
     await expect(page.locator('text=/斜杠|slash/i').first()).toBeVisible({ timeout: 2000 })
 
     // 测试有效的分支名：按钮应该启用
     await branchNameInput.fill('feature/test-validation')
-    const validButton = page.locator('[role="dialog"]').getByRole('button', { name: /创建|Create/i }).last()
+    const validButton = page
+      .locator('[role="dialog"]')
+      .getByRole('button', { name: /创建|Create/i })
+      .last()
     await expect(validButton).toBeEnabled({ timeout: 2000 })
     // 不点击创建，避免实际创建分支
   })
@@ -292,7 +313,10 @@ test.describe('Git UI功能测试', () => {
     await page.waitForTimeout(1000)
 
     // 点击分支选择器
-    const branchSelector = page.locator('button').filter({ hasText: /main|选择分支|Select/ }).first()
+    const branchSelector = page
+      .locator('button')
+      .filter({ hasText: /main|选择分支|Select/ })
+      .first()
     await branchSelector.click()
 
     // 验证新分支出现在下拉列表中

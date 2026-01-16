@@ -15,6 +15,7 @@
 ## API 端点
 
 ### 1. 生成 2FA 密钥和二维码
+
 ```
 POST /api/v1/auth/2fa/setup
 Authorization: Bearer <token>
@@ -27,6 +28,7 @@ Response:
 ```
 
 ### 2. 启用 2FA
+
 ```
 POST /api/v1/auth/2fa/enable
 Authorization: Bearer <token>
@@ -49,6 +51,7 @@ Response:
 ```
 
 ### 3. 验证 2FA 令牌
+
 ```
 POST /api/v1/auth/2fa/verify
 Authorization: Bearer <token>
@@ -66,6 +69,7 @@ Response:
 ```
 
 ### 4. 禁用 2FA
+
 ```
 DELETE /api/v1/auth/2fa/disable
 Authorization: Bearer <token>
@@ -82,6 +86,7 @@ Response:
 ```
 
 ### 5. 获取恢复码
+
 ```
 POST /api/v1/auth/2fa/recovery-codes
 Authorization: Bearer <token>
@@ -98,6 +103,7 @@ Response:
 ```
 
 ### 6. 检查 2FA 状态
+
 ```
 GET /api/v1/auth/2fa/status
 Authorization: Bearer <token>
@@ -113,6 +119,7 @@ Response:
 ### 方案 A: 两步验证（推荐）
 
 1. **首次登录请求**:
+
 ```
 POST /api/v1/auth/login
 {
@@ -129,6 +136,7 @@ Response (如果启用了 2FA):
 ```
 
 2. **完成 2FA 验证**:
+
 ```
 POST /api/v1/auth/login/2fa
 {
@@ -146,6 +154,7 @@ Response:
 ### 方案 B: 单次登录（可选）
 
 在 `LoginDto` 中添加可选的 `twoFactorToken` 字段：
+
 ```
 POST /api/v1/auth/login
 {
@@ -168,6 +177,7 @@ TWO_FACTOR_ENCRYPTION_KEY="your-32-chars-encryption-key"
 ```
 
 **重要警告**:
+
 - 加密密钥至少 32 个字符
 - **永远不要修改**此密钥，否则用户将无法访问已启用的 2FA
 - 使用强随机密钥，不要使用弱密码
@@ -196,37 +206,37 @@ pnpm prisma migrate dev
 ```tsx
 // 1. 设置 2FA
 const setup2FA = async () => {
-  const response = await api.post('/auth/2fa/setup')
-  setSecret(response.data.secret)
-  setQrCode(response.data.qrCode)
-}
+  const response = await api.post('/auth/2fa/setup');
+  setSecret(response.data.secret);
+  setQrCode(response.data.qrCode);
+};
 
 // 2. 启用 2FA
 const enable2FA = async (token: string) => {
   const response = await api.post('/auth/2fa/enable', {
     secret,
-    token
-  })
-  setRecoveryCodes(response.data.recoveryCodes)
-  alert('Please save your recovery codes!')
-}
+    token,
+  });
+  setRecoveryCodes(response.data.recoveryCodes);
+  alert('Please save your recovery codes!');
+};
 
 // 3. 登录时的 2FA 验证
 const login = async (username: string, password: string) => {
   const response = await api.post('/auth/login', {
     usernameOrEmail: username,
-    password
-  })
+    password,
+  });
 
   if (response.data.requiresTwoFactor) {
     // 显示 2FA 输入框
-    const token = prompt('Enter 2FA code:')
+    const token = prompt('Enter 2FA code:');
     await api.post('/auth/login/2fa', {
       pendingToken: response.data.pendingToken,
-      token
-    })
+      token,
+    });
   }
-}
+};
 ```
 
 ## 测试

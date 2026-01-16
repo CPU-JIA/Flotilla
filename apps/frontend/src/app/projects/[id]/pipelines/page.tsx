@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -31,7 +32,7 @@ export default function PipelinesPage() {
       const data = await api.pipelines.list(projectId)
       setPipelines(data)
     } catch (error) {
-      console.error('Failed to load pipelines:', error)
+      logger.error('Failed to load pipelines:', error)
     } finally {
       setLoading(false)
     }
@@ -48,7 +49,7 @@ export default function PipelinesPage() {
       await api.pipelines.delete(pipelineId)
       loadPipelines()
     } catch (error) {
-      console.error('Failed to delete pipeline:', error)
+      logger.error('Failed to delete pipeline:', error)
     }
   }
 
@@ -113,9 +114,7 @@ export default function PipelinesPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="w-4 h-4" />
-                      <span>
-                        创建于: {new Date(pipeline.createdAt).toLocaleDateString()}
-                      </span>
+                      <span>创建于: {new Date(pipeline.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
                 </div>
@@ -133,11 +132,7 @@ export default function PipelinesPage() {
                       配置
                     </Button>
                   </Link>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(pipeline.id)}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => handleDelete(pipeline.id)}>
                     <Trash2 className="w-4 h-4 text-red-600" />
                   </Button>
                 </div>

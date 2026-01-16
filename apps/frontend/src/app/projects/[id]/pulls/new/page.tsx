@@ -5,6 +5,7 @@
  * ECP-D1: Testability - Form fields match E2E test selectors
  */
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useLanguage } from '@/contexts/language-context'
@@ -40,14 +41,11 @@ export default function CreatePullRequestPage() {
     try {
       setLoading(true)
       const token = localStorage.getItem('accessToken')
-      const response = await fetch(
-        `http://localhost:4000/api/git/${projectId}/branches`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`http://localhost:4000/api/git/${projectId}/branches`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      )
+      })
 
       if (response.ok) {
         const data = await response.json()
@@ -62,12 +60,12 @@ export default function CreatePullRequestPage() {
           }
         }
       } else {
-        console.error('Failed to fetch branches:', response.status, await response.text())
+        logger.error('Failed to fetch branches:', response.status, await response.text())
         // Set default branch even if API fails to avoid permanently disabled button
         setTargetBranch('main')
       }
     } catch (err) {
-      console.error('Failed to fetch branches:', err)
+      logger.error('Failed to fetch branches:', err)
       // Set default to avoid permanently disabled button
       setTargetBranch('main')
     } finally {
@@ -161,16 +159,12 @@ export default function CreatePullRequestPage() {
             placeholder={t.pullRequests.create.bodyPlaceholder}
             rows={10}
           />
-          <p className="text-sm text-muted-foreground mt-1">
-            {t.pullRequests.create.bodyHelper}
-          </p>
+          <p className="text-sm text-muted-foreground mt-1">{t.pullRequests.create.bodyHelper}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="sourceBranch">
-              {t.pullRequests.create.sourceBranchLabel}
-            </Label>
+            <Label htmlFor="sourceBranch">{t.pullRequests.create.sourceBranchLabel}</Label>
             <select
               id="sourceBranch"
               value={sourceBranch}
@@ -186,9 +180,7 @@ export default function CreatePullRequestPage() {
           </div>
 
           <div>
-            <Label htmlFor="targetBranch">
-              {t.pullRequests.create.targetBranchLabel}
-            </Label>
+            <Label htmlFor="targetBranch">{t.pullRequests.create.targetBranchLabel}</Label>
             <select
               id="targetBranch"
               value={targetBranch}
@@ -212,11 +204,7 @@ export default function CreatePullRequestPage() {
                 ? 'Loading branches...'
                 : t.pullRequests.create.createButton}
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-          >
+          <Button type="button" variant="outline" onClick={() => router.back()}>
             {t.pullRequests.create.cancelButton}
           </Button>
         </div>

@@ -6,6 +6,7 @@
  * ECP-C1: 防御性编程 - 表单验证
  */
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -65,7 +66,7 @@ export function CreateBranchDialog({
             setSelectedBaseBranch(defaultBranch.id)
           }
         } catch (err) {
-          console.error('Failed to fetch branches:', err)
+          logger.error('Failed to fetch branches:', err)
         }
       }
       fetchBranches()
@@ -174,9 +175,7 @@ export function CreateBranchDialog({
               onChange={(e) => handleBranchNameChange(e.target.value)}
               className={validationError ? 'border-red-500' : ''}
             />
-            {validationError && (
-              <p className="text-sm text-red-600">{validationError}</p>
-            )}
+            {validationError && <p className="text-sm text-red-600">{validationError}</p>}
           </div>
 
           {/* 基础分支选择 */}

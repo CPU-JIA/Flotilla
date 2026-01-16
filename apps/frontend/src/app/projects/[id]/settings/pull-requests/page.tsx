@@ -6,6 +6,7 @@
  * ECP-C1: 防御性编程 - 表单验证和错误处理
  */
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
@@ -13,13 +14,7 @@ import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { api, ApiError } from '@/lib/api'
 import type { Project } from '@/types/project'
 
@@ -49,7 +44,7 @@ export default function PullRequestSettingsPage() {
       setAllowSelfMerge(data.allowSelfMerge ?? true)
       setRequireReviewFromOwner(data.requireReviewFromOwner ?? false)
     } catch (err) {
-      console.error('Failed to fetch project:', err)
+      logger.error('Failed to fetch project:', err)
     } finally {
       setLoading(false)
     }
@@ -65,7 +60,10 @@ export default function PullRequestSettingsPage() {
 
     // Form validation
     if (requireApprovals < 0 || requireApprovals > 10) {
-      alert(t.projects.settings.prApproval?.requireApprovalsValidation || 'Required approvals must be between 0-10')
+      alert(
+        t.projects.settings.prApproval?.requireApprovalsValidation ||
+          'Required approvals must be between 0-10'
+      )
       return
     }
 
@@ -108,9 +106,12 @@ export default function PullRequestSettingsPage() {
       {/* PR Approval Rules */}
       <Card>
         <CardHeader>
-          <CardTitle>{t.projects.settings.prApproval?.title || 'Pull Request Approval Rules'}</CardTitle>
+          <CardTitle>
+            {t.projects.settings.prApproval?.title || 'Pull Request Approval Rules'}
+          </CardTitle>
           <CardDescription>
-            {t.projects.settings.prApproval?.description || 'Configure merge validation rules for pull requests'}
+            {t.projects.settings.prApproval?.description ||
+              'Configure merge validation rules for pull requests'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -130,7 +131,8 @@ export default function PullRequestSettingsPage() {
               className="max-w-xs"
             />
             <p className="text-xs text-muted-foreground">
-              {t.projects.settings.prApproval?.requireApprovalsDesc || 'Minimum number of approvals required before merging (0-10)'}
+              {t.projects.settings.prApproval?.requireApprovalsDesc ||
+                'Minimum number of approvals required before merging (0-10)'}
             </p>
           </div>
 
@@ -150,7 +152,8 @@ export default function PullRequestSettingsPage() {
               </Label>
             </div>
             <p className="text-xs text-muted-foreground ml-7">
-              {t.projects.settings.prApproval?.allowSelfMergeDesc || 'Allow PR authors to merge their own pull requests'}
+              {t.projects.settings.prApproval?.allowSelfMergeDesc ||
+                'Allow PR authors to merge their own pull requests'}
             </p>
           </div>
 
@@ -170,7 +173,8 @@ export default function PullRequestSettingsPage() {
               </Label>
             </div>
             <p className="text-xs text-muted-foreground ml-7">
-              {t.projects.settings.prApproval?.requireReviewFromOwnerDesc || 'At least one approval must come from the project owner'}
+              {t.projects.settings.prApproval?.requireReviewFromOwnerDesc ||
+                'At least one approval must come from the project owner'}
             </p>
           </div>
 

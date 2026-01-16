@@ -20,13 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  User,
-  Settings,
-  Smartphone,
-  LogOut,
-  ChevronDown,
-} from 'lucide-react'
+import { User, Settings, Smartphone, LogOut, ChevronDown } from 'lucide-react'
 
 export function UserMenu() {
   const { user, logout } = useAuth()
@@ -62,9 +56,7 @@ export function UserMenu() {
               {userInitials}
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm font-medium hidden md:inline-block">
-            {user.username}
-          </span>
+          <span className="text-sm font-medium hidden md:inline-block">{user.username}</span>
           <ChevronDown className="h-4 w-4 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
@@ -72,35 +64,24 @@ export function UserMenu() {
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user.username}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
-            </p>
+            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link
-            href="/settings/profile"
-            className="flex items-center gap-2 cursor-pointer"
-          >
+          <Link href="/settings/profile" className="flex items-center gap-2 cursor-pointer">
             <User className="h-4 w-4" />
             <span>{t.nav?.profile || '个人资料'}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link
-            href="/settings/general"
-            className="flex items-center gap-2 cursor-pointer"
-          >
+          <Link href="/settings/general" className="flex items-center gap-2 cursor-pointer">
             <Settings className="h-4 w-4" />
             <span>{t.nav?.settings || '设置'}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link
-            href="/settings/devices"
-            className="flex items-center gap-2 cursor-pointer"
-          >
+          <Link href="/settings/devices" className="flex items-center gap-2 cursor-pointer">
             <Smartphone className="h-4 w-4" />
             <span>设备管理</span>
           </Link>

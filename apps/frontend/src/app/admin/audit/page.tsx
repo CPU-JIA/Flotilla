@@ -4,6 +4,7 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
@@ -36,7 +37,7 @@ export default function AdminAuditLogsPage() {
       const data = await api.audit.getAdminLogs()
       setLogs(data)
     } catch (error) {
-      console.error('Failed to load audit logs:', error)
+      logger.error('Failed to load audit logs:', error)
     } finally {
       setLoading(false)
     }
@@ -48,10 +49,15 @@ export default function AdminAuditLogsPage() {
 
   const handleExport = async () => {
     try {
-      const csvContent = logs.map(log =>
-        `"${log.createdAt}","${log.username}","${log.action}","${log.entityType}","${log.description}","${log.ipAddress}","${log.success}"`
-      ).join('\n')
-      const blob = new Blob([`Date,User,Action,Entity,Description,IP,Success\n${csvContent}`], { type: 'text/csv' })
+      const csvContent = logs
+        .map(
+          (log) =>
+            `"${log.createdAt}","${log.username}","${log.action}","${log.entityType}","${log.description}","${log.ipAddress}","${log.success}"`
+        )
+        .join('\n')
+      const blob = new Blob([`Date,User,Action,Entity,Description,IP,Success\n${csvContent}`], {
+        type: 'text/csv',
+      })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
@@ -60,7 +66,7 @@ export default function AdminAuditLogsPage() {
       link.click()
       link.remove()
     } catch (error) {
-      console.error('Failed to export logs:', error)
+      logger.error('Failed to export logs:', error)
       alert('Failed to export logs')
     }
   }
@@ -77,17 +83,19 @@ export default function AdminAuditLogsPage() {
     return <Badge className={colors[action] || 'bg-gray-500'}>{action}</Badge>
   }
 
-  const filteredLogs = logs.filter(log =>
-    !searchTerm ||
-    log.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.username?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredLogs = logs.filter(
+    (log) =>
+      !searchTerm ||
+      log.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.username?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="text-muted-foreground">Loading audit logs...</div>
-    </div>
-  )
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-muted-foreground">Loading audit logs...</div>
+      </div>
+    )
 
   return (
     <div className="container mx-auto py-6 max-w-7xl">
@@ -126,19 +134,19 @@ export default function AdminAuditLogsPage() {
         <Card className="p-4">
           <div className="text-sm text-muted-foreground">Successful</div>
           <div className="text-2xl font-bold text-green-600">
-            {filteredLogs.filter(l => l.success).length}
+            {filteredLogs.filter((l) => l.success).length}
           </div>
         </Card>
         <Card className="p-4">
           <div className="text-sm text-muted-foreground">Failed</div>
           <div className="text-2xl font-bold text-red-600">
-            {filteredLogs.filter(l => !l.success).length}
+            {filteredLogs.filter((l) => !l.success).length}
           </div>
         </Card>
         <Card className="p-4">
           <div className="text-sm text-muted-foreground">Unique Users</div>
           <div className="text-2xl font-bold">
-            {new Set(filteredLogs.map(l => l.username).filter(Boolean)).size}
+            {new Set(filteredLogs.map((l) => l.username).filter(Boolean)).size}
           </div>
         </Card>
       </div>
@@ -165,9 +173,7 @@ export default function AdminAuditLogsPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     {getActionBadge(log.action)}
                     <Badge variant="outline">{log.entityType}</Badge>
-                    {log.username && (
-                      <Badge variant="secondary">@{log.username}</Badge>
-                    )}
+                    {log.username && <Badge variant="secondary">@{log.username}</Badge>}
                     <span className="text-xs text-muted-foreground">
                       {new Date(log.createdAt).toLocaleString()}
                     </span>

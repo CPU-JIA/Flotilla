@@ -14,9 +14,10 @@ export default getRequestConfig(async ({ requestLocale }) => {
   }
 
   // Import messages based on locale
-  const messages = locale === 'zh'
-    ? (await import('@/locales/zh')).default
-    : (await import('@/locales/en')).default
+  const messages =
+    locale === 'zh'
+      ? (await import('@/locales/zh')).default
+      : (await import('@/locales/en')).default
 
   return {
     locale,

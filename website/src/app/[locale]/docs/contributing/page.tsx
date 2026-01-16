@@ -4,7 +4,8 @@ import Link from 'next/link'
 
 export const metadata = {
   title: 'Contributing Guide - Flotilla Documentation',
-  description: 'Learn how to contribute to Flotilla. From reporting bugs to submitting pull requests.',
+  description:
+    'Learn how to contribute to Flotilla. From reporting bugs to submitting pull requests.',
 }
 
 export default function ContributingPage() {
@@ -128,12 +129,10 @@ Git:
           <Heart className="h-4 w-4" />
           <span>Open Source Community</span>
         </div>
-        <h1 className="text-5xl font-bold mb-4">
-          Contributing Guide
-        </h1>
+        <h1 className="text-5xl font-bold mb-4">Contributing Guide</h1>
         <p className="text-xl text-foreground/60 max-w-2xl">
-          We welcome contributions from everyone! Whether you are fixing bugs, adding features,
-          or improving documentation, your help makes Flotilla better.
+          We welcome contributions from everyone! Whether you are fixing bugs, adding features, or
+          improving documentation, your help makes Flotilla better.
         </p>
       </div>
 
@@ -145,7 +144,8 @@ Git:
             {
               icon: MessageSquare,
               title: 'Report Bugs',
-              description: 'Found a bug? Open an issue on GitHub with reproduction steps and screenshots.',
+              description:
+                'Found a bug? Open an issue on GitHub with reproduction steps and screenshots.',
               color: 'text-red-500',
               action: 'Report Issue',
               href: 'https://github.com/CPU-JIA/Cloud-Dev-Platform/issues/new',
@@ -153,7 +153,8 @@ Git:
             {
               icon: Code,
               title: 'Submit Code',
-              description: 'Fix bugs, add features, or improve performance by submitting pull requests.',
+              description:
+                'Fix bugs, add features, or improve performance by submitting pull requests.',
               color: 'text-green-500',
               action: 'Start Coding',
               href: '#contribution-workflow',
@@ -161,7 +162,8 @@ Git:
             {
               icon: BookOpen,
               title: 'Improve Docs',
-              description: 'Help others by improving documentation, fixing typos, or adding examples.',
+              description:
+                'Help others by improving documentation, fixing typos, or adding examples.',
               color: 'text-blue-500',
               action: 'Edit Docs',
               href: 'https://github.com/CPU-JIA/Cloud-Dev-Platform/tree/main/docs',
@@ -169,7 +171,8 @@ Git:
             {
               icon: GitBranch,
               title: 'Review PRs',
-              description: 'Review pull requests from other contributors and provide constructive feedback.',
+              description:
+                'Review pull requests from other contributors and provide constructive feedback.',
               color: 'text-purple-500',
               action: 'View PRs',
               href: 'https://github.com/CPU-JIA/Cloud-Dev-Platform/pulls',
@@ -183,9 +186,7 @@ Git:
               >
                 <Icon className={`h-8 w-8 ${way.color} mb-4`} />
                 <h3 className="text-xl font-semibold mb-2">{way.title}</h3>
-                <p className="text-sm text-foreground/70 mb-4 leading-relaxed">
-                  {way.description}
-                </p>
+                <p className="text-sm text-foreground/70 mb-4 leading-relaxed">{way.description}</p>
                 <a
                   href={way.href}
                   target={way.href.startsWith('http') ? '_blank' : undefined}
@@ -205,9 +206,7 @@ Git:
       <section id="contribution-workflow" className="mb-12">
         <h2 className="text-3xl font-bold mb-6">Contribution Workflow</h2>
         <div className="space-y-6">
-          <p className="text-foreground/70">
-            Follow these steps to contribute code to Flotilla:
-          </p>
+          <p className="text-foreground/70">Follow these steps to contribute code to Flotilla:</p>
 
           {/* Step-by-step */}
           <div className="space-y-4">
@@ -220,12 +219,14 @@ Git:
               {
                 step: 2,
                 title: 'Create Branch',
-                description: 'Create a feature branch from main. Use descriptive branch names like feature/add-oauth or fix/raft-timeout.',
+                description:
+                  'Create a feature branch from main. Use descriptive branch names like feature/add-oauth or fix/raft-timeout.',
               },
               {
                 step: 3,
                 title: 'Make Changes',
-                description: 'Implement your changes following our code standards and ECP principles.',
+                description:
+                  'Implement your changes following our code standards and ECP principles.',
               },
               {
                 step: 4,
@@ -240,7 +241,8 @@ Git:
               {
                 step: 6,
                 title: 'Create PR',
-                description: 'Open a pull request on GitHub with a clear description of your changes.',
+                description:
+                  'Open a pull request on GitHub with a clear description of your changes.',
               },
             ].map((item) => (
               <div
@@ -258,11 +260,7 @@ Git:
             ))}
           </div>
 
-          <CodeBlock
-            code={contributionWorkflow}
-            language="bash"
-            filename="Contribution Workflow"
-          />
+          <CodeBlock code={contributionWorkflow} language="bash" filename="Contribution Workflow" />
         </div>
       </section>
 
@@ -274,11 +272,7 @@ Git:
             We use <strong className="text-foreground">Conventional Commits</strong> for clear and
             consistent commit history. This enables automatic changelog generation.
           </p>
-          <CodeBlock
-            code={commitConvention}
-            language="bash"
-            filename="Commit Message Format"
-          />
+          <CodeBlock code={commitConvention} language="bash" filename="Commit Message Format" />
           <div className="p-4 rounded-lg bg-accent/10 border border-accent/20 text-sm">
             <strong>💡 Why Conventional Commits?</strong>
             <ul className="mt-2 space-y-1 text-foreground/70">
@@ -296,8 +290,9 @@ Git:
         <h2 className="text-3xl font-bold mb-6">Code Standards (ECP)</h2>
         <div className="space-y-6">
           <p className="text-foreground/70">
-            All code in Flotilla follows <strong className="text-foreground">ECP (Engineering & Code Principles)</strong>.
-            These principles ensure high code quality and maintainability.
+            All code in Flotilla follows{' '}
+            <strong className="text-foreground">ECP (Engineering & Code Principles)</strong>. These
+            principles ensure high code quality and maintainability.
           </p>
           <CodeBlock
             code={codeStandards}
@@ -331,11 +326,7 @@ Git:
       {/* PR Checklist */}
       <section className="mb-12">
         <h2 className="text-3xl font-bold mb-6">Pull Request Checklist</h2>
-        <CodeBlock
-          code={prChecklist}
-          language="markdown"
-          filename="PR Checklist"
-        />
+        <CodeBlock code={prChecklist} language="markdown" filename="PR Checklist" />
       </section>
 
       {/* Code Review Process */}
@@ -354,12 +345,14 @@ Git:
               },
               {
                 title: 'Manual Review',
-                description: 'A maintainer reviews your code for logic, architecture, and ECP compliance.',
+                description:
+                  'A maintainer reviews your code for logic, architecture, and ECP compliance.',
                 status: 'manual',
               },
               {
                 title: 'Feedback Loop',
-                description: 'Address review comments and push updates. We iterate until the PR is ready.',
+                description:
+                  'Address review comments and push updates. We iterate until the PR is ready.',
                 status: 'iterative',
               },
               {
@@ -368,21 +361,23 @@ Git:
                 status: 'final',
               },
             ].map((phase) => (
-              <div
-                key={phase.title}
-                className="p-4 rounded-lg border border-border/40"
-              >
+              <div key={phase.title} className="p-4 rounded-lg border border-border/40">
                 <div className="flex items-start justify-between">
                   <div>
                     <h4 className="font-semibold mb-1">{phase.title}</h4>
                     <p className="text-sm text-foreground/70">{phase.description}</p>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    phase.status === 'automated' ? 'bg-blue-500/10 text-blue-400' :
-                    phase.status === 'manual' ? 'bg-yellow-500/10 text-yellow-400' :
-                    phase.status === 'iterative' ? 'bg-purple-500/10 text-purple-400' :
-                    'bg-green-500/10 text-green-400'
-                  }`}>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      phase.status === 'automated'
+                        ? 'bg-blue-500/10 text-blue-400'
+                        : phase.status === 'manual'
+                          ? 'bg-yellow-500/10 text-yellow-400'
+                          : phase.status === 'iterative'
+                            ? 'bg-purple-500/10 text-purple-400'
+                            : 'bg-green-500/10 text-green-400'
+                    }`}
+                  >
                     {phase.status}
                   </span>
                 </div>
@@ -400,8 +395,8 @@ Git:
             <h2 className="text-3xl font-bold">Join the Community</h2>
           </div>
           <p className="text-foreground/70 mb-6">
-            Flotilla is built by developers for developers. We believe in collaboration, transparency,
-            and building consensus together. Your contributions matter.
+            Flotilla is built by developers for developers. We believe in collaboration,
+            transparency, and building consensus together. Your contributions matter.
           </p>
           <div className="flex gap-4">
             <a

@@ -109,18 +109,12 @@ export function AddMemberDialog({ projectId, onSuccess }: AddMemberDialogProps) 
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="VIEWER">
-                    👁️ {t.projects.settings.roleViewer}
-                  </SelectItem>
-                  <SelectItem value="MEMBER">
-                    👤 {t.projects.settings.roleMember}
-                  </SelectItem>
+                  <SelectItem value="VIEWER">👁️ {t.projects.settings.roleViewer}</SelectItem>
+                  <SelectItem value="MEMBER">👤 {t.projects.settings.roleMember}</SelectItem>
                   <SelectItem value="MAINTAINER">
                     🔧 {t.projects.settings.roleMaintainer}
                   </SelectItem>
-                  <SelectItem value="OWNER">
-                    👑 {t.projects.settings.roleOwner}
-                  </SelectItem>
+                  <SelectItem value="OWNER">👑 {t.projects.settings.roleOwner}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

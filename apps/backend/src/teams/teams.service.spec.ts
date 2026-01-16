@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TeamsService } from './teams.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
+import { PermissionService } from '../common/services/permission.service';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { CreateTeamDto } from './dto/create-team.dto';
 
@@ -50,6 +51,10 @@ describe('TeamsService', () => {
     del: jest.fn(),
   };
 
+  const mockPermissionService = {
+    invalidateProjectPermissionCache: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -61,6 +66,10 @@ describe('TeamsService', () => {
         {
           provide: RedisService,
           useValue: mockRedisService,
+        },
+        {
+          provide: PermissionService,
+          useValue: mockPermissionService,
         },
       ],
     }).compile();
@@ -379,6 +388,7 @@ describe('TeamsService', () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       mockPrismaService.teamMember.findUnique.mockResolvedValue(null);
       mockPrismaService.teamMember.create.mockResolvedValue(mockMember);
+      mockPrismaService.teamProjectPermission.findMany.mockResolvedValue([]);
 
       const result = await service.addMember(
         organizationSlug,
@@ -643,6 +653,7 @@ describe('TeamsService', () => {
       mockPrismaService.team.findFirst.mockResolvedValue(mockTeam);
       mockPrismaService.teamMember.findUnique.mockResolvedValue(mockMember);
       mockPrismaService.teamMember.delete.mockResolvedValue(mockMember);
+      mockPrismaService.teamProjectPermission.findMany.mockResolvedValue([]);
 
       const result = await service.removeMember(
         organizationSlug,
@@ -729,6 +740,7 @@ describe('TeamsService', () => {
       mockPrismaService.teamProjectPermission.create.mockResolvedValue(
         mockPermission,
       );
+      mockPrismaService.teamMember.findMany.mockResolvedValue([]);
 
       const result = await service.assignPermission(
         organizationSlug,
@@ -790,6 +802,7 @@ describe('TeamsService', () => {
       mockPrismaService.teamProjectPermission.update.mockResolvedValue(
         mockUpdated,
       );
+      mockPrismaService.teamMember.findMany.mockResolvedValue([]);
 
       const result = await service.updatePermission(
         organizationSlug,
@@ -847,6 +860,7 @@ describe('TeamsService', () => {
       mockPrismaService.teamProjectPermission.delete.mockResolvedValue(
         mockPermission,
       );
+      mockPrismaService.teamMember.findMany.mockResolvedValue([]);
 
       const result = await service.revokePermission(
         organizationSlug,

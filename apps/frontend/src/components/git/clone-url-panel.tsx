@@ -6,6 +6,7 @@
  * ECP-B2: KISS - 简单直观的复制功能
  */
 
+import { logger } from '@/lib/logger'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -36,7 +37,7 @@ export function CloneUrlPanel({ projectId }: CloneUrlPanelProps) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      console.error('Failed to copy:', err)
+      logger.error('Failed to copy:', err)
       alert(t.git.cloneUrl.copyFailed || 'Failed to copy URL')
     }
   }
@@ -48,7 +49,7 @@ export function CloneUrlPanel({ projectId }: CloneUrlPanelProps) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      console.error('Failed to copy command:', err)
+      logger.error('Failed to copy command:', err)
       alert(t.git.cloneUrl.copyFailed || 'Failed to copy command')
     }
   }
@@ -69,7 +70,11 @@ export function CloneUrlPanel({ projectId }: CloneUrlPanelProps) {
             readOnly
             className="font-mono text-sm bg-white dark:bg-gray-900"
           />
-          <Button onClick={handleCopy} variant={copied ? 'default' : 'outline'} className="shrink-0">
+          <Button
+            onClick={handleCopy}
+            variant={copied ? 'default' : 'outline'}
+            className="shrink-0"
+          >
             {copied ? (
               <>
                 <span className="mr-2">✅</span>
@@ -98,15 +103,11 @@ export function CloneUrlPanel({ projectId }: CloneUrlPanelProps) {
         {/* Usage Guide */}
         {showGuide && (
           <div className="space-y-3 pt-2 border-t border-blue-200 dark:border-blue-800">
-            <h4 className="font-semibold text-sm text-card-foreground">
-              {t.git.cloneUrl.guide}:
-            </h4>
+            <h4 className="font-semibold text-sm text-card-foreground">{t.git.cloneUrl.guide}:</h4>
 
             {/* Clone Command */}
             <div>
-              <p className="text-xs text-muted-foreground mb-1">
-                {t.git.cloneUrl.cloneCommand}:
-              </p>
+              <p className="text-xs text-muted-foreground mb-1">{t.git.cloneUrl.cloneCommand}:</p>
               <div className="flex gap-2">
                 <code className="flex-1 bg-gray-900 dark:bg-gray-950 text-green-400 p-2 rounded text-xs overflow-x-auto">
                   git clone {cloneUrl}
@@ -134,9 +135,7 @@ export function CloneUrlPanel({ projectId }: CloneUrlPanelProps) {
 
             {/* Push Command */}
             <div>
-              <p className="text-xs text-muted-foreground mb-1">
-                {t.git.cloneUrl.pushCommand}:
-              </p>
+              <p className="text-xs text-muted-foreground mb-1">{t.git.cloneUrl.pushCommand}:</p>
               <div className="flex gap-2">
                 <code className="flex-1 bg-gray-900 dark:bg-gray-950 text-green-400 p-2 rounded text-xs overflow-x-auto">
                   git add .{'\n'}
@@ -171,9 +170,7 @@ export function CloneUrlPanel({ projectId }: CloneUrlPanelProps) {
 
             {/* Pull Command */}
             <div>
-              <p className="text-xs text-muted-foreground mb-1">
-                {t.git.cloneUrl.pullCommand}:
-              </p>
+              <p className="text-xs text-muted-foreground mb-1">{t.git.cloneUrl.pullCommand}:</p>
               <div className="flex gap-2">
                 <code className="flex-1 bg-gray-900 dark:bg-gray-950 text-green-400 p-2 rounded text-xs overflow-x-auto">
                   git pull origin main

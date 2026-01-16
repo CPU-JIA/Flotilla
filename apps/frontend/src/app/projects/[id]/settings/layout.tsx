@@ -152,9 +152,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-3xl font-bold text-card-foreground">
-              {t.projects.settings.title}
-            </h1>
+            <h1 className="text-3xl font-bold text-card-foreground">{t.projects.settings.title}</h1>
             <Button variant="outline" onClick={() => router.push(`/projects/${projectId}`)}>
               {t.projects.settings.backToProject}
             </Button>

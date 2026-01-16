@@ -62,9 +62,7 @@ export default function LoginPage() {
     setResendingEmail(true)
     try {
       // 提取邮箱（如果用户输入的是邮箱）
-      const email = formData.usernameOrEmail.includes('@')
-        ? formData.usernameOrEmail
-        : ''
+      const email = formData.usernameOrEmail.includes('@') ? formData.usernameOrEmail : ''
 
       if (!email) {
         toast.error('请使用邮箱地址登录以重新发送验证邮件')

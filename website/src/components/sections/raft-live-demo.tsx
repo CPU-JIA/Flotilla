@@ -29,21 +29,14 @@ export function RaftLiveDemo() {
   const [logs, setLogs] = React.useState<string[]>([])
 
   const addLog = (message: string) => {
-    setLogs((prev) => [
-      `[${new Date().toLocaleTimeString()}] ${message}`,
-      ...prev.slice(0, 4),
-    ])
+    setLogs((prev) => [`[${new Date().toLocaleTimeString()}] ${message}`, ...prev.slice(0, 4)])
   }
 
   const simulateLeaderFailure = () => {
     if (isElecting) return
 
     addLog('❌ Leader (Node 1) has failed!')
-    setNodes((prev) =>
-      prev.map((node) =>
-        node.id === 1 ? { ...node, state: 'down' } : node
-      )
-    )
+    setNodes((prev) => prev.map((node) => (node.id === 1 ? { ...node, state: 'down' } : node)))
 
     // Start election after 500ms
     setTimeout(() => {
@@ -56,19 +49,15 @@ export function RaftLiveDemo() {
           node.id === 2
             ? { ...node, state: 'candidate', term: node.term + 1 }
             : node.id === 1
-            ? node
-            : { ...node, term: node.term + 1 }
+              ? node
+              : { ...node, term: node.term + 1 }
         )
       )
 
       // Node 3 votes for Node 2
       setTimeout(() => {
         addLog('✅ Node 3 votes for Node 2')
-        setNodes((prev) =>
-          prev.map((node) =>
-            node.id === 3 ? { ...node, votedFor: 2 } : node
-          )
-        )
+        setNodes((prev) => prev.map((node) => (node.id === 3 ? { ...node, votedFor: 2 } : node)))
 
         // Node 2 wins election
         setTimeout(() => {
@@ -78,8 +67,8 @@ export function RaftLiveDemo() {
               node.id === 2
                 ? { ...node, state: 'leader', votedFor: null }
                 : node.id === 1
-                ? node
-                : { ...node, state: 'follower', votedFor: 2 }
+                  ? node
+                  : { ...node, state: 'follower', votedFor: 2 }
             )
           )
           setIsElecting(false)
@@ -129,9 +118,7 @@ export function RaftLiveDemo() {
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">
-              Raft Consensus in Action
-            </h2>
+            <h2 className="text-4xl font-bold mb-4">Raft Consensus in Action</h2>
             <p className="text-lg text-foreground/60">
               Watch how the Raft algorithm maintains consensus even when the leader fails.
               <br />
@@ -166,9 +153,7 @@ export function RaftLiveDemo() {
                         {getNodeIcon(node.state)}
                         <div>
                           <div className="font-semibold">{node.name}</div>
-                          <div className="text-sm text-foreground/60 capitalize">
-                            {node.state}
-                          </div>
+                          <div className="text-sm text-foreground/60 capitalize">{node.state}</div>
                         </div>
                       </div>
 
@@ -271,9 +256,7 @@ export function RaftLiveDemo() {
 
           {/* Production Cluster Screenshot */}
           <div className="mt-12">
-            <h3 className="text-2xl font-semibold mb-6 text-center">
-              Production 3-Node Cluster
-            </h3>
+            <h3 className="text-2xl font-semibold mb-6 text-center">Production 3-Node Cluster</h3>
             <div className="relative aspect-video rounded-2xl overflow-hidden border border-border/40 bg-card/50 backdrop-blur-sm shadow-2xl">
               <Image
                 src="/images/raft-cluster-3nodes.png"
@@ -283,7 +266,8 @@ export function RaftLiveDemo() {
               />
             </div>
             <p className="text-center text-sm text-foreground/60 mt-4">
-              Live monitoring of a 3-node Raft cluster with real-time health checks and log replication
+              Live monitoring of a 3-node Raft cluster with real-time health checks and log
+              replication
             </p>
           </div>
 
@@ -291,10 +275,12 @@ export function RaftLiveDemo() {
           <div className="mt-12 p-6 rounded-2xl bg-secondary/30 border border-border/40">
             <h4 className="font-semibold mb-2">How Raft Consensus Works</h4>
             <p className="text-sm text-foreground/70 leading-relaxed">
-              Raft divides consensus into three sub-problems: <strong>Leader Election</strong> (choose one server to act as cluster leader),{' '}
-              <strong>Log Replication</strong> (leader accepts log entries from clients and replicates them across the cluster), and{' '}
-              <strong>Safety</strong> (if any server has applied a particular log entry, no other server may apply a different command for that log index).
-              This demo shows leader election in action with automatic failover in ~150ms.
+              Raft divides consensus into three sub-problems: <strong>Leader Election</strong>{' '}
+              (choose one server to act as cluster leader), <strong>Log Replication</strong> (leader
+              accepts log entries from clients and replicates them across the cluster), and{' '}
+              <strong>Safety</strong> (if any server has applied a particular log entry, no other
+              server may apply a different command for that log index). This demo shows leader
+              election in action with automatic failover in ~150ms.
             </p>
           </div>
         </div>

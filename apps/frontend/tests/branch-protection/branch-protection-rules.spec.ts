@@ -24,7 +24,7 @@ import { test, expect, APIRequestContext } from '@playwright/test'
 async function loginViaAPI(
   request: APIRequestContext,
   username: string,
-  password: string,
+  password: string
 ): Promise<string> {
   const response = await request.post('http://localhost:4000/api/auth/login', {
     data: { usernameOrEmail: username, password },
@@ -40,7 +40,7 @@ async function loginViaAPI(
 async function createProjectViaAPI(
   request: APIRequestContext,
   token: string,
-  name: string,
+  name: string
 ): Promise<string> {
   const response = await request.post('http://localhost:4000/api/projects', {
     headers: {
@@ -144,23 +144,26 @@ test.describe('Branch Protection Rules E2E Tests', () => {
 
   test('should display created rule in table', async ({ page, request }) => {
     // Create a rule via API
-    const response = await request.post(`http://localhost:4000/api/projects/${projectId}/branch-protection`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      data: {
-        branchPattern: 'develop',
-        requirePullRequest: true,
-        requiredApprovingReviews: 1,
-        dismissStaleReviews: false,
-        requireCodeOwnerReview: false,
-        allowForcePushes: false,
-        allowDeletions: false,
-        requireStatusChecks: false,
-        requiredStatusChecks: [],
-      },
-    })
+    const response = await request.post(
+      `http://localhost:4000/api/projects/${projectId}/branch-protection`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        data: {
+          branchPattern: 'develop',
+          requirePullRequest: true,
+          requiredApprovingReviews: 1,
+          dismissStaleReviews: false,
+          requireCodeOwnerReview: false,
+          allowForcePushes: false,
+          allowDeletions: false,
+          requireStatusChecks: false,
+          requiredStatusChecks: [],
+        },
+      }
+    )
     expect(response.ok()).toBeTruthy()
 
     // Navigate to branch protection page
@@ -193,7 +196,7 @@ test.describe('Branch Protection Rules E2E Tests', () => {
           requireStatusChecks: false,
           requiredStatusChecks: [],
         },
-      },
+      }
     )
     expect(createResponse.ok()).toBeTruthy()
     const _ruleData = await createResponse.json()
@@ -257,7 +260,7 @@ test.describe('Branch Protection Rules E2E Tests', () => {
           requireStatusChecks: false,
           requiredStatusChecks: [],
         },
-      },
+      }
     )
     expect(createResponse.ok()).toBeTruthy()
 

@@ -24,7 +24,7 @@ import { test, expect, APIRequestContext } from '@playwright/test'
 async function loginViaAPI(
   request: APIRequestContext,
   username: string,
-  password: string,
+  password: string
 ): Promise<string> {
   const response = await request.post('http://localhost:4000/api/auth/login', {
     data: { usernameOrEmail: username, password },
@@ -41,7 +41,7 @@ async function createProjectViaAPI(
   request: APIRequestContext,
   token: string,
   name: string,
-  requireApprovals: number = 0,
+  requireApprovals: number = 0
 ): Promise<string> {
   const response = await request.post('http://localhost:4000/api/projects', {
     headers: {
@@ -69,7 +69,7 @@ async function createBranch(
   token: string,
   projectId: string,
   name: string,
-  startPoint: string,
+  startPoint: string
 ): Promise<void> {
   const response = await request.post(`http://localhost:4000/api/git/${projectId}/branches`, {
     headers: {
@@ -90,7 +90,7 @@ async function createCommit(
   projectId: string,
   branch: string,
   files: Array<{ path: string; content: string }>,
-  message: string,
+  message: string
 ): Promise<Record<string, unknown>> {
   const response = await request.post(`http://localhost:4000/api/git/${projectId}/commit`, {
     headers: {
@@ -112,7 +112,7 @@ async function createPullRequest(
   projectId: string,
   title: string,
   sourceBranch: string,
-  targetBranch: string = 'main',
+  targetBranch: string = 'main'
 ): Promise<{ id: string; number: number }> {
   const response = await request.post('http://localhost:4000/api/pull-requests', {
     headers: {
@@ -140,7 +140,7 @@ async function submitReview(
   token: string,
   prId: string,
   state: 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED',
-  body?: string,
+  body?: string
 ): Promise<void> {
   const response = await request.post(`http://localhost:4000/api/pull-requests/${prId}/reviews`, {
     headers: {
@@ -193,7 +193,7 @@ test.describe('PR Review Workflow E2E Tests', () => {
       projectId,
       'feature-approve-test',
       [{ path: 'feature.txt', content: 'New feature code' }],
-      'Add new feature',
+      'Add new feature'
     )
 
     const pr = await createPullRequest(
@@ -201,7 +201,7 @@ test.describe('PR Review Workflow E2E Tests', () => {
       creatorToken,
       projectId,
       'Test Approve Review',
-      'feature-approve-test',
+      'feature-approve-test'
     )
 
     // Reviewer 1 submits Approve review via API
@@ -232,7 +232,7 @@ test.describe('PR Review Workflow E2E Tests', () => {
       approvalProjectId,
       'feature-changes',
       [{ path: 'bug.txt', content: 'Buggy code' }],
-      'Add buggy code',
+      'Add buggy code'
     )
 
     const pr = await createPullRequest(
@@ -240,7 +240,7 @@ test.describe('PR Review Workflow E2E Tests', () => {
       creatorToken,
       approvalProjectId,
       'Test Request Changes',
-      'feature-changes',
+      'feature-changes'
     )
 
     // Reviewer submits Request Changes review
@@ -250,7 +250,7 @@ test.describe('PR Review Workflow E2E Tests', () => {
       reviewer1Token,
       pr.id,
       'CHANGES_REQUESTED',
-      'Please fix the bug before merging',
+      'Please fix the bug before merging'
     )
 
     // Navigate to PR detail page
@@ -267,10 +267,15 @@ test.describe('PR Review Workflow E2E Tests', () => {
 
     // Hover to see tooltip with blocking reason
     await mergeButton.first().hover()
-    await expect(page.locator('text=/change request|不允许合并/i').first()).toBeVisible({ timeout: 3000 })
+    await expect(page.locator('text=/change request|不允许合并/i').first()).toBeVisible({
+      timeout: 3000,
+    })
   })
 
-  test('should submit Comment-only review without affecting merge status', async ({ page, request }) => {
+  test('should submit Comment-only review without affecting merge status', async ({
+    page,
+    request,
+  }) => {
     // Create feature branch and PR
     await createBranch(request, creatorToken, projectId, 'feature-comment', 'main')
     await createCommit(
@@ -279,7 +284,7 @@ test.describe('PR Review Workflow E2E Tests', () => {
       projectId,
       'feature-comment',
       [{ path: 'code.txt', content: 'Some code' }],
-      'Add code',
+      'Add code'
     )
 
     const pr = await createPullRequest(
@@ -287,7 +292,7 @@ test.describe('PR Review Workflow E2E Tests', () => {
       creatorToken,
       projectId,
       'Test Comment Review',
-      'feature-comment',
+      'feature-comment'
     )
 
     // Reviewer submits Comment review
@@ -321,7 +326,7 @@ test.describe('PR Review Workflow E2E Tests', () => {
       multiApprovalProjectId,
       'feature-multi',
       [{ path: 'important.txt', content: 'Critical feature' }],
-      'Add critical feature',
+      'Add critical feature'
     )
 
     const pr = await createPullRequest(
@@ -329,7 +334,7 @@ test.describe('PR Review Workflow E2E Tests', () => {
       creatorToken,
       multiApprovalProjectId,
       'Test Multiple Approvals',
-      'feature-multi',
+      'feature-multi'
     )
 
     // First reviewer approves
@@ -379,7 +384,7 @@ test.describe('PR Review Workflow E2E Tests', () => {
       summaryProjectId,
       'feature-summary',
       [{ path: 'file.txt', content: 'Code' }],
-      'Add file',
+      'Add file'
     )
 
     const pr = await createPullRequest(
@@ -387,7 +392,7 @@ test.describe('PR Review Workflow E2E Tests', () => {
       creatorToken,
       summaryProjectId,
       'Test Review Summary',
-      'feature-summary',
+      'feature-summary'
     )
 
     // Submit different types of reviews
@@ -404,7 +409,11 @@ test.describe('PR Review Workflow E2E Tests', () => {
     // Verify Review Summary Card displays correct counts
     // Should show: 1 Approve, 0 Request Changes, 1 Comment
     await expect(page.locator('text=/1.*Approv/i').first()).toBeVisible({ timeout: 5000 })
-    await expect(page.locator('text=/0.*Change.*Request/i').or(page.locator('text=/0.*🔴/')).first()).toBeVisible()
-    await expect(page.locator('text=/1.*Comment/i').or(page.locator('text=/1.*💬/')).first()).toBeVisible()
+    await expect(
+      page.locator('text=/0.*Change.*Request/i').or(page.locator('text=/0.*🔴/')).first()
+    ).toBeVisible()
+    await expect(
+      page.locator('text=/1.*Comment/i').or(page.locator('text=/1.*💬/')).first()
+    ).toBeVisible()
   })
 })

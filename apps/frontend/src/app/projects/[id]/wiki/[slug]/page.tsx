@@ -86,10 +86,7 @@ export default function WikiPageView() {
       <div className="container mx-auto py-8">
         <Card className="p-6">
           <div className="text-red-600">Error: {error || 'Page not found'}</div>
-          <Button
-            className="mt-4"
-            onClick={() => router.push(`/projects/${projectId}/wiki`)}
-          >
+          <Button className="mt-4" onClick={() => router.push(`/projects/${projectId}/wiki`)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Wiki
           </Button>
@@ -115,8 +112,7 @@ export default function WikiPageView() {
           <div>
             <h1 className="text-4xl font-bold mb-2">{page.title}</h1>
             <div className="text-sm text-gray-500">
-              Last updated{' '}
-              {new Date(page.updatedAt).toLocaleDateString()} by{' '}
+              Last updated {new Date(page.updatedAt).toLocaleDateString()} by{' '}
               {page.createdBy.username}
             </div>
           </div>
@@ -124,9 +120,7 @@ export default function WikiPageView() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() =>
-                router.push(`/projects/${projectId}/wiki/${slug}/history`)
-              }
+              onClick={() => router.push(`/projects/${projectId}/wiki/${slug}/history`)}
             >
               <Clock className="h-4 w-4 mr-2" />
               History
@@ -134,19 +128,12 @@ export default function WikiPageView() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() =>
-                router.push(`/projects/${projectId}/wiki/${slug}/edit`)
-              }
+              onClick={() => router.push(`/projects/${projectId}/wiki/${slug}/edit`)}
             >
               <Edit className="h-4 w-4 mr-2" />
               Edit
             </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleDelete}
-              disabled={deleting}
-            >
+            <Button variant="destructive" size="sm" onClick={handleDelete} disabled={deleting}>
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
             </Button>

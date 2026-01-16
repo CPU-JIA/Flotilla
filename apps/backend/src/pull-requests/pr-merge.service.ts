@@ -15,6 +15,10 @@ import {
   MergeStrategy,
 } from './dto/merge-pull-request.dto';
 import { PRState } from '@prisma/client';
+import {
+  USER_SELECT_FULL,
+  USER_SELECT_BASIC,
+} from './constants/pr-queries.constant';
 
 /**
  * PR合并服务
@@ -40,12 +44,7 @@ export class PRMergeService {
       include: {
         project: true,
         author: {
-          select: {
-            id: true,
-            username: true,
-            email: true,
-            avatar: true,
-          },
+          select: USER_SELECT_FULL,
         },
       },
     });
@@ -167,18 +166,10 @@ export class PRMergeService {
       },
       include: {
         author: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
+          select: USER_SELECT_BASIC,
         },
         merger: {
-          select: {
-            id: true,
-            username: true,
-            avatar: true,
-          },
+          select: USER_SELECT_BASIC,
         },
       },
     });
@@ -211,10 +202,13 @@ export class PRMergeService {
           body: `${merged.merger?.username || '管理员'} 使用 ${strategy} 策略合并了您的 Pull Request`,
           link: `/projects/${pr.projectId}/pull-requests/${pr.number}`,
           metadata: {
+            type: 'PR_MERGED' as const,
             prId: pr.id,
+            prNumber: pr.number,
+            mergedBy: merged.merger?.username || '管理员',
             mergerId: userId,
-            mergeStrategy: strategy,
-            mergeCommit: mergeCommitOid,
+            targetBranch: pr.targetBranch,
+            commitCount: 1, // 简化处理，实际可以从 git log 获取
           },
         });
         this.logger.log(

@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { api } from '@/lib/api'
@@ -14,10 +15,7 @@ interface PipelineStatusBadgeProps {
   className?: string
 }
 
-export function PipelineStatusBadge({
-  projectId,
-  className = '',
-}: PipelineStatusBadgeProps) {
+export function PipelineStatusBadge({ projectId, className = '' }: PipelineStatusBadgeProps) {
   const [latestRun, setLatestRun] = useState<PipelineRun | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -25,12 +23,14 @@ export function PipelineStatusBadge({
     try {
       setLoading(true)
       // Use api.get with type parameter
-      const data = await api.get<{ runs: Array<PipelineRun> }>(`/projects/${projectId}/pipeline-runs?limit=1`)
+      const data = await api.get<{ runs: Array<PipelineRun> }>(
+        `/projects/${projectId}/pipeline-runs?limit=1`
+      )
       if (data.runs && data.runs.length > 0) {
         setLatestRun(data.runs[0])
       }
     } catch (error) {
-      console.error('Failed to load pipeline status:', error)
+      logger.error('Failed to load pipeline status:', error)
     } finally {
       setLoading(false)
     }

@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { UpdateTeamDto } from './dto/update-team.dto';
+import { PermissionService } from '../common/services/permission.service';
 import { AddTeamMemberDto } from './dto/add-team-member.dto';
 import { UpdateTeamMemberRoleDto } from './dto/update-team-member-role.dto';
 import { AssignProjectPermissionDto } from './dto/assign-project-permission.dto';
@@ -18,6 +19,7 @@ import { UpdateProjectPermissionDto } from './dto/update-project-permission.dto'
 export class TeamsService {
   constructor(
     private prisma: PrismaService,
+    private permissionService: PermissionService,
     private redisService: RedisService,
   ) {}
 
@@ -433,6 +435,19 @@ export class TeamsService {
     // ✅ 缓存失效: 删除团队详情缓存（成员列表已变化）
     await this.redisService.del(`team:${organizationSlug}:${teamSlug}`);
 
+    // 🔒 ECP-A1防御编程: 清除用户在团队所有项目中的权限缓存
+    const teamProjects = await this.prisma.teamProjectPermission.findMany({
+      where: { teamId: team.id },
+      select: { projectId: true },
+    });
+
+    for (const proj of teamProjects) {
+      await this.permissionService.invalidateProjectPermissionCache(
+        user.id,
+        proj.projectId,
+      );
+    }
+
     return {
       id: member.id,
       role: member.role,
@@ -565,6 +580,19 @@ export class TeamsService {
     // ✅ 缓存失效: 删除团队详情缓存（成员列表已变化）
     await this.redisService.del(`team:${organizationSlug}:${teamSlug}`);
 
+    // 🔒 ECP-A1防御编程: 清除用户在团队所有项目中的权限缓存
+    const teamProjects = await this.prisma.teamProjectPermission.findMany({
+      where: { teamId: team.id },
+      select: { projectId: true },
+    });
+
+    for (const proj of teamProjects) {
+      await this.permissionService.invalidateProjectPermissionCache(
+        targetUserId,
+        proj.projectId,
+      );
+    }
+
     return {
       message: 'Member removed successfully',
       userId: targetUserId,
@@ -680,6 +708,19 @@ export class TeamsService {
     // ✅ 缓存失效: 删除团队详情缓存（项目权限已变化）
     await this.redisService.del(`team:${organizationSlug}:${teamSlug}`);
 
+    // 🔒 ECP-A1防御编程: 清除团队所有成员在该项目的权限缓存
+    const teamMembers1 = await this.prisma.teamMember.findMany({
+      where: { teamId: team.id },
+      select: { userId: true },
+    });
+
+    for (const member of teamMembers1) {
+      await this.permissionService.invalidateProjectPermissionCache(
+        member.userId,
+        dto.projectId,
+      );
+    }
+
     return {
       id: permission.id,
       role: permission.role,
@@ -749,6 +790,19 @@ export class TeamsService {
     // ✅ 缓存失效: 删除团队详情缓存（项目权限已变化）
     await this.redisService.del(`team:${organizationSlug}:${teamSlug}`);
 
+    // 🔒 ECP-A1防御编程: 清除团队所有成员在该项目的权限缓存
+    const teamMembers2 = await this.prisma.teamMember.findMany({
+      where: { teamId: team.id },
+      select: { userId: true },
+    });
+
+    for (const member of teamMembers2) {
+      await this.permissionService.invalidateProjectPermissionCache(
+        member.userId,
+        projectId,
+      );
+    }
+
     return {
       id: updated.id,
       role: updated.role,
@@ -797,6 +851,19 @@ export class TeamsService {
 
     // ✅ 缓存失效: 删除团队详情缓存（项目权限已变化）
     await this.redisService.del(`team:${organizationSlug}:${teamSlug}`);
+
+    // 🔒 ECP-A1防御编程: 清除团队所有成员在该项目的权限缓存
+    const teamMembers3 = await this.prisma.teamMember.findMany({
+      where: { teamId: team.id },
+      select: { userId: true },
+    });
+
+    for (const member of teamMembers3) {
+      await this.permissionService.invalidateProjectPermissionCache(
+        member.userId,
+        projectId,
+      );
+    }
 
     return {
       message: 'Permission revoked successfully',

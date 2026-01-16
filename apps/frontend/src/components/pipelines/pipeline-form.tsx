@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -93,8 +94,9 @@ export function PipelineForm({ projectId, pipeline, onSuccess }: PipelineFormPro
         router.push(`/projects/${projectId}/pipelines`)
       }
     } catch (error: unknown) {
-      console.error('Failed to save pipeline:', error)
-      const errorMessage = error instanceof Error ? error.message : '保存失败，请检查配置格式是否正确'
+      logger.error('Failed to save pipeline:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : '保存失败，请检查配置格式是否正确'
       alert(errorMessage)
     } finally {
       setLoading(false)
@@ -209,12 +211,7 @@ export function PipelineForm({ projectId, pipeline, onSuccess }: PipelineFormPro
       </Card>
 
       <div className="flex gap-3 justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-          disabled={loading}
-        >
+        <Button type="button" variant="outline" onClick={() => router.back()} disabled={loading}>
           取消
         </Button>
         <Button type="submit" disabled={loading}>

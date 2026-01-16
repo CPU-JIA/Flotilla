@@ -184,8 +184,12 @@ async function processRepository(
 async function migrate() {
   const { dryRun, repoPath } = parseArgs();
 
-  console.log(`\n${colors.bold}${colors.cyan}Git HTTP Configuration Migration Tool${colors.reset}\n`);
-  console.log(`Mode: ${dryRun ? `${colors.blue}DRY RUN${colors.reset} (preview only)` : `${colors.green}LIVE${colors.reset} (will modify files)`}`);
+  console.log(
+    `\n${colors.bold}${colors.cyan}Git HTTP Configuration Migration Tool${colors.reset}\n`,
+  );
+  console.log(
+    `Mode: ${dryRun ? `${colors.blue}DRY RUN${colors.reset} (preview only)` : `${colors.green}LIVE${colors.reset} (will modify files)`}`,
+  );
   console.log(`Repository path: ${colors.yellow}${repoPath}${colors.reset}\n`);
 
   // Check if repository path exists
@@ -206,11 +210,15 @@ async function migrate() {
     .map((entry) => entry.name);
 
   if (repoDirs.length === 0) {
-    console.log(`${colors.yellow}No repositories found in ${repoPath}${colors.reset}\n`);
+    console.log(
+      `${colors.yellow}No repositories found in ${repoPath}${colors.reset}\n`,
+    );
     process.exit(0);
   }
 
-  console.log(`Found ${colors.bold}${repoDirs.length}${colors.reset} directories to process\n`);
+  console.log(
+    `Found ${colors.bold}${repoDirs.length}${colors.reset} directories to process\n`,
+  );
 
   // Process each repository
   const stats: MigrationStats = {
@@ -240,9 +248,15 @@ async function migrate() {
   console.log(`\n${colors.bold}${colors.cyan}Migration Summary${colors.reset}`);
   console.log(`${'='.repeat(50)}`);
   console.log(`Total repositories:     ${stats.total}`);
-  console.log(`${colors.green}Fixed:${colors.reset}                  ${stats.fixed}`);
-  console.log(`${colors.cyan}Skipped (already OK):${colors.reset}   ${stats.skipped}`);
-  console.log(`${colors.red}Failed:${colors.reset}                 ${stats.failed}`);
+  console.log(
+    `${colors.green}Fixed:${colors.reset}                  ${stats.fixed}`,
+  );
+  console.log(
+    `${colors.cyan}Skipped (already OK):${colors.reset}   ${stats.skipped}`,
+  );
+  console.log(
+    `${colors.red}Failed:${colors.reset}                 ${stats.failed}`,
+  );
 
   if (stats.errors.length > 0) {
     console.log(`\n${colors.bold}${colors.red}Errors:${colors.reset}`);
@@ -254,7 +268,9 @@ async function migrate() {
     );
     console.log(`  1. Check file permissions on config files`);
     console.log(`  2. Verify 'git' command is installed and in PATH`);
-    console.log(`  3. Manually run: git config --file <repo>/config http.receivepack true`);
+    console.log(
+      `  3. Manually run: git config --file <repo>/config http.receivepack true`,
+    );
   }
 
   if (dryRun) {
@@ -274,6 +290,9 @@ async function migrate() {
 
 // Run migration
 migrate().catch((error) => {
-  console.error(`\n${colors.red}${colors.bold}Fatal error:${colors.reset}`, error);
+  console.error(
+    `\n${colors.red}${colors.bold}Fatal error:${colors.reset}`,
+    error,
+  );
   process.exit(1);
 });

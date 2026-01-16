@@ -10,17 +10,7 @@ import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { useLanguage } from '@/contexts/language-context'
-import {
-  User,
-  Settings,
-  Smartphone,
-  Bell,
-  Shield,
-  Key,
-  Eye,
-  Link2,
-  ScrollText,
-} from 'lucide-react'
+import { User, Settings, Smartphone, Bell, Shield, Key, Eye, Link2, ScrollText } from 'lucide-react'
 
 const getSettingsNav = (language: 'zh' | 'en') => [
   {
@@ -83,7 +73,9 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
             {language === 'zh' ? '设置' : 'Settings'}
           </h1>
           <p className="text-muted-foreground mt-1">
-            {language === 'zh' ? '管理您的账户设置和偏好' : 'Manage your account settings and preferences'}
+            {language === 'zh'
+              ? '管理您的账户设置和偏好'
+              : 'Manage your account settings and preferences'}
           </p>
         </div>
 

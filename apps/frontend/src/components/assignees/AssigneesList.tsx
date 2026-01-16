@@ -15,10 +15,10 @@ import type { IssueAssignee } from '@/types/issue'
 
 interface AssigneesListProps {
   // 🔒 REFACTOR: 支持新格式 (优先) 或旧格式 (兼容)
-  assignees?: IssueAssignee[]; // 新格式: 包含完整用户信息
-  assigneeIds?: string[]; // 旧格式: 仅ID数组 (已废弃)
-  maxDisplay?: number; // Maximum avatars to display before showing "+N"
-  size?: 'sm' | 'md' | 'lg';
+  assignees?: IssueAssignee[] // 新格式: 包含完整用户信息
+  assigneeIds?: string[] // 旧格式: 仅ID数组 (已废弃)
+  maxDisplay?: number // Maximum avatars to display before showing "+N"
+  size?: 'sm' | 'md' | 'lg'
 }
 
 export function AssigneesList({
@@ -28,8 +28,8 @@ export function AssigneesList({
   size = 'md',
 }: AssigneesListProps) {
   // 🔒 REFACTOR: 优先使用新格式，回退到旧格式
-  const assigneeList = assignees || [];
-  const hasAssignees = assigneeList.length > 0 || (assigneeIds && assigneeIds.length > 0);
+  const assigneeList = assignees || []
+  const hasAssignees = assigneeList.length > 0 || (assigneeIds && assigneeIds.length > 0)
 
   // ECP-B2: Size configurations
   const sizeClasses = {
@@ -69,7 +69,9 @@ export function AssigneesList({
           title={`${assignee.user.username} (${assignee.user.email})`}
         >
           {/* 暂时使用首字母头像，后续集成头像服务 */}
-          <div className={`${sizeClasses[size]} rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold`}>
+          <div
+            className={`${sizeClasses[size]} rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold`}
+          >
             {assignee.user.username[0].toUpperCase()}
           </div>
 

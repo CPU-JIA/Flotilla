@@ -64,10 +64,14 @@ test.describe('Issue Labels Management', () => {
     await page.waitForLoadState('networkidle', { timeout: 10000 })
 
     // Verify page title
-    await expect(page.getByRole('heading', { name: /Labels|标签/i }).first()).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('heading', { name: /Labels|标签/i }).first()).toBeVisible({
+      timeout: 5000,
+    })
 
     // Click "Create Label" button
-    await page.getByRole('button', { name: /新建.*标签|创建.*标签|Create.*Label|New.*Label/i }).click()
+    await page
+      .getByRole('button', { name: /新建.*标签|创建.*标签|Create.*Label|New.*Label/i })
+      .click()
 
     // Wait for dialog
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 5000 })
@@ -78,14 +82,20 @@ test.describe('Issue Labels Management', () => {
 
     // Select a preset color (Red - Bug color)
     // ColorPicker has 8 preset buttons with aria-label
-    await page.getByRole('button', { name: /Red|Bug/i }).first().click()
+    await page
+      .getByRole('button', { name: /Red|Bug/i })
+      .first()
+      .click()
 
     // Fill description
     const description = 'Labels for bug fix issues'
     await page.locator('#description').fill(description)
 
     // Submit form
-    await page.getByRole('button', { name: /创建|Create/i }).last().click()
+    await page
+      .getByRole('button', { name: /创建|Create/i })
+      .last()
+      .click()
 
     // Wait for dialog to close
     await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 5000 })
@@ -145,4 +155,3 @@ test.describe('Issue Labels Management', () => {
   // NOTE: Edit and Delete tests removed due to frontend dialog mode issues
   // These will be added in a future iteration after debugging the frontend components
 })
-

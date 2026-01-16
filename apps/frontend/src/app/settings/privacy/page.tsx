@@ -4,6 +4,7 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState } from 'react'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
@@ -16,14 +17,21 @@ export default function PrivacyPage() {
   const [deleting, setDeleting] = useState(false)
 
   const handleExportData = async () => {
-    if (!confirm(`Request data export?\n\nYou will receive an email with a download link when your data is ready.`)) return
+    if (
+      !confirm(
+        `Request data export?\n\nYou will receive an email with a download link when your data is ready.`
+      )
+    )
+      return
 
     try {
       setExporting(true)
       await api.post('/gdpr/export', {})
-      alert(`Data export requested successfully!\n\nYou will receive an email when your data is ready for download.`)
+      alert(
+        `Data export requested successfully!\n\nYou will receive an email when your data is ready for download.`
+      )
     } catch (error) {
-      console.error('Failed to request data export:', error)
+      logger.error('Failed to request data export:', error)
       alert('Failed to request data export. Please try again.')
     } finally {
       setExporting(false)
@@ -33,12 +41,12 @@ export default function PrivacyPage() {
   const handleDeleteAccount = async () => {
     const confirmed = confirm(
       `Delete your account?\n\n` +
-      `This will permanently delete:\n` +
-      `• Your user profile\n` +
-      `• All your projects and data\n` +
-      `• All your organization memberships\n\n` +
-      `This action CANNOT be undone!\n\n` +
-      `Type DELETE to confirm.`
+        `This will permanently delete:\n` +
+        `• Your user profile\n` +
+        `• All your projects and data\n` +
+        `• All your organization memberships\n\n` +
+        `This action CANNOT be undone!\n\n` +
+        `Type DELETE to confirm.`
     )
     if (!confirmed) return
 
@@ -55,7 +63,7 @@ export default function PrivacyPage() {
       // Redirect to logout
       window.location.href = '/auth/login'
     } catch (error) {
-      console.error('Failed to delete account:', error)
+      logger.error('Failed to delete account:', error)
       alert('Failed to delete account. Please try again or contact support.')
       setDeleting(false)
     }
@@ -65,9 +73,7 @@ export default function PrivacyPage() {
     <div className="container mx-auto py-6 max-w-4xl">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Privacy & Data</h1>
-        <p className="text-muted-foreground mt-1">
-          Manage your personal data and privacy settings
-        </p>
+        <p className="text-muted-foreground mt-1">Manage your personal data and privacy settings</p>
       </div>
 
       <div className="space-y-6">
@@ -80,8 +86,8 @@ export default function PrivacyPage() {
             <div className="flex-1">
               <h2 className="text-xl font-semibold mb-2">Export Your Data</h2>
               <p className="text-sm text-muted-foreground mb-4">
-                Request a copy of all your personal data stored in Flotilla.
-                We&apos;ll compile your profile, projects, issues, and activity into a downloadable ZIP file.
+                Request a copy of all your personal data stored in Flotilla. We&apos;ll compile your
+                profile, projects, issues, and activity into a downloadable ZIP file.
               </p>
               <div className="flex items-center gap-4">
                 <Button onClick={handleExportData} disabled={exporting}>
@@ -90,7 +96,8 @@ export default function PrivacyPage() {
                 <Badge variant="outline">GDPR Compliant</Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-3">
-                ℹ️ Export typically takes 5-10 minutes. You&apos;ll receive an email with a download link.
+                ℹ️ Export typically takes 5-10 minutes. You&apos;ll receive an email with a download
+                link.
               </p>
             </div>
           </div>
@@ -105,11 +112,23 @@ export default function PrivacyPage() {
             <div className="flex-1">
               <h2 className="text-xl font-semibold mb-2">Your Privacy Rights</h2>
               <ul className="text-sm text-muted-foreground space-y-2">
-                <li>✓ <strong>Right to Access:</strong> Request a copy of your data</li>
-                <li>✓ <strong>Right to Portability:</strong> Download your data in a machine-readable format</li>
-                <li>✓ <strong>Right to Rectification:</strong> Update incorrect information via settings</li>
-                <li>✓ <strong>Right to Erasure:</strong> Request permanent deletion of your account</li>
-                <li>✓ <strong>Right to Object:</strong> Opt-out of certain data processing activities</li>
+                <li>
+                  ✓ <strong>Right to Access:</strong> Request a copy of your data
+                </li>
+                <li>
+                  ✓ <strong>Right to Portability:</strong> Download your data in a machine-readable
+                  format
+                </li>
+                <li>
+                  ✓ <strong>Right to Rectification:</strong> Update incorrect information via
+                  settings
+                </li>
+                <li>
+                  ✓ <strong>Right to Erasure:</strong> Request permanent deletion of your account
+                </li>
+                <li>
+                  ✓ <strong>Right to Object:</strong> Opt-out of certain data processing activities
+                </li>
               </ul>
             </div>
           </div>
@@ -124,14 +143,10 @@ export default function PrivacyPage() {
             <div className="flex-1">
               <h2 className="text-xl font-semibold mb-2 text-destructive">Delete Account</h2>
               <p className="text-sm text-muted-foreground mb-4">
-                Permanently delete your account and all associated data. 
-                This action is irreversible and will remove all your projects, issues, and contributions.
+                Permanently delete your account and all associated data. This action is irreversible
+                and will remove all your projects, issues, and contributions.
               </p>
-              <Button 
-                variant="destructive" 
-                onClick={handleDeleteAccount}
-                disabled={deleting}
-              >
+              <Button variant="destructive" onClick={handleDeleteAccount} disabled={deleting}>
                 <Trash2 className="h-4 w-4 mr-2" />
                 {deleting ? 'Deleting...' : 'Delete My Account'}
               </Button>

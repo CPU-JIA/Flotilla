@@ -25,7 +25,7 @@
  */
 export function extractPythonSymbols(
   content: string,
-  filePath: string,
+  _filePath: string,
 ): string[] {
   const symbols: Set<string> = new Set();
 
@@ -57,12 +57,9 @@ export function extractPythonSymbols(
 
     // 5. 提取类方法（在class内部的def）
     // 这需要更复杂的解析，暂时跳过（由函数模式覆盖）
-  } catch (error) {
+  } catch (_error) {
     // 静默失败：解析错误不影响索引流程
-    console.warn(
-      `Failed to extract Python symbols from ${filePath}:`,
-      error.message,
-    );
+    // 已移除 console.warn（ECP 禁止项）- 解析失败会返回空数组
   }
 
   return Array.from(symbols);

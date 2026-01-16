@@ -44,10 +44,7 @@ export function LanguageSwitcher() {
         {isOpen && (
           <>
             {/* Backdrop */}
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setIsOpen(false)}
-            />
+            <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
 
             {/* Dropdown */}
             <motion.div
@@ -68,9 +65,7 @@ export function LanguageSwitcher() {
                 >
                   <span className="text-lg">{lang.flag}</span>
                   <span className="font-medium">{lang.name}</span>
-                  {locale === lang.code && (
-                    <span className="ml-auto text-primary">✓</span>
-                  )}
+                  {locale === lang.code && <span className="ml-auto text-primary">✓</span>}
                 </button>
               ))}
             </motion.div>

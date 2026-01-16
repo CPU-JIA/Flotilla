@@ -105,45 +105,31 @@ export function PasswordStrength({ password, showRequirements = true }: Password
       <div className="space-y-1">
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">密码强度</span>
-          <span className={`font-medium ${
-            strength.level === 'weak' ? 'text-red-600 dark:text-red-400' :
-            strength.level === 'fair' ? 'text-orange-600 dark:text-orange-400' :
-            strength.level === 'good' ? 'text-yellow-600 dark:text-yellow-400' :
-            'text-green-600 dark:text-green-400'
-          }`}>
+          <span
+            className={`font-medium ${
+              strength.level === 'weak'
+                ? 'text-red-600 dark:text-red-400'
+                : strength.level === 'fair'
+                  ? 'text-orange-600 dark:text-orange-400'
+                  : strength.level === 'good'
+                    ? 'text-yellow-600 dark:text-yellow-400'
+                    : 'text-green-600 dark:text-green-400'
+            }`}
+          >
             {strength.label}
           </span>
         </div>
-        <Progress
-          value={strength.score}
-          className="h-2"
-          indicatorClassName={strength.color}
-        />
+        <Progress value={strength.score} className="h-2" indicatorClassName={strength.color} />
       </div>
 
       {/* 要求检查列表 */}
       {showRequirements && (
         <div className="space-y-1.5 text-xs">
-          <RequirementItem
-            met={strength.checks.minLength}
-            text="至少8个字符"
-          />
-          <RequirementItem
-            met={strength.checks.hasUpperCase}
-            text="包含大写字母 (A-Z)"
-          />
-          <RequirementItem
-            met={strength.checks.hasLowerCase}
-            text="包含小写字母 (a-z)"
-          />
-          <RequirementItem
-            met={strength.checks.hasNumber}
-            text="包含数字 (0-9)"
-          />
-          <RequirementItem
-            met={strength.checks.hasSpecialChar}
-            text="包含特殊字符 (!@#$%^&*...)"
-          />
+          <RequirementItem met={strength.checks.minLength} text="至少8个字符" />
+          <RequirementItem met={strength.checks.hasUpperCase} text="包含大写字母 (A-Z)" />
+          <RequirementItem met={strength.checks.hasLowerCase} text="包含小写字母 (a-z)" />
+          <RequirementItem met={strength.checks.hasNumber} text="包含数字 (0-9)" />
+          <RequirementItem met={strength.checks.hasSpecialChar} text="包含特殊字符 (!@#$%^&*...)" />
         </div>
       )}
 
@@ -151,9 +137,7 @@ export function PasswordStrength({ password, showRequirements = true }: Password
       {strength.level === 'weak' && (
         <div className="flex gap-2 p-2 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
           <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-red-700 dark:text-red-300">
-            密码太弱，请满足更多安全要求
-          </p>
+          <p className="text-xs text-red-700 dark:text-red-300">密码太弱，请满足更多安全要求</p>
         </div>
       )}
       {strength.level === 'fair' && (
@@ -176,9 +160,7 @@ function RequirementItem({ met, text }: { met: boolean; text: string }) {
       ) : (
         <X className="h-3.5 w-3.5 text-gray-400 dark:text-gray-600 flex-shrink-0" />
       )}
-      <span className={met ? 'text-foreground' : 'text-muted-foreground'}>
-        {text}
-      </span>
+      <span className={met ? 'text-foreground' : 'text-muted-foreground'}>{text}</span>
     </div>
   )
 }

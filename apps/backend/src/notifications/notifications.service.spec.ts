@@ -676,7 +676,15 @@ describe('NotificationsService', () => {
         userId: mockUserId,
         type: NotificationType.PR_CREATED,
         title: 'PR Created',
-        metadata: { prId: '123', repoName: 'test-repo' },
+        metadata: {
+          type: 'PR_CREATED' as const,
+          prId: '123',
+          prNumber: 1,
+          prTitle: 'Test PR',
+          sourceBranch: 'feature/test',
+          targetBranch: 'main',
+          repoName: 'test-repo',
+        },
       };
       const notificationWithMetadata = {
         ...mockNotification,

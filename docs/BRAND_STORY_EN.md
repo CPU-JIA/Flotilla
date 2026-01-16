@@ -1,7 +1,7 @@
 # Flotilla Brand Story
 
-> **Tagline:** *We don't just host code. We build consensus.*
-> **标语：** *我们不只是托管代码，我们构建共识。*
+> **Tagline:** _We don't just host code. We build consensus._
+> **标语：** _我们不只是托管代码，我们构建共识。_
 
 ---
 
@@ -31,7 +31,7 @@
 
 ### 1.1 Etymology: The Small Fleet Metaphor
 
-**Flotilla** comes from Spanish *flota* (fleet) + *-illa* (diminutive suffix), meaning "small fleet." In military terminology, it refers to a coordinated formation of small vessels—each ship is independent and autonomous, yet they operate under unified command.
+**Flotilla** comes from Spanish _flota_ (fleet) + _-illa_ (diminutive suffix), meaning "small fleet." In military terminology, it refers to a coordinated formation of small vessels—each ship is independent and autonomous, yet they operate under unified command.
 
 This isn't random naming. It's a carefully chosen technical metaphor.
 
@@ -42,6 +42,7 @@ This isn't random naming. It's a carefully chosen technical metaphor.
 Imagine a flotilla of destroyers sailing across the ocean. Each ship (Node) has its own propulsion system, navigation system, and weapons system—capable of operating independently. But when they form a fleet, their power multiplies—not because individual ships got stronger, but because they **coordinate**.
 
 This perfectly maps to the core mechanism of the Raft consensus algorithm:
+
 - Each node is an independent server
 - They coordinate through a consensus protocol
 - Even if the flagship (Leader) sinks, the fleet can elect a new command ship
@@ -49,9 +50,10 @@ This perfectly maps to the core mechanism of the Raft consensus algorithm:
 
 **Layer 2: Agile Teams, Not Aircraft Carriers**
 
-Notice we don't call ourselves *Carrier* or *Battleship*, but *Flotilla* (small fleet).
+Notice we don't call ourselves _Carrier_ or _Battleship_, but _Flotilla_ (small fleet).
 
 This reveals our target users:
+
 - Not large corporate hierarchies (carrier strike groups)
 - But startups, open-source projects, agile teams (destroyer flotillas)
 - Fast response, flexible adaptation, yet still powerful
@@ -71,6 +73,7 @@ This is the essence of Raft: **dynamic consensus**. Each election is a process o
 In naval combat, one ship going down doesn't paralyze the entire fleet. The formation can reorganize, repair, and continue forward.
 
 This perfectly corresponds to Raft's fault-tolerance mechanism:
+
 - An N-node cluster can tolerate (N-1)/2 node failures
 - When the Leader crashes, the system automatically elects a new Leader—no manual intervention
 - Data is preserved across multiple nodes through log replication; single-point failures don't lose data
@@ -88,8 +91,8 @@ Based on this metaphor, we can extend a complete brand system:
   - Cluster → Fleet
   - Heartbeat → Signal Flag
 - **Slogan Variants**:
-  - *"We sail together."*
-  - *"One fleet, one truth."*
+  - _"We sail together."_
+  - _"One fleet, one truth."_
 
 ---
 
@@ -100,6 +103,7 @@ Based on this metaphor, we can extend a complete brand system:
 When software teams scatter across the globe, we've mastered **distributed systems** technology—data can replicate across multiple data centers, services can deploy across continents. CAP theorem, consistent hashing, distributed transactions—these problems have mature solutions.
 
 But ironically, we still struggle with **distributed collaboration**:
+
 - Merge conflicts
 - Permission disputes
 - Communication breakdowns
@@ -109,7 +113,7 @@ The essence of these problems isn't technical—it's **the absence of consensus*
 
 ### 2.2 The Moment of Inspiration
 
-Late one night in 2024, while reading the Raft paper (*In Search of an Understandable Consensus Algorithm*), I suddenly realized:
+Late one night in 2024, while reading the Raft paper (_In Search of an Understandable Consensus Algorithm_), I suddenly realized:
 
 **If the Raft algorithm can achieve consensus among distributed nodes, why can't distributed teams?**
 
@@ -131,7 +135,7 @@ This isn't a weekend hack. This is an academic practice following the complete s
 - Every feature has test coverage (12,534 lines of test code, >70% coverage)
 - Every decision follows **ECP (Engineering & Code Principles)** (SOLID, DRY, KISS, defensive programming)
 
-We write paper-grade documentation *and* production-grade code. **No compromises. Both.**
+We write paper-grade documentation _and_ production-grade code. **No compromises. Both.**
 
 ---
 
@@ -147,7 +151,7 @@ When the Leader crashes, Followers initiate an election. The candidate who recei
 **Team Mapping:**
 When a project lead leaves, team members can naturally produce a new lead based on contribution and trust. Leadership isn't a permanent title—it's dynamic authorization based on consensus.
 
-**Philosophy:** *Leadership is a lease, not ownership.*
+**Philosophy:** _Leadership is a lease, not ownership._
 
 **Pain Point Solved:**
 Traditional companies need lengthy administrative processes for leadership transitions ("Who will take over?" "Does this need CEO approval?"). Open-source projects self-organize quickly—when a Maintainer becomes inactive, active Contributors naturally take responsibility.
@@ -162,7 +166,7 @@ The Leader replicates operation logs to all Followers, ensuring state consistenc
 **Team Mapping:**
 Code commits, design docs, meeting notes must sync to all members to ensure information alignment.
 
-**Philosophy:** *Transparency breeds consensus.*
+**Philosophy:** _Transparency breeds consensus._
 
 **Pain Point Solved:**
 Email threads lost, Slack messages buried, meeting decisions unrecorded—these are all "log replication failures." Flotilla ensures all decisions have immutable records through the Issue/PR system.
@@ -177,7 +181,7 @@ Each election produces a new Term. Decisions from old Terms won't be recognized 
 **Team Mapping:**
 Reconfirm priorities after each Sprint. Requirements from three months ago should be considered expired if not reconfirmed in the new Sprint.
 
-**Philosophy:** *Time is the boundary of consensus.*
+**Philosophy:** _Time is the boundary of consensus._
 
 **Pain Point Solved:**
 "We discussed this requirement six months ago"—but the market changed, the tech stack changed, team members changed. Expired consensus is more dangerous than no consensus.
@@ -192,7 +196,7 @@ Operations need confirmation from a majority of nodes (N/2 + 1) to commit. This 
 **Team Mapping:**
 PRs need approval from 2 Reviewers to merge (Require 2 approvals). Not one tech lead decides alone, nor does everyone need to thumbs-up.
 
-**Philosophy:** *Consensus isn't dictatorship, nor unanimous voting—it's majority rule.*
+**Philosophy:** _Consensus isn't dictatorship, nor unanimous voting—it's majority rule._
 
 **Pain Point Solved:**
 One person decides → Dictatorship, error-prone
@@ -209,7 +213,7 @@ Logs can only be appended, never modified (Immutability). This guarantees audita
 **Team Mapping:**
 Git commit history shouldn't be overwritten by force push (No force push to main). Branch Protection enforces this rule.
 
-**Philosophy:** *History is truth, not memory that can be tampered with.*
+**Philosophy:** _History is truth, not memory that can be tampered with._
 
 **Pain Point Solved:**
 Code history destroyed by `git rebase`, root causes untraceable. "Who introduced this bug?" "Don't know, commit history was rewritten."
@@ -224,7 +228,7 @@ The Leader periodically sends heartbeats. If a Follower doesn't receive a heartb
 **Team Mapping:**
 Members long inactive (no commits, no reviews, no comments) require task or permission reassignment.
 
-**Philosophy:** *Silence isn't default agreement—it's a disconnection signal.*
+**Philosophy:** _Silence isn't default agreement—it's a disconnection signal._
 
 **Pain Point Solved:**
 Members "AFK" for weeks, but because no one raises it, the project stays stuck. Flotilla's activity stats make this situation obvious.
@@ -239,7 +243,7 @@ All nodes apply the same operation sequence (Log Entries), ultimately reaching t
 **Team Mapping:**
 All members follow the same development process (branching strategy, CI/CD), ensuring codebase consistency.
 
-**Philosophy:** *Process is consensus made concrete.*
+**Philosophy:** _Process is consensus made concrete._
 
 **Pain Point Solved:**
 Everyone's local environment differs, Docker configs differ, build commands differ—"Works on My Machine." Standardized processes eliminate this chaos.
@@ -254,7 +258,7 @@ Prevents two Leaders (Split-Brain problem) through Term and Log Index.
 **Team Mapping:**
 Prevents two "truth versions" (two feature branches both claiming to be main) through Branch Protection and PR Review.
 
-**Philosophy:** *Single source of truth.*
+**Philosophy:** _Single source of truth._
 
 **Pain Point Solved:**
 Two teams develop separately, both thinking their branch is "mainline." When merging, conflicts explode, taking days to resolve.
@@ -293,7 +297,7 @@ These aren't slogans—they're checklist items in every Code Review.
 - Database queries must prevent SQL injection
 - User input must prevent XSS attacks
 
-**Philosophy:** *In distributed systems, everything fails. In team collaboration, everything gets misunderstood. Code must be designed for failure.*
+**Philosophy:** _In distributed systems, everything fails. In team collaboration, everything gets misunderstood. Code must be designed for failure._
 
 ### 4.4 Test-Driven Development (TDD)
 
@@ -329,7 +333,7 @@ These aren't edge cases—they're daily pains every developer has experienced. F
 - **Branch Protection**: Prevents conflicting merges
 - **Issue Timeline**: Requirement changes automatically recorded in Issue history
 
-**Philosophy:** *Async collaboration requires stronger consensus mechanisms.*
+**Philosophy:** _Async collaboration requires stronger consensus mechanisms._
 
 ---
 
@@ -345,7 +349,7 @@ These aren't edge cases—they're daily pains every developer has experienced. F
 - **Branch Protection Rules**: Enforced, non-bypassable
 - **PR Approval Requirements**: Clear records of who approved what
 
-**Philosophy:** *Permissions are protocols, not trust.*
+**Philosophy:** _Permissions are protocols, not trust._
 
 ---
 
@@ -361,7 +365,7 @@ These aren't edge cases—they're daily pains every developer has experienced. F
 - **PRs force doc updates**: Code changes must sync README updates
 - **Git Versioning**: Trace doc history alongside code history
 
-**Philosophy:** *History is truth.*
+**Philosophy:** _History is truth._
 
 ---
 
@@ -377,7 +381,7 @@ These aren't edge cases—they're daily pains every developer has experienced. F
 - **Semantic Review States**: APPROVED vs CHANGES_REQUESTED have clear meaning
 - **Merge Status Validation**: CI failed + Review not approved = Can't merge
 
-**Philosophy:** *Consensus needs evidence, not ceremony.*
+**Philosophy:** _Consensus needs evidence, not ceremony._
 
 ---
 
@@ -393,7 +397,7 @@ These aren't edge cases—they're daily pains every developer has experienced. F
 - **Cross-project search**: Permission-filtered, only shows accessible code
 - **Millisecond response**: No waiting, instant results
 
-**Philosophy:** *Knowledge should be discoverable, not memorable.*
+**Philosophy:** _Knowledge should be discoverable, not memorable._
 
 ---
 
@@ -401,15 +405,15 @@ These aren't edge cases—they're daily pains every developer has experienced. F
 
 ### 6.1 Differentiation Matrix
 
-| Dimension | GitHub | GitLab | Flotilla |
-|-----------|--------|--------|----------|
-| **Core Philosophy** | Social coding | All-in-one DevOps | **Consensus-driven collaboration** |
-| **Consensus Algorithm** | None (centralized) | None (centralized) | **Raft distributed consensus** |
-| **Permission Model** | RBAC (role-based) | RBAC | **Team-based protocols** |
-| **Notification System** | Email + Webhook | Email + Webhook | **WebSocket real-time push** |
-| **Code Search** | ElasticSearch | ElasticSearch | **MeiliSearch + symbol extraction** |
-| **Internationalization** | Community i18n (i18n-friendly) | Community i18n | **Architecture-level bilingual (i18n-first)** |
-| **Target Users** | Open source + Enterprise | Enterprise DevOps | **Distributed agile teams** |
+| Dimension                | GitHub                         | GitLab             | Flotilla                                      |
+| ------------------------ | ------------------------------ | ------------------ | --------------------------------------------- |
+| **Core Philosophy**      | Social coding                  | All-in-one DevOps  | **Consensus-driven collaboration**            |
+| **Consensus Algorithm**  | None (centralized)             | None (centralized) | **Raft distributed consensus**                |
+| **Permission Model**     | RBAC (role-based)              | RBAC               | **Team-based protocols**                      |
+| **Notification System**  | Email + Webhook                | Email + Webhook    | **WebSocket real-time push**                  |
+| **Code Search**          | ElasticSearch                  | ElasticSearch      | **MeiliSearch + symbol extraction**           |
+| **Internationalization** | Community i18n (i18n-friendly) | Community i18n     | **Architecture-level bilingual (i18n-first)** |
+| **Target Users**         | Open source + Enterprise       | Enterprise DevOps  | **Distributed agile teams**                   |
 
 ### 6.2 Brand Positioning
 
@@ -435,6 +439,7 @@ Flotilla does one thing: **Make collaboration as reliable as distributed systems
 → Self-hosted is DIY. Flotilla is engineering.
 
 Self-hosting Gitea/Gogs can get you started quickly, but you don't get:
+
 - Raft consensus algorithm's distributed fault tolerance
 - Team-based fine-grained permission model
 - Symbol-level code search
@@ -461,7 +466,7 @@ Every technology choice is a belief statement. We don't choose the most popular 
 **Reason:**
 Create React App could let us scaffold quickly, but we chose Next.js 15—even though the learning curve is steeper.
 
-**Philosophy:** *Short-term convenience isn't worth exchanging for long-term technical debt.*
+**Philosophy:** _Short-term convenience isn't worth exchanging for long-term technical debt._
 
 ---
 
@@ -473,7 +478,7 @@ Create React App could let us scaffold quickly, but we chose Next.js 15—even t
 **Reason:**
 TypeORM uses decorators to define models, scattered across multiple files. Prisma uses `schema.prisma` as **single source of truth**—all nodes should see the same Schema.
 
-**Philosophy:** *Data model transparency is the foundation of system reliability.*
+**Philosophy:** _Data model transparency is the foundation of system reliability._
 
 ---
 
@@ -485,7 +490,7 @@ TypeORM uses decorators to define models, scattered across multiple files. Prism
 **Reason:**
 ElasticSearch is a Swiss Army knife. MeiliSearch is a scalpel. ElasticSearch does log analysis, time-series data, full-text search, aggregation queries… MeiliSearch does one thing: **fast full-text search**.
 
-**Philosophy:** *Focus breeds excellence.* (Just like Raft only solves consensus, not all distributed problems)
+**Philosophy:** _Focus breeds excellence._ (Just like Raft only solves consensus, not all distributed problems)
 
 ---
 
@@ -497,7 +502,7 @@ ElasticSearch is a Swiss Army knife. MeiliSearch is a scalpel. ElasticSearch doe
 **Reason:**
 Cypress runs inside the browser, can directly access application internals (window object). Playwright only interacts through DOM and network requests—**just like real users**.
 
-**Philosophy:** *Tests shouldn't cheat.* If tests can access internal state, they're not testing user experience—they're testing implementation details.
+**Philosophy:** _Tests shouldn't cheat._ If tests can access internal state, they're not testing user experience—they're testing implementation details.
 
 ---
 
@@ -512,7 +517,7 @@ Raft's paper title is "In Search of an Understandable **Consensus** Algorithm."
 
 We don't believe in "eventual consistency." We believe in **strong consistency**.
 
-**Philosophy:** *Reliability over speed.* This isn't a technical choice—it's a value judgment.
+**Philosophy:** _Reliability over speed._ This isn't a technical choice—it's a value judgment.
 
 ---
 
@@ -551,7 +556,7 @@ If you trust our code to host your project, you should have the right to audit o
 
 Reason: Consensus algorithms shouldn't be limited by license propagation. Knowledge should flow freely.
 
-**Philosophy:** *Monopolizing knowledge is betraying consensus.*
+**Philosophy:** _Monopolizing knowledge is betraying consensus._
 
 ---
 
@@ -569,6 +574,7 @@ At Flotilla, we don't distinguish "internal developers" vs "external contributor
 This isn't appointment—it's **dynamic consensus based on contribution**—just like Raft's Leader Election.
 
 **Contributor Rights Protection:**
+
 - Every Contributor's name permanently recorded in Git history (Immutable)
 - Contributors graph auto-generated (based on Git log analysis)
 - Major decisions (like License changes) require Majority Quorum (majority vote)
@@ -635,6 +641,7 @@ Berlin colleague reviews in 5 minutes, APPROVED + comment "LGTM, database logs a
 I'm a new intern. My mentor assigned me first Issue #890: "Fix search result sorting issue."
 
 I don't know where to start, but the Issue already has complete context:
+
 - Link to design doc (why this sorting logic is needed)
 - Link to related PR #234 (last similar issue fix)
 - Link to test cases (expected behavior)
@@ -661,6 +668,7 @@ PM proposes new feature in Issue #1024: "Support multi-language code snippet syn
 - DevOps comments: "Build time will increase 30%"
 
 Debated for 3 days, 20 comments, but no one says "Let's have a meeting." Because all evidence is in the Issue:
+
 - Frontend posted Monaco Editor Bundle Size analysis
 - Backend posted Parser performance test data
 - Product posted user research results (80% users only use JS/Python)
@@ -678,6 +686,7 @@ Finally, team lead summarizes in Issue: "Phase 1 support Top 4 languages only, P
 I'm an external contributor wanting to submit a bug fix to Flotilla.
 
 I don't know any Maintainers, but I know the process:
+
 1. Fork repo
 2. Create Issue describing the problem (auto-linked to related code)
 3. Submit PR referencing Issue
@@ -713,6 +722,7 @@ After PR merges, I automatically become part of the Contributors list. Next time
 **GitHub Repository:** [github.com/CPU-JIA/Flotilla](https://github.com/CPU-JIA/Flotilla)
 
 **Documentation Hub:** `/docs` directory
+
 - [Requirements Analysis](./需求分析文档.md)
 - [Architecture Design](./架构设计文档.md)
 - [Database Design](./数据库设计文档.md)
@@ -724,6 +734,7 @@ After PR merges, I automatically become part of the Contributors list. Next time
 **License:** MIT License
 
 **Community Principles:**
+
 1. Code quality determines voice, not seniority
 2. All design discussions transparent and public
 3. Evidence-based decisions, not authority-based
@@ -737,6 +748,7 @@ After PR merges, I automatically become part of the Contributors list. Next time
 ---
 
 **Version History:**
+
 - v1.0.0 (2025-10-19): Initial release
 - v2.0.0 (2025-10-28): Major content expansion, 8 new chapters, 5x word count
 
@@ -763,6 +775,7 @@ Core value proposition (Elevator Pitch):
 > **"Flotilla is the first code hosting platform to apply Raft consensus algorithm to team collaboration. We make distributed teams as reliable as distributed systems."**
 
 Three Non-Negotiables:
+
 1. Academic Rigor + Production Ready
 2. Global by Design (i18n-first)
 3. Developer First, Always

@@ -42,10 +42,10 @@ export function extractTypeScriptSymbols(
 
     // 遍历AST提取符号
     traverseAst(ast, symbols);
-  } catch (error) {
+  } catch (_error) {
     // 静默失败：解析错误不影响索引流程
     // 返回空数组，调用方会索引纯文本内容
-    console.warn(`Failed to parse TypeScript file ${filePath}:`, error.message);
+    // 已移除 console.warn（ECP 禁止项）- 解析失败会返回空数组
   }
 
   return Array.from(symbols);

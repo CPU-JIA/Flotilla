@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Bell } from 'lucide-react'
@@ -47,7 +48,7 @@ export function NotificationBell({ className = '' }: NotificationBellProps) {
       )
       setUnreadCount(data.total)
     } catch (err) {
-      console.error('Failed to fetch unread count:', err)
+      logger.error('Failed to fetch unread count:', err)
     }
   }
 
@@ -57,12 +58,7 @@ export function NotificationBell({ className = '' }: NotificationBellProps) {
 
   return (
     <Link href="/notifications" className={className}>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="relative h-9 w-9"
-        title="通知"
-      >
+      <Button variant="ghost" size="icon" className="relative h-9 w-9" title="通知">
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">

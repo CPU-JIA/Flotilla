@@ -11,6 +11,7 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -53,13 +54,11 @@ interface BranchProtectionRule {
 
 // ECP-C1: Form validation schema using Zod
 const branchProtectionSchema = z.object({
-  branchPattern: z.string()
+  branchPattern: z
+    .string()
     .min(1, 'Branch pattern is required')
     .max(100, 'Branch pattern must be at most 100 characters')
-    .refine(
-      (pattern) => pattern.trim().length > 0,
-      'Branch pattern cannot be empty'
-    ),
+    .refine((pattern) => pattern.trim().length > 0, 'Branch pattern cannot be empty'),
   requirePullRequest: z.boolean(),
   requiredApprovingReviews: z.number().min(0).max(10),
   dismissStaleReviews: z.boolean(),
@@ -193,7 +192,7 @@ export function BranchProtectionDialog({
       })
       onOpenChange(false)
     } catch (err: unknown) {
-      console.error('Failed to submit branch protection rule:', err)
+      logger.error('Failed to submit branch protection rule:', err)
       setError(
         err instanceof Error
           ? err.message
@@ -206,11 +205,7 @@ export function BranchProtectionDialog({
 
   // ECP-D1: Handle Enter key submission (except in textarea/select)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
-    if (
-      e.key === 'Enter' &&
-      !e.shiftKey &&
-      e.target instanceof HTMLInputElement
-    ) {
+    if (e.key === 'Enter' && !e.shiftKey && e.target instanceof HTMLInputElement) {
       e.preventDefault()
       handleSubmit(onFormSubmit)()
     }
@@ -221,9 +216,7 @@ export function BranchProtectionDialog({
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'create'
-              ? 'Create Branch Protection Rule'
-              : 'Edit Branch Protection Rule'}
+            {mode === 'create' ? 'Create Branch Protection Rule' : 'Edit Branch Protection Rule'}
           </DialogTitle>
           <DialogDescription>
             {mode === 'create'
@@ -232,11 +225,7 @@ export function BranchProtectionDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit(onFormSubmit)}
-          onKeyDown={handleKeyDown}
-          className="space-y-6"
-        >
+        <form onSubmit={handleSubmit(onFormSubmit)} onKeyDown={handleKeyDown} className="space-y-6">
           {/* Error Display */}
           {error && (
             <Alert variant="destructive">
@@ -257,14 +246,10 @@ export function BranchProtectionDialog({
               placeholder="main"
               disabled={submitting}
               className={
-                errors.branchPattern
-                  ? 'border-destructive focus-visible:ring-destructive'
-                  : ''
+                errors.branchPattern ? 'border-destructive focus-visible:ring-destructive' : ''
               }
               aria-invalid={errors.branchPattern ? 'true' : 'false'}
-              aria-describedby={
-                errors.branchPattern ? 'branchPattern-error' : undefined
-              }
+              aria-describedby={errors.branchPattern ? 'branchPattern-error' : undefined}
             />
             {errors.branchPattern && (
               <p
@@ -288,9 +273,7 @@ export function BranchProtectionDialog({
               <Checkbox
                 id="requirePullRequest"
                 checked={requirePullRequest}
-                onCheckedChange={(checked) =>
-                  setValue('requirePullRequest', checked as boolean)
-                }
+                onCheckedChange={(checked) => setValue('requirePullRequest', checked as boolean)}
                 disabled={submitting}
               />
               <label
@@ -304,14 +287,10 @@ export function BranchProtectionDialog({
             {requirePullRequest && (
               <div className="ml-6 space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="requiredApprovingReviews">
-                    Required Approving Reviews
-                  </Label>
+                  <Label htmlFor="requiredApprovingReviews">Required Approving Reviews</Label>
                   <Select
                     value={watch('requiredApprovingReviews').toString()}
-                    onValueChange={(value) =>
-                      setValue('requiredApprovingReviews', parseInt(value))
-                    }
+                    onValueChange={(value) => setValue('requiredApprovingReviews', parseInt(value))}
                     disabled={submitting}
                   >
                     <SelectTrigger id="requiredApprovingReviews">
@@ -370,9 +349,7 @@ export function BranchProtectionDialog({
               <Checkbox
                 id="requireStatusChecks"
                 checked={watch('requireStatusChecks')}
-                onCheckedChange={(checked) =>
-                  setValue('requireStatusChecks', checked as boolean)
-                }
+                onCheckedChange={(checked) => setValue('requireStatusChecks', checked as boolean)}
                 disabled={submitting}
               />
               <label
@@ -392,9 +369,7 @@ export function BranchProtectionDialog({
               <Checkbox
                 id="allowForcePushes"
                 checked={allowForcePushes}
-                onCheckedChange={(checked) =>
-                  setValue('allowForcePushes', checked as boolean)
-                }
+                onCheckedChange={(checked) => setValue('allowForcePushes', checked as boolean)}
                 disabled={submitting}
               />
               <label
@@ -408,8 +383,8 @@ export function BranchProtectionDialog({
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                  Warning: Allowing force pushes can rewrite commit history and cause
-                  issues for collaborators.
+                  Warning: Allowing force pushes can rewrite commit history and cause issues for
+                  collaborators.
                 </AlertDescription>
               </Alert>
             )}
@@ -418,9 +393,7 @@ export function BranchProtectionDialog({
               <Checkbox
                 id="allowDeletions"
                 checked={allowDeletions}
-                onCheckedChange={(checked) =>
-                  setValue('allowDeletions', checked as boolean)
-                }
+                onCheckedChange={(checked) => setValue('allowDeletions', checked as boolean)}
                 disabled={submitting}
               />
               <label
@@ -452,11 +425,7 @@ export function BranchProtectionDialog({
             </Button>
             <Button type="submit" disabled={submitting}>
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {submitting
-                ? 'Saving...'
-                : mode === 'create'
-                  ? 'Create Rule'
-                  : 'Update Rule'}
+              {submitting ? 'Saving...' : mode === 'create' ? 'Create Rule' : 'Update Rule'}
             </Button>
           </DialogFooter>
         </form>

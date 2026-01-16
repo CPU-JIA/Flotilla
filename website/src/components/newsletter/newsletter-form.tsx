@@ -83,15 +83,17 @@ export function NewsletterForm({ variant = 'default', className = '' }: Newslett
   }
 
   return (
-    <div className={`p-8 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-border/40 ${className}`}>
+    <div
+      className={`p-8 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-border/40 ${className}`}
+    >
       <div className="text-center mb-6">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/20 mb-4">
           <Mail className="h-6 w-6 text-primary" />
         </div>
         <h3 className="text-2xl font-bold mb-2">Stay Updated</h3>
         <p className="text-foreground/70 max-w-xl mx-auto">
-          Subscribe to our newsletter to get the latest articles on distributed systems,
-          Raft consensus, and production infrastructure.
+          Subscribe to our newsletter to get the latest articles on distributed systems, Raft
+          consensus, and production infrastructure.
         </p>
       </div>
 

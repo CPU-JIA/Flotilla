@@ -65,9 +65,7 @@ class RaftNode {
 
             {/* Heading */}
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight">
-              <span className="block text-foreground">
-                We do not just host code.
-              </span>
+              <span className="block text-foreground">We do not just host code.</span>
               <span className="block mt-2 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
                 We build consensus.
               </span>
@@ -130,9 +128,7 @@ class RaftNode {
         <div className="container mx-auto px-4">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold mb-4">
-                Clean, Type-Safe Code
-              </h2>
+              <h2 className="text-4xl font-bold mb-4">Clean, Type-Safe Code</h2>
               <p className="text-lg text-foreground/60">
                 Built with TypeScript for maximum reliability and developer experience.
               </p>
@@ -187,11 +183,10 @@ class RaftNode {
       <section className="py-24 border-t border-border/40 bg-gradient-to-b from-secondary/20 to-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">
-              Built for Scale & Collaboration
-            </h2>
+            <h2 className="text-4xl font-bold mb-4">Built for Scale & Collaboration</h2>
             <p className="text-lg text-foreground/60 max-w-2xl mx-auto">
-              Visualize your distributed architecture and empower global teams to work together seamlessly.
+              Visualize your distributed architecture and empower global teams to work together
+              seamlessly.
             </p>
           </div>
 
@@ -209,7 +204,8 @@ class RaftNode {
               <div className="space-y-2">
                 <h3 className="text-2xl font-bold">Visual Architecture</h3>
                 <p className="text-foreground/70">
-                  Understand your system at a glance with interactive architecture diagrams and real-time cluster monitoring.
+                  Understand your system at a glance with interactive architecture diagrams and
+                  real-time cluster monitoring.
                 </p>
               </div>
             </div>
@@ -227,7 +223,8 @@ class RaftNode {
               <div className="space-y-2">
                 <h3 className="text-2xl font-bold">Global Collaboration</h3>
                 <p className="text-foreground/70">
-                  Connect teams across continents with distributed consensus ensuring every voice is heard.
+                  Connect teams across continents with distributed consensus ensuring every voice is
+                  heard.
                 </p>
               </div>
             </div>
@@ -246,7 +243,8 @@ class RaftNode {
             <div className="text-center mt-6 space-y-2">
               <h3 className="text-2xl font-bold">Distributed by Design</h3>
               <p className="text-foreground/70 max-w-2xl mx-auto">
-                Every node in the network is equal. No single point of failure. Pure distributed consensus.
+                Every node in the network is equal. No single point of failure. Pure distributed
+                consensus.
               </p>
             </div>
           </div>
@@ -256,11 +254,10 @@ class RaftNode {
       {/* Final CTA Section */}
       <section className="py-24 border-t border-border/40 bg-background">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-6">
-            Ready to build consensus?
-          </h2>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-6">Ready to build consensus?</h2>
           <p className="text-lg text-foreground/60 mb-8 max-w-2xl mx-auto">
-            Join developers who are building reliable distributed systems with academic rigor and production-ready tools.
+            Join developers who are building reliable distributed systems with academic rigor and
+            production-ready tools.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

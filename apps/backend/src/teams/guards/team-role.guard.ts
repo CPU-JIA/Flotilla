@@ -4,7 +4,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { TeamRole, User } from '@prisma/client';
+import { TeamRole } from '@prisma/client';
 import { PermissionService } from '../../common/services/permission.service';
 import {
   AuthenticatedRequest,

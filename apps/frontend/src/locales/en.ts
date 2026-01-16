@@ -24,7 +24,8 @@ export const en: Translations = {
   errorBoundary: {
     title: 'Oops, Something Went Wrong',
     subtitle: 'The application encountered an unexpected error',
-    description: 'We apologize for the inconvenience. You can try refreshing the page or returning to the homepage.',
+    description:
+      'We apologize for the inconvenience. You can try refreshing the page or returning to the homepage.',
     technicalDetails: 'Technical Details',
     showDetails: 'Show Details',
     hideDetails: 'Hide Details',
@@ -216,7 +217,8 @@ export const en: Translations = {
       branchProtection: 'Branch Protection',
       branchProtectionRules: {
         title: 'Branch Protection Rules',
-        description: 'Configure protection policies for important branches to prevent unauthorized code merges',
+        description:
+          'Configure protection policies for important branches to prevent unauthorized code merges',
         noBranchRules: 'No branch protection rules',
         noBranchRulesDesc: 'Create protection rules to safeguard critical branches',
         createRule: 'Create Protection Rule',
@@ -231,13 +233,16 @@ export const en: Translations = {
         editRuleTitle: 'Edit Branch Protection Rule',
         branchPatternLabel: 'Branch Name',
         branchPatternPlaceholder: 'e.g.: main, develop',
-        branchPatternHelper: 'Currently only exact matching is supported, wildcard support coming in future versions',
+        branchPatternHelper:
+          'Currently only exact matching is supported, wildcard support coming in future versions',
         requirePullRequestLabel: 'Require Pull Request',
-        requirePullRequestDesc: 'Prevent direct pushes to this branch (requires Git HTTP Smart Protocol support)',
+        requirePullRequestDesc:
+          'Prevent direct pushes to this branch (requires Git HTTP Smart Protocol support)',
         requiredApprovalsLabel: 'Minimum Approving Reviews',
         requiredApprovalsDesc: 'Minimum number of approvals required before merging PR (0-10)',
         dismissStaleReviewsLabel: 'Dismiss Stale Reviews',
-        dismissStaleReviewsDesc: 'Automatically dismiss old review approvals when new commits are pushed',
+        dismissStaleReviewsDesc:
+          'Automatically dismiss old review approvals when new commits are pushed',
         requireCodeOwnerReviewLabel: 'Require Code Owner Review',
         requireCodeOwnerReviewDesc: 'At least one approval must come from a code owner',
         allowForcePushesLabel: 'Allow Force Pushes',
@@ -380,7 +385,8 @@ export const en: Translations = {
     usernameInvalid: 'Username must be 3-20 characters, only letters, numbers, and underscores',
     emailInvalid: 'Please enter a valid email address',
     passwordTooShort: 'Password must be at least 8 characters',
-    passwordStrengthRequirement: 'Password must be at least 8 characters with uppercase, lowercase, and numbers',
+    passwordStrengthRequirement:
+      'Password must be at least 8 characters with uppercase, lowercase, and numbers',
     passwordMismatch: 'Passwords do not match',
     registerFailed: 'Registration failed, please try again later',
     networkError: 'Network error, please try again later',
@@ -389,7 +395,8 @@ export const en: Translations = {
     verifying: 'Verifying...',
     verifyingMessage: 'Verifying your email address, please wait',
     verificationSuccess: '✓ Email Verified Successfully!',
-    verificationSuccessMessage: 'Your email has been verified, you can now login to access all features',
+    verificationSuccessMessage:
+      'Your email has been verified, you can now login to access all features',
     verificationFailed: 'Verification Failed',
     verificationFailedMessage: 'The verification link may have expired or is invalid',
     verifyAgain: 'Register Again',
@@ -1131,11 +1138,13 @@ export const en: Translations = {
     // Empty states
     emptyState: {
       title: 'Start searching',
-      description: 'Enter a search query to find code, files, and symbols across all your projects. Use Cmd+K to focus the search bar.',
+      description:
+        'Enter a search query to find code, files, and symbols across all your projects. Use Cmd+K to focus the search bar.',
       noQueryTitle: 'Start searching',
       noQueryDesc: 'Enter a search query to find code',
       noResultsTitle: 'No results found',
-      noResultsDesc: 'Try adjusting your search query or filters. Make sure the file is indexed and you have access to the project.',
+      noResultsDesc:
+        'Try adjusting your search query or filters. Make sure the file is indexed and you have access to the project.',
     },
 
     // Filters
@@ -1200,7 +1209,7 @@ export const en: Translations = {
       deleteIndex: 'Delete Index',
       deleteSuccess: 'Index deleted',
       deleteFailed: 'Delete failed',
-      confirmDelete: 'Are you sure you want to delete this project\'s index?',
+      confirmDelete: "Are you sure you want to delete this project's index?",
     },
 
     // Errors
@@ -1245,7 +1254,8 @@ export const en: Translations = {
       selectBaseBranch: 'Select base branch',
       baseBranchHint: 'The new branch will be copied from the selected branch',
       nameRequired: 'Branch name cannot be empty',
-      nameInvalid: 'Branch name can only contain letters, numbers, hyphens, underscores and slashes',
+      nameInvalid:
+        'Branch name can only contain letters, numbers, hyphens, underscores and slashes',
       nameInvalidSlash: 'Branch name cannot start or end with a slash',
       nameInvalidDoubleSlash: 'Branch name cannot contain consecutive slashes',
     },
@@ -1272,7 +1282,8 @@ export const en: Translations = {
     totalWebhooks: 'webhooks',
     description: 'Manage Webhook endpoints to receive real-time events',
     emptyStateTitle: 'No Webhooks Configured',
-    emptyStateDesc: 'Webhooks allow external services to be notified when events occur in the project',
+    emptyStateDesc:
+      'Webhooks allow external services to be notified when events occur in the project',
     url: 'Payload URL',
     urlPlaceholder: 'https://example.com/webhook',
     events: 'Events',
@@ -1373,7 +1384,8 @@ export const en: Translations = {
     totalRules: 'rules',
     description: 'Protect important branches from force pushes and deletions',
     emptyStateTitle: 'No Branch Protection Rules',
-    emptyStateDesc: 'Branch protection rules help you enforce workflow by requiring status checks and reviews before merging',
+    emptyStateDesc:
+      'Branch protection rules help you enforce workflow by requiring status checks and reviews before merging',
     branchPattern: 'Branch Pattern',
     branchPatternPlaceholder: 'main, develop, release/*, etc.',
     branchPatternHelper: 'Branch name pattern to protect. Use * as wildcard (e.g., release/*)',
@@ -1429,7 +1441,8 @@ export const en: Translations = {
     deleteAccount: {
       title: 'Delete Account',
       description: 'Permanently delete your account and all associated data',
-      warning: 'Warning: This action cannot be undone. Once deleted, all your data will be permanently removed.',
+      warning:
+        'Warning: This action cannot be undone. Once deleted, all your data will be permanently removed.',
       button: 'Delete My Account',
       deleting: 'Deleting...',
       success: 'Account deleted',

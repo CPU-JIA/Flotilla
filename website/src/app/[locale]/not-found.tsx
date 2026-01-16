@@ -45,9 +45,25 @@ export default function NotFound() {
           <h3 className="font-semibold mb-3">Looking for something?</h3>
           <ul className="space-y-2 text-sm text-foreground/70">
             <li>• Check the URL for typos</li>
-            <li>• Go back to the <Link href="/" className="text-primary hover:underline">homepage</Link></li>
-            <li>• Browse our <Link href="/docs" className="text-primary hover:underline">documentation</Link></li>
-            <li>• Visit the <Link href="/roadmap" className="text-primary hover:underline">roadmap</Link> to see what is coming</li>
+            <li>
+              • Go back to the{' '}
+              <Link href="/" className="text-primary hover:underline">
+                homepage
+              </Link>
+            </li>
+            <li>
+              • Browse our{' '}
+              <Link href="/docs" className="text-primary hover:underline">
+                documentation
+              </Link>
+            </li>
+            <li>
+              • Visit the{' '}
+              <Link href="/roadmap" className="text-primary hover:underline">
+                roadmap
+              </Link>{' '}
+              to see what is coming
+            </li>
           </ul>
         </div>
       </div>

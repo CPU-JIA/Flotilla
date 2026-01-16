@@ -35,13 +35,9 @@ export default function Error({
         {process.env.NODE_ENV === 'development' && (
           <div className="mb-8 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-left">
             <h3 className="font-mono text-sm font-semibold mb-2 text-red-400">Error Details</h3>
-            <p className="font-mono text-xs text-foreground/70 break-all">
-              {error.message}
-            </p>
+            <p className="font-mono text-xs text-foreground/70 break-all">{error.message}</p>
             {error.digest && (
-              <p className="font-mono text-xs text-foreground/50 mt-2">
-                Digest: {error.digest}
-              </p>
+              <p className="font-mono text-xs text-foreground/50 mt-2">Digest: {error.digest}</p>
             )}
           </div>
         )}
@@ -71,7 +67,17 @@ export default function Error({
             <li>• Try refreshing the page</li>
             <li>• Clear your browser cache and cookies</li>
             <li>• Check your internet connection</li>
-            <li>• Report the issue on <a href="https://github.com/CPU-JIA/Cloud-Dev-Platform/issues" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">GitHub</a></li>
+            <li>
+              • Report the issue on{' '}
+              <a
+                href="https://github.com/CPU-JIA/Cloud-Dev-Platform/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                GitHub
+              </a>
+            </li>
           </ul>
         </div>
       </div>

@@ -6,6 +6,7 @@
  * ECP-C1: 防御性编程 - 表单验证和错误处理
  */
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
@@ -14,13 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { api, ApiError } from '@/lib/api'
 import type { Project } from '@/types/project'
 
@@ -52,7 +47,7 @@ export default function GeneralSettingsPage() {
       setVisibility(data.visibility)
       setDefaultBranch(data.defaultBranch || 'main')
     } catch (err) {
-      console.error('Failed to fetch project:', err)
+      logger.error('Failed to fetch project:', err)
     } finally {
       setLoading(false)
     }

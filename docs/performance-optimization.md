@@ -17,6 +17,7 @@
 **文件**: `apps/backend/src/common/services/permission.service.ts`
 
 #### 问题
+
 - `checkProjectPermission` 方法执行了 3 次数据库查询：
   1. 第113行：查询 project（SUPER_ADMIN 情况）
   2. 第123行：调用 `getEffectiveProjectRole`（内部执行 2 次并行查询）
@@ -27,10 +28,11 @@
 #### 解决方案
 
 **a) 查询合并**
+
 ```typescript
 // 优化前：3 次独立查询
-const effectiveRole = await this.getEffectiveProjectRole(user.id, projectId);
-const project = await this.prisma.project.findUnique({ where: { id: projectId } });
+const effectiveRole = await this.getEffectiveProjectRole(user.id, projectId)
+const project = await this.prisma.project.findUnique({ where: { id: projectId } })
 
 // 优化后：1 次查询 with include
 const project = await this.prisma.project.findUnique({
@@ -38,16 +40,17 @@ const project = await this.prisma.project.findUnique({
   include: {
     members: { where: { userId: user.id } },
     teamPermissions: {
-      where: { team: { members: { some: { userId: user.id } } } }
+      where: { team: { members: { some: { userId: user.id } } } },
     },
   },
-});
+})
 // 在内存中计算 effectiveRole，无需额外查询
 ```
 
 **性能提升**: 从 3 次查询减少到 1 次查询（非 SUPER_ADMIN 情况）
 
 **b) Redis 缓存**
+
 ```typescript
 // 缓存 key: user:{userId}:project:{projectId}:role
 // TTL: 60 秒
@@ -64,6 +67,7 @@ async getEffectiveProjectRole(userId: string, projectId: string): Promise<Member
 ```
 
 **c) 缓存失效逻辑**
+
 ```typescript
 // 单用户缓存失效
 async invalidateProjectPermissionCache(userId: string, projectId: string): Promise<void>
@@ -73,6 +77,7 @@ async invalidateAllProjectPermissionCaches(projectId: string): Promise<void>
 ```
 
 **使用场景**:
+
 - 添加/删除项目成员时调用 `invalidateProjectPermissionCache`
 - 修改团队权限时调用 `invalidateAllProjectPermissionCaches`
 
@@ -83,6 +88,7 @@ async invalidateAllProjectPermissionCaches(projectId: string): Promise<void>
 **文件**: `apps/backend/src/search/search.service.ts`
 
 #### 问题
+
 - `buildProjectFilter` 方法执行了多次独立查询：
   1. 第364行：调用 `getUserProjectIds`（查询用户项目）
   2. 第369行：调用 `getPublicProjectIds`（查询公开项目）
@@ -91,19 +97,21 @@ async invalidateAllProjectPermissionCaches(projectId: string): Promise<void>
 #### 解决方案
 
 **a) 并行查询**
+
 ```typescript
 // 优化前：顺序查询
-const userProjects = await this.getUserProjectIds(userId);
-const publicProjects = await this.getPublicProjectIds();
+const userProjects = await this.getUserProjectIds(userId)
+const publicProjects = await this.getPublicProjectIds()
 
 // 优化后：并行查询
 const [userProjects, publicProjects] = await Promise.all([
   userId ? this.prisma.projectMember.findMany({ where: { userId } }) : Promise.resolve([]),
   this.getPublicProjectIds(), // 带缓存
-]);
+])
 ```
 
 **b) 公开项目 ID 缓存**
+
 ```typescript
 // 缓存 key: search:public_projects
 // TTL: 5 分钟（300 秒）
@@ -126,6 +134,7 @@ private async getPublicProjectIds(): Promise<string[]> {
 ```
 
 **性能提升**:
+
 - 用户项目查询和公开项目查询并行执行
 - 公开项目列表缓存 5 分钟，减少重复查询
 
@@ -136,6 +145,7 @@ private async getPublicProjectIds(): Promise<string[]> {
 **文件**: `apps/backend/src/repositories/repositories.service.ts`
 
 #### 问题
+
 - `getCommitDiff` 方法执行了多次独立查询：
   1. 第505行：查询 commit
   2. 第519行：查询 currentFiles
@@ -145,6 +155,7 @@ private async getPublicProjectIds(): Promise<string[]> {
 #### 解决方案
 
 **并行查询**
+
 ```typescript
 // 优化前：顺序查询（4-5 次查询）
 const commit = await this.prisma.commit.findUnique({ where: { id: commitId } });
@@ -175,6 +186,7 @@ const previousFiles = compareCommit ? await this.prisma.file.findMany({ ... }) :
 为支持 Redis 缓存，更新了以下模块配置：
 
 1. **CommonModule** (`apps/backend/src/common/common.module.ts`)
+
    ```typescript
    imports: [PrismaModule, RedisModule]
    ```
@@ -193,13 +205,14 @@ const previousFiles = compareCommit ? await this.prisma.file.findMany({ ... }) :
 **文件**: `apps/backend/src/search/search.service.spec.ts`
 
 添加了 RedisService mock：
+
 ```typescript
 const mockRedisService = {
   get: jest.fn().mockResolvedValue(null),
   set: jest.fn().mockResolvedValue(true),
   del: jest.fn().mockResolvedValue(true),
   delPattern: jest.fn().mockResolvedValue(0),
-};
+}
 ```
 
 **测试结果**: ✅ 所有 13 个测试通过
@@ -210,15 +223,15 @@ const mockRedisService = {
 
 ### 查询次数对比
 
-| 操作 | 优化前 | 优化后 | 改善 |
-|------|--------|--------|------|
-| checkProjectPermission | 3 次查询 | 1 次查询 | -67% |
-| getEffectiveProjectRole（有缓存） | 2 次查询 | 0 次查询 | -100% |
-| buildProjectFilter（匿名用户） | 1 次查询 | 0-1 次查询* | 0-100% |
-| buildProjectFilter（已登录） | 2 次顺序查询 | 1-2 次并行查询* | +50% 并行度 |
-| getCommitDiff | 4-5 次顺序查询 | 3 次查询（部分并行） | -40% |
+| 操作                              | 优化前         | 优化后               | 改善        |
+| --------------------------------- | -------------- | -------------------- | ----------- |
+| checkProjectPermission            | 3 次查询       | 1 次查询             | -67%        |
+| getEffectiveProjectRole（有缓存） | 2 次查询       | 0 次查询             | -100%       |
+| buildProjectFilter（匿名用户）    | 1 次查询       | 0-1 次查询\*         | 0-100%      |
+| buildProjectFilter（已登录）      | 2 次顺序查询   | 1-2 次并行查询\*     | +50% 并行度 |
+| getCommitDiff                     | 4-5 次顺序查询 | 3 次查询（部分并行） | -40%        |
 
-*带缓存情况下
+\*带缓存情况下
 
 ### 缓存命中率预估
 
@@ -242,10 +255,10 @@ const mockRedisService = {
 
 ```typescript
 // 场景 1: 添加/删除项目成员、修改成员角色
-await this.permissionService.invalidateProjectPermissionCache(userId, projectId);
+await this.permissionService.invalidateProjectPermissionCache(userId, projectId)
 
 // 场景 2: 添加/删除团队项目权限、修改团队角色
-await this.permissionService.invalidateAllProjectPermissionCaches(projectId);
+await this.permissionService.invalidateAllProjectPermissionCaches(projectId)
 
 // 场景 3: 项目可见性变更（PUBLIC ↔ PRIVATE）
 // 自动失效（公开项目列表缓存 TTL=5min，可接受）
@@ -261,6 +274,7 @@ REDIS_URL=redis://localhost:6380
 ```
 
 如果 Redis 不可用，服务会自动降级：
+
 - 缓存操作失败不影响业务逻辑
 - 日志会记录警告信息
 - 所有查询直接访问数据库

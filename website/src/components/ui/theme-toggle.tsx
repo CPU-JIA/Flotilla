@@ -14,9 +14,7 @@ export function ThemeToggle() {
   }, [])
 
   if (!mounted) {
-    return (
-      <div className="w-9 h-9 rounded-lg bg-secondary/50 animate-pulse" />
-    )
+    return <div className="w-9 h-9 rounded-lg bg-secondary/50 animate-pulse" />
   }
 
   return (

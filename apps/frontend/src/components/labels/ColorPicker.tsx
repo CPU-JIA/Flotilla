@@ -103,9 +103,7 @@ export function ColorPicker({ value, onChange, disabled = false }: ColorPickerPr
             disabled={disabled}
             className={`font-mono ${!isValidHex(customHex) && customHex ? 'border-red-500' : ''}`}
           />
-          <p className="text-xs text-muted-foreground mt-1">
-            {t.issues.labels.colorHelper}
-          </p>
+          <p className="text-xs text-muted-foreground mt-1">{t.issues.labels.colorHelper}</p>
         </div>
       </div>
     </div>

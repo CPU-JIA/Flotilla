@@ -77,7 +77,10 @@ interface PasswordStrengthIndicatorProps {
  * 密码强度指示器组件
  * ECP-D1: 设计易于测试和重用
  */
-export default function PasswordStrengthIndicator({ password, show = true }: PasswordStrengthIndicatorProps) {
+export default function PasswordStrengthIndicator({
+  password,
+  show = true,
+}: PasswordStrengthIndicatorProps) {
   const strength = useMemo(() => calculatePasswordStrength(password), [password])
 
   if (!show || !password) {
@@ -100,7 +103,10 @@ export default function PasswordStrengthIndicator({ password, show = true }: Pas
       {/* 强度标签和建议 */}
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium text-gray-700 dark:text-gray-300">
-          密码强度: <span className={`font-bold ${strength.score >= 3 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
+          密码强度:{' '}
+          <span
+            className={`font-bold ${strength.score >= 3 ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}
+          >
             {strength.label}
           </span>
         </span>
@@ -120,9 +126,7 @@ export default function PasswordStrengthIndicator({ password, show = true }: Pas
 
       {/* 强密码鼓励 */}
       {strength.score === 4 && (
-        <p className="text-xs text-green-600 dark:text-green-400 font-medium">
-          ✓ 非常安全的密码！
-        </p>
+        <p className="text-xs text-green-600 dark:text-green-400 font-medium">✓ 非常安全的密码！</p>
       )}
     </div>
   )

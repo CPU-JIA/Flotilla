@@ -15,6 +15,7 @@ Implement frontend UI components for PR Review Enhancement feature based on the 
 **Completed:** Backend API implementation (commit: 117eeac)
 
 **Available APIs:**
+
 - `GET /api/pull-requests/:id/review-summary` - Get aggregated review summary
 - `GET /api/pull-requests/:id/merge-status` - Validate merge eligibility
 - `GET /api/pull-requests/:id/diff` - Get diff with line-level comments
@@ -30,6 +31,7 @@ Implement frontend UI components for PR Review Enhancement feature based on the 
 ### Phase 1: Core Features (MUST) - 50 minutes
 
 #### 1. Review Summary Card (30 min)
+
 - **File:** `apps/frontend/src/components/pull-requests/review-summary-card.tsx` (NEW)
 - **Location:** Integrate into PR detail page before existing reviews section
 - **Features:**
@@ -41,6 +43,7 @@ Implement frontend UI components for PR Review Enhancement feature based on the 
 - **API:** `GET /api/pull-requests/:id/review-summary`
 
 #### 2. Merge Button Validation (20 min)
+
 - **File:** `apps/frontend/src/app/projects/[id]/pulls/[number]/page.tsx` (MODIFY)
 - **Location:** Replace existing merge button (lines 279-284)
 - **Features:**
@@ -54,6 +57,7 @@ Implement frontend UI components for PR Review Enhancement feature based on the 
 ### Phase 2: Enhanced Features (OPTIONAL) - 70 minutes
 
 #### 3. Diff Line Comments (40 min)
+
 - **File:** `apps/frontend/src/components/pull-requests/diff-file-view.tsx` (NEW)
 - **Location:** Replace diff section in PR detail page (lines 340-373)
 - **Features:**
@@ -65,6 +69,7 @@ Implement frontend UI components for PR Review Enhancement feature based on the 
 - **API:** Already using `GET /api/pull-requests/:id/diff`
 
 #### 4. Project Settings - PR Approval Policy (30 min)
+
 - **File:** `apps/frontend/src/app/projects/[id]/settings/general/page.tsx` (MODIFY)
 - **Features:**
   - Add "PR Approval Rules" card
@@ -79,6 +84,7 @@ Implement frontend UI components for PR Review Enhancement feature based on the 
 ## ✅ Acceptance Criteria
 
 ### Review Summary Card
+
 - [ ] Card displays aggregated counts correctly
 - [ ] Reviewers list shows latest state per reviewer (not all reviews)
 - [ ] Loading state shown while fetching
@@ -88,6 +94,7 @@ Implement frontend UI components for PR Review Enhancement feature based on the 
 - [ ] Responsive on mobile
 
 ### Merge Button Validation
+
 - [ ] Button enabled when merge allowed
 - [ ] Button disabled when merge blocked
 - [ ] Approval progress shown (X/Y)
@@ -100,6 +107,7 @@ Implement frontend UI components for PR Review Enhancement feature based on the 
   - [ ] Owner approval missing
 
 ### Diff Line Comments (Optional)
+
 - [ ] Diff displays correctly
 - [ ] Comments appear on correct lines
 - [ ] Multiple comments per line supported
@@ -107,6 +115,7 @@ Implement frontend UI components for PR Review Enhancement feature based on the 
 - [ ] Performance acceptable with large diffs
 
 ### Project Settings (Optional)
+
 - [ ] Form loads current settings
 - [ ] All 3 fields editable
 - [ ] Save button persists to database
@@ -118,6 +127,7 @@ Implement frontend UI components for PR Review Enhancement feature based on the 
 ## 📦 Resources
 
 ### Documentation
+
 - **📄 Complete Specification:** `docs/PR_Review_UI_Specification.md` (84 KB)
   - Component designs with code examples
   - TypeScript type definitions
@@ -135,6 +145,7 @@ Implement frontend UI components for PR Review Enhancement feature based on the 
 **Swagger Documentation:** http://localhost:4000/api/docs
 
 **Endpoint Details:**
+
 ```typescript
 // Review Summary
 GET /api/pull-requests/:id/review-summary
@@ -200,10 +211,12 @@ export interface MergeStatus {
 ## ⏱️ Time Estimate
 
 **Phase 1 (Core):** 50 minutes
+
 - Review Summary Card: 30 min
 - Merge Button Validation: 20 min
 
 **Phase 2 (Enhanced):** 70 minutes
+
 - Diff Line Comments: 40 min
 - Project Settings: 30 min
 
@@ -216,23 +229,27 @@ export interface MergeStatus {
 ### Manual Testing Checklist
 
 **Review Summary:**
+
 - [ ] Create PR with 0 reviews → All counts show 0
 - [ ] Add 1 APPROVED review → Shows 1 approved
 - [ ] Same reviewer adds CHANGES_REQUESTED → Count updates (not increments)
 - [ ] Multiple reviewers with different states → Counts correct
 
 **Merge Button:**
+
 - [ ] 0 approvals (require 1) → Disabled, tooltip "Need 1 more approval"
 - [ ] 1 change request → Disabled, tooltip "active change requests"
 - [ ] Author merges own PR (allowSelfMerge=false) → Disabled
 - [ ] All requirements met → Enabled, green
 
 **Diff Comments (Optional):**
+
 - [ ] Multiple files display correctly
 - [ ] Line comments appear on correct lines
 - [ ] Empty diff handled
 
 **Settings (Optional):**
+
 - [ ] Settings load correctly
 - [ ] Save persists to database
 - [ ] Changes reflect in merge validation
@@ -284,6 +301,7 @@ pullRequests: {
 ## 🎯 Implementation Steps
 
 ### Step 1: Setup (5 min)
+
 ```bash
 # Checkout new branch
 git checkout -b feat/pr-review-ui
@@ -293,11 +311,13 @@ curl http://localhost:4000/api/docs
 ```
 
 ### Step 2: Add Type Definitions (5 min)
+
 - [ ] Edit `apps/frontend/src/types/pull-request.ts`
 - [ ] Add `ReviewSummary`, `ReviewerSummary`, `MergeStatus` interfaces
 - [ ] Verify TypeScript compilation: `pnpm build`
 
 ### Step 3: Implement Review Summary Card (30 min)
+
 - [ ] Create `src/components/pull-requests/review-summary-card.tsx`
 - [ ] Implement component with API integration
 - [ ] Add loading/error states
@@ -305,6 +325,7 @@ curl http://localhost:4000/api/docs
 - [ ] Test with real data
 
 ### Step 4: Implement Merge Button Validation (20 min)
+
 - [ ] Modify PR detail page
 - [ ] Add `fetchMergeStatus()` function
 - [ ] Replace merge button with validated version
@@ -312,16 +333,19 @@ curl http://localhost:4000/api/docs
 - [ ] Test all blocking scenarios
 
 ### Step 5: (Optional) Implement Enhanced Features (70 min)
+
 - [ ] Diff Line Comments component
 - [ ] Project Settings PR tab
 
 ### Step 6: Testing & Polish (20 min)
+
 - [ ] Manual testing of all features
 - [ ] Dark mode verification
 - [ ] Mobile responsiveness check
 - [ ] Add i18n translations
 
 ### Step 7: Commit & PR (10 min)
+
 ```bash
 git add .
 git commit -m "feat(pr-ui): implement PR review enhancement UI
@@ -366,9 +390,11 @@ gh pr create --title "feat(pr-ui): PR Review Enhancement UI" --body "..."
 ## 📸 Screenshots (to be added after implementation)
 
 ### Review Summary Card
+
 ![Review Summary](url-to-screenshot)
 
 ### Merge Button Validation
+
 ![Merge Allowed](url-to-screenshot)
 ![Merge Blocked](url-to-screenshot)
 

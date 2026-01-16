@@ -104,6 +104,7 @@ curl http://localhost:4000/api
 #### 方式2: 单独部署
 
 **后端**:
+
 ```bash
 cd apps/backend
 docker build -t flotilla-backend .
@@ -115,6 +116,7 @@ docker run -d \
 ```
 
 **前端**:
+
 ```bash
 cd apps/frontend
 docker build -t flotilla-frontend .
@@ -202,6 +204,7 @@ server {
 ## 📊 健康检查
 
 ### API 健康检查
+
 ```bash
 curl http://your-domain.com/api
 # 期望: "Hello World!"
@@ -211,6 +214,7 @@ curl http://your-domain.com/api/docs
 ```
 
 ### 数据库连接
+
 ```bash
 curl http://your-domain.com/api/monitoring/health
 # 期望: { "status": "ok", "database": "connected" }
@@ -223,6 +227,7 @@ curl http://your-domain.com/api/monitoring/health
 ### 认证API响应格式变化
 
 **旧版本 (v1.0)**:
+
 ```json
 POST /api/auth/login
 {
@@ -233,6 +238,7 @@ POST /api/auth/login
 ```
 
 **新版本 (v1.1)**:
+
 ```json
 POST /api/auth/login
 {
@@ -242,6 +248,7 @@ POST /api/auth/login
 ```
 
 **前端迁移**:
+
 ```typescript
 // ❌ 旧代码 (不再工作)
 const { accessToken, user } = await api.auth.login(data)
@@ -258,11 +265,13 @@ fetch(url, { credentials: 'include' })
 ### Issue/PR assignees 结构变化
 
 **旧版本**:
+
 ```typescript
 issue.assigneeIds: string[]  // ['user-1', 'user-2']
 ```
 
 **新版本**:
+
 ```typescript
 issue.assignees: [{
   id: 'assignee-1',
@@ -294,6 +303,7 @@ git clone http://username:password@localhost:4000/repo/projectId
 **症状**: 登录成功但刷新页面后未登录
 
 **解决**:
+
 1. 确保后端CORS配置 `credentials: true`
 2. 前端所有请求配置 `credentials: 'include'`
 3. Cookie的 `sameSite` 属性设置为 `strict` 或 `lax`
@@ -304,6 +314,7 @@ git clone http://username:password@localhost:4000/repo/projectId
 **症状**: git clone 提示 401 Unauthorized
 
 **解决**:
+
 ```bash
 # 使用credential helper
 git config --global credential.helper store
@@ -316,6 +327,7 @@ git clone http://localhost:4000/repo/projectId
 **症状**: API 请求返回 403 CSRF token validation failed
 
 **解决**:
+
 1. 确保生产环境 `ENABLE_CSRF=true`
 2. 前端请求自动附加 `X-XSRF-TOKEN` header (已在api.ts中配置)
 3. 检查Cookie `XSRF-TOKEN` 是否存在

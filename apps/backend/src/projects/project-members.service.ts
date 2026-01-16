@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RedisService } from '../redis/redis.service';
+import { PermissionService } from '../common/services/permission.service';
 import { AddMemberDto, UpdateMemberRoleDto } from './dto';
 import type { User, ProjectMember } from '@prisma/client';
 
@@ -23,6 +24,7 @@ export class ProjectMembersService {
   constructor(
     private prisma: PrismaService,
     private redisService: RedisService,
+    private permissionService: PermissionService,
   ) {}
 
   /**
@@ -78,6 +80,11 @@ export class ProjectMembersService {
     // ✅ 缓存失效: 删除项目详情缓存和成员列表缓存
     await this.redisService.del(`project:${projectId}:detail`);
     await this.redisService.del(`project:${projectId}:members`);
+    // 🔒 ECP-A1防御编程: 清除用户项目权限缓存
+    await this.permissionService.invalidateProjectPermissionCache(
+      addMemberDto.userId,
+      projectId,
+    );
 
     this.logger.log(
       `👥 User ${user.username} added to project ${projectId} as ${addMemberDto.role}`,
@@ -135,6 +142,11 @@ export class ProjectMembersService {
     // ✅ 缓存失效
     await this.redisService.del(`project:${projectId}:detail`);
     await this.redisService.del(`project:${projectId}:members`);
+    // 🔒 ECP-A1防御编程: 清除用户项目权限缓存
+    await this.permissionService.invalidateProjectPermissionCache(
+      userId,
+      projectId,
+    );
 
     this.logger.log(
       `👥 User ${userId} removed from project ${projectId} by ${currentUser.username}`,
@@ -196,6 +208,11 @@ export class ProjectMembersService {
     // ✅ 缓存失效
     await this.redisService.del(`project:${projectId}:detail`);
     await this.redisService.del(`project:${projectId}:members`);
+    // 🔒 ECP-A1防御编程: 清除用户项目权限缓存
+    await this.permissionService.invalidateProjectPermissionCache(
+      userId,
+      projectId,
+    );
 
     this.logger.log(
       `👥 Member ${userId} role updated to ${updateRoleDto.role} in project ${projectId}`,

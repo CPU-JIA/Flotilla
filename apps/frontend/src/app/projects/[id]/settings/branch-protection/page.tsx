@@ -6,13 +6,17 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Trash2, Shield, Check, X, Plus, Edit } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { BranchProtectionDialog, type BranchProtectionRuleInput } from '@/components/branch-protection/BranchProtectionDialog'
+import {
+  BranchProtectionDialog,
+  type BranchProtectionRuleInput,
+} from '@/components/branch-protection/BranchProtectionDialog'
 import { useToast } from '@/hooks/use-toast'
 
 interface BranchProtectionRule {
@@ -45,7 +49,7 @@ export default function BranchProtectionPage() {
       const data = await api.projects.getBranchProtectionRules(projectId)
       setRules(data)
     } catch (error) {
-      console.error('Failed to load branch protection rules:', error)
+      logger.error('Failed to load branch protection rules:', error)
       toast({
         title: 'Error',
         description: 'Failed to load branch protection rules',
@@ -89,7 +93,7 @@ export default function BranchProtectionPage() {
       await loadRules()
       setDialogOpen(false)
     } catch (error) {
-      console.error('Failed to save branch protection rule:', error)
+      logger.error('Failed to save branch protection rule:', error)
       toast({
         title: 'Error',
         description: 'Failed to save branch protection rule',
@@ -111,7 +115,7 @@ export default function BranchProtectionPage() {
       })
       await loadRules()
     } catch (error) {
-      console.error('Failed to delete rule:', error)
+      logger.error('Failed to delete rule:', error)
       toast({
         title: 'Error',
         description: 'Failed to delete rule',
@@ -120,11 +124,12 @@ export default function BranchProtectionPage() {
     }
   }
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="text-muted-foreground">Loading protection rules...</div>
-    </div>
-  )
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-muted-foreground">Loading protection rules...</div>
+      </div>
+    )
 
   return (
     <>
@@ -149,7 +154,8 @@ export default function BranchProtectionPage() {
             <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground mb-4">No branch protection rules</p>
             <p className="text-sm text-muted-foreground max-w-md mx-auto mb-4">
-              Branch protection rules help you enforce workflows by requiring status checks and reviews before merging.
+              Branch protection rules help you enforce workflows by requiring status checks and
+              reviews before merging.
             </p>
             <Button onClick={handleCreate}>
               <Plus className="h-4 w-4 mr-2" />
@@ -159,7 +165,10 @@ export default function BranchProtectionPage() {
         ) : (
           <div className="space-y-4">
             {rules.map((rule) => (
-              <div key={rule.id} className="border rounded-lg p-6 hover:bg-muted/30 transition-colors">
+              <div
+                key={rule.id}
+                className="border rounded-lg p-6 hover:bg-muted/30 transition-colors"
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0 space-y-4">
                     <div className="flex items-center gap-3">
@@ -171,7 +180,11 @@ export default function BranchProtectionPage() {
                       <div className="space-y-2">
                         <h4 className="text-sm font-medium">Pull Request Settings</h4>
                         <div className="flex items-center gap-2 text-sm">
-                          {rule.requirePullRequest ? <Check className="h-4 w-4 text-green-500" /> : <X className="h-4 w-4 text-gray-400" />}
+                          {rule.requirePullRequest ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <X className="h-4 w-4 text-gray-400" />
+                          )}
                           <span className={rule.requirePullRequest ? '' : 'text-muted-foreground'}>
                             Require pull request
                           </span>
@@ -181,14 +194,24 @@ export default function BranchProtectionPage() {
                           <Badge variant="outline">{rule.requiredApprovingReviews}</Badge>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                          {rule.dismissStaleReviews ? <Check className="h-4 w-4 text-green-500" /> : <X className="h-4 w-4 text-gray-400" />}
+                          {rule.dismissStaleReviews ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <X className="h-4 w-4 text-gray-400" />
+                          )}
                           <span className={rule.dismissStaleReviews ? '' : 'text-muted-foreground'}>
                             Dismiss stale reviews
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                          {rule.requireCodeOwnerReview ? <Check className="h-4 w-4 text-green-500" /> : <X className="h-4 w-4 text-gray-400" />}
-                          <span className={rule.requireCodeOwnerReview ? '' : 'text-muted-foreground'}>
+                          {rule.requireCodeOwnerReview ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <X className="h-4 w-4 text-gray-400" />
+                          )}
+                          <span
+                            className={rule.requireCodeOwnerReview ? '' : 'text-muted-foreground'}
+                          >
                             Require code owner review
                           </span>
                         </div>
@@ -197,14 +220,30 @@ export default function BranchProtectionPage() {
                       <div className="space-y-2">
                         <h4 className="text-sm font-medium">Advanced Settings</h4>
                         <div className="flex items-center gap-2 text-sm">
-                          {rule.allowForcePushes ? <Check className="h-4 w-4 text-orange-500" /> : <X className="h-4 w-4 text-gray-400" />}
-                          <span className={rule.allowForcePushes ? 'text-orange-600' : 'text-muted-foreground'}>
+                          {rule.allowForcePushes ? (
+                            <Check className="h-4 w-4 text-orange-500" />
+                          ) : (
+                            <X className="h-4 w-4 text-gray-400" />
+                          )}
+                          <span
+                            className={
+                              rule.allowForcePushes ? 'text-orange-600' : 'text-muted-foreground'
+                            }
+                          >
                             Allow force pushes
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                          {rule.allowDeletions ? <Check className="h-4 w-4 text-red-500" /> : <X className="h-4 w-4 text-gray-400" />}
-                          <span className={rule.allowDeletions ? 'text-red-600' : 'text-muted-foreground'}>
+                          {rule.allowDeletions ? (
+                            <Check className="h-4 w-4 text-red-500" />
+                          ) : (
+                            <X className="h-4 w-4 text-gray-400" />
+                          )}
+                          <span
+                            className={
+                              rule.allowDeletions ? 'text-red-600' : 'text-muted-foreground'
+                            }
+                          >
                             Allow branch deletion
                           </span>
                         </div>
@@ -217,11 +256,7 @@ export default function BranchProtectionPage() {
                   </div>
 
                   <div className="flex gap-2 flex-shrink-0 ml-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(rule)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => handleEdit(rule)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button

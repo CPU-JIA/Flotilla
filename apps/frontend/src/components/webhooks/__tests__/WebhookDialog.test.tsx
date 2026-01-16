@@ -56,10 +56,13 @@ describe('WebhookDialog', () => {
         />
       )
 
-      await waitFor(() => {
-        const urlInput = screen.getByLabelText(/webhook url/i)
-        expect(urlInput).toHaveFocus()
-      }, { timeout: 300 })
+      await waitFor(
+        () => {
+          const urlInput = screen.getByLabelText(/webhook url/i)
+          expect(urlInput).toHaveFocus()
+        },
+        { timeout: 300 }
+      )
     })
 
     it('should validate required URL field', async () => {
@@ -125,9 +128,7 @@ describe('WebhookDialog', () => {
       await user.click(submitButton)
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/url must start with http:\/\/ or https:\/\//i)
-        ).toBeInTheDocument()
+        expect(screen.getByText(/url must start with http:\/\/ or https:\/\//i)).toBeInTheDocument()
       })
 
       expect(mockOnSubmit).not.toHaveBeenCalled()
@@ -151,9 +152,7 @@ describe('WebhookDialog', () => {
       await user.click(submitButton)
 
       await waitFor(() => {
-        expect(
-          screen.getByText(/at least one event must be selected/i)
-        ).toBeInTheDocument()
+        expect(screen.getByText(/at least one event must be selected/i)).toBeInTheDocument()
       })
 
       expect(mockOnSubmit).not.toHaveBeenCalled()
@@ -417,9 +416,12 @@ describe('WebhookDialog', () => {
       )
 
       // Wait for reset animation
-      await waitFor(() => {
-        // Form should be reset after closing
-      }, { timeout: 300 })
+      await waitFor(
+        () => {
+          // Form should be reset after closing
+        },
+        { timeout: 300 }
+      )
 
       // Reopen dialog
       rerender(

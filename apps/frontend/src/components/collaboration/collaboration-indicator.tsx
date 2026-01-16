@@ -34,16 +34,13 @@ export function CollaborationIndicator({
 
   return (
     <div
-      className={cn(
-        'flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border',
-        className,
-      )}
+      className={cn('flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg border', className)}
     >
       <div className="flex items-center gap-1">
         <div
           className={cn(
             'w-2 h-2 rounded-full',
-            connected ? 'bg-green-500 animate-pulse' : 'bg-gray-400',
+            connected ? 'bg-green-500 animate-pulse' : 'bg-gray-400'
           )}
         />
         <span className="text-xs text-muted-foreground">
@@ -61,15 +58,8 @@ export function CollaborationIndicator({
 
       <div className="flex -space-x-2">
         {activeUsers.slice(0, 5).map((user) => (
-          <div
-            key={user.id}
-            className="relative"
-            title={user.username}
-          >
-            <Avatar
-              className="w-7 h-7 border-2"
-              style={{ borderColor: user.color }}
-            >
+          <div key={user.id} className="relative" title={user.username}>
+            <Avatar className="w-7 h-7 border-2" style={{ borderColor: user.color }}>
               <AvatarImage src={user.avatar || undefined} />
               <AvatarFallback style={{ backgroundColor: user.color }}>
                 {user.username.charAt(0).toUpperCase()}

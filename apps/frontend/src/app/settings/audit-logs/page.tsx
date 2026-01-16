@@ -4,6 +4,7 @@
 
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useEffect, useState, useCallback } from 'react'
 import { api } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
@@ -32,7 +33,7 @@ export default function AuditLogsPage() {
       const data = await api.audit.getUserLogs()
       setLogs(data)
     } catch (error) {
-      console.error('Failed to load audit logs:', error)
+      logger.error('Failed to load audit logs:', error)
     } finally {
       setLoading(false)
     }
@@ -51,11 +52,7 @@ export default function AuditLogsPage() {
       DELETE: 'bg-red-500',
       ACCESS: 'bg-purple-500',
     }
-    return (
-      <Badge className={colors[action] || 'bg-gray-500'}>
-        {action}
-      </Badge>
-    )
+    return <Badge className={colors[action] || 'bg-gray-500'}>{action}</Badge>
   }
 
   const formatUserAgent = (ua: string | null) => {
@@ -67,11 +64,12 @@ export default function AuditLogsPage() {
     return 'Other'
   }
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <div className="text-muted-foreground">Loading activity logs...</div>
-    </div>
-  )
+  if (loading)
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-muted-foreground">Loading activity logs...</div>
+      </div>
+    )
 
   return (
     <div className="container mx-auto py-6 max-w-6xl">

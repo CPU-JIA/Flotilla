@@ -6,6 +6,7 @@
  * ECP-C1: 防御性编程 - 完整的状态机和错误处理
  */
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -85,7 +86,7 @@ export default function VerifyEmailPage() {
         setState('ERROR')
         setErrorType('UNKNOWN')
         setErrorMessage('验证链接检查失败，请重试')
-        console.error('Token validation error:', error)
+        logger.error('Token validation error:', error)
       }
     }
 
@@ -149,8 +150,18 @@ export default function VerifyEmailPage() {
         <div className="space-y-6">
           <div className="flex flex-col items-center py-4">
             <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="w-8 h-8 text-green-600 dark:text-green-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-green-600 dark:text-green-400 mb-2">
@@ -159,16 +170,11 @@ export default function VerifyEmailPage() {
             <p className="text-sm text-muted-foreground text-center mb-4">
               您的邮箱已成功验证，现在可以登录使用所有功能
             </p>
-            <p className="text-xs text-muted-foreground">
-              {countdown}秒后自动跳转到登录页面...
-            </p>
+            <p className="text-xs text-muted-foreground">{countdown}秒后自动跳转到登录页面...</p>
           </div>
 
           <div className="flex flex-col space-y-3">
-            <Button
-              onClick={handleImmediateRedirect}
-              className="w-full"
-            >
+            <Button onClick={handleImmediateRedirect} className="w-full">
               立即登录
             </Button>
           </div>
@@ -181,8 +187,18 @@ export default function VerifyEmailPage() {
       <div className="space-y-6">
         <div className="flex flex-col items-center py-4">
           <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mb-4">
-            <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-8 h-8 text-red-600 dark:text-red-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -191,9 +207,7 @@ export default function VerifyEmailPage() {
             {errorType === 'ALREADY_VERIFIED' && '邮箱已验证'}
             {errorType === 'UNKNOWN' && '验证失败'}
           </h3>
-          <p className="text-sm text-muted-foreground text-center mb-4">
-            {errorMessage}
-          </p>
+          <p className="text-sm text-muted-foreground text-center mb-4">{errorMessage}</p>
           {expiresAt && (
             <p className="text-xs text-muted-foreground">
               过期时间: {new Date(expiresAt).toLocaleString('zh-CN')}
@@ -204,7 +218,8 @@ export default function VerifyEmailPage() {
           {errorType === 'INVALID' && errorMessage.includes('不存在或已被使用') && (
             <div className="mt-4 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
               <p className="text-xs text-yellow-800 dark:text-yellow-200 text-center">
-                💡 提示：如果您多次请求了验证邮件，请使用<span className="font-semibold">最新邮件</span>中的验证链接。
+                💡 提示：如果您多次请求了验证邮件，请使用
+                <span className="font-semibold">最新邮件</span>中的验证链接。
                 旧链接会在新邮件发送后失效。
               </p>
             </div>
@@ -213,18 +228,12 @@ export default function VerifyEmailPage() {
 
         <div className="flex flex-col space-y-3">
           {errorType === 'ALREADY_VERIFIED' ? (
-            <Button
-              onClick={() => router.push('/auth/login')}
-              className="w-full"
-            >
+            <Button onClick={() => router.push('/auth/login')} className="w-full">
               前往登录
             </Button>
           ) : (
             <>
-              <Button
-                onClick={() => router.push('/auth/login')}
-                className="w-full"
-              >
+              <Button onClick={() => router.push('/auth/login')} className="w-full">
                 返回登录
               </Button>
               <Link
@@ -244,9 +253,7 @@ export default function VerifyEmailPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-8 bg-gradient-to-br from-blue-50 via-yellow-50 to-gray-100 dark:from-blue-950 dark:via-gray-950 dark:to-yellow-950">
       <div className="bg-card rounded-[14px] p-8 max-w-md w-full border border-border shadow-2xl">
         <div className="space-y-1 mb-6">
-          <h1 className="text-2xl font-bold text-center text-foreground">
-            邮箱验证
-          </h1>
+          <h1 className="text-2xl font-bold text-center text-foreground">邮箱验证</h1>
           <p className="text-center text-muted-foreground">
             {state === 'VALIDATING' && '正在检查验证链接'}
             {state === 'VERIFYING' && '正在验证您的邮箱'}

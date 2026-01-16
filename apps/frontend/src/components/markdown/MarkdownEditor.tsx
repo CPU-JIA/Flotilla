@@ -56,9 +56,7 @@ export function MarkdownEditor({
           {value ? (
             <MarkdownPreview content={value} />
           ) : (
-            <p className="text-muted-foreground italic">
-              {t.issues.detail.noDescription}
-            </p>
+            <p className="text-muted-foreground italic">{t.issues.detail.noDescription}</p>
           )}
         </div>
       </TabsContent>

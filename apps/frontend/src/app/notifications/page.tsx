@@ -1,5 +1,6 @@
 'use client'
 
+import { logger } from '@/lib/logger'
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -8,11 +9,7 @@ import { useLanguage } from '@/contexts/language-context'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Button } from '@/components/ui/button'
 import { apiRequest } from '@/lib/api'
-import {
-  Notification,
-  NotificationListResponse,
-  NotificationType,
-} from '@/types/notification'
+import { Notification, NotificationListResponse, NotificationType } from '@/types/notification'
 import { Bell, Check, Trash2, ExternalLink } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { zhCN, enUS } from 'date-fns/locale'
@@ -47,14 +44,12 @@ export default function NotificationsPage() {
         params.append('read', 'false')
       }
 
-      const data = await apiRequest<NotificationListResponse>(
-        `/notifications?${params.toString()}`
-      )
+      const data = await apiRequest<NotificationListResponse>(`/notifications?${params.toString()}`)
       setNotifications(data.notifications)
       setTotal(data.total)
       setHasMore(data.hasMore)
     } catch (err) {
-      console.error('Failed to fetch notifications:', err)
+      logger.error('Failed to fetch notifications:', err)
     } finally {
       setLoading(false)
     }
@@ -71,11 +66,9 @@ export default function NotificationsPage() {
       await apiRequest(`/notifications/${id}/read`, {
         method: 'PATCH',
       })
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-      )
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
     } catch (err) {
-      console.error('Failed to mark as read:', err)
+      logger.error('Failed to mark as read:', err)
     }
   }
 
@@ -86,7 +79,7 @@ export default function NotificationsPage() {
       })
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
     } catch (err) {
-      console.error('Failed to mark all as read:', err)
+      logger.error('Failed to mark all as read:', err)
     }
   }
 
@@ -98,7 +91,7 @@ export default function NotificationsPage() {
       setNotifications((prev) => prev.filter((n) => n.id !== id))
       setTotal((prev) => prev - 1)
     } catch (err) {
-      console.error('Failed to delete notification:', err)
+      logger.error('Failed to delete notification:', err)
     }
   }
 
@@ -122,7 +115,10 @@ export default function NotificationsPage() {
 
   return (
     <AppLayout>
-      <div className="bg-card rounded-[14px] p-6" style={{ boxShadow: '10px 10px 15px rgba(0,0,0,0.1)' }}>
+      <div
+        className="bg-card rounded-[14px] p-6"
+        style={{ boxShadow: '10px 10px 15px rgba(0,0,0,0.1)' }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -145,8 +141,8 @@ export default function NotificationsPage() {
                   ? '仅未读'
                   : 'Unread Only'
                 : language === 'zh'
-                ? '全部'
-                : 'All'}
+                  ? '全部'
+                  : 'All'}
             </Button>
             <Button variant="outline" size="sm" onClick={markAllAsRead}>
               <Check className="h-4 w-4 mr-1" />
@@ -258,11 +254,7 @@ export default function NotificationsPage() {
             <span className="text-sm text-muted-foreground">
               {language === 'zh' ? `第 ${page} 页` : `Page ${page}`}
             </span>
-            <Button
-              variant="outline"
-              onClick={() => setPage((p) => p + 1)}
-              disabled={!hasMore}
-            >
+            <Button variant="outline" onClick={() => setPage((p) => p + 1)} disabled={!hasMore}>
               {language === 'zh' ? '下一页' : 'Next'}
             </Button>
           </div>
